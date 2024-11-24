@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using DC_bot.Interface;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;

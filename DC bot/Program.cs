@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using DC_bot.Commands;
+﻿using DC_bot.Commands;
 using DC_bot.Interface;
 using DC_bot.Services;
 using DC_bot.Wrapper;

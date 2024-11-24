@@ -1,10 +1,9 @@
-using System;
-using System.Threading.Tasks;
 using DC_bot.Services;
 using Discord;
 using DotNetEnv;
 using Moq;
 using Xunit;
+using System.Threading.Tasks;
 using IDiscordClient = DC_bot.Interface.IDiscordClient;
 
 namespace DC_bot_test.Tests.Services;

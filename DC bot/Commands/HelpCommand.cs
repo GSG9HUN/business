@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using DC_bot.Interface;
 using Discord.WebSocket;
 

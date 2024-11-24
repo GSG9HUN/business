@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Discord;
 using IDiscordClient = DC_bot.Interface.IDiscordClient;
 
@@ -25,7 +23,7 @@ namespace DC_bot.Services
             _client.MessageReceived += _commandHandler.HandleCommandAsync;
             if (!isTestEnvironment)
             {
-                await Task.Delay(-1); // Csak nem teszt környezetben várakozik végtelenül
+                await Task.Delay(-1); // Csak nem teszt környezetben várakozik
             }
         }
 
