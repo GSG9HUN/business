@@ -1,0 +1,63 @@
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DC bot.exe
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DC bot.deps.json
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DC bot.runtimeconfig.json
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DC bot.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DC bot.pdb
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Discord.Net.Core.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Discord.Net.Rest.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Discord.Net.Webhook.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Discord.Net.WebSocket.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\System.Interactive.Async.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\System.Linq.Async.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.csproj.AssemblyReference.cache
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.AssemblyInfoInputs.cache
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.AssemblyInfo.cs
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.csproj.CoreCompileInputs.cache
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.csproj.Up2Date
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\refint\DC bot.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.pdb
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\DC bot.genruntimeconfig.cache
+C:\Users\olahs\RiderProjects\DC bot\DC bot\obj\Debug\net8.0\ref\DC bot.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\DotNetEnv.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Configuration.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Users\olahs\RiderProjects\DC bot\DC bot\bin\Debug\net8.0\Sprache.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DC bot.exe
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DC bot.deps.json
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DC bot.runtimeconfig.json
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DC bot.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DC bot.pdb
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Discord.Net.Core.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Discord.Net.Rest.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Discord.Net.Webhook.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Discord.Net.WebSocket.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\DotNetEnv.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Configuration.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\Sprache.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\System.Interactive.Async.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\bin\Debug\net8.0\System.Linq.Async.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.csproj.AssemblyReference.cache
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.AssemblyInfoInputs.cache
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.AssemblyInfo.cs
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.csproj.CoreCompileInputs.cache
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.sourcelink.json
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.csproj.Up2Date
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\refint\DC bot.dll
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.pdb
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\DC bot.genruntimeconfig.cache
+C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot\obj\Debug\net8.0\ref\DC bot.dll
