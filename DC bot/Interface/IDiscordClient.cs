@@ -1,5 +1,5 @@
-using Discord;
-using Discord.WebSocket;
+using DSharpPlus;
+using DSharpPlus.Entities;
 
 namespace DC_bot.Interface;
 
@@ -7,6 +7,5 @@ public interface IDiscordClient
 {
     Task LoginAsync(TokenType tokenType, string token);
     Task StartAsync();
-    event Func<SocketMessage, Task> MessageReceived;
-    event Func<LogMessage, Task> Log;
+    event Func<DiscordMessage, Task> MessageReceived;
 }

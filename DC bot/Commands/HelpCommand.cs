@@ -1,15 +1,18 @@
 using DC_bot.Interface;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands
 {
-    public class HelpCommand : ICommand
+    public class HelpCommand(ILogger<PlayCommand> _logger) : ICommand
     {
         public string Name => "help";
+        public string Description => "Lists all available commands";
 
-        public async Task ExecuteAsync(SocketMessage message)
+        public async Task ExecuteAsync(DiscordMessage message)
         {
-            await message.Channel.SendMessageAsync("Available commands: !ping, !help");
+            await message.RespondAsync($"Available commands:\n semmi");
+            _logger.LogInformation("Help Command executed!");
         }
     }
 }

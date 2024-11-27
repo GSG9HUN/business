@@ -9,6 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Discord.Net.Commands" Version="3.16.0" />
+      <PackageReference Include="Discord.Net.Core" Version="3.16.0" />
+      <PackageReference Include="Discord.Net.Interactions" Version="3.16.0" />
+      <PackageReference Include="Discord.Net.Rest" Version="3.16.0" />
       <PackageReference Include="Discord.Net.WebSocket" Version="3.16.0" />
       <PackageReference Include="DotNetEnv" Version="3.1.1" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
@@ -18,6 +22,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="YoutubeExplode" Version="6.4.4" />
     </ItemGroup>
 
     <ItemGroup>

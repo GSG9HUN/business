@@ -1,16 +1,18 @@
 using DC_bot.Interface;
-using Discord.WebSocket;
-using IMessage = Discord.IMessage;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands
 {
-    public class PingCommand : ICommand
+    public class PingCommand(ILogger<PingCommand> _logger) : ICommand
     {
         public string Name => "ping";
+        public string Description => "Answer with pong!";
 
-        public async Task ExecuteAsync(SocketMessage message)
+        public async Task ExecuteAsync(DiscordMessage message)
         {
             await message.Channel.SendMessageAsync("Pong!");
+            _logger.LogInformation("Ping command executed!");
         }
     }
 }
