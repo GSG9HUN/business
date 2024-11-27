@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\olahs\\RiderProjects\\DC bot\\DC bot\\DC bot.csproj": {}
+    "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot\\DC bot.csproj": {}
   },
   "projects": {
-    "C:\\Users\\olahs\\RiderProjects\\DC bot\\DC bot\\DC bot.csproj": {
+    "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot\\DC bot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\olahs\\RiderProjects\\DC bot\\DC bot\\DC bot.csproj",
+        "projectUniqueName": "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot\\DC bot.csproj",
         "projectName": "DC bot",
-        "projectPath": "C:\\Users\\olahs\\RiderProjects\\DC bot\\DC bot\\DC bot.csproj",
+        "projectPath": "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot\\DC bot.csproj",
         "packagesPath": "C:\\Users\\olahs\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\olahs\\RiderProjects\\DC bot\\DC bot\\obj\\",
+        "outputPath": "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\olahs\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -43,13 +43,33 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Discord.Net.WebSocket": {
+            "DSharpPlus": {
               "target": "Package",
-              "version": "[3.16.0, )"
+              "version": "[4.5.0, )"
             },
-            "Discord.Net.Webhook": {
+            "DSharpPlus.CommandsNext": {
               "target": "Package",
-              "version": "[3.16.0, )"
+              "version": "[4.5.0, )"
+            },
+            "DSharpPlus.Interactivity": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
+            "DSharpPlus.Lavalink": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
+            "DSharpPlus.Rest": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
+            "DSharpPlus.SlashCommands": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
+            "DSharpPlus.VoiceNext": {
+              "target": "Package",
+              "version": "[4.5.0, )"
             },
             "DotNetEnv": {
               "target": "Package",
@@ -58,6 +78,18 @@
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Console": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "YoutubeExplode": {
+              "target": "Package",
+              "version": "[6.4.4, )"
             }
           },
           "imports": [

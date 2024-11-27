@@ -1,10 +1,11 @@
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 
 namespace DC_bot.Interface
 {
     public interface ICommand
     {
         string Name { get; }
-        Task ExecuteAsync(SocketMessage message);
+        string Description { get; }
+        Task ExecuteAsync(DiscordMessage message);
     }
 }

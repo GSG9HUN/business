@@ -1,32 +1,23 @@
 using DC_bot.Interface;
-using Discord.WebSocket;
+using DSharpPlus;
+using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Services
 {
-    public class CommandHandler
+    public class CommandHandler(IServiceProvider services, ILogger<CommandHandler> _logger)
     {
-        private readonly IServiceProvider _services;
-
-        public CommandHandler()
+        public async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
         {
-        }
+            if (args.Message is not { } message) return;
 
-        public CommandHandler(IServiceProvider services)
-        {
-            _services = services;
-        }
-
-        public async Task HandleCommandAsync(SocketMessage rawMessage)
-        {
-            if (rawMessage is not SocketUserMessage message) return;
-
-            if (message.Author.IsBot) return;
+            if (args.Author.IsBot) return;
 
             if (message.Content.StartsWith("!"))
             {
                 var commandName = message.Content.Substring(1).Split(' ')[0];
-                var command = _services.GetServices<ICommand>().FirstOrDefault(command => command.Name == commandName);
+                var command = services.GetServices<ICommand>().FirstOrDefault(command => command.Name == commandName);
 
                 if (command != null)
                 {
@@ -34,7 +25,8 @@ namespace DC_bot.Services
                 }
                 else
                 {
-                    await message.Channel.SendMessageAsync("I don't know how to do this!");
+                    await message.Channel.SendMessageAsync("Unknown command. Use `!help` to see available commands.");
+                    _logger.LogInformation("Unknown command. Use `!help` to see available commands.");
                 }
             }
         }
