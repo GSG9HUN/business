@@ -3,6 +3,7 @@ using DC_bot.Interface;
 using DC_bot.Services;
 using DC_bot.Wrapper;
 using DotNetEnv;
+using DSharpPlus.Lavalink;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -52,11 +53,15 @@ namespace DC_bot
                 .AddSingleton<ICommand, PingCommand>()
                 .AddSingleton<ICommand, HelpCommand>()
                 .AddSingleton<ICommand, PlayCommand>()
+                .AddSingleton<ICommand, PauseCommand>()
+                .AddSingleton<ICommand, ResumeCommand>()
+                .AddSingleton<ICommand, SkipCommand>()
+                .AddSingleton<ICommand, ViewQueueCommand>()
                 .BuildServiceProvider();
-            
+
             var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
             SingletonDiscordClient.InitializeLogger(logger);
-            
+
             return services;
         }
     }
