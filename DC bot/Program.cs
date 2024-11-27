@@ -3,7 +3,6 @@ using DC_bot.Interface;
 using DC_bot.Services;
 using DC_bot.Wrapper;
 using DotNetEnv;
-using DSharpPlus.Lavalink;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -50,6 +49,7 @@ namespace DC_bot
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<BotService>()
                 .AddSingleton<LavaLinkService>()
+                .AddSingleton<ICommand, TagCommand>()
                 .AddSingleton<ICommand, PingCommand>()
                 .AddSingleton<ICommand, HelpCommand>()
                 .AddSingleton<ICommand, PlayCommand>()
