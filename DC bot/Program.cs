@@ -3,7 +3,6 @@ using DC_bot.Interface;
 using DC_bot.Services;
 using DC_bot.Wrapper;
 using DotNetEnv;
-using DSharpPlus.Lavalink;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
