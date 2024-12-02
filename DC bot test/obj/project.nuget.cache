@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "zrQnHsGe/4Y=",
+  "dgSpecHash": "NL9ciaY4S1U=",
   "success": true,
   "projectFilePath": "C:\\Users\\olahs\\OneDrive\\Documents\\GitHub\\business\\DC bot test\\DC bot test.csproj",
   "expectedPackageFiles": [
@@ -21,6 +21,7 @@
     "C:\\Users\\olahs\\.nuget\\packages\\dsharpplus.slashcommands\\4.5.0\\dsharpplus.slashcommands.4.5.0.nupkg.sha512",
     "C:\\Users\\olahs\\.nuget\\packages\\dsharpplus.voicenext\\4.5.0\\dsharpplus.voicenext.4.5.0.nupkg.sha512",
     "C:\\Users\\olahs\\.nuget\\packages\\dsharpplus.voicenext.natives\\1.0.0\\dsharpplus.voicenext.natives.1.0.0.nupkg.sha512",
+    "C:\\Users\\olahs\\.nuget\\packages\\jetbrains.annotations\\2024.3.0\\jetbrains.annotations.2024.3.0.nupkg.sha512",
     "C:\\Users\\olahs\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "C:\\Users\\olahs\\.nuget\\packages\\microsoft.codecoverage\\17.12.0\\microsoft.codecoverage.17.12.0.nupkg.sha512",
     "C:\\Users\\olahs\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.0\\microsoft.extensions.configuration.9.0.0.nupkg.sha512",
