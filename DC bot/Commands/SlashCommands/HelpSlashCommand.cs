@@ -20,9 +20,9 @@ namespace DC_bot.Commands.SlashCommands
             var commands = ServiceLocator.GetServices<ICommand>();
             var response = commands.Aggregate(String.Empty, (current, command) => current + $"{command.Name} : {command.Description}\n");
 
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent($"Available commands:\n{response}"));
-
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                .WithContent($"Available commands:\n{response}"));
+            
             _logger.LogInformation("Help Command executed!");
         }
     }
