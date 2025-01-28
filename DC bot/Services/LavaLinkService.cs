@@ -13,6 +13,9 @@ namespace DC_bot.Services
         private readonly ILogger<LavaLinkService> _logger;
         private readonly MusicQueueService _musicQueueService = new();
         private bool _isPlaybackFinishedRegistered = false;
+        private LavalinkTrack _currentTrack;
+        private bool _isTrackProcessing = false;
+        public bool IsRepeating { get; set; }
 
         public LavaLinkService(ILogger<LavaLinkService> logger)
         {
@@ -89,6 +92,7 @@ namespace DC_bot.Services
                     connection.PlaybackFinished += async (conn, args) =>
                         await OnTrackFinished(conn, args, textChannel);
                     _isPlaybackFinishedRegistered = true;
+                    _logger.LogInformation("PlaybackFinished event registered.");
                 }
 
                 var searchQuery = await node.Rest.GetTracksAsync(url);
@@ -137,8 +141,8 @@ namespace DC_bot.Services
                     connection.PlaybackFinished += async (conn, args) =>
                         await OnTrackFinished(conn, args, textChannel);
                     _isPlaybackFinishedRegistered = true;
+                    _logger.LogInformation("PlaybackFinished event registered.");
                 }
-
 
                 var searchQuery = await node.Rest.GetTracksAsync(query);
 
@@ -168,6 +172,7 @@ namespace DC_bot.Services
                 await connection.PlayAsync(musicTrack);
                 await textChannel.SendMessageAsync($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
                 _logger.LogInformation($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
+                _currentTrack = musicTrack;
             }
             else
             {
@@ -273,9 +278,18 @@ namespace DC_bot.Services
 
         private async Task OnTrackFinished(LavalinkGuildConnection connection,
             TrackFinishEventArgs args, DiscordChannel textChannel)
-        {
-            if ((args.Reason == TrackEndReason.Finished || args.Reason == TrackEndReason.Stopped) &&
-                _musicQueueService.HasTracks)
+        { 
+            var finishedOrStopped = args.Reason is TrackEndReason.Finished or TrackEndReason.Stopped;
+            
+            if (finishedOrStopped && IsRepeating)
+            {
+                await connection.PlayAsync(_currentTrack);
+                await textChannel.SendMessageAsync($"Repeating: {_currentTrack.Author} - {_currentTrack.Title}");
+                _logger.LogInformation($"Repeating: {_currentTrack.Author} - {_currentTrack.Title}");
+                return;
+            }
+
+            if (finishedOrStopped && _musicQueueService.HasTracks)
             {
                 var nextTrack = _musicQueueService.Dequeue();
                 await connection.PlayAsync(nextTrack);
@@ -292,6 +306,11 @@ namespace DC_bot.Services
         public IReadOnlyCollection<LavalinkTrack> ViewQueue()
         {
             return _musicQueueService.ViewQueue();
+        }
+
+        public string GetCurrentTrack()
+        {
+            return _currentTrack.Author + " " + _currentTrack.Title;
         }
     }
 }
