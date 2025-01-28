@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Lavalink;
+using DSharpPlus.SlashCommands;
 
 namespace DC_bot.Services
 {

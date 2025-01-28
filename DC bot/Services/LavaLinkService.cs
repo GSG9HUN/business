@@ -61,7 +61,7 @@ namespace DC_bot.Services
             _logger.LogInformation("Lavalink node connected successfully");
         }
 
-        public async Task PlayAsync(DiscordChannel voiceStateChannel, Uri url, DiscordChannel textChannel)
+        public async Task PlayAsyncURL(DiscordChannel voiceStateChannel, Uri url, DiscordChannel textChannel)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace DC_bot.Services
             }
         }
 
-        public async Task PlayAsync(DiscordChannel voiceStateChannel, string query, DiscordChannel textChannel)
+        public async Task PlayAsyncQuery(DiscordChannel voiceStateChannel, string query, DiscordChannel textChannel)
         {
             try
             {
@@ -274,7 +274,6 @@ namespace DC_bot.Services
         private async Task OnTrackFinished(LavalinkGuildConnection connection,
             TrackFinishEventArgs args, DiscordChannel textChannel)
         {
-            Console.Write("hello");
             if ((args.Reason == TrackEndReason.Finished || args.Reason == TrackEndReason.Stopped) &&
                 _musicQueueService.HasTracks)
             {

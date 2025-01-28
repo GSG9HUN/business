@@ -1,8 +1,10 @@
 ﻿using DC_bot.Commands;
+using DC_bot.Commands.SlashCommands;
 using DC_bot.Interface;
 using DC_bot.Services;
 using DC_bot.Wrapper;
 using DotNetEnv;
+using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +14,7 @@ namespace DC_bot
     {
         private IServiceProvider _services;
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName;
             if (directoryInfo == null)
@@ -61,8 +63,20 @@ namespace DC_bot
 
             var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
             SingletonDiscordClient.InitializeLogger(logger);
-
+            ServiceLocator.SetServiceProvider(services);
+            RegisterSlashCommands();
             return services;
+        }
+
+        private void RegisterSlashCommands()
+        {
+            var discordClient = SingletonDiscordClient.Instance;
+            var slashCommandsConfig = discordClient.UseSlashCommands();
+            slashCommandsConfig.RefreshCommands();
+            slashCommandsConfig.RegisterCommands<TagSlashCommand>(1309813939563003966);
+            slashCommandsConfig.RegisterCommands<PingSlashCommand>(1309813939563003966);
+            slashCommandsConfig.RegisterCommands<HelpSlashCommand>(1309813939563003966);
+            slashCommandsConfig.RegisterCommands<PlaySlashCommand>(1309813939563003966);
         }
     }
 }

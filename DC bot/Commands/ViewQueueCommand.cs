@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Services;
 using DSharpPlus.Entities;

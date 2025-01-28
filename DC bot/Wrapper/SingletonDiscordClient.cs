@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
@@ -35,7 +37,8 @@ public class SingletonDiscordClient
                     {
                         Token = token,
                         TokenType = TokenType.Bot,
-                        Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents,
+                        Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents |
+                                  DiscordIntents.GuildMembers | DiscordIntents.Guilds,
                         AutoReconnect = true
                     });
 
