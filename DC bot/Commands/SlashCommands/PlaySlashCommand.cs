@@ -43,7 +43,7 @@ namespace DC_bot.Commands.SlashCommands
             var textChannel = ctx.Channel;
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
-                await _lavaLinkService.PlayAsyncURL(member.VoiceState.Channel, url, textChannel);
+                await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
             }
             else
             {

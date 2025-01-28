@@ -6,6 +6,7 @@ namespace DC_bot.Services;
 public class MusicQueueService
 {
     private readonly Queue<LavalinkTrack> _queue = new();
+    public Queue<LavalinkTrack> repeatableQueue = new();
     public bool HasTracks => _queue.Count > 0;
 
     public void Enqueue(LavalinkTrack track)
@@ -21,5 +22,15 @@ public class MusicQueueService
     public IReadOnlyCollection<LavalinkTrack> ViewQueue()
     {
         return _queue;
+    }
+
+    public void Clone(LavalinkTrack currentTrack)
+    {
+        repeatableQueue.Clear();
+        repeatableQueue.Enqueue(currentTrack);
+        foreach (var track in _queue)
+        {
+            repeatableQueue.Enqueue(track);
+        }
     }
 }
