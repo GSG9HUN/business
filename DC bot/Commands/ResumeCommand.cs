@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Services;
 using DSharpPlus.Entities;
@@ -8,7 +9,7 @@ namespace DC_bot.Commands
     public class ResumeCommand(LavaLinkService _lavaLinkService, ILogger<ResumeCommand> _logger) : ICommand
     {
         public string Name => "resume";
-        public string Description => "Pause the current music.";
+        public string Description => "Resume the current music.";
 
         public async Task ExecuteAsync(DiscordMessage message)
         {

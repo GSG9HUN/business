@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.Services;
 using DC_bot.Wrapper;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,14 @@ namespace DC_bot.Commands
 
         public async Task ExecuteAsync(IMessageWrapper message)
         {
-            await message.RespondAsync($"Available commands:\n semmi");
+            var commands = ServiceLocator.GetServices<ICommand>();
+            string response = String.Empty;
+            foreach (var command in commands)
+            {
+                response += $"{command.Name} : {command.Description}\n";
+            }
+
+            await message.RespondAsync($"Available commands:\n{response}");
             _logger.LogInformation("Help Command executed!");
         }
     }

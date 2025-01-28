@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -8,13 +11,21 @@ namespace DC_bot.Services
 {
     public class CommandHandler(IServiceProvider services, ILogger<CommandHandler> _logger)
     {
+        private readonly string? _prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
+
         public async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
         {
+            if (_prefix == null)
+            {
+                _logger.LogError("No prefix provided");
+                return;
+            }
+
             if (args.Message is not { } message) return;
 
             if (args.Author.IsBot) return;
 
-            if (message.Content.StartsWith("!"))
+            if (message.Content.StartsWith(_prefix))
             {
                 var commandName = message.Content.Substring(1).Split(' ')[0];
                 var command = services.GetServices<ICommand>().FirstOrDefault(command => command.Name == commandName);

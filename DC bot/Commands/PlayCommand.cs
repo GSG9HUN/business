@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Services;
 using DSharpPlus.Entities;
@@ -33,11 +35,11 @@ namespace DC_bot.Commands
             var query = args[1].Trim();
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
-                await _lavaLinkService.PlayAsync(member!.VoiceState!.Channel, url, textChannel);
+                await _lavaLinkService.PlayAsyncURL(member!.VoiceState!.Channel, url, textChannel);
             }
             else
             {
-                await _lavaLinkService.PlayAsync(member!.VoiceState!.Channel, query, textChannel);
+                await _lavaLinkService.PlayAsyncQuery(member!.VoiceState!.Channel, query, textChannel);
             }
 
             _logger.LogInformation("Play command executed!");
