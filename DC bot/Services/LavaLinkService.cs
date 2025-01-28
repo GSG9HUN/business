@@ -14,8 +14,8 @@ namespace DC_bot.Services
         private readonly MusicQueueService _musicQueueService = new();
         private bool _isPlaybackFinishedRegistered = false;
         private LavalinkTrack _currentTrack;
-        private bool _isTrackProcessing = false;
         public bool IsRepeating { get; set; }
+        public bool IsRepeatingList { get; set; }
 
         public LavaLinkService(ILogger<LavaLinkService> logger)
         {
@@ -64,7 +64,7 @@ namespace DC_bot.Services
             _logger.LogInformation("Lavalink node connected successfully");
         }
 
-        public async Task PlayAsyncURL(DiscordChannel voiceStateChannel, Uri url, DiscordChannel textChannel)
+        public async Task PlayAsyncUrl(DiscordChannel voiceStateChannel, Uri url, DiscordChannel textChannel)
         {
             try
             {
@@ -162,26 +162,6 @@ namespace DC_bot.Services
             }
         }
 
-        private async Task PlayTheFoundMusic(LavalinkLoadResult searchQuery, LavalinkGuildConnection connection,
-            DiscordChannel textChannel)
-        {
-            var musicTrack = searchQuery.Tracks.First();
-
-            if (connection.CurrentState.CurrentTrack == null)
-            {
-                await connection.PlayAsync(musicTrack);
-                await textChannel.SendMessageAsync($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
-                _logger.LogInformation($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
-                _currentTrack = musicTrack;
-            }
-            else
-            {
-                _musicQueueService.Enqueue(musicTrack);
-                await textChannel.SendMessageAsync($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
-                _logger.LogInformation($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
-            }
-        }
-
         public async Task PauseAsync(DiscordChannel textChannel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
@@ -276,11 +256,57 @@ namespace DC_bot.Services
             await textChannel.SendMessageAsync("Skipped to the next track.");
         }
 
+        public IReadOnlyCollection<LavalinkTrack> ViewQueue()
+        {
+            return _musicQueueService.ViewQueue();
+        }
+
+        public string GetCurrentTrack()
+        {
+            return _currentTrack.Author + " " + _currentTrack.Title;
+        }
+
+        public string GetCurrentTrackList()
+        {
+            var response = _currentTrack.Author + " " + _currentTrack.Title + "\n";
+            foreach (var track in _musicQueueService.ViewQueue())
+            {
+                response += track.Author + " " + track.Title + "\n";
+            }
+
+            return response;
+        }
+
+        public void CloneQueue()
+        {
+            _musicQueueService.Clone(_currentTrack);
+        }
+
+        private async Task PlayTheFoundMusic(LavalinkLoadResult searchQuery, LavalinkGuildConnection connection,
+            DiscordChannel textChannel)
+        {
+            var musicTrack = searchQuery.Tracks.First();
+
+            if (connection.CurrentState.CurrentTrack == null)
+            {
+                await connection.PlayAsync(musicTrack);
+                await textChannel.SendMessageAsync($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
+                _logger.LogInformation($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
+                _currentTrack = musicTrack;
+            }
+            else
+            {
+                _musicQueueService.Enqueue(musicTrack);
+                await textChannel.SendMessageAsync($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
+                _logger.LogInformation($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
+            }
+        }
+
         private async Task OnTrackFinished(LavalinkGuildConnection connection,
             TrackFinishEventArgs args, DiscordChannel textChannel)
-        { 
+        {
             var finishedOrStopped = args.Reason is TrackEndReason.Finished or TrackEndReason.Stopped;
-            
+
             if (finishedOrStopped && IsRepeating)
             {
                 await connection.PlayAsync(_currentTrack);
@@ -291,26 +317,31 @@ namespace DC_bot.Services
 
             if (finishedOrStopped && _musicQueueService.HasTracks)
             {
-                var nextTrack = _musicQueueService.Dequeue();
-                await connection.PlayAsync(nextTrack);
-                await textChannel.SendMessageAsync($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
-                _logger.LogInformation($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
+                PlayTrackFromQueue(connection, textChannel);
+                return;
             }
-            else
+
+            if (finishedOrStopped && !_musicQueueService.HasTracks && IsRepeatingList)
             {
-                await textChannel.SendMessageAsync("Queue is empty. Playback has stopped.");
-                _logger.LogInformation($"Queue is empty. Playback has stopped.");
+                foreach (var track in _musicQueueService.repeatableQueue)
+                {
+                    _musicQueueService.Enqueue(track);
+                }
+
+                PlayTrackFromQueue(connection, textChannel);
+                return;
             }
+
+            await textChannel.SendMessageAsync("Queue is empty. Playback has stopped.");
+            _logger.LogInformation($"Queue is empty. Playback has stopped.");
         }
 
-        public IReadOnlyCollection<LavalinkTrack> ViewQueue()
+        private async void PlayTrackFromQueue(LavalinkGuildConnection connection, DiscordChannel textChannel)
         {
-            return _musicQueueService.ViewQueue();
-        }
-
-        public string GetCurrentTrack()
-        {
-            return _currentTrack.Author + " " + _currentTrack.Title;
+            var nextTrack = _musicQueueService.Dequeue();
+            await connection.PlayAsync(nextTrack);
+            await textChannel.SendMessageAsync($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
+            _logger.LogInformation($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
         }
     }
 }

@@ -56,6 +56,7 @@ namespace DC_bot
                 .AddSingleton<ICommand, HelpCommand>()
                 .AddSingleton<ICommand, PlayCommand>()
                 .AddSingleton<ICommand, RepeatCommand>()
+                .AddSingleton<ICommand, RepeatListCommand>()
                 .AddSingleton<ICommand, PauseCommand>()
                 .AddSingleton<ICommand, ResumeCommand>()
                 .AddSingleton<ICommand, SkipCommand>()

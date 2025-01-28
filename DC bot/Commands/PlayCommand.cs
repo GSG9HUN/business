@@ -35,7 +35,7 @@ namespace DC_bot.Commands
             var query = args[1].Trim();
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
-                await _lavaLinkService.PlayAsyncURL(member!.VoiceState!.Channel, url, textChannel);
+                await _lavaLinkService.PlayAsyncUrl(member!.VoiceState!.Channel, url, textChannel);
             }
             else
             {
