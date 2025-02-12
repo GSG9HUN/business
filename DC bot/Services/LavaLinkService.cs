@@ -1,4 +1,5 @@
 using DC_bot.Wrapper;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Lavalink;
 using DSharpPlus.Lavalink.EventArgs;
@@ -9,11 +10,14 @@ namespace DC_bot.Services
 {
     public class LavaLinkService
     {
+        // event használata, hogy értesítsük a új zene kezdődik és hogy adjon hozzá emojikat.
+        public event Func<DiscordChannel, DiscordClient, string, Task> TrackStarted;
+        
         private readonly LavalinkExtension _lavalink;
         private readonly ILogger<LavaLinkService> _logger;
         private readonly MusicQueueService _musicQueueService = new();
         private bool _isPlaybackFinishedRegistered = false;
-        private LavalinkTrack _currentTrack;
+        private LavalinkTrack? _currentTrack;
         public bool IsRepeating { get; set; }
         public bool IsRepeatingList { get; set; }
 
@@ -42,8 +46,8 @@ namespace DC_bot.Services
                 var endpoint = new ConnectionEndpoint
                 {
                     Hostname = Environment.GetEnvironmentVariable("LAVALINK_HOSTNAME"),
-                    Port = int.Parse(Environment.GetEnvironmentVariable("LAVALINK_PORT")),
-                    Secured = bool.Parse(Environment.GetEnvironmentVariable("LAVALINK_SECURED"))
+                    Port = int.Parse(Environment.GetEnvironmentVariable("LAVALINK_PORT") ?? throw new InvalidOperationException()),
+                    Secured = bool.Parse(Environment.GetEnvironmentVariable("LAVALINK_SECURED") ?? throw new InvalidOperationException())
                 };
 
                 var lavalinkConfig = new LavalinkConfiguration
@@ -190,7 +194,6 @@ namespace DC_bot.Services
             }
 
             await connection.PauseAsync();
-            await textChannel.SendMessageAsync($"Paused: {connection.CurrentState.CurrentTrack.Title}");
             _logger.LogInformation($"Paused: {connection.CurrentState.CurrentTrack.Title}");
         }
 
@@ -222,7 +225,6 @@ namespace DC_bot.Services
             }
 
             await connection.ResumeAsync();
-            await textChannel.SendMessageAsync($"Resumed: {connection.CurrentState.CurrentTrack.Title}");
             _logger.LogInformation($"Resumed: {connection.CurrentState.CurrentTrack.Title}");
         }
 
@@ -253,7 +255,6 @@ namespace DC_bot.Services
             }
 
             await connection.StopAsync();
-            await textChannel.SendMessageAsync("Skipped to the next track.");
         }
 
         public IReadOnlyCollection<LavalinkTrack> ViewQueue()
@@ -290,8 +291,8 @@ namespace DC_bot.Services
             if (connection.CurrentState.CurrentTrack == null)
             {
                 await connection.PlayAsync(musicTrack);
-                await textChannel.SendMessageAsync($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
-                _logger.LogInformation($"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
+                await TrackStarted.Invoke(textChannel, connection.Node.Discord,
+                    $"Music is playing : {musicTrack.Author} - {musicTrack.Title}");
                 _currentTrack = musicTrack;
             }
             else
@@ -307,41 +308,38 @@ namespace DC_bot.Services
         {
             var finishedOrStopped = args.Reason is TrackEndReason.Finished or TrackEndReason.Stopped;
 
-            if (finishedOrStopped && IsRepeating)
+            switch (finishedOrStopped)
             {
-                await connection.PlayAsync(_currentTrack);
-                await textChannel.SendMessageAsync($"Repeating: {_currentTrack.Author} - {_currentTrack.Title}");
-                _logger.LogInformation($"Repeating: {_currentTrack.Author} - {_currentTrack.Title}");
-                return;
-            }
-
-            if (finishedOrStopped && _musicQueueService.HasTracks)
-            {
-                PlayTrackFromQueue(connection, textChannel);
-                return;
-            }
-
-            if (finishedOrStopped && !_musicQueueService.HasTracks && IsRepeatingList)
-            {
-                foreach (var track in _musicQueueService.repeatableQueue)
+                case true when IsRepeating:
+                    await connection.PlayAsync(_currentTrack);
+                    _logger.LogInformation($"Repeating: {_currentTrack.Author} - {_currentTrack.Title}");
+                    return;
+                case true when _musicQueueService.HasTracks:
+                    PlayTrackFromQueue(connection, textChannel);
+                    return;
+                case true when !_musicQueueService.HasTracks && IsRepeatingList:
                 {
-                    _musicQueueService.Enqueue(track);
+                    foreach (var track in _musicQueueService.repeatableQueue)
+                    {
+                        _musicQueueService.Enqueue(track);
+                    }
+
+                    PlayTrackFromQueue(connection, textChannel);
+                    return;
                 }
-
-                PlayTrackFromQueue(connection, textChannel);
-                return;
+                default:
+                    await textChannel.SendMessageAsync("Queue is empty. Playback has stopped.");
+                    _logger.LogInformation($"Queue is empty. Playback has stopped.");
+                    break;
             }
-
-            await textChannel.SendMessageAsync("Queue is empty. Playback has stopped.");
-            _logger.LogInformation($"Queue is empty. Playback has stopped.");
         }
 
         private async void PlayTrackFromQueue(LavalinkGuildConnection connection, DiscordChannel textChannel)
         {
             var nextTrack = _musicQueueService.Dequeue();
             await connection.PlayAsync(nextTrack);
-            await textChannel.SendMessageAsync($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
-            _logger.LogInformation($"Now Playing: {nextTrack.Author} - {nextTrack.Title}");
+            await textChannel.SendMessageAsync($"Now Playing: {nextTrack?.Author} - {nextTrack?.Title}");
+            _logger.LogInformation($"Now Playing: {nextTrack?.Author} - {nextTrack?.Title}");
         }
     }
 }

@@ -4,14 +4,14 @@ namespace DC_bot.Services;
 
 public static class ServiceLocator
 {
-    public static IServiceProvider Instance { get; private set; }
+    private static IServiceProvider Instance { get; set; } = null!;
 
     public static void SetServiceProvider(IServiceProvider serviceProvider)
     {
         Instance = serviceProvider;
     }
 
-    public static T GetService<T>()
+    public static T GetService<T>() where T : notnull
     {
         return Instance.GetRequiredService<T>();
     }

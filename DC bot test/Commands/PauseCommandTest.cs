@@ -2,7 +2,6 @@ using System.Reflection;
 using DC_bot.Commands;
 using DC_bot.Services;
 using DC_bot.Wrapper;
-using Discord;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Lavalink;

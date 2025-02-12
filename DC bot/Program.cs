@@ -12,8 +12,6 @@ namespace DC_bot
 {
     class Program
     {
-        private IServiceProvider _services;
-
         private static async Task Main(string[] args)
         {
             var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName;
@@ -39,9 +37,12 @@ namespace DC_bot
             }
 
             var services = ConfigureServices();
-
             var botService = services.GetRequiredService<BotService>();
-            await botService.StartAsync(token);
+            
+            RegisterSlashCommands();
+            RegisterHandlers(services);
+            
+            await botService.StartAsync();
         }
 
         private IServiceProvider ConfigureServices()
@@ -49,6 +50,7 @@ namespace DC_bot
             var services = new ServiceCollection()
                 .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
                 .AddSingleton<CommandHandler>()
+                .AddSingleton<ReactionHandler>()
                 .AddSingleton<BotService>()
                 .AddSingleton<LavaLinkService>()
                 .AddSingleton<ICommand, TagCommand>()
@@ -66,7 +68,6 @@ namespace DC_bot
             var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
             SingletonDiscordClient.InitializeLogger(logger);
             ServiceLocator.SetServiceProvider(services);
-            RegisterSlashCommands();
             return services;
         }
 
@@ -79,6 +80,16 @@ namespace DC_bot
             slashCommandsConfig.RegisterCommands<PingSlashCommand>(1309813939563003966);
             slashCommandsConfig.RegisterCommands<HelpSlashCommand>(1309813939563003966);
             slashCommandsConfig.RegisterCommands<PlaySlashCommand>(1309813939563003966);
+        }
+
+        private void RegisterHandlers(IServiceProvider services)
+        {
+            var discordClient = SingletonDiscordClient.Instance;
+            var commandHandler = services.GetRequiredService<CommandHandler>();
+            var reactionHandler = services.GetRequiredService<ReactionHandler>();
+
+            commandHandler.RegisterHandler(discordClient);
+            reactionHandler.RegisterHandler(discordClient);
         }
     }
 }

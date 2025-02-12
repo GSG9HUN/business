@@ -13,7 +13,13 @@ namespace DC_bot.Services
     {
         private readonly string? _prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
 
-        public async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
+        public void RegisterHandler(DiscordClient client)
+        {
+            client.MessageCreated += HandleCommandAsync;
+            _logger.LogInformation("Registered command handler");
+        }
+        
+        private async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
         {
             if (_prefix == null)
             {
