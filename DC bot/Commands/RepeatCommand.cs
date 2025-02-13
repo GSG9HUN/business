@@ -9,7 +9,6 @@ public class RepeatCommand(LavaLinkService lavaLinkService, ILogger<RepeatComman
     public string Name => "repeat";
     public string Description => "Repeats a specified track infinitely.";
 
-
     public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
         var guildId = message.Channel.Guild.Id;
@@ -29,10 +28,10 @@ public class RepeatCommand(LavaLinkService lavaLinkService, ILogger<RepeatComman
             logger.LogInformation("Repeat command executed");
             return;
         }
+        
         lavaLinkService.IsRepeating[guildId] = true;
         await message.Channel.SendMessageAsync($"Repeat is on for : {lavaLinkService.GetCurrentTrack(guildId)}");
         
         logger.LogInformation("Repeat command executed");
-     
     }
 }

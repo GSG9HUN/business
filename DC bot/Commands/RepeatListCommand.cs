@@ -26,13 +26,11 @@ public class RepeatListCommand(LavaLinkService lavaLinkService, ILogger<RepeatLi
             await message.Channel.SendMessageAsync("Repeating is off.");
             logger.LogInformation("Repeat list command executed");
             return;
-        }
+        }    
         lavaLinkService.IsRepeatingList[guildId] = true;
         await message.Channel.SendMessageAsync($"Repeat is on for current list:\n {lavaLinkService.GetCurrentTrackList(guildId)}");
         lavaLinkService.CloneQueue(guildId);
         
         logger.LogInformation("Repeat list command executed");
-    
-
     }
 }
