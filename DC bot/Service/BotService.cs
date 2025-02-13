@@ -1,9 +1,8 @@
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Lavalink;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace DC_bot.Services
+namespace DC_bot.Service
 {
     public class BotService
     {
