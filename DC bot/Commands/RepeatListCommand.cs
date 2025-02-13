@@ -1,30 +1,38 @@
 using DC_bot.Interface;
-using DC_bot.Services;
-using DSharpPlus.Entities;
+using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class RepeatListCommand(LavaLinkService _lavaLinkService, ILogger<RepeatListCommand> _logger) : ICommand
+public class RepeatListCommand(LavaLinkService lavaLinkService, ILogger<RepeatListCommand> logger) : ICommand
 {
     public string Name => "repeatList";
     public string Description => "Repeats the current track list.";
-
-    public async Task ExecuteAsync(DiscordMessage message)
+    public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
-        _logger.LogInformation("Repeat list command invoked");
-        if (!_lavaLinkService.IsRepeatingList)
+        var guildId = message.Channel.Guild.Id;
+        logger.LogInformation("Repeat list command invoked");
+
+        if (lavaLinkService.IsRepeating[guildId])
         {
-            _lavaLinkService.IsRepeatingList = true;
-            await message.Channel.SendMessageAsync($"Repeat is on for current list:\n {_lavaLinkService.GetCurrentTrackList()}");
-            _lavaLinkService.CloneQueue();
-        }
-        else
-        {
-            _lavaLinkService.IsRepeatingList = false;
-            await message.Channel.SendMessageAsync("Repeating is off.");
+            await message.Channel.SendMessageAsync("This track is already repeating.");
+            logger.LogInformation("Repeat list command executed");
+            return;
         }
 
-        _logger.LogInformation("Repeat list command executed");
+        if (lavaLinkService.IsRepeatingList[guildId])
+        {
+            lavaLinkService.IsRepeatingList[guildId] = false;
+            await message.Channel.SendMessageAsync("Repeating is off.");
+            logger.LogInformation("Repeat list command executed");
+            return;
+        }
+        lavaLinkService.IsRepeatingList[guildId] = true;
+        await message.Channel.SendMessageAsync($"Repeat is on for current list:\n {lavaLinkService.GetCurrentTrackList(guildId)}");
+        lavaLinkService.CloneQueue(guildId);
+        
+        logger.LogInformation("Repeat list command executed");
+    
+
     }
 }

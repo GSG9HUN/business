@@ -4,7 +4,7 @@ using DSharpPlus.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands
 {
-    public class PingSlashCommand : ApplicationCommandModule
+    public abstract class PingSlashCommand : ApplicationCommandModule
     {
         [SlashCommand("ping", "Replies with Pong!")]
         public async Task Ping(InteractionContext ctx)

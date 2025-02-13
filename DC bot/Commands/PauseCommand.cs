@@ -1,43 +1,31 @@
-using System.Threading.Tasks;
 using DC_bot.Interface;
-using DC_bot.Services;
-using DC_bot.Wrapper;
-using DSharpPlus;
-using DSharpPlus.Entities;
+using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
-namespace DC_bot.Commands
+namespace DC_bot.Commands;
+
+public class PauseCommand(LavaLinkService lavaLinkService, ILogger<PauseCommand> logger) : ICommand
 {
-    public class PauseCommand(LavaLinkService _lavaLinkService, ILogger<PauseCommand> _logger) : ICommand
+    public string Name => "pause";
+    public string Description => "Pause the current music.";
+
+    public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
-        public string Name => "pause";
-        public string Description => "Pause the current music.";
+        var member = await message.Channel.Guild.GetMemberAsync(message.Author.Id);
 
-        public async Task ExecuteAsync(DiscordMessage message)
+        if (member.IsBot)
         {
-            var messageWrapper = new MessageWrapper(message);
-            await ExecuteAsync(messageWrapper);
+            return;
         }
 
-        public async Task ExecuteAsync(MessageWrapper messageWrapper)
+        if (member.VoiceState?.Channel == null)
         {
-            var message = messageWrapper.DiscordMessage;
-            var member = await message.Channel.Guild.GetMemberAsync(message.Author.Id);
-
-            if (member.IsBot)
-            {
-                return;
-            }
-
-            if (member?.VoiceState?.Channel == null)
-            {
-                await message.Channel.SendMessageAsync("You must be in a voice channel.!");
-                _logger.LogInformation("User not in a voice channel.");
-                return;
-            }
-
-            await _lavaLinkService.PauseAsync(message.Channel);
-            _logger.LogInformation("Pause command executed!");
+            await message.RespondAsync("You must be in a voice channel.!");
+            logger.LogInformation("User not in a voice channel.");
+            return;
         }
+
+        await lavaLinkService.PauseAsync(message.Channel);
+        logger.LogInformation("Pause command executed!");
     }
 }

@@ -4,7 +4,7 @@ using DSharpPlus.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands
 {
-    public class TagSlashCommand : ApplicationCommandModule
+    public abstract class TagSlashCommand : ApplicationCommandModule
     {
         [SlashCommand("tag", "You can tag someone")]
         public async Task Tag(InteractionContext ctx,

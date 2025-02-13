@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 
-namespace DC_bot.Services;
+namespace DC_bot.Service;
 
 public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHandler> logger)
 {
@@ -15,7 +15,7 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         logger.LogInformation("Registered reaction handler");
     }
 
-    public async Task SendReactionControlMessage(DiscordChannel textChannel, DiscordClient client, string msg)
+    private async Task SendReactionControlMessage(DiscordChannel textChannel, DiscordClient client, string msg)
     {
         var message = await textChannel.SendMessageAsync($"{msg}\n 🎵 **Music Controls** 🎵\n" +
                                                          "⏸️ - Pause " +
@@ -36,8 +36,10 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
     {
         if (args.User.IsBot) return;
 
+        var guildId = args.Guild.Id;
+        
         logger.LogInformation($"Reaction added: {args.Emoji.GetDiscordName()} by {args.User.Username}");
-
+       
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
@@ -53,7 +55,7 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
                 break;
 
             case "🔁": // Repeat emoji
-                lavaLinkService.IsRepeating = !lavaLinkService.IsRepeating;
+                lavaLinkService.IsRepeating[guildId] = true;
                 await args.Message.RespondAsync($"Repeat mode: Enabled");
                 break;
         }
@@ -63,6 +65,8 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
     {
         if (args.User.IsBot) return;
 
+        var guildId = args.Guild.Id;
+        
         logger.LogInformation($"Reaction removed: {args.Emoji.GetDiscordName()} by {args.User.Username}");
         
         switch (args.Emoji.Name)
@@ -80,7 +84,7 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
                 break;
 
             case "🔁": // Repeat emoji
-                lavaLinkService.IsRepeating = false;
+                lavaLinkService.IsRepeating[guildId] = false;
                 await args.Message.RespondAsync($"Repeat mode: Disabled");
                 break;
         }

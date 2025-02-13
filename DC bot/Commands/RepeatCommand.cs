@@ -1,29 +1,38 @@
 using DC_bot.Interface;
-using DC_bot.Services;
-using DSharpPlus.Entities;
+using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class RepeatCommand(LavaLinkService _lavaLinkService, ILogger<RepeatCommand> _logger) : ICommand
+public class RepeatCommand(LavaLinkService lavaLinkService, ILogger<RepeatCommand> logger) : ICommand
 {
     public string Name => "repeat";
     public string Description => "Repeats a specified track infinitely.";
 
-    public async Task ExecuteAsync(DiscordMessage message)
+
+    public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
-        _logger.LogInformation("Repeat command invoked");
-        if (!_lavaLinkService.IsRepeating)
+        var guildId = message.Channel.Guild.Id;
+        logger.LogInformation("Repeat command invoked");
+
+        if (lavaLinkService.IsRepeatingList[guildId])
         {
-            _lavaLinkService.IsRepeating = true;
-            await message.Channel.SendMessageAsync($"Repeat is on for : {_lavaLinkService.GetCurrentTrack()}");
-        }
-        else
-        {
-            _lavaLinkService.IsRepeating = false;
-            await message.Channel.SendMessageAsync("Repeating is off.");
+            await message.Channel.SendMessageAsync("This list is already repeating.");
+            logger.LogInformation("Repeat command executed");
+            return;
         }
 
-        _logger.LogInformation("Repeat command executed");
+        if (lavaLinkService.IsRepeating[guildId])
+        {
+            lavaLinkService.IsRepeating[guildId] = false;
+            await message.Channel.SendMessageAsync("Repeating is off.");
+            logger.LogInformation("Repeat command executed");
+            return;
+        }
+        lavaLinkService.IsRepeating[guildId] = true;
+        await message.Channel.SendMessageAsync($"Repeat is on for : {lavaLinkService.GetCurrentTrack(guildId)}");
+        
+        logger.LogInformation("Repeat command executed");
+     
     }
 }
