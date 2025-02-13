@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Interface
 {
@@ -8,6 +6,6 @@ namespace DC_bot.Interface
     {
         string Name { get; }
         string Description { get; }
-        Task ExecuteAsync(DiscordMessage message);
+        Task ExecuteAsync(IDiscordMessageWrapper message);
     }
 }

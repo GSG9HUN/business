@@ -1,67 +1,61 @@
-using System;
-using System.Threading.Tasks;
+using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Lavalink;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Wrapper;
 
 public class SingletonDiscordClient
 {
-    private static DiscordClient _instance;
-    private static readonly object Lock = new();
     private static ILogger<SingletonDiscordClient> _logger;
+    private static readonly Lazy<DiscordClient> _instance = new(() =>
+    {
+        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new Exception("DISCORD_TOKEN is not set.");
+        
+        var client = new DiscordClient(new DiscordConfiguration
+        {
+            Token = token,
+            TokenType = TokenType.Bot,
+            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents | DiscordIntents.GuildMembers | DiscordIntents.Guilds,
+            AutoReconnect = true
+        });
 
+        client.Ready += OnClientReady;
+        client.GuildAvailable += OnGuildAvailable;
+
+        return client;
+    });
+    
+    public static DiscordClient Instance => _instance.Value;
+    
     public static void InitializeLogger(ILogger<SingletonDiscordClient> logger)
     {
         _logger = logger;
         _logger.LogInformation("Logger initialized for SingletonDiscordClient.");
     }
-
-    // Singleton instance létrehozása vagy elérése
-    public static DiscordClient Instance
-    {
-        get
-        {
-            lock (Lock)
-            {
-                if (_instance == null)
-                {
-                    var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        throw new Exception("DISCORD_TOKEN is not set in the environment variables.");
-                    }
-
-                    _instance = new DiscordClient(new DiscordConfiguration
-                    {
-                        Token = token,
-                        TokenType = TokenType.Bot,
-                        Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents |
-                                  DiscordIntents.GuildMembers | DiscordIntents.Guilds,
-                        AutoReconnect = true
-                    });
-
-                    _instance.Ready += OnClientReady;
-                    _instance.GuildAvailable += OnGuildAvailable;
-
-                    _logger.LogInformation("Singleton Discord Client is created.");
-                }
-
-                return _instance;
-            }
-        }
-    }
-
+    
     private static Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
     {
         _logger.LogInformation("Bot is ready!");
         return Task.CompletedTask;
     }
 
-    private static Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
+    private static async Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
     {
         _logger.LogInformation($"Guild available: {e.Guild.Name}");
-        return Task.CompletedTask;
+
+        var musicService = ServiceLocator.GetService<MusicQueueService>();
+        var lavalinkService = ServiceLocator.GetService<LavaLinkService>();
+        
+        lavalinkService.Init(e.Guild.Id);
+        musicService.Init(e.Guild.Id);
+        
+        await lavalinkService.ConnectAsync();
+        var node = Instance.GetLavalink().ConnectedNodes.Values.FirstOrDefault();
+        
+        if (node == null) return;
+        
+        await musicService.LoadQueue(e.Guild.Id,node.Rest);
     }
 }

@@ -1,5 +1,5 @@
 using DC_bot.Interface;
-using DC_bot.Services;
+using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.SlashCommands
 {
-    public class HelpSlashCommand : ApplicationCommandModule
+    public abstract class HelpSlashCommand : ApplicationCommandModule
     {
         private readonly ILogger<PlaySlashCommand> _logger = ServiceLocator.GetService<ILogger<PlaySlashCommand>>();
 

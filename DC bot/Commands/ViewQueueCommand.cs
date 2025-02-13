@@ -1,33 +1,30 @@
-using System.Linq;
-using System.Threading.Tasks;
 using DC_bot.Interface;
-using DC_bot.Services;
-using DSharpPlus.Entities;
+using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
-namespace DC_bot.Commands
+namespace DC_bot.Commands;
+
+public class ViewQueueCommand(LavaLinkService lavaLinkService, ILogger<ViewQueueCommand> logger) : ICommand
 {
-    public class ViewQueueCommand(LavaLinkService _lavaLinkService, ILogger<ViewQueueCommand> _logger) : ICommand
+    public string Name => "viewList";
+    public string Description => "view the list of tracks.";
+
+    public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
-        public string Name => "viewList";
-        public string Description => "view the list of tracks.";
+        var queue = lavaLinkService.ViewQueue(message.Channel.Guild.Id);
 
-        public async Task ExecuteAsync(DiscordMessage message)
+        if (queue.Count == 0)
         {
-            var queue = _lavaLinkService.ViewQueue();
-
-            if (!queue.Any())
-            {
-                await message.Channel.SendMessageAsync("The queue is currently empty.");
-                _logger.LogInformation("Queue is empty.");
-                return;
-            }
-
-            var queueList = string.Join("\n",
-                queue.Select((track, index) => $"{index + 1}. {track.Title} ({track.Author})"));
-            await message.Channel.SendMessageAsync($"Current Queue:\n{queueList}");
-            _logger.LogInformation("View Queue command executed.");
+            await message.RespondAsync("The queue is currently empty.");
+            logger.LogInformation("Queue is empty.");
+            return;
         }
+
+        var queueList = string.Join("\n",
+            queue.Select((track, index) => $"{index + 1}. {track.Title} ({track.Author})"));
+
+        await message.RespondAsync($"Current Queue:\n{queueList}");
+
+        logger.LogInformation("View Queue command executed.");
     }
 }
-

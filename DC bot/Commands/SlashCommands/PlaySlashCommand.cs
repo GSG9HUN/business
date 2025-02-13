@@ -1,4 +1,5 @@
-using DC_bot.Services;
+
+using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.SlashCommands
 {
-    public class PlaySlashCommand : ApplicationCommandModule
+    public abstract class PlaySlashCommand : ApplicationCommandModule
     {
         private readonly LavaLinkService _lavaLinkService = ServiceLocator.GetService<LavaLinkService>();
         private readonly ILogger<PlaySlashCommand> _logger = ServiceLocator.GetService<ILogger<PlaySlashCommand>>();
@@ -39,8 +40,8 @@ namespace DC_bot.Commands.SlashCommands
                 return;
             }
 
-
             var textChannel = ctx.Channel;
+            
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
                 await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);

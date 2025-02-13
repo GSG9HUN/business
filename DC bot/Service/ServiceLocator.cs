@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DC_bot.Services;
+namespace DC_bot.Service;
 
 public static class ServiceLocator
 {
