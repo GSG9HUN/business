@@ -12,20 +12,26 @@ public class RepeatCommand(LavaLinkService lavaLinkService, ILogger<RepeatComman
     public async Task ExecuteAsync(IDiscordMessageWrapper message)
     {
         var guildId = message.Channel.Guild.Id;
-
         logger.LogInformation("Repeat command invoked");
 
-        if (!lavaLinkService.IsRepeating[guildId])
+        if (lavaLinkService.IsRepeatingList[guildId])
         {
-            lavaLinkService.IsRepeating[guildId] = true;
-            await message.RespondAsync($"Repeat is on for : {lavaLinkService.GetCurrentTrack(guildId)}");
-        }
-        else
-        {
-            lavaLinkService.IsRepeating[guildId] = false;
-            await message.RespondAsync("Repeating is off.");
+            await message.Channel.SendMessageAsync("This list is already repeating.");
+            logger.LogInformation("Repeat command executed");
+            return;
         }
 
+        if (lavaLinkService.IsRepeating[guildId])
+        {
+            lavaLinkService.IsRepeating[guildId] = false;
+            await message.Channel.SendMessageAsync("Repeating is off.");
+            logger.LogInformation("Repeat command executed");
+            return;
+        }
+        
+        lavaLinkService.IsRepeating[guildId] = true;
+        await message.Channel.SendMessageAsync($"Repeat is on for : {lavaLinkService.GetCurrentTrack(guildId)}");
+        
         logger.LogInformation("Repeat command executed");
     }
 }
