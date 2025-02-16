@@ -44,11 +44,11 @@ namespace DC_bot.Commands.SlashCommands
             
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
-                await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
+               // await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
             }
             else
             {
-                await _lavaLinkService.PlayAsyncQuery(member.VoiceState.Channel, query, textChannel);
+                //await _lavaLinkService.PlayAsyncQuery(member.VoiceState.Channel, query, textChannel);
             }
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Now playing your request!"));

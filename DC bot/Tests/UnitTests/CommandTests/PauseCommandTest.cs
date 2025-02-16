@@ -3,92 +3,114 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace DC_bot.Tests.UnitTests.CommandTests;
 
-public class PauseCommandTests
+public class PauseCommandTest
 {
-    private readonly LavaLinkService _mockLavaLinkService;
-    private readonly Mock<ILogger<PauseCommand>> _mockLogger;
-    private readonly Mock<ILogger<LavaLinkService>> _mockLoggerLavalink;
-    private readonly Mock<IDiscordMessageWrapper> _mockMessage;
-    private readonly Mock<MusicQueueService> _mockMusicQueueService;
+    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<IDiscordMessage> _messageMock;
     private readonly PauseCommand _pauseCommand;
 
-    /* public PauseCommandTests()
-     {
-         // Mock Logger
-         _mockLogger = new Mock<ILogger<PauseCommand>>();
+    public PauseCommandTest()
+    {
+        Mock<ILogger<UserValidationService>> userServiceLogger = new();
+        Mock<ILogger<PauseCommand>> loggerMock = new();
+        
+        _messageMock = new Mock<IDiscordMessage>();
+        _discordUserMock = new Mock<IDiscordUser>();
+        _discordMemberMock = new Mock<IDiscordMember>();
+        _guildMock = new Mock<IDiscordGuild>();
+        _channelMock = new Mock<IDiscordChannel>();
+        _lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        
+        var userValidationService = new UserValidationService(userServiceLogger.Object);
+        _pauseCommand = new PauseCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+    }
 
-         _mockMusicQueueService = new Mock<MusicQueueService>();
-         // Mock LavaLinkService
-         _mockLavaLinkService = new LavaLinkService(_mockMusicQueueService.Object, _mockLoggerLavalink.Object);
+    [Fact]
+    public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
+    {
+        // Arrange
+        _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
 
-         // Mock IDiscordMessageWrapper
-         _mockMessage = new Mock<IDiscordMessageWrapper>();
-         var mockChannel = new Mock<IDiscordChannel>();
-         var mockGuild = new Mock<IDiscordGuild>();
-         var mockMember = new Mock<IDiscordMember>();
-         var mockVoiceState = new Mock<IDiscordVoiceState>();
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
 
-         // Beállítjuk a mockolt channel és member tulajdonságokat
-         _mockMessage.Setup(m => m.Channel).Returns(mockChannel.Object);
-         mockChannel.Setup(c => c.Guild).Returns(mockGuild.Object);
-         mockGuild.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(mockMember.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
 
-         // Command inicializálása
-         _pauseCommand = new PauseCommand(_mockLavaLinkService, _mockLogger.Object);
-     }
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
-     [Fact]
-     public async Task ExecuteAsync_ShouldSendMessage_WhenUserIsNotInVoiceChannel()
-     {
-         // Arrange: A felhasználó nincs voice csatornában
-         var mockVoiceState = new Mock<IDiscordVoiceState>();
-         mockVoiceState.Setup(v => v.Channel).Returns((IDiscordChannel)null);
-         var mockMember = new Mock<IDiscordMember>();
-         mockMember.Setup(m => m.VoiceState).Returns(mockVoiceState.Object);
-         _mockMessage.Setup(m => m.Channel.Guild.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(mockMember.Object);
+        // Act
+        await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
-         // Act
-         await _pauseCommand.ExecuteAsync(_mockMessage.Object);
+        // Assert
+        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+    }
 
-         // Assert: A "You must be in a voice channel!" üzenet küldése
-         _mockMessage.Verify(m => m.RespondAsync("You must be in a voice channel.!"), Times.Once);
-     }
+    [Fact]
+    public async Task ExecuteAsync_UserNotInVoiceChannel_ShouldSendErrorMessage()
+    {
+        // Arrange
+        IDiscordVoiceState? mockDiscordVoiceState = null;
 
-     [Fact]
-     public async Task ExecuteAsync_ShouldPauseMusic_WhenUserIsInVoiceChannel()
-     {
-         // Arrange: A felhasználó voice csatornában van
-         var mockVoiceChannel = new Mock<IDiscordChannel>();
-         var mockVoiceState = new Mock<IDiscordVoiceState>();
-         mockVoiceState.Setup(v => v.Channel).Returns(mockVoiceChannel.Object);
-         var mockMember = new Mock<IDiscordMember>();
-         mockMember.Setup(m => m.VoiceState).Returns(mockVoiceState.Object);
-         _mockMessage.Setup(m => m.Channel.Guild.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(mockMember.Object);
+        _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
 
-         // Act
-         await _pauseCommand.ExecuteAsync(_mockMessage.Object);
+        _discordMemberMock.Setup(dm => dm.VoiceState).Returns(mockDiscordVoiceState);
 
-         // Assert: A PauseAsync hívódik meg
-         //_mockLavaLinkService.Verify(l => l.PauseAsync(It.IsAny<IDiscordChannel>()), Times.Once);
-         _mockMessage.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never); // Nem küldünk üzenetet
-     }
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
 
-     [Fact]
-     public async Task ExecuteAsync_ShouldNotPauseIfMemberIsBot()
-     {
-         // Arrange: A felhasználó bot
-         var mockMember = new Mock<IDiscordMember>();
-         mockMember.Setup(m => m.IsBot).Returns(true);
-         _mockMessage.Setup(m => m.Channel.Guild.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(mockMember.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
 
-         // Act
-         await _pauseCommand.ExecuteAsync(_mockMessage.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
-         // Assert: A PauseAsync nem hívódik meg
-         //_mockLavaLinkService.Verify(l => l.PauseAsync(It.IsAny<IDiscordChannel>()), Times.Never);
-         _mockMessage.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never); // Nem küldünk üzenetet
-     }*/
+        //Act
+        await _pauseCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+
+        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserInVoiceChannel_ShouldPauseMusic()
+    {
+        // Arrange
+        var voiceChannel = new Mock<IDiscordVoiceState>();
+
+        _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
+
+        _discordMemberMock.SetupGet(dm => dm.IsBot).Returns(false);
+        _discordMemberMock.Setup(dm => dm.VoiceState).Returns(voiceChannel.Object);
+
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+
+        voiceChannel.SetupGet(vc => vc.Channel).Returns(_channelMock.Object);
+        // Act
+        await _pauseCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+        _lavaLinkServiceMock.Verify(l => l.PauseAsync(_channelMock.Object), Times.Once);
+    }
+
+    [Fact]
+    public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
+    {
+        Assert.Equal("pause", _pauseCommand.Name);
+        Assert.Equal("Pause the current music.", _pauseCommand.Description);
+    }
 }

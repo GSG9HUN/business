@@ -1,15 +1,21 @@
 using DC_bot.Interface;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class RepeatListCommand(LavaLinkService lavaLinkService, ILogger<RepeatListCommand> logger) : ICommand
+public class RepeatListCommand(ILavaLinkService lavaLinkService, IUserValidationService userValidation, ILogger<RepeatListCommand> logger) : ICommand
 {
     public string Name => "repeatList";
     public string Description => "Repeats the current track list.";
-    public async Task ExecuteAsync(IDiscordMessageWrapper message)
+    public async Task ExecuteAsync(IDiscordMessage message)
     {
+        var validationResult = await userValidation.ValidateUserAsync(message);
+        
+        if (validationResult.IsValid is false)
+        {
+            return;
+        }
+        
         var guildId = message.Channel.Guild.Id;
         logger.LogInformation("Repeat list command invoked");
 
@@ -23,7 +29,7 @@ public class RepeatListCommand(LavaLinkService lavaLinkService, ILogger<RepeatLi
         if (lavaLinkService.IsRepeatingList[guildId])
         {
             lavaLinkService.IsRepeatingList[guildId] = false;
-            await message.Channel.SendMessageAsync("Repeating is off.");
+            await message.Channel.SendMessageAsync($"Repeating is off for the list:\n {lavaLinkService.GetCurrentTrackList(guildId)}");
             logger.LogInformation("Repeat list command executed");
             return;
         }    

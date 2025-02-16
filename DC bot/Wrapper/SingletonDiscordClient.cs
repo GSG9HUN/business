@@ -1,3 +1,4 @@
+using DC_bot.Interface;
 using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -8,7 +9,8 @@ namespace DC_bot.Wrapper;
 
 public class SingletonDiscordClient
 {
-    private static ILogger<SingletonDiscordClient> _logger;
+    private static ILogger<SingletonDiscordClient> _logger = null!;
+    
     private static readonly Lazy<DiscordClient> _instance = new(() =>
     {
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new Exception("DISCORD_TOKEN is not set.");
@@ -46,12 +48,12 @@ public class SingletonDiscordClient
         _logger.LogInformation($"Guild available: {e.Guild.Name}");
 
         var musicService = ServiceLocator.GetService<MusicQueueService>();
-        var lavalinkService = ServiceLocator.GetService<LavaLinkService>();
+        var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();
         
-        lavalinkService.Init(e.Guild.Id);
+        lavaLinkService.Init(e.Guild.Id);
         musicService.Init(e.Guild.Id);
         
-        await lavalinkService.ConnectAsync();
+        await lavaLinkService.ConnectAsync();
         var node = Instance.GetLavalink().ConnectedNodes.Values.FirstOrDefault();
         
         if (node == null) return;

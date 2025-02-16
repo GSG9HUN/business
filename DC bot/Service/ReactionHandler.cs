@@ -1,3 +1,4 @@
+using DC_bot.Interface;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -15,9 +16,9 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         logger.LogInformation("Registered reaction handler");
     }
 
-    private async Task SendReactionControlMessage(DiscordChannel textChannel, DiscordClient client, string msg)
+    private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, string msg)
     {
-        var message = await textChannel.SendMessageAsync($"{msg}\n 🎵 **Music Controls** 🎵\n" +
+        var message = await textChannel.ToDiscordChannel().SendMessageAsync($"{msg}\n 🎵 **Music Controls** 🎵\n" +
                                                          "⏸️ - Pause " +
                                                          "▶️ - Resume " +
                                                          "⏭️ - Skip " +
@@ -43,20 +44,20 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                await lavaLinkService.PauseAsync(args.Channel);
+                //await lavaLinkService.PauseAsync(args.Channel);
                 break;
 
             case "▶️": // Resume emoji
-                await lavaLinkService.ResumeAsync(args.Channel);
+                //await lavaLinkService.ResumeAsync(args.Channel);
                 break;
             
             case "⏭️": // Skip emoji
-                await lavaLinkService.SkipAsync(args.Channel);
+                //await lavaLinkService.SkipAsync(args.Channel);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = true;
-                await args.Message.RespondAsync($"Repeat mode: Enabled");
+                //await args.Message.RespondAsync($"Repeat mode: Enabled");
                 break;
         }
     }
@@ -72,20 +73,20 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                await lavaLinkService.ResumeAsync(args.Channel);
+                //await lavaLinkService.ResumeAsync(args.Channel);
                 break;
 
             case "▶️": // Resume emoji
-                await lavaLinkService.PauseAsync(args.Channel);
+                //await lavaLinkService.PauseAsync(args.Channel);
                 break;
 
             case "⏭️": // Skip emoji
-                await lavaLinkService.SkipAsync(args.Channel);
+                //await lavaLinkService.SkipAsync(args.Channel);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = false;
-                await args.Message.RespondAsync($"Repeat mode: Disabled");
+                //await args.Message.RespondAsync($"Repeat mode: Disabled");
                 break;
         }
     }

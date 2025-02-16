@@ -1,6 +1,6 @@
+using DC_bot.Interface;
 using DC_bot.Wrapper;
 using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.Lavalink;
 using DSharpPlus.Lavalink.EventArgs;
 using DSharpPlus.Net;
@@ -10,10 +10,10 @@ namespace DC_bot.Service
 {
     public class LavaLinkService(
         MusicQueueService musicQueueService,
-        ILogger<LavaLinkService> logger)
+        ILogger<LavaLinkService> logger) : ILavaLinkService
     {
         // event használata, hogy értesítsük a új zene kezdődik és hogy adjon hozzá emojikat.
-        public event Func<DiscordChannel, DiscordClient, string, Task> TrackStarted = null!;
+        public event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted = null!;
 
         private readonly LavalinkExtension _lavalink = SingletonDiscordClient.Instance.GetLavalink();
 
@@ -64,7 +64,7 @@ namespace DC_bot.Service
             }
         }
 
-        public async Task PlayAsyncUrl(DiscordChannel voiceStateChannel, Uri url, DiscordChannel textChannel)
+        public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordChannel textChannel)
         {
             await ConnectAsync();
             var node = _lavalink.ConnectedNodes.Values.FirstOrDefault();
@@ -76,7 +76,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            var connection = await node.ConnectAsync(voiceStateChannel);
+            var connection = await node.ConnectAsync(voiceStateChannel.ToDiscordChannel());
 
             if (connection == null)
             {
@@ -107,7 +107,7 @@ namespace DC_bot.Service
             await PlayTheFoundMusic(searchQuery, connection, textChannel);
         }
 
-        public async Task PlayAsyncQuery(DiscordChannel voiceStateChannel, string query, DiscordChannel textChannel)
+        public async Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordChannel textChannel)
         {
             await ConnectAsync();
             var node = _lavalink.ConnectedNodes.Values.FirstOrDefault();
@@ -119,7 +119,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            var connection = await node.ConnectAsync(voiceStateChannel);
+            var connection = await node.ConnectAsync(voiceStateChannel.ToDiscordChannel());
 
             if (connection == null)
             {
@@ -149,30 +149,30 @@ namespace DC_bot.Service
 
             await PlayTheFoundMusic(searchQuery, connection, textChannel);
         }
-
-        public async Task PauseAsync(DiscordChannel textChannel)
+        
+        public async Task PauseAsync(IDiscordChannel channel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
 
             if (node == null)
             {
-                await textChannel.SendMessageAsync("Lavalink is not connected.");
+                await channel.SendMessageAsync("Lavalink is not connected.");
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
             
-            var connection = node.GetGuildConnection(textChannel.Guild);
+            var connection = node.GetGuildConnection(channel.Guild.ToDiscordGuild());
 
             if (connection == null)
             {
-                await textChannel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await channel.SendMessageAsync("Bot is not connected to a voice channel.");
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
 
             if (connection.CurrentState.CurrentTrack == null)
             {
-                await textChannel.SendMessageAsync("There is no track currently playing.");
+                await channel.SendMessageAsync("There is no track currently playing.");
                 logger.LogInformation("There is no track currently playing.");
                 return;
             }
@@ -180,8 +180,8 @@ namespace DC_bot.Service
             await connection.PauseAsync();
             logger.LogInformation($"Paused: {connection.CurrentState.CurrentTrack.Title}");
         }
-
-        public async Task ResumeAsync(DiscordChannel textChannel)
+        
+        public async Task ResumeAsync(IDiscordChannel textChannel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
 
@@ -192,7 +192,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            var connection = node.GetGuildConnection(textChannel.Guild);
+            var connection = node.GetGuildConnection(textChannel.Guild.ToDiscordGuild());
 
             if (connection == null)
             {
@@ -212,7 +212,7 @@ namespace DC_bot.Service
             logger.LogInformation($"Resumed: {connection.CurrentState.CurrentTrack.Title}");
         }
 
-        public async Task SkipAsync(DiscordChannel textChannel)
+        public async Task SkipAsync(IDiscordChannel textChannel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
 
@@ -223,7 +223,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            var connection = node.GetGuildConnection(textChannel.Guild);
+            var connection = node.GetGuildConnection(textChannel.Guild.ToDiscordGuild());
 
             if (connection == null)
             {
@@ -241,7 +241,7 @@ namespace DC_bot.Service
             await connection.StopAsync();
         }
 
-        public IReadOnlyCollection<LavalinkTrack> ViewQueue(ulong guildId)
+        public IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId)
         {
             return musicQueueService.ViewQueue(guildId);
         }
@@ -267,12 +267,12 @@ namespace DC_bot.Service
         }
 
         private async Task PlayTheFoundMusic(LavalinkLoadResult searchQuery, LavalinkGuildConnection connection,
-            DiscordChannel textChannel)
+            IDiscordChannel textChannel)
         {
             var musicTrack = searchQuery.Tracks.First();
             var guildId = textChannel.Guild.Id;
 
-            musicQueueService.Enqueue(guildId, musicTrack);
+            musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTrack));
 
             if (connection.CurrentState.CurrentTrack == null)
             {
@@ -293,7 +293,7 @@ namespace DC_bot.Service
         }
 
         private async Task OnTrackFinished(LavalinkGuildConnection connection,
-            TrackFinishEventArgs args, DiscordChannel textChannel)
+            TrackFinishEventArgs args, IDiscordChannel textChannel)
         {
             var finishedOrStopped = args.Reason is TrackEndReason.Finished or TrackEndReason.Stopped;
             var guildId = textChannel.Guild.Id;
@@ -325,7 +325,7 @@ namespace DC_bot.Service
             }
         }
 
-        private async Task PlayTrackFromQueue(LavalinkGuildConnection connection, DiscordChannel textChannel)
+        private async Task PlayTrackFromQueue(LavalinkGuildConnection connection, IDiscordChannel textChannel)
         {
             var guildId = textChannel.Guild.Id;
             var nextTrack = musicQueueService.Dequeue(guildId);
