@@ -1,27 +1,19 @@
 using DC_bot.Interface;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class SkipCommand(LavaLinkService lavaLinkService, ILogger<SkipCommand> logger) : ICommand
+public class SkipCommand(ILavaLinkService lavaLinkService, IUserValidationService userValidation, ILogger<SkipCommand> logger) : ICommand
 {
     public string Name => "skip";
     public string Description => "Skip the current track.";
 
-    public async Task ExecuteAsync(IDiscordMessageWrapper message)
+    public async Task ExecuteAsync(IDiscordMessage message)
     {
-        var member = await message.Channel.Guild.GetMemberAsync(message.Author.Id);
-
-        if (member.IsBot)
+        var validationResult = await userValidation.ValidateUserAsync(message);
+        
+        if (validationResult.IsValid is false)
         {
-            return;
-        }
-
-        if (member.VoiceState?.Channel == null)
-        {
-            await message.RespondAsync($"You must be in a voice channel.");
-            logger.LogInformation("You must be in a voice channel.");
             return;
         }
 

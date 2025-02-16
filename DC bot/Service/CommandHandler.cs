@@ -42,9 +42,11 @@ namespace DC_bot.Service
             var commandName = message.Content.Substring(1).Split(' ')[0];
             if (_commands.TryGetValue(commandName, out var command))
             {
-                var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
-                    args.Channel, args.Author, args.Message.CreationTimestamp,
-                    args.Message.Embeds.ToList(),args.Message.RespondAsync);
+                var discordAuthor = new DiscordUserWrapper(args.Author);
+                var discordChannel = new DiscordChannelWrapper(args.Channel);
+                var discordMessageWrapper = new DiscordMessage(args.Message.Id, args.Message.Content,
+                    discordChannel, discordAuthor, args.Message.CreationTimestamp,
+                    args.Message.Embeds.ToList(), args.Message.RespondAsync);
 
                 await command.ExecuteAsync(discordMessageWrapper);
             }

@@ -1,16 +1,22 @@
 using DC_bot.Interface;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class RepeatCommand(LavaLinkService lavaLinkService, ILogger<RepeatCommand> logger) : ICommand
+public class RepeatCommand(ILavaLinkService lavaLinkService, IUserValidationService userValidation, ILogger<RepeatCommand> logger) : ICommand
 {
     public string Name => "repeat";
     public string Description => "Repeats a specified track infinitely.";
 
-    public async Task ExecuteAsync(IDiscordMessageWrapper message)
+    public async Task ExecuteAsync(IDiscordMessage message)
     {
+        var validationResult = await userValidation.ValidateUserAsync(message);
+        
+        if (validationResult.IsValid is false)
+        {
+            return;
+        }
+        
         var guildId = message.Channel.Guild.Id;
         logger.LogInformation("Repeat command invoked");
 
