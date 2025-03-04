@@ -20,6 +20,19 @@ public class ResumeCommandTest
     {
         Mock<ILogger<ResumeCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+        
+        localizationServiceMock.Setup(g => g.Get("resume_command_description"))
+            .Returns("Resume the current music.");
+        
+        localizationServiceMock.Setup(g => g.Get("resume_command_error"))
+            .Returns("There is no track currently paused.");
+        
+        localizationServiceMock.Setup(g => g.Get("resume_command_response"))
+            .Returns("Resumed:");
+        
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
         
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -28,8 +41,8 @@ public class ResumeCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object);
-        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+        var userValidationService = new UserValidationService(userLoggerMock.Object,localizationServiceMock.Object);
+        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
     }
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()

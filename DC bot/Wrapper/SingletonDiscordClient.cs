@@ -49,7 +49,9 @@ public class SingletonDiscordClient
 
         var musicService = ServiceLocator.GetService<MusicQueueService>();
         var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();
+        var lovalizationService = ServiceLocator.GetService<ILocalizationService>();
         
+        lovalizationService.LoadLanguage(e.Guild.Id);
         lavaLinkService.Init(e.Guild.Id);
         musicService.Init(e.Guild.Id);
         

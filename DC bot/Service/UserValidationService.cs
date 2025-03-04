@@ -4,7 +4,8 @@ using ValidationResult = DC_bot.Helper.ValidationResult;
 
 namespace DC_bot.Service;
 
-public class UserValidationService(ILogger<UserValidationService> logger) : IUserValidationService
+public class UserValidationService(ILogger<UserValidationService> logger, ILocalizationService localizationService)
+    : IUserValidationService
 {
     public async Task<ValidationResult> ValidateUserAsync(IDiscordMessage message)
     {
@@ -13,16 +14,15 @@ public class UserValidationService(ILogger<UserValidationService> logger) : IUse
             logger.LogInformation("User is Bot.");
             return new ValidationResult(false);
         }
-        
+
         var user = message.Author;
         var member = await message.Channel.Guild.GetMemberAsync(user.Id);
 
         if (member.VoiceState?.Channel != null) return new ValidationResult(true, member);
-        
-        await message.RespondAsync("You must be in a voice channel!");
+
+        await message.RespondAsync(localizationService.Get("user_not_in_a_voice_channel"));
         logger.LogInformation("User is not in a voice channel.");
         return new ValidationResult(false, member);
-
     }
 
     public bool IsBotUser(IDiscordMessage message)

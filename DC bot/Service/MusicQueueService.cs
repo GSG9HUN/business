@@ -3,6 +3,7 @@ using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Wrapper;
 using DSharpPlus.Lavalink;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service;
 
@@ -12,7 +13,9 @@ public class MusicQueueService
     public readonly Dictionary<ulong, Queue<ILavaLinkTrack>> RepeatableQueue = new();
 
     private static readonly string QueueDirectory =
-        Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ?? throw new InvalidOperationException(), "queues");
+        Path.Combine(
+            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
+            throw new InvalidOperationException(), "guildFiles/queues");
 
     public bool HasTracks(ulong guildId) => _queues.ContainsKey(guildId) && _queues[guildId].Count > 0;
 
@@ -63,18 +66,30 @@ public class MusicQueueService
         var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
 
         if (!File.Exists(filePath)) return;
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true, // Ha a JSON kis-nagybetű érzékeny problémákat okozna
+            WriteIndented = true
+        };
 
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath));
-        
+        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath), options);
+
         _queues[guildId] = new Queue<ILavaLinkTrack>();
 
         if (savedTracks == null) return;
 
+        var trackList = new List<string>();
         foreach (var track in savedTracks)
         {
-            var decodedTracks = await nodeRest.DecodeTracksAsync(new List<string> { track.TrackString });
-            if (decodedTracks == null) continue;
-            _queues[guildId].Enqueue(new LavaLinkTrackWrapper(decodedTracks.First()));
+            trackList.Add(track.TrackString);
+        }
+
+        var decodedTracks = await nodeRest.DecodeTracksAsync(trackList);
+        if (decodedTracks == null) return;
+        foreach (var track in decodedTracks)
+        {
+            if(track == null) continue;
+            _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
         }
     }
 
@@ -92,5 +107,15 @@ public class MusicQueueService
     {
         _queues.Add(guildId, new Queue<ILavaLinkTrack>());
         RepeatableQueue.Add(guildId, new Queue<ILavaLinkTrack>());
+    }
+
+    public Queue<ILavaLinkTrack> GetQueue(ulong guildId)
+    {
+        return _queues[guildId];
+    }
+
+    public void SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
+    {
+        _queues[guildId] = shuffledQueue;
     }
 }

@@ -20,6 +20,14 @@ public class PlayCommandTest
     {
         Mock<ILogger<PlayCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+        
+        localizationServiceMock.Setup(g => g.Get("play_command_description"))
+            .Returns("Start playing a music.");
+        localizationServiceMock.Setup(g => g.Get("play_command_usage"))
+            .Returns("Please provide URL.");
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
         
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _messageMock = new Mock<IDiscordMessage>();
@@ -29,8 +37,8 @@ public class PlayCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLogger.Object);
-        _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+        var userValidationService = new UserValidationService(userLogger.Object,localizationServiceMock.Object);
+        _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
     }
 
     [Fact]

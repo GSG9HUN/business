@@ -20,7 +20,17 @@ public class SkipCommandTest
     {
         Mock<ILogger<SkipCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLoggerMock = new();
-
+        Mock<ILocalizationService> localizationServiceMock = new();
+        
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
+        
+        localizationServiceMock.Setup(g => g.Get("skip_command_description"))
+            .Returns("Skip the current track.");
+        
+        localizationServiceMock.Setup(g => g.Get("skip_command_error"))
+            .Returns("No track is currently playing.");
+        
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -28,8 +38,8 @@ public class SkipCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object);
-        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object,userValidationService, loggerMock.Object);
+        var userValidationService = new UserValidationService(userLoggerMock.Object,localizationServiceMock.Object);
+        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object,userValidationService, loggerMock.Object,localizationServiceMock.Object);
     }
 
     [Fact]

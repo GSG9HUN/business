@@ -10,7 +10,8 @@ namespace DC_bot.Service
 {
     public class LavaLinkService(
         MusicQueueService musicQueueService,
-        ILogger<LavaLinkService> logger) : ILavaLinkService
+        ILogger<LavaLinkService> logger,
+        ILocalizationService localizationService) : ILavaLinkService
     {
         // event használata, hogy értesítsük a új zene kezdődik és hogy adjon hozzá emojikat.
         public event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted = null!;
@@ -71,7 +72,7 @@ namespace DC_bot.Service
 
             if (node == null)
             {
-                await textChannel.SendMessageAsync("Lavalink is not connected.");
+                await textChannel.SendMessageAsync(localizationService.Get("lavalink_error"));
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
@@ -80,7 +81,7 @@ namespace DC_bot.Service
 
             if (connection == null)
             {
-                await textChannel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await textChannel.SendMessageAsync(localizationService.Get("bot_is_not_connected_error"));
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
@@ -99,7 +100,8 @@ namespace DC_bot.Service
 
             if (searchQuery.LoadResultType is LavalinkLoadResultType.NoMatches or LavalinkLoadResultType.LoadFailed)
             {
-                await textChannel.SendMessageAsync($"Failed to find music with url: {url}");
+                await textChannel.SendMessageAsync(
+                    $"{localizationService.Get("play_command_failed_to_find_music_url_error")} {url}");
                 logger.LogInformation($"Failed to find music with url: {url}");
                 return;
             }
@@ -114,7 +116,7 @@ namespace DC_bot.Service
 
             if (node == null)
             {
-                await textChannel.SendMessageAsync("Lavalink is not connected.");
+                await textChannel.SendMessageAsync(localizationService.Get("lavalink_error"));
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
@@ -123,7 +125,7 @@ namespace DC_bot.Service
 
             if (connection == null)
             {
-                await textChannel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await textChannel.SendMessageAsync(localizationService.Get("bot_is_not_connected_error"));
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
@@ -142,52 +144,54 @@ namespace DC_bot.Service
 
             if (searchQuery.LoadResultType is LavalinkLoadResultType.NoMatches or LavalinkLoadResultType.LoadFailed)
             {
-                await textChannel.SendMessageAsync($"Failed to find music with query: {query}");
+                await textChannel.SendMessageAsync(
+                    $"{localizationService.Get("play_command_failed_to_find_music_query_error")} {query}");
                 logger.LogInformation($"Failed to find music with query: {query}");
                 return;
             }
 
             await PlayTheFoundMusic(searchQuery, connection, textChannel);
         }
-        
+
         public async Task PauseAsync(IDiscordChannel channel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
 
             if (node == null)
             {
-                await channel.SendMessageAsync("Lavalink is not connected.");
+                await channel.SendMessageAsync(localizationService.Get("lavalink_error"));
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
-            
+
             var connection = node.GetGuildConnection(channel.Guild.ToDiscordGuild());
 
             if (connection == null)
             {
-                await channel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await channel.SendMessageAsync(localizationService.Get("bot_is_not_connected_error"));
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
 
             if (connection.CurrentState.CurrentTrack == null)
             {
-                await channel.SendMessageAsync("There is no track currently playing.");
+                await channel.SendMessageAsync(localizationService.Get("pause_command_error"));
                 logger.LogInformation("There is no track currently playing.");
                 return;
             }
 
             await connection.PauseAsync();
-            logger.LogInformation($"Paused: {connection.CurrentState.CurrentTrack.Title}");
+            logger.LogInformation(
+                $"{localizationService.Get("pause_command_response")} {connection.CurrentState.CurrentTrack.Title}");
         }
-        
+
         public async Task ResumeAsync(IDiscordChannel textChannel)
         {
             var node = _lavalink.ConnectedNodes.Values.First();
 
             if (node == null)
             {
-                await textChannel.SendMessageAsync("Lavalink is not connected.");
+                await textChannel.SendMessageAsync(localizationService.Get("lavalink_error"));
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
@@ -196,20 +200,21 @@ namespace DC_bot.Service
 
             if (connection == null)
             {
-                await textChannel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await textChannel.SendMessageAsync(localizationService.Get("bot_is_not_connected_error"));
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
 
             if (connection.CurrentState.CurrentTrack == null)
             {
-                await textChannel.SendMessageAsync("There is no track currently paused.");
+                await textChannel.SendMessageAsync(localizationService.Get("resume_command_error"));
                 logger.LogInformation("There is no track currently paused.");
                 return;
             }
 
             await connection.ResumeAsync();
-            logger.LogInformation($"Resumed: {connection.CurrentState.CurrentTrack.Title}");
+            logger.LogInformation(
+                $"{localizationService.Get("resume_command_response")} {connection.CurrentState.CurrentTrack.Title}");
         }
 
         public async Task SkipAsync(IDiscordChannel textChannel)
@@ -218,7 +223,7 @@ namespace DC_bot.Service
 
             if (node == null)
             {
-                await textChannel.SendMessageAsync("Lavalink is not connected.");
+                await textChannel.SendMessageAsync(localizationService.Get("lavalink_error"));
                 logger.LogInformation("Lavalink is not connected.");
                 return;
             }
@@ -227,14 +232,14 @@ namespace DC_bot.Service
 
             if (connection == null)
             {
-                await textChannel.SendMessageAsync("Bot is not connected to a voice channel.");
+                await textChannel.SendMessageAsync(localizationService.Get("bot_is_not_connected_error"));
                 logger.LogInformation("Bot is not connected to a voice channel.");
                 return;
             }
 
             if (connection.CurrentState.CurrentTrack == null)
             {
-                await textChannel.SendMessageAsync("No track is currently playing.");
+                await textChannel.SendMessageAsync(localizationService.Get("skip_command_error"));
                 return;
             }
 
@@ -269,10 +274,10 @@ namespace DC_bot.Service
         private async Task PlayTheFoundMusic(LavalinkLoadResult searchQuery, LavalinkGuildConnection connection,
             IDiscordChannel textChannel)
         {
-            var musicTrack = searchQuery.Tracks.First();
+            var musicTrack = searchQuery.Tracks.ToList();
             var guildId = textChannel.Guild.Id;
 
-            musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTrack));
+            musicTrack.ForEach(track => musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(track)));
 
             if (connection.CurrentState.CurrentTrack == null)
             {
@@ -282,14 +287,22 @@ namespace DC_bot.Service
 
                 await connection.PlayAsync(nextTrack);
                 await TrackStarted.Invoke(textChannel, connection.Node.Discord,
-                    $"Music is playing : {nextTrack.Author} - {nextTrack.Title}");
+                    $"{localizationService.Get("play_command_music_playing")} {nextTrack.Author} - {nextTrack.Title}");
                 _currentTrack[guildId] = nextTrack;
+                return;
             }
-            else
+
+            if (musicTrack.Count > 1)
             {
-                await textChannel.SendMessageAsync($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
-                logger.LogInformation($"Added to queue: {musicTrack.Author} - {musicTrack.Title}");
+                await textChannel.SendMessageAsync(localizationService.Get("play_command_list_added_queue"));
+                logger.LogInformation("Added to queue.");
+                return;
             }
+
+            var track = musicTrack.First();
+            await textChannel.SendMessageAsync(
+                $"{localizationService.Get("play_command_music_added_queue")} {track.Author} - {track.Title}");
+            logger.LogInformation($"Added to queue: {track.Author} - {track.Title}");
         }
 
         private async Task OnTrackFinished(LavalinkGuildConnection connection,
@@ -319,8 +332,8 @@ namespace DC_bot.Service
                     return;
                 }
                 default:
-                    await textChannel.SendMessageAsync("Queue is empty. Playback has stopped.");
-                    logger.LogInformation($"Queue is empty. Playback has stopped.");
+                    await textChannel.SendMessageAsync(localizationService.Get("skip_command_queue_is_empty"));
+                    logger.LogInformation("Queue is empty. Playback has stopped.");
                     break;
             }
         }
@@ -333,7 +346,7 @@ namespace DC_bot.Service
             await connection.PlayAsync(nextTrack);
 
             await TrackStarted.Invoke(textChannel, connection.Node.Discord,
-                $"Now Playing: {nextTrack?.Author} - {nextTrack?.Title}");
+                $"{localizationService.Get("skip_command_response")} {nextTrack?.Author} - {nextTrack?.Title}");
             logger.LogInformation($"Now Playing: {nextTrack?.Author} - {nextTrack?.Title}");
         }
     }

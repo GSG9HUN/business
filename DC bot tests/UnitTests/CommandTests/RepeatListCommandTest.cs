@@ -21,6 +21,22 @@ public class RepeatListCommandTest
     {
         Mock<ILogger<RepeatListCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+        
+        localizationServiceMock.Setup(g => g.Get("repeat_list_command_description"))
+            .Returns("Repeats the current track list.");
+        
+        localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_on"))
+            .Returns("Repeat is on for current list:");
+        
+        localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_off"))
+            .Returns("Repeating is off for the list:");
+        
+        localizationServiceMock.Setup(g => g.Get("repeat_list_command_track_already_repeating"))
+            .Returns("This track is already repeating.");
+        
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
         
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -30,9 +46,9 @@ public class RepeatListCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _guildMock = new Mock<IDiscordGuild>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object);
+        var userValidationService = new UserValidationService(userLoggerMock.Object,localizationServiceMock.Object);
         _repeatListCommand =
-            new RepeatListCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+            new RepeatListCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,localizationServiceMock.Object);
     }
 
     [Fact]

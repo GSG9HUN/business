@@ -3,15 +3,19 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class ResumeCommand(ILavaLinkService lavaLinkService, IUserValidationService userValidation, ILogger<ResumeCommand> logger) : ICommand
+public class ResumeCommand(
+    ILavaLinkService lavaLinkService,
+    IUserValidationService userValidation,
+    ILogger<ResumeCommand> logger,
+    ILocalizationService localizationService) : ICommand
 {
     public string Name => "resume";
-    public string Description => "Resume the current music.";
+    public string Description => localizationService.Get("resume_command_description");
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             return;
