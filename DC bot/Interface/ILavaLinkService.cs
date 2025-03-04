@@ -1,3 +1,5 @@
+using DSharpPlus;
+
 namespace DC_bot.Interface;
 
 public interface ILavaLinkService
@@ -15,4 +17,5 @@ public interface ILavaLinkService
     IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId);
     void CloneQueue(ulong guildId);
     void Init(ulong guildId);
+    event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted;
 }

@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service;
 
-public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHandler> logger)
+public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionHandler> logger)
 {
     public void RegisterHandler(DiscordClient client)
     {
@@ -40,24 +41,24 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         var guildId = args.Guild.Id;
         
         logger.LogInformation($"Reaction added: {args.Emoji.GetDiscordName()} by {args.User.Username}");
-       
+        var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                //await lavaLinkService.PauseAsync(args.Channel);
+                await lavaLinkService.PauseAsync(discordChannelWrapper);
                 break;
 
             case "▶️": // Resume emoji
-                //await lavaLinkService.ResumeAsync(args.Channel);
+                await lavaLinkService.ResumeAsync(discordChannelWrapper);
                 break;
             
             case "⏭️": // Skip emoji
-                //await lavaLinkService.SkipAsync(args.Channel);
+                await lavaLinkService.SkipAsync(discordChannelWrapper);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = true;
-                //await args.Message.RespondAsync($"Repeat mode: Enabled");
+                await args.Message.RespondAsync($"Repeat mode: Enabled");
                 break;
         }
     }
@@ -70,23 +71,25 @@ public class ReactionHandler(LavaLinkService lavaLinkService, ILogger<ReactionHa
         
         logger.LogInformation($"Reaction removed: {args.Emoji.GetDiscordName()} by {args.User.Username}");
         
+        var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
+       
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                //await lavaLinkService.ResumeAsync(args.Channel);
+                await lavaLinkService.ResumeAsync(discordChannelWrapper);
                 break;
 
             case "▶️": // Resume emoji
-                //await lavaLinkService.PauseAsync(args.Channel);
+                await lavaLinkService.PauseAsync(discordChannelWrapper);
                 break;
 
             case "⏭️": // Skip emoji
-                //await lavaLinkService.SkipAsync(args.Channel);
+                await lavaLinkService.SkipAsync(discordChannelWrapper);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = false;
-                //await args.Message.RespondAsync($"Repeat mode: Disabled");
+                await args.Message.RespondAsync($"Repeat mode: Disabled");
                 break;
         }
     }

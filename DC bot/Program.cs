@@ -88,9 +88,9 @@ internal class Program
     {
         var discordClient = SingletonDiscordClient.Instance;
         var commandHandler = services.GetRequiredService<CommandHandler>();
-        //var reactionHandler = services.GetRequiredService<ReactionHandler>();
+        var reactionHandler = services.GetRequiredService<ReactionHandler>();
 
         commandHandler.RegisterHandler(discordClient);
-        //reactionHandler.RegisterHandler(discordClient);
+        reactionHandler.RegisterHandler(discordClient);
     }
 }
