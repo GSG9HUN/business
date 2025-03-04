@@ -3,9 +3,8 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace DC_bot.Tests.UnitTests.CommandTests;
+namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class PingCommandTest
 {

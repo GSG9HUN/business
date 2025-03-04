@@ -65,10 +65,10 @@ public class MusicQueueService
         if (!File.Exists(filePath)) return;
 
         var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath));
+        
+        _queues[guildId] = new Queue<ILavaLinkTrack>();
 
         if (savedTracks == null) return;
-
-        _queues[guildId] = new Queue<ILavaLinkTrack>();
 
         foreach (var track in savedTracks)
         {

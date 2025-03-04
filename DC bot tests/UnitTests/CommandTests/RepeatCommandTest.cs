@@ -3,11 +3,10 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace DC_bot.Tests.UnitTests.CommandTests;
+namespace DC_bot_tests.UnitTests.CommandTests;
 
-public class RepeatListCommandTest
+public class RepeatCommandTest
 {
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordMessage> _messageMock;
@@ -16,32 +15,31 @@ public class RepeatListCommandTest
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IDiscordVoiceState> _discordVoiceStateMock;
-    private readonly RepeatListCommand _repeatListCommand;
-
-    public RepeatListCommandTest()
+    
+    private readonly RepeatCommand _repeatCommand;
+    public RepeatCommandTest()
     {
-        Mock<ILogger<RepeatListCommand>> loggerMock = new();
-        Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILogger<RepeatCommand>> loggerMock = new();
+        Mock<ILogger<UserValidationService>> userLogger = new();
         
-        _discordUserMock = new Mock<IDiscordUser>();
-        _discordMemberMock = new Mock<IDiscordMember>();
-        _discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _messageMock = new Mock<IDiscordMessage>();
         _channelMock = new Mock<IDiscordChannel>();
         _guildMock = new Mock<IDiscordGuild>();
+        _discordUserMock = new Mock<IDiscordUser>();
+        _discordMemberMock = new Mock<IDiscordMember>();
+        _discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object);
-        _repeatListCommand =
-            new RepeatListCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+        var userValidationService = new UserValidationService(userLogger.Object);
+        _repeatCommand = new RepeatCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
     }
 
     [Fact]
-    public async Task ExecuteAsync_TackIsAlreadyRepeating_ShouldSendMessage()
+    public async Task ExecuteAsync_ListIsAlreadyRepeating_ShouldSendMessage()
     {
         // Arrange
         const ulong guildId = 123456789UL;
-        var isRepeating = new Dictionary<ulong, bool> { { guildId, true } };
+        var isRepeatingList = new Dictionary<ulong, bool> { { guildId, true } };
 
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(_discordVoiceStateMock.Object);
@@ -54,23 +52,23 @@ public class RepeatListCommandTest
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
 
-        _lavaLinkServiceMock.SetupGet(l => l.IsRepeating)
-            .Returns(isRepeating);
+        _lavaLinkServiceMock.SetupGet(l => l.IsRepeatingList)
+            .Returns(isRepeatingList);
 
         // Act
-        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+        await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _channelMock.Verify(c => c.SendMessageAsync("This track is already repeating."), Times.Once);
+        _channelMock.Verify(c => c.SendMessageAsync("This list is already repeating."), Times.Once);
     }
 
     [Fact]
-    public async Task ExecuteAsync_ListIsRepeating_ShouldTurnOffRepeat()
+    public async Task ExecuteAsync_TrackIsRepeating_ShouldTurnOffRepeat()
     {
         // Arrange
         const ulong guildId = 123456789UL;
-        var isRepeatingList = new Dictionary<ulong, bool> { { guildId, true } };
-        var isRepeating = new Dictionary<ulong, bool> { { guildId, false } };
+        var isRepeatingList = new Dictionary<ulong, bool> { { guildId, false } };
+        var isRepeating = new Dictionary<ulong, bool> { { guildId, true } };
 
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(_discordVoiceStateMock.Object);
@@ -86,13 +84,13 @@ public class RepeatListCommandTest
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeatingList)
             .Returns(isRepeatingList);
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeating).Returns(isRepeating);
-        _lavaLinkServiceMock.Setup(l => l.GetCurrentTrackList(guildId)).Returns("test track list");
+
         // Act
-        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+        await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
         Assert.False(isRepeating[guildId]);
-        _channelMock.Verify(c => c.SendMessageAsync("Repeating is off for the list:\n test track list"), Times.Once);
+        _channelMock.Verify(c => c.SendMessageAsync("Repeating is off."), Times.Once);
     }
 
     [Fact]
@@ -113,18 +111,18 @@ public class RepeatListCommandTest
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeating).Returns(isRepeating);
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeatingList).Returns(isRepeatingList);
-        _lavaLinkServiceMock.Setup(l => l.GetCurrentTrackList(guildId)).Returns("test track list");
+        _lavaLinkServiceMock.Setup(l => l.GetCurrentTrack(guildId)).Returns("Test Track");
 
         // Act
-        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+        await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        Assert.True(isRepeatingList[guildId]);
-        _channelMock.Verify(c => c.SendMessageAsync("Repeat is on for current list:\n test track list"), Times.Once);
+        Assert.True(isRepeating[guildId]);
+        _channelMock.Verify(c => c.SendMessageAsync("Repeat is on for : Test Track"), Times.Once);
     }
+
     [Fact]
     public async Task ExecuteAsync_UserIsABot_ShouldDoNothing()
     {
@@ -133,7 +131,7 @@ public class RepeatListCommandTest
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         
         // Act
-        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+        await _repeatCommand.ExecuteAsync(_messageMock.Object);
         
         //Assert
         _messageMock.Verify(m => m.RespondAsync(It.IsAny<string>()),Times.Never);
@@ -151,16 +149,16 @@ public class RepeatListCommandTest
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
         
         // Act
-        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+        await _repeatCommand.ExecuteAsync(_messageMock.Object);
         
         //Assert
         _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"),Times.Once);
     }
-
+    
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("repeatList", _repeatListCommand.Name);
-        Assert.Equal("Repeats the current track list.", _repeatListCommand.Description);
+        Assert.Equal("repeat", _repeatCommand.Name);
+        Assert.Equal("Repeats a specified track infinitely.", _repeatCommand.Description);
     }
 }

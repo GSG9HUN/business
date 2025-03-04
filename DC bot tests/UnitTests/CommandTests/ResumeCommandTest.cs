@@ -3,11 +3,10 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace DC_bot.Tests.UnitTests.CommandTests;
+namespace DC_bot_tests.UnitTests.CommandTests;
 
-public class SkipCommandTest
+public class ResumeCommandTest
 {
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
@@ -15,13 +14,13 @@ public class SkipCommandTest
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly SkipCommand _skipCommand;
+    private readonly ResumeCommand _resumeCommand;
 
-    public SkipCommandTest()
+    public ResumeCommandTest()
     {
-        Mock<ILogger<SkipCommand>> loggerMock = new();
+        Mock<ILogger<ResumeCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLoggerMock = new();
-
+        
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -30,9 +29,8 @@ public class SkipCommandTest
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
         var userValidationService = new UserValidationService(userLoggerMock.Object);
-        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object,userValidationService, loggerMock.Object);
+        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
     }
-
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
@@ -45,17 +43,16 @@ public class SkipCommandTest
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
 
         //Act
-        await _skipCommand.ExecuteAsync(_messageMock.Object);
+        await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
 
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuteAsync_UserNotIn_VoiceChannel()
     {
-        //Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
@@ -65,13 +62,13 @@ public class SkipCommandTest
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
 
         //Act
-        await _skipCommand.ExecuteAsync(_messageMock.Object);
+        await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
         _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Never);
     }
-
+    
     [Fact]
     public async Task ExecuteAsync_UserIn_VoiceChannel()
     {
@@ -81,23 +78,23 @@ public class SkipCommandTest
         
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(mockDiscordVoiceState.Object);
+        _discordMemberMock.SetupGet(d => d.VoiceState).Returns(mockDiscordVoiceState.Object);
         _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
 
         //Act
-        await _skipCommand.ExecuteAsync(_messageMock.Object);
+        await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Once);
     }
-
+    
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("skip", _skipCommand.Name);
-        Assert.Equal("Skip the current track.", _skipCommand.Description);
+        Assert.Equal("resume", _resumeCommand.Name);
+        Assert.Equal("Resume the current music.",_resumeCommand.Description);
     }
 }
