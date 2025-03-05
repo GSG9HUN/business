@@ -1,6 +1,7 @@
 using DC_bot.Commands;
 using DC_bot.Interface;
 using DC_bot.Service;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -15,11 +16,27 @@ public class ViewQueueCommandTest
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly ViewQueueCommand _viewQueueCommand;
-    
+
     public ViewQueueCommandTest()
     {
         Mock<ILogger<ViewQueueCommand>> loggerMock = new();
         Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+
+        localizationServiceMock.Setup(g => g.Get("view_list_command_description"))
+            .Returns("View the list of tracks.");
+
+        localizationServiceMock.Setup(g => g.Get("view_list_command_error"))
+            .Returns("The queue is currently empty.");
+
+        localizationServiceMock.Setup(g => g.Get("view_list_command_embed_title"))
+            .Returns("Playlist");
+
+        localizationServiceMock.Setup(g => g.Get("view_list_command_response", 1))
+            .Returns("... and more 1 track.");
+
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
 
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -27,10 +44,11 @@ public class ViewQueueCommandTest
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var userValidationService = new UserValidationService(userLoggerMock.Object);
-        
+        var userValidationService = new UserValidationService(userLoggerMock.Object, localizationServiceMock.Object);
+
         _viewQueueCommand =
-            new ViewQueueCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+            new ViewQueueCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
+                localizationServiceMock.Object);
     }
 
     [Fact]
@@ -71,15 +89,14 @@ public class ViewQueueCommandTest
         _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
         _lavaLinkServiceMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Never);
     }
-
-
+    
     [Fact]
     public async Task ExecuteAsync_Queue_Is_Empty_VoiceChannel()
     {
         //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-        
+
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
@@ -123,14 +140,63 @@ public class ViewQueueCommandTest
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("Current Queue:\n1. Test title (Test author)"), Times.Once);
+        _messageMock.Verify(m => m.RespondAsync(It.Is<DiscordEmbed>(embed =>
+            embed.Title == "Playlist" &&
+            embed.Fields.Count == 1 &&
+            embed.Fields[0].Name == "Test title" &&
+            embed.Fields[0].Value == "🎵 Test author"
+        )), Times.Once);
         _lavaLinkServiceMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
     }
-    
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Display_Footer_When_Queue_Has_More_Than_10_Tracks()
+    {
+        // Arrange
+        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
+        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
+
+        var tracks = new List<ILavaLinkTrack>();
+
+        for (int i = 1; i <= 11; i++)
+        {
+            var trackMock = new Mock<ILavaLinkTrack>();
+            trackMock.SetupGet(t => t.Author).Returns($"Author {i}");
+            trackMock.SetupGet(t => t.Title).Returns($"Title {i}");
+            tracks.Add(trackMock.Object);
+        }
+
+        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
+        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
+        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+
+        _lavaLinkServiceMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).Returns(tracks);
+
+        // Act
+        await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+        _messageMock.Verify(m => m.RespondAsync(It.Is<DiscordEmbed>(embed =>
+                embed.Title == "Playlist" &&
+                embed.Fields.Count == 10 && // Csak 10 track-et kell megjelenítenie
+                embed.Fields[0].Name == "Title 1" &&
+                embed.Fields[0].Value == "🎵 Author 1" &&
+                embed.Fields[9].Name == "Title 10" &&
+                embed.Fields[9].Value == "🎵 Author 10" &&
+                embed.Footer.Text == "... and more 1 track." // Footerben jelezze, hogy még egy track van
+        )), Times.Once);
+
+        _lavaLinkServiceMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
+    }
+
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
         Assert.Equal("viewList", _viewQueueCommand.Name);
-        Assert.Equal("view the list of tracks.", _viewQueueCommand.Description);
+        Assert.Equal("View the list of tracks.", _viewQueueCommand.Description);
     }
 }

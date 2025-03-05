@@ -3,14 +3,15 @@ using DSharpPlus.Entities;
 
 namespace DC_bot.Wrapper;
 
-public class DiscordMessage(
+public class DiscordMessageWrapper(
     ulong id,
     string content,
     IDiscordChannel channel,
     IDiscordUser author,
     DateTimeOffset createdAt,
     List<DiscordEmbed> embeds,
-    Func<string, Task<DSharpPlus.Entities.DiscordMessage>> responseAsync)
+    Func<string, Task<DiscordMessage>> responseAsync,
+    Func<DiscordEmbed, Task<DiscordMessage>> responseEmbedAsync)
     : IDiscordMessage
 {
     public ulong Id { get; set; } = id;
@@ -23,5 +24,9 @@ public class DiscordMessage(
     public async Task RespondAsync(string message)
     {
         await responseAsync(message);
+    }
+    public async Task RespondAsync(DiscordEmbed embed)
+    {
+        await responseEmbedAsync(embed);
     }
 }

@@ -50,7 +50,7 @@ internal class Program
         var services = new ServiceCollection()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton<BotService>()
-            .AddSingleton<CommandHandler>()
+            .AddSingleton<CommandHandlerService>()
             .AddSingleton<ReactionHandler>()
             .AddSingleton<MusicQueueService>()
             .AddSingleton<ICommand, TagCommand>()
@@ -63,8 +63,11 @@ internal class Program
             .AddSingleton<ICommand, RepeatCommand>()
             .AddSingleton<ICommand, ViewQueueCommand>()
             .AddSingleton<ICommand, RepeatListCommand>()
-            .AddSingleton<ILavaLinkService,LavaLinkService>()
-            .AddSingleton<IUserValidationService,UserValidationService>()
+            .AddSingleton<ICommand, ShuffleCommand>()
+            .AddSingleton<ICommand, LanguageCommand>()
+            .AddSingleton<ILavaLinkService, LavaLinkService>()
+            .AddSingleton<IUserValidationService, UserValidationService>()
+            .AddSingleton<ILocalizationService, LocalizationService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
@@ -87,7 +90,7 @@ internal class Program
     private void RegisterHandlers(IServiceProvider services)
     {
         var discordClient = SingletonDiscordClient.Instance;
-        var commandHandler = services.GetRequiredService<CommandHandler>();
+        var commandHandler = services.GetRequiredService<CommandHandlerService>();
         var reactionHandler = services.GetRequiredService<ReactionHandler>();
 
         commandHandler.RegisterHandler(discordClient);

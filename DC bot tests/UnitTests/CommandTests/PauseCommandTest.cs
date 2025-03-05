@@ -20,6 +20,16 @@ public class PauseCommandTest
     {
         Mock<ILogger<UserValidationService>> userServiceLogger = new();
         Mock<ILogger<PauseCommand>> loggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+        
+        localizationServiceMock.Setup(g => g.Get("pause_command_description"))
+            .Returns("Pause the current music.");
+        
+        localizationServiceMock.Setup(g => g.Get("pause_command_response"))
+            .Returns("Paused:");
+        
+        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+            .Returns("You must be in a voice channel!");
         
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -28,8 +38,8 @@ public class PauseCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userServiceLogger.Object);
-        _pauseCommand = new PauseCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object);
+        var userValidationService = new UserValidationService(userServiceLogger.Object,localizationServiceMock.Object);
+        _pauseCommand = new PauseCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,localizationServiceMock.Object);
     }
 
     [Fact]

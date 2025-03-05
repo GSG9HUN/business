@@ -11,4 +11,5 @@ public interface IDiscordMessage
     public DateTimeOffset CreatedAt { get; set; }
     public IReadOnlyList<DiscordEmbed> Embeds { get; set; }
     Task RespondAsync(string message);
+    Task RespondAsync(DiscordEmbed message);
 }

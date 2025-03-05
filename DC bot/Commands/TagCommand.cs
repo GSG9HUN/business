@@ -3,10 +3,13 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class TagCommand(IUserValidationService userValidation, ILogger<TagCommand> logger) : ICommand
+public class TagCommand(
+    IUserValidationService userValidation,
+    ILogger<TagCommand> logger,
+    ILocalizationService localizationService) : ICommand
 {
     public string Name => "tag";
-    public string Description => "You can tag someone.";
+    public string Description => localizationService.Get("tag_command_description");
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
@@ -19,7 +22,7 @@ public class TagCommand(IUserValidationService userValidation, ILogger<TagComman
 
         if (tagName.Length != 2)
         {
-            await message.Channel.SendMessageAsync("Username provided.");
+            await message.Channel.SendMessageAsync(localizationService.Get("tag_command_usage"));
             logger.LogInformation("Username provided.");
             return;
         }
@@ -29,11 +32,11 @@ public class TagCommand(IUserValidationService userValidation, ILogger<TagComman
 
         if (msg == null)
         {
-            await message.Channel.SendMessageAsync($"User {tagName[1]} does not exist.");
+            await message.Channel.SendMessageAsync(localizationService.Get("tag_command_user_not_exist_error", tagName[1]));
             return;
         }
 
-        await message.Channel.SendMessageAsync($"{msg.Mention} Wake Up!");
+        await message.Channel.SendMessageAsync(localizationService.Get("tag_command_response", msg.Mention));
 
         logger.LogInformation("Tag command executed!");
     }

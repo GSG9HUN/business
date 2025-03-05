@@ -3,15 +3,19 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class SkipCommand(ILavaLinkService lavaLinkService, IUserValidationService userValidation, ILogger<SkipCommand> logger) : ICommand
+public class SkipCommand(
+    ILavaLinkService lavaLinkService,
+    IUserValidationService userValidation,
+    ILogger<SkipCommand> logger,
+    ILocalizationService localizationService) : ICommand
 {
     public string Name => "skip";
-    public string Description => "Skip the current track.";
+    public string Description => localizationService.Get("skip_command_description");
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             return;

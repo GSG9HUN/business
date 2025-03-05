@@ -7,16 +7,19 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service
 {
-    public class CommandHandler
+    public class CommandHandlerService
     {
         private readonly string? _prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
         private readonly Dictionary<string, ICommand> _commands;
-        private readonly ILogger<CommandHandler> _logger;
+        private readonly ILogger<CommandHandlerService> _logger;
+        private readonly ILocalizationService _localizationService;
 
-        public CommandHandler(IServiceProvider services, ILogger<CommandHandler> logger)
+        public CommandHandlerService(IServiceProvider services, ILogger<CommandHandlerService> logger,
+            ILocalizationService localizationService)
         {
             _logger = logger;
             _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);
+            _localizationService = localizationService;
         }
 
         public void RegisterHandler(DiscordClient client)
@@ -44,15 +47,16 @@ namespace DC_bot.Service
             {
                 var discordAuthor = new DiscordUserWrapper(args.Author);
                 var discordChannel = new DiscordChannelWrapper(args.Channel);
-                var discordMessageWrapper = new DiscordMessage(args.Message.Id, args.Message.Content,
+                var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
                     discordChannel, discordAuthor, args.Message.CreationTimestamp,
-                    args.Message.Embeds.ToList(), args.Message.RespondAsync);
+                    args.Message.Embeds.ToList(), args.Message.RespondAsync,
+                    args.Message.RespondAsync);
 
                 await command.ExecuteAsync(discordMessageWrapper);
             }
             else
             {
-                await message.Channel.SendMessageAsync("Unknown command. Use `!help` to see available commands.");
+                await message.Channel.SendMessageAsync(_localizationService.Get("unknown_command_error"));
                 _logger.LogInformation("Unknown command. Use `!help` to see available commands.");
             }
         }

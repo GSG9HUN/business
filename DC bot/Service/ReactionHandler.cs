@@ -7,7 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service;
 
-public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionHandler> logger)
+public class ReactionHandler(
+    ILavaLinkService lavaLinkService,
+    ILogger<ReactionHandler> logger,
+    ILocalizationService localizationService)
 {
     public void RegisterHandler(DiscordClient client)
     {
@@ -19,11 +22,12 @@ public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionH
 
     private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, string msg)
     {
-        var message = await textChannel.ToDiscordChannel().SendMessageAsync($"{msg}\n 🎵 **Music Controls** 🎵\n" +
-                                                         "⏸️ - Pause " +
-                                                         "▶️ - Resume " +
-                                                         "⏭️ - Skip " +
-                                                         "🔁 - Repeat");
+        var message = await textChannel.ToDiscordChannel().SendMessageAsync(
+            $"{msg}\n 🎵 **{localizationService.Get("music_control")}** 🎵\n" +
+            $"⏸️ - {localizationService.Get("pause")} " +
+            $"▶️ - {localizationService.Get("resume")} " +
+            $"⏭️ - {localizationService.Get("skip")} " +
+            $"🔁 - {localizationService.Get("repeat")}");
 
         // Reakciók hozzáadása az üzenethez
         await message.CreateReactionAsync(DiscordEmoji.FromName(client, ":pause_button:"));
@@ -39,7 +43,7 @@ public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionH
         if (args.User.IsBot) return;
 
         var guildId = args.Guild.Id;
-        
+
         logger.LogInformation($"Reaction added: {args.Emoji.GetDiscordName()} by {args.User.Username}");
         var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
         switch (args.Emoji.Name)
@@ -51,14 +55,14 @@ public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionH
             case "▶️": // Resume emoji
                 await lavaLinkService.ResumeAsync(discordChannelWrapper);
                 break;
-            
+
             case "⏭️": // Skip emoji
                 await lavaLinkService.SkipAsync(discordChannelWrapper);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = true;
-                await args.Message.RespondAsync($"Repeat mode: Enabled");
+                await args.Message.RespondAsync(localizationService.Get("reaction_handler_repeat_on"));
                 break;
         }
     }
@@ -68,11 +72,11 @@ public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionH
         if (args.User.IsBot) return;
 
         var guildId = args.Guild.Id;
-        
+
         logger.LogInformation($"Reaction removed: {args.Emoji.GetDiscordName()} by {args.User.Username}");
-        
+
         var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
-       
+
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
@@ -89,7 +93,7 @@ public class ReactionHandler(ILavaLinkService lavaLinkService, ILogger<ReactionH
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = false;
-                await args.Message.RespondAsync($"Repeat mode: Disabled");
+                await args.Message.RespondAsync(localizationService.Get("reaction_handler_repeat_off"));
                 break;
         }
     }
