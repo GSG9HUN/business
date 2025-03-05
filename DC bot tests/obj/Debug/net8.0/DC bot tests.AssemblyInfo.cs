@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DC bot tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6b7401b36f4df30ad13469f64dd23cf2204f893")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e028b4f4bd7f2452b02d7ad258fdc2f096b2f59c")]
 [assembly: System.Reflection.AssemblyProductAttribute("DC bot tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DC bot tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

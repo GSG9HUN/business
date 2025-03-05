@@ -3,14 +3,13 @@ using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Wrapper;
 using DSharpPlus.Lavalink;
-using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service;
 
-public class MusicQueueService
+public class MusicQueueService : IMusicQueueService
 {
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
-    public readonly Dictionary<ulong, Queue<ILavaLinkTrack>> RepeatableQueue = new();
+    private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
 
     private static readonly string QueueDirectory =
         Path.Combine(
@@ -78,11 +77,7 @@ public class MusicQueueService
 
         if (savedTracks == null) return;
 
-        var trackList = new List<string>();
-        foreach (var track in savedTracks)
-        {
-            trackList.Add(track.TrackString);
-        }
+        var trackList = savedTracks.Select(track => track.TrackString).ToList();
 
         var decodedTracks = await nodeRest.DecodeTracksAsync(trackList);
         if (decodedTracks == null) return;
@@ -95,18 +90,18 @@ public class MusicQueueService
 
     public void Clone(ulong guildId, LavalinkTrack currentTrack)
     {
-        RepeatableQueue[guildId].Clear();
-        RepeatableQueue[guildId].Enqueue(new LavaLinkTrackWrapper(currentTrack));
+        _repeatableQueue[guildId].Clear();
+        _repeatableQueue[guildId].Enqueue(new LavaLinkTrackWrapper(currentTrack));
         foreach (var track in _queues[guildId])
         {
-            RepeatableQueue[guildId].Enqueue(track);
+            _repeatableQueue[guildId].Enqueue(track);
         }
     }
 
     public void Init(ulong guildId)
     {
         _queues.Add(guildId, new Queue<ILavaLinkTrack>());
-        RepeatableQueue.Add(guildId, new Queue<ILavaLinkTrack>());
+        _repeatableQueue.Add(guildId, new Queue<ILavaLinkTrack>());
     }
 
     public Queue<ILavaLinkTrack> GetQueue(ulong guildId)
@@ -117,5 +112,10 @@ public class MusicQueueService
     public void SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
     {
         _queues[guildId] = shuffledQueue;
+    }
+
+    public IEnumerable<ILavaLinkTrack> GetRepeatableQueue(ulong guildId)
+    {
+        return _repeatableQueue[guildId];
     }
 }
