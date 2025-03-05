@@ -13,20 +13,20 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\olahs\.nuget\packages\victoria\7.0.5\lib\net8.0\Victoria.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\olahs\AppData\Local\JetBrains\Rider2024.2\resharper-host\temp\Rider\vAny\CoverageData\_DC bot.-1418549479\Snapshot\snapshot.utdcvr</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=47322899_002D7842_002D47A9_002DABA8_002D4B647D6DBF61/@EntryIndexedValue">4DABCCF5-8FEF-424F-9D30-DBE64E5D8D2C</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=NUnit3x/@EntryIndexedValue">db4927dd-2e12-48a7-9a84-2b7e3e31b9c8</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=xUnit/@EntryIndexedValue">33ff99d8-b1ad-4ed5-a4fd-376b97c2c841</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6cdf5038_002D2aff_002D4c0a_002D8698_002D00ab03745979/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="HelpCommandTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::4DABCCF5-8FEF-424F-9D30-DBE64E5D8D2C::net8.0::DC_bot_test.Commands.HelpCommandTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7b428f5e_002Dfa19_002D4491_002Db846_002Db5b457708975/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;And&gt;&#xD;
+    &lt;Namespace&gt;DC_bot_tests&lt;/Namespace&gt;&#xD;
+    &lt;Project Location="C:\Users\olahs\OneDrive\Documents\GitHub\business\DC bot tests" Presentation="&amp;lt;DC bot tests&amp;gt;" /&gt;&#xD;
+  &lt;/And&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=76f0a2da_002Da9dd_002D415d_002D952e_002Db9af3ba6eade/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="HelpCommandTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::4DABCCF5-8FEF-424F-9D30-DBE64E5D8D2C::net8.0::DC_bot_test.Commands.HelpCommandTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::4DABCCF5-8FEF-424F-9D30-DBE64E5D8D2C::net8.0::DC_bot_test.Commands.PauseCommandTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
+	
+	
+	
+	
 	
 	
 	

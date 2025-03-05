@@ -6,7 +6,7 @@ namespace DC_bot.Commands;
 
 public class ShuffleCommand(
     IUserValidationService userValidation,
-    MusicQueueService musicQueueService,
+    IMusicQueueService musicQueueService,
     ILogger<ShuffleCommand> logger,
     ILocalizationService localizationService) : ICommand
 {
@@ -25,11 +25,10 @@ public class ShuffleCommand(
 
         var guildId = message.Channel.Guild.Id;
         var queue = musicQueueService.GetQueue(guildId);
-
-
+        
         if (!queue.Any())
         {
-            await message.RespondAsync($"❌  {localizationService.Get("shuffle_command_error")}");
+            await message.RespondAsync($"❌ {localizationService.Get("shuffle_command_error")}");
             return;
         }
 

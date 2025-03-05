@@ -33,7 +33,7 @@
   "skip_command_error": "No track is currently playing.",
   "skip_command_response": "Now Playing: ",
   "skip_command_queue_is_empty": "Queue is empty. Playback has stopped.",
-  "tag_command_description": "",
+  "tag_command_description": "You can tag someone.",
   "tag_command_usage": "Username provided.",
   "tag_command_user_not_exist_error": "User {0} does not exist.",
   "tag_command_response": "{0} Wake Up!",

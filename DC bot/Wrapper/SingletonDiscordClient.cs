@@ -47,7 +47,7 @@ public class SingletonDiscordClient
     {
         _logger.LogInformation($"Guild available: {e.Guild.Name}");
 
-        var musicService = ServiceLocator.GetService<MusicQueueService>();
+        var musicService = ServiceLocator.GetService<IMusicQueueService>();
         var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();
         var lovalizationService = ServiceLocator.GetService<ILocalizationService>();
         

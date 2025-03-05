@@ -45,14 +45,13 @@ internal class Program
         await botService.StartAsync();
     }
 
-    private IServiceProvider ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton<BotService>()
-            .AddSingleton<CommandHandlerService>()
             .AddSingleton<ReactionHandler>()
-            .AddSingleton<MusicQueueService>()
+            .AddSingleton<CommandHandlerService>()
             .AddSingleton<ICommand, TagCommand>()
             .AddSingleton<ICommand, PingCommand>()
             .AddSingleton<ICommand, HelpCommand>()
@@ -61,13 +60,14 @@ internal class Program
             .AddSingleton<ICommand, PauseCommand>()
             .AddSingleton<ICommand, ResumeCommand>()
             .AddSingleton<ICommand, RepeatCommand>()
-            .AddSingleton<ICommand, ViewQueueCommand>()
-            .AddSingleton<ICommand, RepeatListCommand>()
             .AddSingleton<ICommand, ShuffleCommand>()
             .AddSingleton<ICommand, LanguageCommand>()
+            .AddSingleton<ICommand, ViewQueueCommand>()
+            .AddSingleton<ICommand, RepeatListCommand>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
-            .AddSingleton<IUserValidationService, UserValidationService>()
+            .AddSingleton<IMusicQueueService,MusicQueueService>()
             .AddSingleton<ILocalizationService, LocalizationService>()
+            .AddSingleton<IUserValidationService, UserValidationService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
@@ -76,7 +76,7 @@ internal class Program
         return services;
     }
 
-    private void RegisterSlashCommands()
+    private static void RegisterSlashCommands()
     {
         var discordClient = SingletonDiscordClient.Instance;
         var slashCommandsConfig = discordClient.UseSlashCommands();
@@ -87,7 +87,7 @@ internal class Program
         slashCommandsConfig.RegisterCommands<PlaySlashCommand>(1309813939563003966);
     }
 
-    private void RegisterHandlers(IServiceProvider services)
+    private static void RegisterHandlers(IServiceProvider services)
     {
         var discordClient = SingletonDiscordClient.Instance;
         var commandHandler = services.GetRequiredService<CommandHandlerService>();
