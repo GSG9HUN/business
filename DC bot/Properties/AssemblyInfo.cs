@@ -1,1 +1,1 @@
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DC bot test")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DC bot tests")]

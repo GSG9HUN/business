@@ -75,7 +75,7 @@ public class MusicQueueService : IMusicQueueService
 
         _queues[guildId] = new Queue<ILavaLinkTrack>();
 
-        if (savedTracks == null) return;
+        if (savedTracks == null || savedTracks.Count == 0) return;
 
         var trackList = savedTracks.Select(track => track.TrackString).ToList();
 

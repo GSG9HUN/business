@@ -237,7 +237,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            if (connection.CurrentState.CurrentTrack == null)
+            if (connection.CurrentState.CurrentTrack == null && !musicQueueService.HasTracks(textChannel.Guild.Id))
             {
                 await textChannel.SendMessageAsync(localizationService.Get("skip_command_error"));
                 return;

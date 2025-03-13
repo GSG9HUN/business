@@ -9,17 +9,20 @@ namespace DC_bot.Service
 {
     public class CommandHandlerService
     {
-        private readonly string? _prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
+        internal string? prefix { get; set; }
         private readonly Dictionary<string, ICommand> _commands;
         private readonly ILogger<CommandHandlerService> _logger;
         private readonly ILocalizationService _localizationService;
+        private readonly bool _isTestMode;
 
         public CommandHandlerService(IServiceProvider services, ILogger<CommandHandlerService> logger,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService, bool isTestMode = false)
         {
             _logger = logger;
             _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);
             _localizationService = localizationService;
+            _isTestMode = isTestMode;
+            prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
         }
 
         public void RegisterHandler(DiscordClient client)
@@ -30,7 +33,7 @@ namespace DC_bot.Service
 
         private async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
         {
-            if (_prefix == null)
+            if (prefix == null)
             {
                 _logger.LogError("No prefix provided");
                 return;
@@ -38,9 +41,9 @@ namespace DC_bot.Service
 
             if (args.Message is not { } message) return;
 
-            if (args.Author.IsBot) return;
+            if (args.Author.IsBot && !_isTestMode) return;
 
-            if (!message.Content.StartsWith(_prefix)) return;
+            if (!message.Content.StartsWith(prefix)) return;
 
             var commandName = message.Content.Substring(1).Split(' ')[0];
             if (_commands.TryGetValue(commandName, out var command))
