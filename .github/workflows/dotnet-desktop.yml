@@ -20,7 +20,13 @@ jobs:
     env:
       Solution_Name: '.\DC bot.sln'                         # Replace with your solution name, i.e. MyWpfApp.sln.
       Test_Project_Path: '.\DC bot tests\DC bot tests.csproj'                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
-
+      BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+      LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
+      LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
+      LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
+      
     steps:
     - name: Checkout
       uses: actions/checkout@v4
