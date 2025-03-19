@@ -56,7 +56,15 @@ public class SingletonDiscordClient
         musicService.Init(e.Guild.Id);
         
         await lavaLinkService.ConnectAsync();
-        var node = Instance.GetLavalink().ConnectedNodes.Values.FirstOrDefault();
+        var lavalink = Instance.GetLavalink();
+        
+        if (lavalink == null || !lavalink.ConnectedNodes.Any())
+        {
+            _logger.LogError("No connected Lavalink nodes available.");
+            return;
+        }
+        
+        var node = lavalink.ConnectedNodes.Values.FirstOrDefault();
         
         if (node == null) return;
         

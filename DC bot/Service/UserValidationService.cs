@@ -7,8 +7,6 @@ namespace DC_bot.Service;
 public class UserValidationService(ILogger<UserValidationService> logger, ILocalizationService localizationService, bool isTestMode = false)
     : IUserValidationService
 {
-
-    private readonly bool _IsTestMode = isTestMode;
     public async Task<ValidationResult> ValidateUserAsync(IDiscordMessage message)
     {
         if (IsBotUser(message))
