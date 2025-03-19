@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace DC_bot.Service
 {
     public class LavaLinkService(
-        MusicQueueService musicQueueService,
+        IMusicQueueService musicQueueService,
         ILogger<LavaLinkService> logger,
         ILocalizationService localizationService) : ILavaLinkService
     {
@@ -237,7 +237,7 @@ namespace DC_bot.Service
                 return;
             }
 
-            if (connection.CurrentState.CurrentTrack == null)
+            if (connection.CurrentState.CurrentTrack == null && !musicQueueService.HasTracks(textChannel.Guild.Id))
             {
                 await textChannel.SendMessageAsync(localizationService.Get("skip_command_error"));
                 return;
@@ -323,7 +323,8 @@ namespace DC_bot.Service
                     return;
                 case true when !musicQueueService.HasTracks(guildId) && IsRepeatingList[guildId]:
                 {
-                    foreach (var track in musicQueueService.RepeatableQueue[guildId])
+                    var repeatableQueue = musicQueueService.GetRepeatableQueue(guildId);
+                    foreach (var track in repeatableQueue)
                     {
                         musicQueueService.Enqueue(guildId, track);
                     }

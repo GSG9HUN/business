@@ -4,7 +4,7 @@ using ValidationResult = DC_bot.Helper.ValidationResult;
 
 namespace DC_bot.Service;
 
-public class UserValidationService(ILogger<UserValidationService> logger, ILocalizationService localizationService)
+public class UserValidationService(ILogger<UserValidationService> logger, ILocalizationService localizationService, bool isTestMode = false)
     : IUserValidationService
 {
     public async Task<ValidationResult> ValidateUserAsync(IDiscordMessage message)
@@ -27,6 +27,6 @@ public class UserValidationService(ILogger<UserValidationService> logger, ILocal
 
     public bool IsBotUser(IDiscordMessage message)
     {
-        return message.Author.IsBot;
+        return message.Author.IsBot && !isTestMode;
     }
 }

@@ -47,16 +47,24 @@ public class SingletonDiscordClient
     {
         _logger.LogInformation($"Guild available: {e.Guild.Name}");
 
-        var musicService = ServiceLocator.GetService<MusicQueueService>();
+        var musicService = ServiceLocator.GetService<IMusicQueueService>();
         var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();
-        var lovalizationService = ServiceLocator.GetService<ILocalizationService>();
+        var localizationService = ServiceLocator.GetService<ILocalizationService>();
         
-        lovalizationService.LoadLanguage(e.Guild.Id);
+        localizationService.LoadLanguage(e.Guild.Id);
         lavaLinkService.Init(e.Guild.Id);
         musicService.Init(e.Guild.Id);
         
         await lavaLinkService.ConnectAsync();
-        var node = Instance.GetLavalink().ConnectedNodes.Values.FirstOrDefault();
+        var lavalink = Instance.GetLavalink();
+        
+        if (lavalink == null || !lavalink.ConnectedNodes.Any())
+        {
+            _logger.LogError("No connected Lavalink nodes available.");
+            return;
+        }
+        
+        var node = lavalink.ConnectedNodes.Values.FirstOrDefault();
         
         if (node == null) return;
         
