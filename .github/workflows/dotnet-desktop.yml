@@ -51,7 +51,7 @@ jobs:
       
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      run: dotnet test --logger trx --results-directory "TestResults" --collect:"Code Coverage"
+      run: dotnet test
         
     # Upload test results   
     - name: Upload test results
