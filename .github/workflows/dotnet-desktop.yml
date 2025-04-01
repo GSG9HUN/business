@@ -38,6 +38,7 @@ jobs:
         
     # Remove old build files
     - name: Clean project
+      shell: bash
       run: rm -rf **/bin **/obj
       
     # Download the neccessary deps before build and test steps
