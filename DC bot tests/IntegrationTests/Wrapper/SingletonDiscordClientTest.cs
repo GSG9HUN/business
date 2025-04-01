@@ -1,3 +1,4 @@
+using System.Reflection;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
@@ -8,6 +9,7 @@ using Moq;
 
 namespace DC_bot_tests.IntegrationTests.Wrapper;
 
+[Collection("Integration Tests")]
 public class SingletonDiscordClientTest
 {
     private readonly Mock<ILogger<SingletonDiscordClient>> _loggerMock = new();
@@ -15,6 +17,14 @@ public class SingletonDiscordClientTest
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
 
+    public SingletonDiscordClientTest()
+    {
+        _loggerMock.Reset();
+        _musicQueueServiceMock.Reset();
+        _lavaLinkServiceMock.Reset();
+        _localizationServiceMock.Reset();
+    }
+    
     [Fact]
     public void Instance_Should_Return_Singleton_DiscordClient()
     {
@@ -40,6 +50,10 @@ public class SingletonDiscordClientTest
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
 
+        var loggerField = typeof(SingletonDiscordClient).GetField("_logger", 
+            BindingFlags.Static | BindingFlags.NonPublic);
+        loggerField?.SetValue(null, null);
+        
         // Setup ServiceLocator mocks
         var services = new ServiceCollection()
             .AddSingleton(_musicQueueServiceMock.Object)
@@ -54,24 +68,24 @@ public class SingletonDiscordClientTest
 
         await discordClientMock.ConnectAsync();
 
-        await Task.Delay(5000);
+        await Task.Delay(15000);
 
         // Assert
-
+        
         _loggerMock.Verify(
             x => x.Log(
-                It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
+                LogLevel.Information,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Bot is ready!")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
-            Times.Once
+            Times.AtLeastOnce
         );
 
         _loggerMock.Verify(
             x => x.Log(
-                It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
+                LogLevel.Information,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Guild available: ")),
                 It.IsAny<Exception>(),

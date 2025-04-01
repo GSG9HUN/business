@@ -64,6 +64,7 @@ internal class Program
             .AddSingleton<ICommand, LanguageCommand>()
             .AddSingleton<ICommand, ViewQueueCommand>()
             .AddSingleton<ICommand, RepeatListCommand>()
+            .AddSingleton<ICommand, JoinCommand>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService,MusicQueueService>()
             .AddSingleton<ILocalizationService, LocalizationService>()

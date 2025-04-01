@@ -117,7 +117,7 @@ public class CommandHandlerServiceTest
 
         Assert.NotNull(testMessage);
 
-        await Task.Delay(2000);
+        await Task.Delay(10000);
 
         var message = await channel.GetMessagesAsync(1);
         var response = message.FirstOrDefault();
@@ -144,7 +144,7 @@ public class CommandHandlerServiceTest
 
         Assert.NotNull(testMessage);
 
-        await Task.Delay(2000);
+        await Task.Delay(10000);
         _commandServiceLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),

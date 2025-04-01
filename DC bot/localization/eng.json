@@ -37,6 +37,7 @@
   "tag_command_usage": "Username provided.",
   "tag_command_user_not_exist_error": "User {0} does not exist.",
   "tag_command_response": "{0} Wake Up!",
+  "join_command_description": "The bot join to your voice channel and start playing queue music if its exists.",
   "view_list_command_description": "View the list of tracks.",
   "view_list_command_error": "The queue is currently empty.",
   "view_list_command_embed_title": "Playlist",
