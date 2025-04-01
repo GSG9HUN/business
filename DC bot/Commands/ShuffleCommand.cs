@@ -1,3 +1,4 @@
+using System.Collections;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,17 @@ public class ShuffleCommand(
             await message.RespondAsync($"❌ {localizationService.Get("shuffle_command_error")}");
             return;
         }
+        
+        var shuffledQueue = ShuffleQueue(queue);
 
+        musicQueueService.SetQueue(guildId, shuffledQueue);
+
+        await message.RespondAsync($"🔀 {localizationService.Get("shuffle_command_response")}");
+        logger.LogInformation("Shuffle command Executed.");
+    }
+
+    private Queue<ILavaLinkTrack> ShuffleQueue(Queue<ILavaLinkTrack> queue)
+    {
         var trackList = queue.ToList();
 
         // Megkeverés (Fisher-Yates algoritmus)
@@ -41,12 +52,8 @@ public class ShuffleCommand(
             var j = random.Next(i + 1);
             (trackList[i], trackList[j]) = (trackList[j], trackList[i]);
         }
-
-        var shuffledQueue = new Queue<ILavaLinkTrack>(trackList);
-
-        musicQueueService.SetQueue(guildId, shuffledQueue);
-
-        await message.RespondAsync($"🔀 {localizationService.Get("shuffle_command_response")}");
-        logger.LogInformation("Shuffle command Executed.");
+        
+        //Kizárjuk, hogy az eredeti lista maradhasson.
+        return trackList.SequenceEqual(queue.ToList()) ? ShuffleQueue(queue) : new Queue<ILavaLinkTrack>(trackList);
     }
 }

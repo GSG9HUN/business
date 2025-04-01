@@ -37,10 +37,9 @@ public class SingletonDiscordClient
         _logger.LogInformation("Logger initialized for SingletonDiscordClient.");
     }
     
-    private static Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
+    private static async Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
     {
-        _logger.LogInformation("Bot is ready!");
-        return Task.CompletedTask;
+       _logger.LogInformation("Bot is ready!");
     }
 
     private static async Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)

@@ -18,4 +18,5 @@ public interface ILavaLinkService
     void CloneQueue(ulong guildId);
     void Init(ulong guildId);
     event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted;
+    Task StartPlayingQueue(IDiscordChannel voiceStateChannel, IDiscordChannel textChannel);
 }
