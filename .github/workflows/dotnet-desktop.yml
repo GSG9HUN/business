@@ -7,16 +7,11 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-    runs-on: windows-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
-
+  build-debug:
+    runs-on: windows-latest
     env:
-      Solution_Name: '.\DC bot.sln'                         # Replace with your solution name, i.e. MyWpfApp.sln.
-      Test_Project_Path: '.\DC bot tests\DC bot tests.csproj'                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
+      Solution_Name: '.\DC bot.sln'
+      Test_Project_Path: '.\DC bot tests\DC bot tests.csproj'
       BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
       DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
       LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
@@ -25,36 +20,56 @@ jobs:
       LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
       
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
-    - name: Install .NET Core
+    - name: Install .NET 8.0
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-        
-    # Remove old build files
+        dotnet-version: '8.0.x'
+
     - name: Clean project
-      run: rm -rf **/bin **/obj
-      
-    # Download the neccessary deps before build and test steps
+      run: |
+        Remove-Item -Recurse -Force bin, obj -ErrorAction SilentlyContinue
+
     - name: Restore dependencies
       run: dotnet restore
-      
-    # Build the project
-    - name: Build solution
-      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
-      
-    # Execute all unit tests in the solution
-    - name: Execute unit tests
-      run: dotnet test --logger trx --results-directory "TestResults" --collect:"Code Coverage"
-        
-    # Upload test results   
+
+    - name: Build Debug
+      run: dotnet build --configuration Debug --no-restore
+
+    - name: Run tests
+      run: dotnet test "${{ env.Test_Project_Path }}" --logger trx --results-directory TestResults
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
-        name: Test Results
+        name: Test-Results-Debug
         path: TestResults
+
+  build-release:
+    runs-on: windows-latest
+    needs: build-debug  # Csak akkor fut le, ha a build-debug sikeres
+    env:
+      Solution_Name: '.\DC bot.sln'
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Clean project
+      run: |
+        Remove-Item -Recurse -Force bin, obj -ErrorAction SilentlyContinue
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build Release
+      run: dotnet build --configuration Release --no-restore
