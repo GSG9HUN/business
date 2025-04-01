@@ -41,7 +41,7 @@ jobs:
       run: dotnet build --configuration Debug --no-restore
 
     - name: Run tests
-      run: dotnet test --logger trx --results-directory TestResults
+      run: dotnet test "${{ env.Test_Project_Path }}" --logger trx --results-directory TestResults
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
