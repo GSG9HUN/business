@@ -42,6 +42,7 @@
   "view_list_command_error": "A várólista üres.",
   "view_list_command_embed_title": "Lejátszási lista",
   "view_list_command_response": "... és még {0} szám.",
+  "leave_command_description": "A bot kilépt a hangcsatornából.",
   "reaction_handler_repeat_on": "Ismétlés mód: Bekapcsolva",
   "reaction_handler_repeat_off": "Ismétlés mód: Kikapcsolva",
   "lavalink_error": "A Lavalink nincs csatlakoztatva.",

@@ -20,7 +20,7 @@ public class JoinCommandTest
     public JoinCommandTest()
     {
       
-        Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("join_command_description"))
@@ -37,7 +37,7 @@ public class JoinCommandTest
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _joinCommandLoggerMock = new Mock<ILogger<JoinCommand>>();
         
-        var userValidationService = new UserValidationService(userLogger.Object,localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _joinCommand = new JoinCommand(_lavaLinkServiceMock.Object, userValidationService, _joinCommandLoggerMock.Object, localizationServiceMock.Object);
     }
 

@@ -48,7 +48,7 @@ public class ShuffleCommandTest
         
         _userValidationMock
             .Setup(v => v.ValidateUserAsync(It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync(new ValidationResult(true));
+            .ReturnsAsync(new UserValidationResult(true));
         
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
@@ -74,7 +74,7 @@ public class ShuffleCommandTest
         
         _userValidationMock
             .Setup(v => v.ValidateUserAsync(It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync(new ValidationResult(true));
+            .ReturnsAsync(new UserValidationResult(true));
 
         _localizationServiceMock.Setup(l => l.Get("shuffle_command_response"))
             .Returns("The list has been shuffled.");

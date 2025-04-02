@@ -15,7 +15,7 @@ public class CommandHandlerServiceTest
 {
     private readonly Mock<ILogger<SingletonDiscordClient>> _loggerSingletonDiscordClientMock = new();
     private readonly Mock<ILogger<CommandHandlerService>> _commandServiceLoggerMock = new();
-    private readonly Mock<ILogger<UserValidationService>> _userValidationLoggerMock = new();
+    private readonly Mock<ILogger<ValidationService>> _validationLoggerMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
@@ -33,7 +33,7 @@ public class CommandHandlerServiceTest
         _localizationServiceMock.Setup(ls => ls.Get("unknown_command_error"))
             .Returns("Unknown command. Use `!help` to see available commands.");
         var userValidationService =
-            new UserValidationService(_userValidationLoggerMock.Object, _localizationServiceMock.Object, true);
+            new ValidationService(_localizationServiceMock.Object, _validationLoggerMock.Object,true);
 
         var services = new ServiceCollection()
             .AddLogging()

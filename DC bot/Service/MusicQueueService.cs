@@ -2,7 +2,8 @@ using System.Text.Json;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Wrapper;
-using DSharpPlus.Lavalink;
+using Lavalink4NET;
+using Lavalink4NET.Tracks;
 
 namespace DC_bot.Service;
 
@@ -54,13 +55,13 @@ public class MusicQueueService : IMusicQueueService
         if (!_queues.TryGetValue(guildId, out var queue)) return;
 
         var tracks = queue
-            .Select(track => new SerializedTrack { TrackString = track.ToLavalinkTrack().TrackString })
+            .Select(track => new SerializedTrack { Indetifier = track.ToLavalinkTrack().Identifier })
             .ToList();
 
         File.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
     }
 
-    public async Task LoadQueue(ulong guildId, LavalinkRestClient nodeRest)
+    public async Task LoadQueue(ulong guildId, IAudioService nodeRest)
     {
         var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
 
@@ -77,13 +78,11 @@ public class MusicQueueService : IMusicQueueService
 
         if (savedTracks == null || savedTracks.Count == 0) return;
 
-        var trackList = savedTracks.Select(track => track.TrackString).ToList();
-
-        var decodedTracks = await nodeRest.DecodeTracksAsync(trackList);
-        if (decodedTracks == null) return;
-        foreach (var track in decodedTracks)
+        var trackIdentifierList = savedTracks.Select(track => track.Indetifier).ToList();
+        var decodedTracks = new List<LavalinkTrack>();
+        foreach (var trackIdentifier in trackIdentifierList)
         {
-            if(track == null) continue;
+            var track = LavalinkTrack.Parse(trackIdentifier,null);
             _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
         }
     }

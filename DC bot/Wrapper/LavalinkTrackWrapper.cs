@@ -1,5 +1,5 @@
 using DC_bot.Interface;
-using DSharpPlus.Lavalink;
+using Lavalink4NET.Tracks;
 
 namespace DC_bot.Wrapper;
 

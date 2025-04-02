@@ -19,7 +19,7 @@ public class SkipCommandTest
     public SkipCommandTest()
     {
         Mock<ILogger<SkipCommand>> loggerMock = new();
-        Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
@@ -38,7 +38,7 @@ public class SkipCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object,localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object,userValidationService, loggerMock.Object,localizationServiceMock.Object);
     }
 

@@ -42,6 +42,7 @@
   "view_list_command_error": "The queue is currently empty.",
   "view_list_command_embed_title": "Playlist",
   "view_list_command_response": "... and more {0} track.",
+  "leave_command_description": "The bot leaves the voice channel.",
   "reaction_handler_repeat_on": "Repeat mode: Enabled",
   "reaction_handler_repeat_off": "Repeat mode: Disabled",
   "lavalink_error": "Lavalink is not connected.",

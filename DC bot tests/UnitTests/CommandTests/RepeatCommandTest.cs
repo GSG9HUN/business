@@ -21,7 +21,7 @@ public class RepeatCommandTest
     public RepeatCommandTest()
     {
         Mock<ILogger<RepeatCommand>> loggerMock = new();
-        Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
 
         localizationServiceMock.Setup(g => g.Get("repeat_command_description"))
@@ -50,7 +50,7 @@ public class RepeatCommandTest
         _discordMemberMock = new Mock<IDiscordMember>();
         _discordVoiceStateMock = new Mock<IDiscordVoiceState>();
 
-        var userValidationService = new UserValidationService(userLogger.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _repeatCommand = new RepeatCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
     }
 

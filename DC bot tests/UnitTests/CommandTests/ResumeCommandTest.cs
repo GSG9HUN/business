@@ -19,7 +19,7 @@ public class ResumeCommandTest
     public ResumeCommandTest()
     {
         Mock<ILogger<ResumeCommand>> loggerMock = new();
-        Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("resume_command_description"))
@@ -41,7 +41,7 @@ public class ResumeCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLoggerMock.Object,localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
     }
     [Fact]

@@ -2,5 +2,5 @@ namespace DC_bot.Helper;
 
 public class SerializedTrack
 {
-    public string TrackString { get; init; } = string.Empty;
+    public string Indetifier { get; init; } = string.Empty;
 }
