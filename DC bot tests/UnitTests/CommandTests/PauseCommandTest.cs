@@ -18,7 +18,7 @@ public class PauseCommandTest
 
     public PauseCommandTest()
     {
-        Mock<ILogger<UserValidationService>> userServiceLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILogger<PauseCommand>> loggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
@@ -38,7 +38,7 @@ public class PauseCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userServiceLogger.Object,localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _pauseCommand = new PauseCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,localizationServiceMock.Object);
     }
 

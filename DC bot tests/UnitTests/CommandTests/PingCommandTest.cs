@@ -15,13 +15,13 @@ public class PingCommandTest
     public PingCommandTest()
     {
         Mock<ILogger<PingCommand>> mockLogger = new();
-        Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("ping_command_description"))
             .Returns("Answer with pong!");
         
-        var userValidationService = new UserValidationService(userLogger.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();

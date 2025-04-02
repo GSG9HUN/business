@@ -2,7 +2,7 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Lavalink;
+using Lavalink4NET;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Wrapper;
@@ -55,18 +55,8 @@ public class SingletonDiscordClient
         musicService.Init(e.Guild.Id);
         
         await lavaLinkService.ConnectAsync();
-        var lavalink = Instance.GetLavalink();
+        var lavalink = ServiceLocator.GetService<IAudioService>();
         
-        if (lavalink == null || !lavalink.ConnectedNodes.Any())
-        {
-            _logger.LogError("No connected Lavalink nodes available.");
-            return;
-        }
-        
-        var node = lavalink.ConnectedNodes.Values.FirstOrDefault();
-        
-        if (node == null) return;
-        
-        await musicService.LoadQueue(e.Guild.Id,node.Rest);
+        await musicService.LoadQueue(e.Guild.Id,lavalink);
     }
 }

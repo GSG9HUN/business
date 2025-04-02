@@ -4,6 +4,6 @@ namespace DC_bot.Interface;
 
 public interface IUserValidationService
 {
-    public Task<ValidationResult> ValidateUserAsync(IDiscordMessage message);
+    public Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message);
     public bool IsBotUser(IDiscordMessage message);
 }

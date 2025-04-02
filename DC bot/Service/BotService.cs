@@ -1,17 +1,11 @@
 using DC_bot.Wrapper;
 using DSharpPlus;
-using DSharpPlus.Lavalink;
 
 namespace DC_bot.Service
 {
     public class BotService
     {
-        private readonly DiscordClient _client;
-        public BotService()
-        {
-            _client = SingletonDiscordClient.Instance;
-            _client.UseLavalink();
-        }
+        private readonly DiscordClient _client = SingletonDiscordClient.Instance;
 
         public async Task StartAsync(bool isTestEnvironment = false)
         {

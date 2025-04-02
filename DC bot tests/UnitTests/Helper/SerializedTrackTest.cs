@@ -11,7 +11,7 @@ public class SerializedTrackTest
         var track = new SerializedTrack();
 
         // Assert
-        Assert.Equal(string.Empty, track.TrackString);
+        Assert.Equal(string.Empty, track.Indetifier);
     }
 
     [Fact]
@@ -21,9 +21,9 @@ public class SerializedTrackTest
         const string expectedTrack = "Test Track Data";
 
         // Act
-        var track = new SerializedTrack { TrackString = expectedTrack };
+        var track = new SerializedTrack { Indetifier = expectedTrack };
 
         // Assert
-        Assert.Equal(expectedTrack, track.TrackString);
+        Assert.Equal(expectedTrack, track.Indetifier);
     }
 }

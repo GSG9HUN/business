@@ -13,10 +13,16 @@
         <PackageReference Include="DSharpPlus" Version="4.5.0" />
         <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.0" />
         <PackageReference Include="DSharpPlus.Interactivity" Version="4.5.0" />
-        <PackageReference Include="DSharpPlus.Lavalink" Version="4.5.0" />
         <PackageReference Include="DSharpPlus.Rest" Version="4.5.0" />
         <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.0" />
         <PackageReference Include="DSharpPlus.VoiceNext" Version="4.5.0" />
+        <PackageReference Include="Lavalink4NET" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.Abstractions" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.DSharpPlus" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.Lyrics" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.Protocol" Version="4.0.27" />
+        <PackageReference Include="Lavalink4NET.Rest" Version="4.0.27" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.2" />

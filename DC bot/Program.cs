@@ -5,6 +5,8 @@ using DC_bot.Service;
 using DC_bot.Wrapper;
 using DotNetEnv;
 using DSharpPlus.SlashCommands;
+using Lavalink4NET;
+using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -48,6 +50,18 @@ internal class Program
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection()
+            .ConfigureLavalink(options =>
+            {
+                var hostname = Environment.GetEnvironmentVariable("LAVALINK_HOSTNAME");
+                var port = int.Parse(Environment.GetEnvironmentVariable("LAVALINK_PORT") ?? "2333");
+                var baseAddress = new Uri($"https://{hostname}:{port}");
+                var webSocketUri = new Uri($"wss://{hostname}:{port}/v4/websocket");
+                options.BaseAddress = baseAddress;
+                options.WebSocketUri = webSocketUri;
+                options.Passphrase = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD");
+            })   
+            .AddSingleton(SingletonDiscordClient.Instance)      
+            .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton<BotService>()
             .AddSingleton<ReactionHandler>()
@@ -68,7 +82,8 @@ internal class Program
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService,MusicQueueService>()
             .AddSingleton<ILocalizationService, LocalizationService>()
-            .AddSingleton<IUserValidationService, UserValidationService>()
+            .AddSingleton<IUserValidationService, ValidationService>()
+            .AddSingleton<IValidationService, ValidationService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
@@ -76,7 +91,7 @@ internal class Program
         ServiceLocator.SetServiceProvider(services);
         return services;
     }
-
+   
     private static void RegisterSlashCommands()
     {
         var discordClient = SingletonDiscordClient.Instance;

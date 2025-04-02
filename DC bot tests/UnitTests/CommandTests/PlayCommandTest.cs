@@ -19,7 +19,7 @@ public class PlayCommandTest
     public PlayCommandTest()
     {
         Mock<ILogger<PlayCommand>> loggerMock = new();
-        Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("play_command_description"))
@@ -37,7 +37,7 @@ public class PlayCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new UserValidationService(userLogger.Object,localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
         _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
     }
 

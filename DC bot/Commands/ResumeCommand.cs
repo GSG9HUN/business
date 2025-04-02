@@ -21,7 +21,7 @@ public class ResumeCommand(
             return;
         }
 
-        await lavaLinkService.ResumeAsync(message.Channel);
+        await lavaLinkService.ResumeAsync(validationResult.Member?.VoiceState!.Channel!);
         logger.LogInformation("Resume command executed!");
     }
 }

@@ -3,17 +3,18 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class PauseCommand(
+public class LeaveCommand(  
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
-    ILogger<PauseCommand> logger,
+    ILogger<JoinCommand> logger,
     ILocalizationService localizationService) : ICommand
 {
-    public string Name => "pause";
-    public string Description => localizationService.Get("pause_command_description");
-
+    public string Name => "leave";
+    public string Description => localizationService.Get("leave_command_description");
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.LogInformation("Leave command invoked.");
+        
         var validationResult = await userValidation.ValidateUserAsync(message);
 
         if (validationResult.IsValid is false)
@@ -21,7 +22,8 @@ public class PauseCommand(
             return;
         }
 
-        await lavaLinkService.PauseAsync(validationResult.Member?.VoiceState!.Channel!);
-        logger.LogInformation("Pause command executed!");
+        await lavaLinkService.LeaveVoiceChannel(message.Channel);
+       
+        logger.LogInformation("Leave command executed.");
     }
 }

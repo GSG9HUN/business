@@ -21,7 +21,7 @@ public class SkipCommand(
             return;
         }
 
-        await lavaLinkService.SkipAsync(message.Channel);
+        await lavaLinkService.SkipAsync(validationResult.Member?.VoiceState!.Channel!);
         logger.LogInformation("Skip command executed!");
     }
 }

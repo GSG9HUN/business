@@ -16,7 +16,7 @@ public class TagCommandTest
 
     public TagCommandTest()
     {
-        Mock<ILogger<UserValidationService>> userLoggerMock = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
         localizationServiceMock.Setup(g => g.Get("tag_command_description"))
@@ -38,8 +38,8 @@ public class TagCommandTest
         _guildMock = new Mock<IDiscordGuild>();
         _discordUserMock = new Mock<IDiscordUser>();
 
-        var mockUserValidation = new UserValidationService(userLoggerMock.Object, localizationServiceMock.Object);
-        _tagCommand = new TagCommand(mockUserValidation, logger.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
+        _tagCommand = new TagCommand(userValidationService, logger.Object, localizationServiceMock.Object);
     }
 
     [Fact]

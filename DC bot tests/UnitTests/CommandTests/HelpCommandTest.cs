@@ -19,7 +19,7 @@ public class HelpCommandTests
     public HelpCommandTests()
     {
         Mock<ILogger<HelpCommand>> mockLogger = new();
-        Mock<ILogger<UserValidationService>> userLogger = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
 
         localizationServiceMock.Setup(g => g.Get("help_command_description"))
@@ -33,7 +33,7 @@ public class HelpCommandTests
         _discordMemberMock = new Mock<IDiscordMember>();
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
-        var userValidationService = new UserValidationService(userLogger.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
 
         var services = new ServiceCollection();
         var mockCommand1 = new Mock<ICommand>();
