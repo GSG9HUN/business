@@ -5,6 +5,8 @@ namespace DC_bot.Commands;
 
 public class LanguageCommand(
     ILogger<LanguageCommand> logger,
+    IUserValidationService userValidation,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "language";
@@ -13,11 +15,16 @@ public class LanguageCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.LogInformation("Language command invoked.");
+      
+        if (userValidation.IsBotUser(message))
+        {
+            return;
+        }
         
         var args = message.Content.Split(" ", 2);
         if (args.Length < 2)
         {
-            await message.RespondAsync(localizationService.Get("language_command_usage"));
+            await responseBuilder.SendUsageAsync(message, Name);
             logger.LogInformation("The user not provided language.");
             return;
         }
@@ -25,8 +32,7 @@ public class LanguageCommand(
         var language = args[1].Trim();
       
         localizationService.SaveLanguage(message.Channel.Guild.Id, language);
-        
-        await message.RespondAsync(localizationService.Get("language_command_response"));
+        await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.LogInformation("Play command executed!");
     }
 }

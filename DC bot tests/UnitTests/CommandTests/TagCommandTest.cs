@@ -12,34 +12,34 @@ public class TagCommandTest
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
+    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly TagCommand _tagCommand;
 
     public TagCommandTest()
     {
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
-        Mock<ILocalizationService> localizationServiceMock = new();
-        
-        localizationServiceMock.Setup(g => g.Get("tag_command_description"))
+
+        _localizationServiceMock.Setup(g => g.Get("tag_command_description"))
             .Returns("You can tag someone.");
-        
-        localizationServiceMock.Setup(g => g.Get("tag_command_usage"))
-            .Returns("Username provided.");
-        
-        localizationServiceMock.Setup(g => g.Get("tag_command_response", "TestUser"))
+
+        _localizationServiceMock.Setup(g => g.Get("tag_command_response", "TestUser"))
             .Returns("TestUser Wake Up!");
         
-        localizationServiceMock.Setup(g => g.Get("tag_command_user_not_exist_error", "test"))
-            .Returns("User test does not exist.");
-
+         _localizationServiceMock.Setup(g => g.Get("tag_command_user_not_exist_error", "test"))
+             .Returns("User test does not exist.");
+ 
         var logger = new Mock<ILogger<TagCommand>>();
 
         _messageMock = new Mock<IDiscordMessage>();
         _channelMock = new Mock<IDiscordChannel>();
         _guildMock = new Mock<IDiscordGuild>();
         _discordUserMock = new Mock<IDiscordUser>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
 
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        _tagCommand = new TagCommand(userValidationService, logger.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _tagCommand = new TagCommand(userValidationService, logger.Object, _responseBuilderMock.Object,
+            _localizationServiceMock.Object);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class TagCommandTest
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.Channel.SendMessageAsync("Username provided."), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, "tag"));
     }
 
     [Fact]
@@ -79,8 +79,8 @@ public class TagCommandTest
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.Channel.SendMessageAsync($"{discordMemberMock.Object.Mention} Wake Up!"),
-            Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
+            $"{_localizationServiceMock.Object.Get("tag_command_response", discordMemberMock.Object.Mention)}"), Times.Once);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class TagCommandTest
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.Channel.SendMessageAsync("User test does not exist."), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, $"{_localizationServiceMock.Object.Get("tag_command_user_not_exist_error", "test")}"), Times.Once);
     }
 
     [Fact]

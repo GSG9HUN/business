@@ -7,6 +7,7 @@ public class PauseCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<PauseCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "pause";
@@ -15,13 +16,14 @@ public class PauseCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-
+        
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
 
-        await lavaLinkService.PauseAsync(validationResult.Member?.VoiceState!.Channel!);
+        await lavaLinkService.PauseAsync(message, validationResult.Member);
         logger.LogInformation("Pause command executed!");
     }
 }

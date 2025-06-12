@@ -9,7 +9,8 @@ namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class HelpCommandTests
 {
-    private readonly Mock<IDiscordMessage> _mockMessage;
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -28,12 +29,13 @@ public class HelpCommandTests
         localizationServiceMock.Setup(g => g.Get("help_command_response"))
             .Returns("Available commands:");
         
-        _mockMessage = new Mock<IDiscordMessage>();
+        _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
 
         var services = new ServiceCollection();
         var mockCommand1 = new Mock<ICommand>();
@@ -50,7 +52,8 @@ public class HelpCommandTests
         var serviceProvider = services.BuildServiceProvider();
         ServiceLocator.SetServiceProvider(serviceProvider);
 
-        _helpCommand = new HelpCommand(userValidationService, mockLogger.Object, localizationServiceMock.Object);
+        _helpCommand = new HelpCommand(userValidationService, mockLogger.Object, _responseBuilderMock.Object,
+            localizationServiceMock.Object);
     }
 
     [Fact]
@@ -65,16 +68,16 @@ public class HelpCommandTests
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
 
-        _mockMessage.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _mockMessage.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         // Act
-        await _helpCommand.ExecuteAsync(_mockMessage.Object);
+        await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _mockMessage.Verify(m => m.RespondAsync("Available commands:\n" +
-                                                "ping : Replies with Pong!\n" +
-                                                "play : Plays a song\n"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n" +
+            "ping : Replies with Pong!\n" +
+            "play : Plays a song\n"), Times.Once);
     }
 
     [Fact]
@@ -92,16 +95,17 @@ public class HelpCommandTests
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
 
-        _mockMessage.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _mockMessage.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         ServiceLocator.SetServiceProvider(serviceProvider);
 
         // Act
-        await _helpCommand.ExecuteAsync(_mockMessage.Object);
+        await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _mockMessage.Verify(m => m.RespondAsync("Available commands:\n"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n"), Times.Once);
+        //_messageMock.Verify(m => m.RespondAsync("Available commands:\n"), Times.Once);
     }
 
     [Fact]
@@ -115,14 +119,14 @@ public class HelpCommandTests
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
 
-        _mockMessage.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _mockMessage.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         //Act
-        await _helpCommand.ExecuteAsync(_mockMessage.Object);
+        await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _mockMessage.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never);
+        _messageMock.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never);
     }
 
 

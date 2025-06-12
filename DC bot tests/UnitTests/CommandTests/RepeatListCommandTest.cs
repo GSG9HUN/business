@@ -14,30 +14,32 @@ public class RepeatListCommandTest
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordVoiceState> _discordVoiceStateMock;
     private readonly RepeatListCommand _repeatListCommand;
+    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
 
     public RepeatListCommandTest()
     {
         Mock<ILogger<RepeatListCommand>> loggerMock = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
-        Mock<ILocalizationService> localizationServiceMock = new();
-        
-        localizationServiceMock.Setup(g => g.Get("repeat_list_command_description"))
+
+
+        _localizationServiceMock.Setup(g => g.Get("repeat_list_command_description"))
             .Returns("Repeats the current track list.");
-        
-        localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_on"))
+
+        _localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_on"))
             .Returns("Repeat is on for current list:");
-        
-        localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_off"))
+
+        _localizationServiceMock.Setup(g => g.Get("repeat_list_command_repeating_off"))
             .Returns("Repeating is off for the list:");
-        
-        localizationServiceMock.Setup(g => g.Get("repeat_list_command_track_already_repeating"))
+
+        _localizationServiceMock.Setup(g => g.Get("repeat_list_command_track_already_repeating"))
             .Returns("This track is already repeating.");
-        
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
+
+        _localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
             .Returns("You must be in a voice channel!");
-        
+
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
         _discordVoiceStateMock = new Mock<IDiscordVoiceState>();
@@ -45,10 +47,12 @@ public class RepeatListCommandTest
         _messageMock = new Mock<IDiscordMessage>();
         _channelMock = new Mock<IDiscordChannel>();
         _guildMock = new Mock<IDiscordGuild>();
-        
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
         _repeatListCommand =
-            new RepeatListCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,localizationServiceMock.Object);
+            new RepeatListCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
+                _responseBuilderMock.Object, _localizationServiceMock.Object);
     }
 
     [Fact]
@@ -76,7 +80,7 @@ public class RepeatListCommandTest
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _channelMock.Verify(c => c.SendMessageAsync("This track is already repeating."), Times.Once);
+        _responseBuilderMock.Verify(r =>r.SendSuccessAsync(_messageMock.Object, _localizationServiceMock.Object.Get("repeat_list_command_track_already_repeating")));
     }
 
     [Fact]
@@ -107,7 +111,10 @@ public class RepeatListCommandTest
 
         // Assert
         Assert.False(isRepeating[guildId]);
-        _channelMock.Verify(c => c.SendMessageAsync("Repeating is off for the list:\n test track list"), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get("repeat_list_command_repeating_off")}\n {_lavaLinkServiceMock.Object.GetCurrentTrackList(guildId)}"),
+            Times.Once);
     }
 
     [Fact]
@@ -117,7 +124,7 @@ public class RepeatListCommandTest
         const ulong guildId = 123456789UL;
         var isRepeatingList = new Dictionary<ulong, bool> { { guildId, false } };
         var isRepeating = new Dictionary<ulong, bool> { { guildId, false } };
-        
+
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(_discordVoiceStateMock.Object);
 
@@ -138,20 +145,24 @@ public class RepeatListCommandTest
 
         // Assert
         Assert.True(isRepeatingList[guildId]);
-        _channelMock.Verify(c => c.SendMessageAsync("Repeat is on for current list:\n test track list"), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get("repeat_list_command_repeating_on")}\n {_lavaLinkServiceMock.Object.GetCurrentTrackList(guildId)}"),
+            Times.Once);
     }
+
     [Fact]
     public async Task ExecuteAsync_UserIsABot_ShouldDoNothing()
     {
         //Arrange
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        
+
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
-        
+
         //Assert
-        _messageMock.Verify(m => m.RespondAsync(It.IsAny<string>()),Times.Never);
+        _messageMock.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -164,12 +175,13 @@ public class RepeatListCommandTest
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
-        
+
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
-        
+
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"),Times.Once);
+        _responseBuilderMock.Verify(r =>
+            r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"));
     }
 
     [Fact]

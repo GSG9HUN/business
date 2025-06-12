@@ -9,6 +9,7 @@ public class ShuffleCommand(
     IUserValidationService userValidation,
     IMusicQueueService musicQueueService,
     ILogger<ShuffleCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "shuffle";
@@ -18,18 +19,19 @@ public class ShuffleCommand(
     {
         logger.LogInformation("Shuffle command invoked.");
         var validationResult = await userValidation.ValidateUserAsync(message);
-
+        
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
 
         var guildId = message.Channel.Guild.Id;
         var queue = musicQueueService.GetQueue(guildId);
         
-        if (!queue.Any())
+        if (!queue.Any() || queue.Count < 2)
         {
-            await message.RespondAsync($"❌ {localizationService.Get("shuffle_command_error")}");
+            await responseBuilder.SendCommandErrorResponse(message, Name);
             return;
         }
         
@@ -37,7 +39,7 @@ public class ShuffleCommand(
 
         musicQueueService.SetQueue(guildId, shuffledQueue);
 
-        await message.RespondAsync($"🔀 {localizationService.Get("shuffle_command_response")}");
+        await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.LogInformation("Shuffle command Executed.");
     }
 

@@ -8,6 +8,7 @@ public class ViewQueueCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<ViewQueueCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "viewList";
@@ -16,9 +17,10 @@ public class ViewQueueCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-
+        
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
 
@@ -26,7 +28,7 @@ public class ViewQueueCommand(
 
         if (queue.Count == 0)
         {
-            await message.RespondAsync(localizationService.Get("view_list_command_error"));
+            await responseBuilder.SendCommandErrorResponse(message, "view_list");
             logger.LogInformation("Queue is empty.");
             return;
         }

@@ -7,6 +7,7 @@ namespace DC_bot.Commands;
 public class HelpCommand(
     IUserValidationService userValidation,
     ILogger<HelpCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "help";
@@ -23,7 +24,8 @@ public class HelpCommand(
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
-        await message.RespondAsync($"{localizationService.Get("help_command_response")}\n{response}");
+        await responseBuilder.SendSuccessAsync(message,
+            $"{localizationService.Get("help_command_response")}\n{response}");
         logger.LogInformation("Help Command executed!");
     }
 }

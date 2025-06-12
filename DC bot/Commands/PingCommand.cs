@@ -6,6 +6,7 @@ namespace DC_bot.Commands;
 public class PingCommand(
     IUserValidationService userValidation,
     ILogger<PingCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "ping";
@@ -18,7 +19,7 @@ public class PingCommand(
             return;
         }
 
-        await message.RespondAsync("Pong!");
+        await responseBuilder.SendSuccessAsync(message, "Pong!");
         logger.LogInformation("Ping command executed!");
     }
 }

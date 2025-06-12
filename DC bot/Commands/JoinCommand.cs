@@ -7,6 +7,7 @@ public class JoinCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<JoinCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "join";
@@ -17,10 +18,11 @@ public class JoinCommand(
 
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
         
-        await lavaLinkService.StartPlayingQueue(validationResult.Member?.VoiceState!.Channel!, message.Channel);
+        await lavaLinkService.StartPlayingQueue(message, message.Channel, validationResult.Member);
         
         logger.LogInformation("Join command executed!");
     }

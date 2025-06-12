@@ -7,6 +7,7 @@ public class RepeatListCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<RepeatListCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "repeatList";
@@ -15,9 +16,10 @@ public class RepeatListCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-
+        
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
 
@@ -26,7 +28,7 @@ public class RepeatListCommand(
 
         if (lavaLinkService.IsRepeating[guildId])
         {
-            await message.Channel.SendMessageAsync(localizationService.Get("repeat_list_command_track_already_repeating"));
+            await responseBuilder.SendSuccessAsync(message, localizationService.Get("repeat_list_command_track_already_repeating"));
             logger.LogInformation("Repeat list command executed");
             return;
         }
@@ -34,15 +36,14 @@ public class RepeatListCommand(
         if (lavaLinkService.IsRepeatingList[guildId])
         {
             lavaLinkService.IsRepeatingList[guildId] = false;
-            await message.Channel.SendMessageAsync(
-                $"{localizationService.Get("repeat_list_command_repeating_off")}\n {lavaLinkService.GetCurrentTrackList(guildId)}");
+            await responseBuilder.SendSuccessAsync(message,  $"{localizationService.Get("repeat_list_command_repeating_off")}\n {lavaLinkService.GetCurrentTrackList(guildId)}");
             logger.LogInformation("Repeat list command executed");
             return;
         }
 
         lavaLinkService.IsRepeatingList[guildId] = true;
-        await message.Channel.SendMessageAsync(
-            $"{localizationService.Get("repeat_list_command_repeating_on")}\n {lavaLinkService.GetCurrentTrackList(guildId)}");
+        await responseBuilder.SendSuccessAsync(message,$"{localizationService.Get("repeat_list_command_repeating_on")}\n {lavaLinkService.GetCurrentTrackList(guildId)}");
+        
         lavaLinkService.CloneQueue(guildId);
 
         logger.LogInformation("Repeat list command executed");

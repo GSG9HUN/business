@@ -9,6 +9,7 @@ namespace DC_bot_tests.UnitTests.CommandTests;
 public class PlayCommandTest
 {
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -24,12 +25,9 @@ public class PlayCommandTest
         
         localizationServiceMock.Setup(g => g.Get("play_command_description"))
             .Returns("Start playing a music.");
-        localizationServiceMock.Setup(g => g.Get("play_command_usage"))
-            .Returns("Please provide URL.");
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
-            .Returns("You must be in a voice channel!");
-        
+      
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -37,8 +35,8 @@ public class PlayCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, _responseBuilderMock.Object, loggerMock.Object, localizationServiceMock.Object);
     }
 
     [Fact]
@@ -58,10 +56,10 @@ public class PlayCommandTest
         //Assert
 
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
@@ -81,12 +79,12 @@ public class PlayCommandTest
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
+        _responseBuilderMock.Verify( r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel" ), Times.Once);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
@@ -110,12 +108,12 @@ public class PlayCommandTest
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("Please provide URL."), Times.Once);
+        _responseBuilderMock.Verify( r => r.SendUsageAsync(_messageMock.Object, "play" ), Times.Once);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
@@ -140,10 +138,10 @@ public class PlayCommandTest
 
         //Assert
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()), Times.Once);
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()), Times.Once);
     }
 
 
@@ -168,10 +166,10 @@ public class PlayCommandTest
 
         //Assert
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Once);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
