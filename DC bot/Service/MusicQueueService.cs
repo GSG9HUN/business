@@ -12,10 +12,7 @@ public class MusicQueueService : IMusicQueueService
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
 
-    internal static string QueueDirectory =
-        Path.Combine(
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
-            throw new InvalidOperationException(), "guildFiles/queues");
+    internal static string QueueDirectory = Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/queues");
 
     public bool HasTracks(ulong guildId) => _queues.ContainsKey(guildId) && _queues[guildId].Count > 0;
 

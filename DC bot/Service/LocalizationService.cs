@@ -9,14 +9,10 @@ public class LocalizationService : ILocalizationService
     private Dictionary<string, string> _translations = new();
 
     internal static string LocalizationDirectory =
-        Path.Combine(
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
-            throw new InvalidOperationException(), "guildFiles/localization");
+        Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/localization");
 
     internal static string TranslationDirectory =
-        Path.Combine(
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
-            throw new InvalidOperationException(), "localization");
+        Path.Combine(Directory.GetCurrentDirectory(), "localization");
 
     private ILogger<LocalizationService> _logger;
     private String? _lang;
