@@ -16,14 +16,16 @@ internal class Program
 {
     private static async Task Main()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName;
-        if (directoryInfo == null)
+    
+        var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+       
+        if (envPath == null)
         {
-            Console.WriteLine("Please specify a valid directory");
+            Console.WriteLine("Please provide .env file.");
             return;
         }
 
-        var envPath = Path.Combine(directoryInfo, ".env");
+       
         Env.Load(envPath);
         await new Program().RunBotAsync();
     }
