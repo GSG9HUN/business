@@ -14,6 +14,7 @@ public class ResumeCommandTest
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly ResumeCommand _resumeCommand;
 
     public ResumeCommandTest()
@@ -25,14 +26,8 @@ public class ResumeCommandTest
         localizationServiceMock.Setup(g => g.Get("resume_command_description"))
             .Returns("Resume the current music.");
         
-        localizationServiceMock.Setup(g => g.Get("resume_command_error"))
-            .Returns("There is no track currently paused.");
-        
         localizationServiceMock.Setup(g => g.Get("resume_command_response"))
             .Returns("Resumed:");
-        
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
-            .Returns("You must be in a voice channel!");
         
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -40,9 +35,10 @@ public class ResumeCommandTest
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
         
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, _responseBuilderMock.Object, localizationServiceMock.Object);
     }
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
@@ -60,7 +56,7 @@ public class ResumeCommandTest
 
         //Assert
 
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
 
     [Fact]
@@ -78,8 +74,8 @@ public class ResumeCommandTest
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"));
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
     
     [Fact]
@@ -101,7 +97,7 @@ public class ResumeCommandTest
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordChannel>()), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Once);
     }
     
     [Fact]

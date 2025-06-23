@@ -11,4 +11,8 @@ public class LavaLinkTrackWrapper(LavalinkTrack track) : ILavaLinkTrack
     {
         return track;
     }
+    public override string ToString()
+    {
+        return track.ToString();
+    }
 }

@@ -16,6 +16,7 @@ public class ViewQueueCommandTest
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly ViewQueueCommand _viewQueueCommand;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
 
     public ViewQueueCommandTest()
     {
@@ -26,17 +27,11 @@ public class ViewQueueCommandTest
         localizationServiceMock.Setup(g => g.Get("view_list_command_description"))
             .Returns("View the list of tracks.");
 
-        localizationServiceMock.Setup(g => g.Get("view_list_command_error"))
-            .Returns("The queue is currently empty.");
-
         localizationServiceMock.Setup(g => g.Get("view_list_command_embed_title"))
             .Returns("Playlist");
 
         localizationServiceMock.Setup(g => g.Get("view_list_command_response", 1))
             .Returns("... and more 1 track.");
-
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
-            .Returns("You must be in a voice channel!");
 
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -44,10 +39,13 @@ public class ViewQueueCommandTest
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
 
         _viewQueueCommand =
             new ViewQueueCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
+                _responseBuilderMock.Object,
                 localizationServiceMock.Object);
     }
 
@@ -86,10 +84,11 @@ public class ViewQueueCommandTest
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"),
+            Times.Once);
         _lavaLinkServiceMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task ExecuteAsync_Queue_Is_Empty_VoiceChannel()
     {
@@ -111,7 +110,7 @@ public class ViewQueueCommandTest
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("The queue is currently empty."), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, "view_list"), Times.Once);
         _lavaLinkServiceMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
     }
 

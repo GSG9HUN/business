@@ -7,6 +7,7 @@ public class ResumeCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<ResumeCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "resume";
@@ -15,13 +16,14 @@ public class ResumeCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-
+        
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
-
-        await lavaLinkService.ResumeAsync(validationResult.Member?.VoiceState!.Channel!);
+        
+        await lavaLinkService.ResumeAsync(message, validationResult.Member);
         logger.LogInformation("Resume command executed!");
     }
 }

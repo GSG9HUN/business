@@ -6,6 +6,7 @@ namespace DC_bot.Commands;
 public class TagCommand(
     IUserValidationService userValidation,
     ILogger<TagCommand> logger,
+    IResponseBuilder responseBuilder,
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "tag";
@@ -22,7 +23,7 @@ public class TagCommand(
 
         if (tagName.Length != 2)
         {
-            await message.Channel.SendMessageAsync(localizationService.Get("tag_command_usage"));
+            await responseBuilder.SendUsageAsync(message, Name);
             logger.LogInformation("Username provided.");
             return;
         }
@@ -32,11 +33,12 @@ public class TagCommand(
 
         if (msg == null)
         {
-            await message.Channel.SendMessageAsync(localizationService.Get("tag_command_user_not_exist_error", tagName[1]));
+            await responseBuilder.SendSuccessAsync(message,
+                localizationService.Get("tag_command_user_not_exist_error", tagName[1]));
             return;
         }
 
-        await message.Channel.SendMessageAsync(localizationService.Get("tag_command_response", msg.Mention));
+        await responseBuilder.SendSuccessAsync(message, localizationService.Get("tag_command_response", msg.Mention));
 
         logger.LogInformation("Tag command executed!");
     }

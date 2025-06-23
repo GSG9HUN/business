@@ -1,6 +1,7 @@
 using DC_bot.Interface;
 using DC_bot.Wrapper;
 using DSharpPlus;
+using DSharpPlus.AsyncEvents;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
@@ -12,12 +13,28 @@ public class ReactionHandler(
     ILogger<ReactionHandler> logger,
     ILocalizationService localizationService)
 {
+    private AsyncEventHandler<DiscordClient, MessageReactionAddEventArgs>? _messageReactionAdded;
+    private AsyncEventHandler<DiscordClient, MessageReactionRemoveEventArgs>? _messageReactionRemoved;
+    private Func<IDiscordChannel, DiscordClient, string, Task>? _sendReactionControlMessage;
+    private bool _isRegistered = false;
+
     public void RegisterHandler(DiscordClient client)
     {
-        lavaLinkService.TrackStarted += SendReactionControlMessage;
-        client.MessageReactionAdded += OnReactionAdded;
-        client.MessageReactionRemoved += OnReactionRemoved;
-        logger.LogInformation("Registered reaction handler");
+        if (_isRegistered)
+        {
+            logger.LogInformation("ReactionHandler Service is already registered");
+            return;
+        }
+
+        _messageReactionAdded = OnReactionAdded;
+        _messageReactionRemoved = OnReactionRemoved;
+        _sendReactionControlMessage = SendReactionControlMessage;
+        
+        lavaLinkService.TrackStarted += _sendReactionControlMessage;
+        client.MessageReactionAdded += _messageReactionAdded;
+        client.MessageReactionRemoved += _messageReactionRemoved;
+        _isRegistered = true;
+        logger.LogInformation("Registered reaction handler.");
     }
 
     private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, string msg)
@@ -45,19 +62,27 @@ public class ReactionHandler(
         var guildId = args.Guild.Id;
 
         logger.LogInformation($"Reaction added: {args.Emoji.GetDiscordName()} by {args.User.Username}");
-        var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
+        
+        var discordAuthor = new DiscordUserWrapper(args.User);
+        var discordChannel = new DiscordChannelWrapper(args.Channel);
+        var member = await discordChannel.Guild.GetMemberAsync(discordAuthor.Id).ConfigureAwait(false);
+        var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
+            discordChannel, discordAuthor, args.Message.CreationTimestamp,
+            args.Message.Embeds.ToList(), args.Message.RespondAsync,
+            args.Message.RespondAsync);
+        
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                await lavaLinkService.PauseAsync(discordChannelWrapper);
+                await lavaLinkService.PauseAsync(discordMessageWrapper, member);
                 break;
 
             case "▶️": // Resume emoji
-                await lavaLinkService.ResumeAsync(discordChannelWrapper);
+                await lavaLinkService.ResumeAsync(discordMessageWrapper, member);
                 break;
 
             case "⏭️": // Skip emoji
-                await lavaLinkService.SkipAsync(discordChannelWrapper);
+                await lavaLinkService.SkipAsync(discordMessageWrapper, member);
                 break;
 
             case "🔁": // Repeat emoji
@@ -75,26 +100,51 @@ public class ReactionHandler(
 
         logger.LogInformation($"Reaction removed: {args.Emoji.GetDiscordName()} by {args.User.Username}");
 
-        var discordChannelWrapper = new DiscordChannelWrapper(args.Channel);
-
+        var discordAuthor = new DiscordUserWrapper(args.User);
+        var discordChannel = new DiscordChannelWrapper(args.Channel);
+        var member = await discordChannel.Guild.GetMemberAsync(discordAuthor.Id).ConfigureAwait(false);
+        var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
+            discordChannel, discordAuthor, args.Message.CreationTimestamp,
+            args.Message.Embeds.ToList(), args.Message.RespondAsync,
+            args.Message.RespondAsync);
+        
         switch (args.Emoji.Name)
         {
             case "⏸️": // Pause emoji
-                await lavaLinkService.ResumeAsync(discordChannelWrapper);
+                await lavaLinkService.ResumeAsync(discordMessageWrapper, member);
                 break;
 
             case "▶️": // Resume emoji
-                await lavaLinkService.PauseAsync(discordChannelWrapper);
+                await lavaLinkService.PauseAsync(discordMessageWrapper, member);
                 break;
 
             case "⏭️": // Skip emoji
-                await lavaLinkService.SkipAsync(discordChannelWrapper);
+                await lavaLinkService.SkipAsync(discordMessageWrapper, member);
                 break;
 
             case "🔁": // Repeat emoji
                 lavaLinkService.IsRepeating[guildId] = false;
                 await args.Message.RespondAsync(localizationService.Get("reaction_handler_repeat_off"));
                 break;
+        }
+    }
+
+    internal void UnRegisterHandler(DiscordClient client)
+    {
+        if (_isRegistered)
+        {
+            lavaLinkService.TrackStarted -= _sendReactionControlMessage;
+            client.MessageReactionAdded -= _messageReactionAdded;
+            client.MessageReactionRemoved -= _messageReactionRemoved;
+            _messageReactionAdded = null;
+            _messageReactionRemoved = null;
+            _sendReactionControlMessage = null;
+            _isRegistered = false;
+            logger.LogInformation("Unregistered reaction handler");
+        }
+        else
+        {
+            logger.LogWarning("Tried to unregister handlers, but it was not registered");
         }
     }
 }

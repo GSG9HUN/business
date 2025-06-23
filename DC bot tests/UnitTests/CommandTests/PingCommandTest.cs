@@ -10,6 +10,7 @@ public class PingCommandTest
 {
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly PingCommand _pingCommand;
 
     public PingCommandTest()
@@ -17,24 +18,27 @@ public class PingCommandTest
         Mock<ILogger<PingCommand>> mockLogger = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
-        
+
         localizationServiceMock.Setup(g => g.Get("ping_command_description"))
             .Returns("Answer with pong!");
-        
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
-        _pingCommand = new PingCommand(userValidationService, mockLogger.Object,localizationServiceMock.Object);
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+        
+        _pingCommand = new PingCommand(userValidationService, mockLogger.Object, _responseBuilderMock.Object,
+            localizationServiceMock.Object);
     }
-    
+
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldSendNothing()
     {
         //Arrange
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        
+
         // Act
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
@@ -48,12 +52,12 @@ public class PingCommandTest
         //Arrange
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        
+
         // Act
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _messageMock.Verify(m => m.RespondAsync("Pong!"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Pong!"), Times.Once);
     }
 
     [Fact]

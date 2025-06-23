@@ -33,12 +33,13 @@ public class CommandHandlerServiceTest
         _localizationServiceMock.Setup(ls => ls.Get("unknown_command_error"))
             .Returns("Unknown command. Use `!help` to see available commands.");
         var userValidationService =
-            new ValidationService(_localizationServiceMock.Object, _validationLoggerMock.Object,true);
+            new ValidationService(_validationLoggerMock.Object,true);
 
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton<ICommand, PingCommand>()
+            .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<IUserValidationService>(userValidationService)
             .BuildServiceProvider();
 
@@ -180,7 +181,7 @@ public class CommandHandlerServiceTest
     }
 
     [Fact]
-    public void RegisterCommandAsync_Twice_Should_Log_Already_Regsitered()
+    public void RegisterCommandAsync_Twice_Should_Log_Already_Registered()
     {
         _commandHandlerService.RegisterHandler(_discordClient);
         _commandHandlerService.RegisterHandler(_discordClient);

@@ -6,6 +6,7 @@ namespace DC_bot.Commands;
 public class PlayCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
+    IResponseBuilder responseBuilder,
     ILogger<PlayCommand> logger,
     ILocalizationService localizationService) : ICommand
 {
@@ -18,28 +19,28 @@ public class PlayCommand(
 
         if (validationResult.IsValid is false)
         {
+            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
 
         var args = message.Content.Split(" ", 2);
         if (args.Length < 2)
         {
-            await message.RespondAsync(localizationService.Get("play_command_usage"));
+            await responseBuilder.SendUsageAsync(message, Name);
             logger.LogInformation("The user not provided URL");
             return;
         }
-
-        var textChannel = message.Channel;
+        
         var query = args[1].Trim();
         if (Uri.TryCreate(query, UriKind.Absolute, out var url))
         {
             logger.LogInformation("Starting playing a music through URL.");
-            await lavaLinkService.PlayAsyncUrl(validationResult.Member?.VoiceState!.Channel!, url, textChannel);
+            await lavaLinkService.PlayAsyncUrl(validationResult.Member?.VoiceState!.Channel!, url, message);
         }
         else
         {
             logger.LogInformation("Starting playing a music through search result.");
-            await lavaLinkService.PlayAsyncQuery(validationResult.Member?.VoiceState!.Channel!, query, textChannel);
+            await lavaLinkService.PlayAsyncQuery(validationResult.Member?.VoiceState!.Channel!, query, message);
         }
 
         logger.LogInformation("Play command executed!");

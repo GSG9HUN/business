@@ -7,7 +7,7 @@ namespace DC_bot.Interface;
 
 public interface IValidationService
 {
-    public Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId, IDiscordChannel channel);
+    public Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId);
     
-    public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection, IDiscordChannel channel);
+    public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection);
 }

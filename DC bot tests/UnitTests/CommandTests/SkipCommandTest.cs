@@ -14,6 +14,7 @@ public class SkipCommandTest
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly SkipCommand _skipCommand;
 
     public SkipCommandTest()
@@ -22,14 +23,8 @@ public class SkipCommandTest
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
         
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
-            .Returns("You must be in a voice channel!");
-        
         localizationServiceMock.Setup(g => g.Get("skip_command_description"))
             .Returns("Skip the current track.");
-        
-        localizationServiceMock.Setup(g => g.Get("skip_command_error"))
-            .Returns("No track is currently playing.");
         
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -37,9 +32,11 @@ public class SkipCommandTest
         _guildMock = new Mock<IDiscordGuild>();
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object,userValidationService, loggerMock.Object,localizationServiceMock.Object);
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
+            _responseBuilderMock.Object, localizationServiceMock.Object);
     }
 
     [Fact]
@@ -58,7 +55,7 @@ public class SkipCommandTest
 
         //Assert
 
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
 
     [Fact]
@@ -77,8 +74,8 @@ public class SkipCommandTest
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
 
     [Fact]
@@ -87,7 +84,7 @@ public class SkipCommandTest
         //Arrange
         var mockDiscordVoiceState = new Mock<IDiscordVoiceState>();
         mockDiscordVoiceState.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-        
+
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(mockDiscordVoiceState.Object);
@@ -100,7 +97,7 @@ public class SkipCommandTest
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordChannel>()), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Once);
     }
 
     [Fact]

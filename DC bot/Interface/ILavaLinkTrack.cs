@@ -8,4 +8,5 @@ public interface ILavaLinkTrack
     string Author { get; }
     
     LavalinkTrack ToLavalinkTrack();
+    string ToString();
 }

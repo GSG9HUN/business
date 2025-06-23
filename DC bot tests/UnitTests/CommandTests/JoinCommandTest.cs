@@ -9,6 +9,7 @@ namespace DC_bot_tests.UnitTests.CommandTests;
 public class JoinCommandTest
 {
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -16,18 +17,15 @@ public class JoinCommandTest
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly JoinCommand _joinCommand;
     private readonly Mock<ILogger<JoinCommand>> _joinCommandLoggerMock;
-    
+
     public JoinCommandTest()
     {
-      
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
-        
+
         localizationServiceMock.Setup(g => g.Get("join_command_description"))
             .Returns("The bot join to your voice channel and start playing queue music if its exists.");
-        localizationServiceMock.Setup(g => g.Get("user_not_in_a_voice_channel"))
-            .Returns("You must be in a voice channel!");
-        
+
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -36,12 +34,14 @@ public class JoinCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _joinCommandLoggerMock = new Mock<ILogger<JoinCommand>>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
         
-        var userValidationService = new ValidationService(localizationServiceMock.Object,validationLoggerMock.Object);
-        _joinCommand = new JoinCommand(_lavaLinkServiceMock.Object, userValidationService, _joinCommandLoggerMock.Object, localizationServiceMock.Object);
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _joinCommand = new JoinCommand(_lavaLinkServiceMock.Object, userValidationService,
+            _joinCommandLoggerMock.Object, _responseBuilderMock.Object, localizationServiceMock.Object);
     }
 
-     [Fact]
+    [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
         //Arrange
@@ -58,10 +58,10 @@ public class JoinCommandTest
         //Assert
 
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
@@ -81,12 +81,12 @@ public class JoinCommandTest
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _messageMock.Verify(m => m.RespondAsync("You must be in a voice channel!"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"), Times.Once);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordChannel>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
             Times.Never);
     }
 
@@ -96,7 +96,7 @@ public class JoinCommandTest
         //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-        
+
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
@@ -104,10 +104,10 @@ public class JoinCommandTest
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        
+
         //Act
         await _joinCommand.ExecuteAsync(_messageMock.Object);
-        
+
         //Assert
         _joinCommandLoggerMock.Verify(
             x => x.Log(
@@ -121,11 +121,12 @@ public class JoinCommandTest
             Times.Once
         );
     }
-    
+
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
         Assert.Equal("join", _joinCommand.Name);
-        Assert.Equal("The bot join to your voice channel and start playing queue music if its exists.", _joinCommand.Description);
+        Assert.Equal("The bot join to your voice channel and start playing queue music if its exists.",
+            _joinCommand.Description);
     }
 }

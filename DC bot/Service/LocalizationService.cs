@@ -8,12 +8,12 @@ public class LocalizationService : ILocalizationService
 {
     private Dictionary<string, string> _translations = new();
 
-    private static readonly string LocalizationDirectory =
+    internal static string LocalizationDirectory =
         Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
             throw new InvalidOperationException(), "guildFiles/localization");
 
-    private static readonly string TranslationDirectory =
+    internal static string TranslationDirectory =
         Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
             throw new InvalidOperationException(), "localization");
@@ -66,7 +66,7 @@ public class LocalizationService : ILocalizationService
         var lang = JsonSerializer.Deserialize<string>(File.ReadAllText(filePath));
         _lang = lang ?? "eng";
 
-        LoadTranslations();
+        LoadTranslations(_lang);
     }
 
     public void SaveLanguage(ulong guildId, string language)

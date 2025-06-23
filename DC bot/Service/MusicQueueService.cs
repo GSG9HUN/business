@@ -12,7 +12,7 @@ public class MusicQueueService : IMusicQueueService
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
 
-    private static readonly string QueueDirectory =
+    internal static string QueueDirectory =
         Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.FullName ??
             throw new InvalidOperationException(), "guildFiles/queues");
@@ -55,17 +55,17 @@ public class MusicQueueService : IMusicQueueService
         if (!_queues.TryGetValue(guildId, out var queue)) return;
 
         var tracks = queue
-            .Select(track => new SerializedTrack { Indetifier = track.ToLavalinkTrack().Identifier })
+            .Select(track => new SerializedTrack { Identifier = track.ToString() })
             .ToList();
 
         File.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
     }
 
-    public async Task LoadQueue(ulong guildId, IAudioService nodeRest)
+    public Task LoadQueue(ulong guildId, IAudioService nodeRest)
     {
         var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
 
-        if (!File.Exists(filePath)) return;
+        if (!File.Exists(filePath)) return Task.CompletedTask;
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true, // Ha a JSON kis-nagybetű érzékeny problémákat okozna
@@ -76,15 +76,15 @@ public class MusicQueueService : IMusicQueueService
 
         _queues[guildId] = new Queue<ILavaLinkTrack>();
 
-        if (savedTracks == null || savedTracks.Count == 0) return;
+        if (savedTracks == null || savedTracks.Count == 0) return Task.CompletedTask;
 
-        var trackIdentifierList = savedTracks.Select(track => track.Indetifier).ToList();
-        var decodedTracks = new List<LavalinkTrack>();
-        foreach (var trackIdentifier in trackIdentifierList)
+        var trackIdentifierList = savedTracks.Select(track => track.Identifier).ToList();
+        foreach (var track in trackIdentifierList.Select(trackIdentifier => LavalinkTrack.Parse(trackIdentifier,null)))
         {
-            var track = LavalinkTrack.Parse(trackIdentifier,null);
             _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
         }
+
+        return Task.CompletedTask;
     }
 
     public void Clone(ulong guildId, LavalinkTrack currentTrack)
