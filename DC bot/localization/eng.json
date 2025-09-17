@@ -53,5 +53,7 @@
   "pause": "Pause",
   "resume": "Resume",
   "skip": "Skip",
-  "repeat": "Repeat"
+  "repeat": "Repeat",
+  "clear_command_description": "Clear the playlist.",
+  "clear_command_response": "Playlist cleared."
 }

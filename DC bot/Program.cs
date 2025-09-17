@@ -73,6 +73,7 @@ internal class Program
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<ICommand, PlayCommand>()
             .AddSingleton<ICommand, SkipCommand>()
+            .AddSingleton<ICommand, ClearCommand>()
             .AddSingleton<ICommand, LeaveCommand>()
             .AddSingleton<ICommand, PauseCommand>()
             .AddSingleton<ICommand, ResumeCommand>()
