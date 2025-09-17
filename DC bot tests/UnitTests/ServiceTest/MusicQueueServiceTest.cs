@@ -2,7 +2,6 @@ using System.Text.Json;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Service;
-using Lavalink4NET;
 using Lavalink4NET.Tracks;
 using Moq;
 
@@ -55,7 +54,6 @@ public class MusicQueueServiceTests
                 Title = "test-track",
                 Identifier = "Test Title",
                 Author = "Test Author",
-                
             });
 
         mockTrack.Setup(t => t.ToString()).Returns(
@@ -73,7 +71,8 @@ public class MusicQueueServiceTests
         var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath));
         Assert.NotNull(savedTracks);
         Assert.Single(savedTracks);
-        Assert.Equal("QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=",
+        Assert.Equal(
+            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=",
             savedTracks[0].Identifier);
     }
 
@@ -83,7 +82,7 @@ public class MusicQueueServiceTests
         // Arrange
         var service = new MusicQueueService();
         var guildId = 12345UL;
-        
+
         var mockTrack = new Mock<ILavaLinkTrack>();
         mockTrack.Setup(t => t.ToLavalinkTrack())
             .Returns(new LavalinkTrack
@@ -95,7 +94,7 @@ public class MusicQueueServiceTests
 
         mockTrack.Setup(t => t.ToString()).Returns(
             "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=");
-        
+
         service.Enqueue(guildId, mockTrack.Object);
 
         // Act
@@ -119,16 +118,18 @@ public class MusicQueueServiceTests
 
         var savedTracks = new List<SerializedTrack>
         {
-            new() { Identifier = "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=" }
+            new()
+            {
+                Identifier =
+                    "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
+            }
         };
 
         var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
         await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(savedTracks));
 
-        var mockAudioService = new Mock<IAudioService>();
-
         // Act
-        await service.LoadQueue(guildId, mockAudioService.Object);
+        await service.LoadQueue(guildId);
 
         // Assert
         Assert.True(service.HasTracks(guildId));
@@ -136,7 +137,7 @@ public class MusicQueueServiceTests
         var queue = service.ViewQueue(guildId);
         Assert.Single(queue);
     }
-    
+
     [Fact]
     public void Clone_CreatesRepeatableQueueWithCurrentTrackAndExistingTracks()
     {
@@ -174,8 +175,8 @@ public class MusicQueueServiceTests
         Assert.Equal("Current Title", repeatableQueue[0].ToLavalinkTrack().Identifier);
         Assert.Equal("Next Title", repeatableQueue[1].ToLavalinkTrack().Identifier);
     }
-    
-    
+
+
     [Fact]
     public void Init_CreatesEmptyQueues()
     {
@@ -193,7 +194,7 @@ public class MusicQueueServiceTests
         Assert.Empty(queue);
         Assert.Empty(repeatableQueue);
     }
-    
+
     [Fact]
     public void GetQueue_ReturnsCorrectTracks()
     {
@@ -256,7 +257,7 @@ public class MusicQueueServiceTests
                 Author = "Author 2"
             });
 
-        var shuffledQueue = new Queue<ILavaLinkTrack>(new[] { track2.Object, track1.Object });
+        var shuffledQueue = new Queue<ILavaLinkTrack>([track2.Object, track1.Object]);
 
         // Act
         service.SetQueue(guildId, shuffledQueue);
@@ -313,7 +314,7 @@ public class MusicQueueServiceTests
         var service = new MusicQueueService();
         var guildId = 12345UL;
         service.Init(guildId);
-     
+
         // Act
         var track = service.Dequeue(guildId);
         // Assert
@@ -330,10 +331,8 @@ public class MusicQueueServiceTests
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
         File.WriteAllText(filePath, JsonSerializer.Serialize<List<SerializedTrack>>(null)); // Null érték mentése
 
-        var mockAudioService = new Mock<IAudioService>();
-
         // Act
-        await service.LoadQueue(guildId, mockAudioService.Object);
+        await service.LoadQueue(guildId);
 
         // Assert
         Assert.False(service.HasTracks(guildId)); // Nem szabad, hogy a queue-ban legyenek elemek
@@ -349,10 +348,8 @@ public class MusicQueueServiceTests
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
         File.WriteAllText(filePath, JsonSerializer.Serialize(new List<SerializedTrack>())); // Üres lista mentése
 
-        var mockAudioService = new Mock<IAudioService>();
-
         // Act
-        await service.LoadQueue(guildId, mockAudioService.Object);
+        await service.LoadQueue(guildId);
 
         // Assert
         Assert.False(service.HasTracks(guildId)); // Nem szabad, hogy a queue-ban legyenek elemek
@@ -369,15 +366,11 @@ public class MusicQueueServiceTests
 
         // Biztosítjuk, hogy a fájl nem létezik
         File.Delete(filePath);
-        
-
-        var mockAudioService = new Mock<IAudioService>();
 
         // Act
-        await service.LoadQueue(guildId, mockAudioService.Object);
+        await service.LoadQueue(guildId);
 
         // Assert
         Assert.False(service.HasTracks(guildId)); // Nem szabad, hogy a queue-ban legyenek elemek
     }
-
 }

@@ -76,8 +76,7 @@ public class HelpCommandTests
 
         // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n" +
-            "ping : Replies with Pong!\n" +
-            "play : Plays a song\n"), Times.Once);
+            "ping : Replies with Pong!\n"), Times.Once);
     }
 
     [Fact]
@@ -128,7 +127,6 @@ public class HelpCommandTests
         //Assert
         _messageMock.Verify(m => m.RespondAsync(It.IsAny<string>()), Times.Never);
     }
-
 
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()

@@ -1,4 +1,3 @@
-using Lavalink4NET;
 using Lavalink4NET.Tracks;
 
 namespace DC_bot.Interface;
@@ -11,7 +10,7 @@ public interface IMusicQueueService
     public LavalinkTrack? Dequeue(ulong guildId);
 
     public IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId);
-    public Task LoadQueue(ulong guildId, IAudioService lavalink);
+    public Task LoadQueue(ulong guildId);
 
     public void Clone(ulong guildId, LavalinkTrack currentTrack);
 

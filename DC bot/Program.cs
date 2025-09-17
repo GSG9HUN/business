@@ -5,7 +5,6 @@ using DC_bot.Service;
 using DC_bot.Wrapper;
 using DotNetEnv;
 using DSharpPlus.SlashCommands;
-using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -67,8 +66,9 @@ internal class Program
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton<BotService>()
             .AddSingleton<ReactionHandler>()
-            .AddSingleton<CommandHandlerService>()
             .AddSingleton<ICommand, TagCommand>()
+            .AddSingleton<CommandHandlerService>()
+            .AddSingleton<ICommand, JoinCommand>()
             .AddSingleton<ICommand, PingCommand>()
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<ICommand, PlayCommand>()
@@ -81,13 +81,13 @@ internal class Program
             .AddSingleton<ICommand, LanguageCommand>()
             .AddSingleton<ICommand, ViewQueueCommand>()
             .AddSingleton<ICommand, RepeatListCommand>()
-            .AddSingleton<ICommand, JoinCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService,MusicQueueService>()
+            .AddSingleton<IValidationService, ValidationService>()
             .AddSingleton<ILocalizationService, LocalizationService>()
             .AddSingleton<IUserValidationService, ValidationService>()
-            .AddSingleton<IValidationService, ValidationService>()
+            .AddSingleton<ITrackSearchResolverService,TrackSearchResolverService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();

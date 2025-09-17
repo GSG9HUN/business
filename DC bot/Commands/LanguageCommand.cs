@@ -30,7 +30,7 @@ public class LanguageCommand(
         }
         
         var language = args[1].Trim();
-      
+        //TODO invalid language exception handle example: !lang huen or hu eng or asder
         localizationService.SaveLanguage(message.Channel.Guild.Id, language);
         await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.LogInformation("Play command executed!");

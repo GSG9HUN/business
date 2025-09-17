@@ -1,6 +1,7 @@
 using DC_bot.Commands;
 using DC_bot.Interface;
 using DC_bot.Service;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -35,7 +36,7 @@ public class JoinCommandTest
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _joinCommandLoggerMock = new Mock<ILogger<JoinCommand>>();
         _responseBuilderMock = new Mock<IResponseBuilder>();
-        
+
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _joinCommand = new JoinCommand(_lavaLinkServiceMock.Object, userValidationService,
             _joinCommandLoggerMock.Object, _responseBuilderMock.Object, localizationServiceMock.Object);
@@ -58,10 +59,12 @@ public class JoinCommandTest
         //Assert
 
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
             Times.Never);
     }
 
@@ -81,12 +84,15 @@ public class JoinCommandTest
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"),
+            Times.Once);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>()),
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(
-            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>()),
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
             Times.Never);
     }
 

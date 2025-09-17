@@ -1,7 +1,6 @@
 using DC_bot.Commands;
 using DC_bot.Helper;
 using DC_bot.Interface;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
 

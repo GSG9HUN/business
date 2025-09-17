@@ -1,7 +1,6 @@
 using DC_bot.Commands;
 using DC_bot.Interface;
 using DC_bot.Service;
-using Lavalink4NET.Clients;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -20,7 +19,6 @@ public class LanguageCommandTest
         Mock<ILogger<LanguageCommand>> loggerMock = new();
         Mock<IDiscordChannel> channelMock = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
-        Mock<ILocalizationService> localizationServiceMock = new();
 
         _localizationServiceMock = new Mock<ILocalizationService>();
         

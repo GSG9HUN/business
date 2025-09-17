@@ -1,5 +1,4 @@
 using DC_bot.Helper;
-using DC_bot.Service;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 

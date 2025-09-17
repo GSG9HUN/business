@@ -1,4 +1,3 @@
-
 using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.Entities;
