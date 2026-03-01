@@ -112,4 +112,14 @@ public class ValidationServiceTest
         Assert.NotNull(result.Connection);
         textChannelMock.Verify(t => t.SendMessageAsync("Bot is not connected to a voice channel."), Times.Never);
     }
+
+    // TODO: Hiányzó tesztesetek:
+    //   - ValidateUserAsync_UserIsBot_ShouldReturnInvalidWithoutErrorKey: bot felhasználó esetén IsValid=false,
+    //     ErrorKey üres string, és nem kerül sor guild tagság lekérésére.
+    //   - ValidateUserAsync_UserNotInVoiceChannel_ShouldReturnInvalidWithErrorKey: nem bot felhasználó nincs
+    //     hangcsatornában -> IsValid=false, ErrorKey="user_not_in_a_voice_channel".
+    //   - ValidateUserAsync_UserInVoiceChannel_ShouldReturnValid: felhasználó hangcsatornában van ->
+    //     IsValid=true, a Member ki van töltve.
+    //   - IsBotUser_BotMessage_ShouldReturnTrue: bot üzenet esetén true-t ad vissza.
+    //   - IsBotUser_HumanMessage_ShouldReturnFalse: emberi felhasználó üzenete esetén false-t ad vissza.
 }

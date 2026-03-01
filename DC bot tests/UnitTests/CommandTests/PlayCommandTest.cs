@@ -32,6 +32,9 @@ public class PlayCommandTest
         localizationServiceMock.Setup(g => g.Get("play_command_description"))
             .Returns("Start playing a music.");
 
+    // TODO: Duplikált mező inicializálás: _lavaLinkServiceMock kétszer van létrehozva
+    //       (35. és 42. sorban). A második new Mock<ILavaLinkService>() felülírja az elsőt.
+    //       Az első sort (35. sor) törölni kell.
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _responseBuilderMock = new Mock<IResponseBuilder>();
         _messageMock = new Mock<IDiscordMessage>();

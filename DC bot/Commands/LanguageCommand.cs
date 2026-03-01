@@ -15,6 +15,7 @@ public class LanguageCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.LogInformation("Language command invoked.");
+        // TODO: A logüzenet "Play command executed!" helyett "Language command executed!" kell legyen.
       
         if (userValidation.IsBotUser(message))
         {
@@ -30,7 +31,10 @@ public class LanguageCommand(
         }
         
         var language = args[1].Trim();
-        //TODO invalid language exception handle example: !lang huen or hu eng or asder
+        // TODO: Érvénytelen nyelv lekezelése nincs megvalósítva. Ha a felhasználó pl. "huen", "hu eng" vagy "asder"
+        //       értéket ad meg, a bot azt hibátlanul menti és megpróbálja betölteni, ami FileNotFoundException-t dob.
+        //       Szükséges lenne egy engedélyezett nyelvkódok listáját ellenőrizni (pl. ["eng", "hu"]) és hiba esetén
+        //       hibaüzenetet küldeni a felhasználónak.
         localizationService.SaveLanguage(message.Channel.Guild.Id, language);
         await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.LogInformation("Play command executed!");

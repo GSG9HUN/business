@@ -86,4 +86,9 @@ public class LanguageCommandTest
         Assert.Equal("language", _languageCommand.Name);
         Assert.Equal("Change the bot language.", _languageCommand.Description);
     }
+
+    // TODO: Hiányzó tesztesetek:
+    //   - ExecuteAsync_Should_DoNothing_WhenUserIsBot: bot felhasználó hívja a parancsot -> semmit sem csinál
+    //   - ExecuteAsync_Should_Error_WhenInvalidLanguageProvided: érvénytelen nyelvkód (pl. "huen", "asder") ->
+    //     hibaüzenet küldése (jelenleg ez az eset nincs lekezelve a kódban sem)
 }

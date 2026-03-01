@@ -21,6 +21,9 @@ public class LavaLinkService(
     ILocalizationService localizationService) : ILavaLinkService
 {
     // event használata, hogy értesítsük a új zene kezdődik és hogy adjon hozzá emojikat.
+    // TODO: A TrackStarted esemény null!-ra van inicializálva. Ha véletlenül nincs feliratkozó és az eseményt
+    //       meghívják (Invoke), NullReferenceException keletkezik. Javasolt legalább egy null-ellenőrzést
+    //       alkalmazni az Invoke előtt: TrackStarted?.Invoke(...).
     public event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted = null!;
 
     private readonly Dictionary<ulong, bool> _isPlaybackFinishedRegistered = new();
@@ -50,6 +53,9 @@ public class LavaLinkService(
         }
     }
 
+    // TODO: A PlayAsyncUrl és PlayAsyncQuery metódusok szinte teljesen azonos kódot tartalmaznak
+    //       (validáció, eseményregisztráció, stb.). Érdemes lenne egy közös privát segédmetódusba kiemelni
+    //       az ismétlődő logikát (pl. EnsureConnectedAndValidatedAsync) a DRY elvnek megfelelően.
     public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
         TrackSearchMode trackSearchMode)
     {

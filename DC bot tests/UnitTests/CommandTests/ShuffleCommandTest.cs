@@ -115,4 +115,8 @@ public class ShuffleCommandTest
         Assert.Equal("shuffle", _shuffleCommand.Name);
         Assert.Equal("Shuffle the playlist.", _shuffleCommand.Description);
     }
+
+    // TODO: Hiányzó tesztesetek:
+    //   - ExecuteAsync_SingleTrackQueue_SendsErrorMessage: pontosan 1 elemű queue esetén (Count < 2) -> hibaüzenet
+    //   - ExecuteAsync_ValidationFails_ShouldNotShuffle: validáció sikertelen esetén nem hívódik meg a SetQueue
 }

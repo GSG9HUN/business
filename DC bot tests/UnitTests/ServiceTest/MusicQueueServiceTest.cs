@@ -379,4 +379,13 @@ public class MusicQueueServiceTests
         // Assert
         Assert.False(service.HasTracks(guildId)); // Nem szabad, hogy a queue-ban legyenek elemek
     }
+
+    // TODO: Hiányzó tesztesetek:
+    //   - Enqueue_WithoutInit_ShouldStillWork: Init() meghívása nélkül Enqueue hívás esetén ellenőrizni,
+    //     hogy a queue automatikusan létrejön-e (az implementáció ezt támogatja).
+    //   - Clone_WhenRepeatableQueueNotInitialized_ShouldThrow: Clone() hívása Init() előtt
+    //     KeyNotFoundException-t dob – ez dokumentálatlan és tesztelt viselkedés.
+    //   - HasTracks_WhenGuildNotRegistered_ShouldReturnFalse: ismeretlen guildId esetén HasTracks false-t ad-e vissza.
+    //   - LoadQueue_WithInvalidJson_ShouldThrow: érvénytelen JSON tartalmú fájl esetén a LoadQueue
+    //     JsonException-t dob – ezt le kellene kezelni vagy dokumentálni.
 }

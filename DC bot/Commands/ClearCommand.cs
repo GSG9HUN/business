@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
+// TODO: A logger típusa ILogger<ShuffleCommand> helyett ILogger<ClearCommand> kell legyen – másolás-beillesztési hiba.
 public class ClearCommand(
     IUserValidationService userValidation,
     IMusicQueueService musicQueueService,

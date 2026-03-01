@@ -109,6 +109,9 @@ internal class Program
         slashCommandsConfig.RegisterCommands<PingSlashCommand>(1309813939563003966);
         slashCommandsConfig.RegisterCommands<HelpSlashCommand>(1309813939563003966);
         slashCommandsConfig.RegisterCommands<PlaySlashCommand>(1309813939563003966);
+        // TODO: A guild ID (1309813939563003966) keményen be van égve a kódba. Ez azt jelenti, hogy a slash parancsok
+        //       csak ezen az egy szerveren működnek. Javasolt megoldás: a guild ID-t konfigurációból (pl. .env fájlból)
+        //       olvasni, vagy globális parancsként regisztrálni (RegisterCommands<T>() paraméter nélkül).
     }
 
     private static void RegisterHandlers(IServiceProvider services)

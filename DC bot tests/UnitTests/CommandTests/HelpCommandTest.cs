@@ -77,6 +77,10 @@ public class HelpCommandTests
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
+        // TODO: Ez a teszt elbukik, mert a konstruktorban mockCommand2 ("play") is regisztrálásra kerül,
+        //       így a HelpCommand két parancsot listáz ki, de az assertion csak az egyiket ellenőrzi.
+        //       A várt string "Available commands:\nping : Replies with Pong!\nplay : Plays a song\n" kell legyen,
+        //       vagy a tesztkörnyezetből törölni kell a mockCommand2 regisztrációját.
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n" +
             "ping : Replies with Pong!\n"), Times.Once);
     }

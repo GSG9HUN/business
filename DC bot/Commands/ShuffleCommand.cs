@@ -54,6 +54,10 @@ public class ShuffleCommand(
         }
         
         //Kizárjuk, hogy az eredeti lista maradhasson.
+        // TODO: Ez a rekurzív hívás potenciálisan végtelen ciklust okozhat. Ha a Fisher-Yates keverés véletlenül
+        //       ugyanolyan sorrendet ad vissza (kis queue esetén pl. 2 elemnél 50% esély), a metódus rekurzívan
+        //       újrahívja magát, ami StackOverflowException-t eredményezhet. Javasolt megoldás: iteratív megközelítés
+        //       vagy maximum újrapróbálkozások számának korlátozása.
         return trackList.SequenceEqual(queue.ToList()) ? ShuffleQueue(queue) : new Queue<ILavaLinkTrack>(trackList);
     }
 }
