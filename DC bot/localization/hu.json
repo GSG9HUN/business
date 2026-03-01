@@ -53,5 +53,7 @@
   "pause": "Szünet",
   "resume": "Folytatás",
   "skip": "Átugrás",
-  "repeat": "Ismétlés"
+  "repeat": "Ismétlés",
+  "clear_command_description": "Kitörli a zenéket a lejátszási listából.",
+  "clear_command_response": "A lejátszási lista kiürítve."
 }

@@ -13,21 +13,19 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
     {
         var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
         if (player is not null) 
-            return new PlayerValidationResult(true,string.Empty, player);
+            return new PlayerValidationResult(true, string.Empty, player);
         
         logger.LogInformation("Lavalink is not connected.");
-        return new PlayerValidationResult(false,"lavalink_error", player);
-
+        return new PlayerValidationResult(false, "lavalink_error", player);
     }
 
-    public async Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
+    public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
     {
         if (connection.ConnectionState.IsConnected) 
-            return new ConnectionValidationResult(true, string.Empty, connection);
+            return Task.FromResult(new ConnectionValidationResult(true, string.Empty, connection));
         
         logger.LogInformation("Bot is not connected to a voice channel.");
-        return new ConnectionValidationResult(false, "bot_is_not_connected_error",null);
-
+        return Task.FromResult(new ConnectionValidationResult(false, "bot_is_not_connected_error", null));
     }
 
     public async Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message)

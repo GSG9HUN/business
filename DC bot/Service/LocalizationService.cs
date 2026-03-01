@@ -15,7 +15,7 @@ public class LocalizationService : ILocalizationService
         Path.Combine(Directory.GetCurrentDirectory(), "localization");
 
     private ILogger<LocalizationService> _logger;
-    private String? _lang;
+    private string? _lang;
 
     public LocalizationService(ILogger<LocalizationService> logger)
     {
@@ -27,7 +27,7 @@ public class LocalizationService : ILocalizationService
 
     private void LoadTranslations(string languageCode = "eng")
     {
-        _logger.LogInformation($"Loading localization for {languageCode}");
+        _logger.LogInformation("Loading localization for {LanguageCode}", languageCode);
 
         var filePath = Path.Combine(TranslationDirectory, $"{languageCode}.json");
 
