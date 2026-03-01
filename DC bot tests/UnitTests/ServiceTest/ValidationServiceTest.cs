@@ -110,5 +110,4 @@ public class ValidationServiceTest
         Assert.NotNull(result.connection);
         textChannelMock.Verify(t => t.SendMessageAsync("Bot is not connected to a voice channel."), Times.Never);
     }
-    
 }

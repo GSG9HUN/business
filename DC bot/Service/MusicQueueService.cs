@@ -2,7 +2,6 @@ using System.Text.Json;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Wrapper;
-using Lavalink4NET;
 using Lavalink4NET.Tracks;
 
 namespace DC_bot.Service;
@@ -58,7 +57,7 @@ public class MusicQueueService : IMusicQueueService
         File.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
     }
 
-    public Task LoadQueue(ulong guildId, IAudioService nodeRest)
+    public Task LoadQueue(ulong guildId)
     {
         var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
 

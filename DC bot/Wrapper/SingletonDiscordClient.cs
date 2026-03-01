@@ -2,7 +2,6 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using Lavalink4NET;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Wrapper;
@@ -55,8 +54,7 @@ public class SingletonDiscordClient
         musicService.Init(e.Guild.Id);
         
         await lavaLinkService.ConnectAsync();
-        var lavalink = ServiceLocator.GetService<IAudioService>();
         
-        await musicService.LoadQueue(e.Guild.Id,lavalink);
+        await musicService.LoadQueue(e.Guild.Id);
     }
 }

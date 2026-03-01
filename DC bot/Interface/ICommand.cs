@@ -1,9 +1,8 @@
-namespace DC_bot.Interface
+namespace DC_bot.Interface;
+
+public interface ICommand
 {
-    public interface ICommand
-    {
-        string Name { get; }
-        string Description { get; }
-        Task ExecuteAsync(IDiscordMessage message);
-    }
+    string Name { get; }
+    string Description { get; }
+    Task ExecuteAsync(IDiscordMessage message);
 }

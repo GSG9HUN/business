@@ -1,5 +1,5 @@
-using DC_bot.Helper;
 using DSharpPlus;
+using Lavalink4NET.Rest.Entities.Tracks;
 
 namespace DC_bot.Interface;
 
@@ -10,8 +10,8 @@ public interface ILavaLinkService
     Dictionary<ulong,bool> IsRepeating { get; set; }
     Dictionary<ulong,bool> IsRepeatingList { get; set; }
     Task PauseAsync(IDiscordMessage message, IDiscordMember? member);
-    Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message);
-    Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message);
+    Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message, TrackSearchMode trackSearchMode);
+    Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message, TrackSearchMode trackSearchMode);
     Task ConnectAsync();
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);

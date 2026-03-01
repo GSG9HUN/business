@@ -1,6 +1,4 @@
-using System.Collections;
 using DC_bot.Interface;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
