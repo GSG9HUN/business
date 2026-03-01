@@ -44,7 +44,7 @@ public class SingletonDiscordClient
 
     private static async Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
     {
-        _logger.LogInformation($"Guild available: {e.Guild.Name}");
+        _logger.LogInformation("Guild available: {GuildName}", e.Guild.Name);
 
         var musicService = ServiceLocator.GetService<IMusicQueueService>();
         var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();

@@ -19,7 +19,7 @@ internal class Program
     
         var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
        
-        if (envPath == null)
+        if (!File.Exists(envPath))
         {
             Console.WriteLine("Please provide .env file.");
             return;
@@ -56,11 +56,14 @@ internal class Program
             {
                 var hostname = Environment.GetEnvironmentVariable("LAVALINK_HOSTNAME");
                 var port = int.Parse(Environment.GetEnvironmentVariable("LAVALINK_PORT") ?? "2333");
-                var baseAddress = new Uri($"https://{hostname}:{port}");
-                var webSocketUri = new Uri($"wss://{hostname}:{port}/v4/websocket");
+                var isSecured = string.Equals(Environment.GetEnvironmentVariable("LAVALINK_SECURED"), "true", StringComparison.OrdinalIgnoreCase);
+                var httpScheme = isSecured ? "https" : "http";
+                var wsScheme = isSecured ? "wss" : "ws";
+                var baseAddress = new Uri($"{httpScheme}://{hostname}:{port}");
+                var webSocketUri = new Uri($"{wsScheme}://{hostname}:{port}/v4/websocket");
                 options.BaseAddress = baseAddress;
                 options.WebSocketUri = webSocketUri;
-                options.Passphrase = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD");
+                options.Passphrase = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD") ?? string.Empty;
             })   
             .AddSingleton(SingletonDiscordClient.Instance)      
             .AddLavalink()
