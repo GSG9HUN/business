@@ -16,7 +16,7 @@ public class ReactionHandler(
     private AsyncEventHandler<DiscordClient, MessageReactionAddEventArgs>? _messageReactionAdded;
     private AsyncEventHandler<DiscordClient, MessageReactionRemoveEventArgs>? _messageReactionRemoved;
     private Func<IDiscordChannel, DiscordClient, string, Task>? _sendReactionControlMessage;
-    private bool _isRegistered = false;
+    private bool _isRegistered;
 
     public void RegisterHandler(DiscordClient client)
     {

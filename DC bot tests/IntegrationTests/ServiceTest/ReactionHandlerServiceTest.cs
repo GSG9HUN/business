@@ -1,19 +1,19 @@
+using System;
+using System.IO;
+using System.Linq;
 using DotNetEnv;
 using Lavalink4NET;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace DC_bot_tests.IntegrationTests.ServiceTest;
-
 using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DSharpPlus;
 using DC_bot.Wrapper;
-using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+
+namespace DC_bot_tests.IntegrationTests.ServiceTest;
 
 public class ReactionHandlerIntegrationTests
 {

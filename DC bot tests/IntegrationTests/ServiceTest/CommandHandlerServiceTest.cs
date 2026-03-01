@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using DC_bot.Commands;
 using DC_bot.Interface;
 using DC_bot.Service;
@@ -7,8 +11,9 @@ using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
-namespace DC_bot_tests.IntegrationTests.Wrapper;
+namespace DC_bot_tests.IntegrationTests.ServiceTest;
 
 [Collection("Integration Tests")]
 public class CommandHandlerServiceTest
@@ -133,7 +138,7 @@ public class CommandHandlerServiceTest
     [Fact]
     public async Task HanldeCommandAsync_Should_Log_No_Prefix_Provided()
     {
-        _commandHandlerService.prefix = null;
+        _commandHandlerService.Prefix = null;
         _commandHandlerService.RegisterHandler(_discordClient);
 
         await _discordClient.ConnectAsync();

@@ -7,6 +7,6 @@ public interface IDiscordChannel
     ulong Id { get; }
     string Name { get; }
     Task SendMessageAsync(string message);
-    IDiscordGuild Guild { get; } // Fontos: Ezt interfészként kell definiálni!
+    IDiscordGuild Guild { get; } 
     DiscordChannel ToDiscordChannel();
 }

@@ -4,7 +4,7 @@ namespace DC_bot.Helper;
 
 public class ConnectionValidationResult(bool isValid, string errorKey, ILavalinkPlayer? connection)
 {
-    public bool isValid { get; } = isValid;
-    public string errorKey { get; } = errorKey;
-    public ILavalinkPlayer? connection { get; } = connection;
+    public bool IsValid { get; } = isValid;
+    public string ErrorKey { get; } = errorKey;
+    public ILavalinkPlayer? Connection { get; } = connection;
 }

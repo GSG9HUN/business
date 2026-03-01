@@ -63,18 +63,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -114,18 +114,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -169,18 +169,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -213,18 +213,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -257,18 +257,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -324,23 +324,23 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
-        if (validationConnectionResult.connection != null)
-            await validationConnectionResult.connection.StopAsync();
+        if (validationConnectionResult.Connection != null)
+            await validationConnectionResult.Connection.StopAsync();
         await connection.DisconnectAsync().ConfigureAwait(false);
     }
 
@@ -364,18 +364,18 @@ public class LavaLinkService(
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
 
-        if (!validationPlayerResult.isValid)
+        if (!validationPlayerResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
             return;
         }
 
         var validationConnectionResult =
             await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-        if (!validationConnectionResult.isValid)
+        if (!validationConnectionResult.IsValid)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.errorKey);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return;
         }
 
@@ -446,8 +446,13 @@ public class LavaLinkService(
 
         if (TryRepeatCurrentTrack(guildId, out var repeatTrack))
         {
+            if (repeatTrack == null)
+            {   
+                return;
+            }
+
             await player.PlayAsync(repeatTrack);
-            logger.LogInformation($"Repeating: {repeatTrack.Author} - {repeatTrack.Title}");
+            logger.LogInformation("Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle}", repeatTrack.Author, repeatTrack.Title);
             return;
         }
 

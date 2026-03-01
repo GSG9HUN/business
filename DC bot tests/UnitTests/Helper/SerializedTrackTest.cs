@@ -1,4 +1,5 @@
 using DC_bot.Helper;
+using Xunit;
 
 namespace DC_bot_tests.UnitTests.Helper;
 

@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using DC_bot.Commands;
 using DC_bot.Helper;
 using DC_bot.Interface;
@@ -6,7 +8,7 @@ using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Sprache;
+using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 

@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using DC_bot.Service;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace DC_bot_tests.UnitTests.ServiceTest;
 
@@ -54,9 +57,10 @@ public class ServiceLocatorTests
 
         // Assert
         Assert.NotNull(resolvedServices);
-        Assert.Equal(2, resolvedServices.Count());
-        Assert.Contains(resolvedServices, s => s is TestService);
-        Assert.Contains(resolvedServices, s => s is AnotherTestService);
+        var testServices = resolvedServices as ITestService[] ?? resolvedServices.ToArray();
+        Assert.Equal(2, testServices.Count());
+        Assert.Contains(testServices, s => s is TestService);
+        Assert.Contains(testServices, s => s is AnotherTestService);
     }
 
     [Fact]

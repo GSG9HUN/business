@@ -4,9 +4,9 @@ namespace DC_bot.Interface;
 
 public interface IDiscordUser
 {
-    ulong Id { get; } // Felhasználó egyedi azonosítója
-    bool IsBot { get; } // Bot-e a felhasználó
-    string Username { get; } // Felhasználó neve
-    string Mention { get; } // Megemlítés Discord üzenetben (pl. <@123456789>)
+    ulong Id { get; } 
+    bool IsBot { get; } 
+    string Username { get; } 
+    string Mention { get; } 
     DiscordUser ToDiscordUser();
 }

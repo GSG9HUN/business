@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
@@ -6,6 +9,7 @@ using DotNetEnv;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace DC_bot_tests.IntegrationTests.Wrapper;
 

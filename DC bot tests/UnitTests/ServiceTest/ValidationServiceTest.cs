@@ -1,9 +1,11 @@
+using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Moq;
 using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace DC_bot_tests.UnitTests.ServiceTest;
 
@@ -36,9 +38,9 @@ public class ValidationServiceTest
         var result = await _validationService.ValidatePlayerAsync(audioServiceMock.Object, guildId);
 
         // Assert
-        Assert.False(result.isValid);
-        Assert.Null(result.player);
-        Assert.Equal("lavalink_error", result.errorKey);
+        Assert.False(result.IsValid);
+        Assert.Null(result.Player);
+        Assert.Equal("lavalink_error", result.ErrorKey);
     }
 
     [Fact]
@@ -57,8 +59,8 @@ public class ValidationServiceTest
         var result = await _validationService.ValidatePlayerAsync(audioServiceMock.Object, guildId);
 
         // Assert
-        Assert.True(result.isValid);
-        Assert.NotNull(result.player);
+        Assert.True(result.IsValid);
+        Assert.NotNull(result.Player);
     }
 
     [Fact]
@@ -77,9 +79,9 @@ public class ValidationServiceTest
         var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
 
         // Assert
-        Assert.False(result.isValid);
-        Assert.Null(result.connection);
-        Assert.Equal("bot_is_not_connected_error",result.errorKey);
+        Assert.False(result.IsValid);
+        Assert.Null(result.Connection);
+        Assert.Equal("bot_is_not_connected_error",result.ErrorKey);
         
     }
 
@@ -106,8 +108,8 @@ public class ValidationServiceTest
         var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
 
         // Assert
-        Assert.True(result.isValid);
-        Assert.NotNull(result.connection);
+        Assert.True(result.IsValid);
+        Assert.NotNull(result.Connection);
         textChannelMock.Verify(t => t.SendMessageAsync("Bot is not connected to a voice channel."), Times.Never);
     }
 }
