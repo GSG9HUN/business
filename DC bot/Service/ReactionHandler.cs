@@ -61,7 +61,7 @@ public class ReactionHandler(
 
         var guildId = args.Guild.Id;
 
-        logger.LogInformation($"Reaction added: {args.Emoji.GetDiscordName()} by {args.User.Username}");
+        logger.LogInformation("Reaction added: {Emoji} by {Username}", args.Emoji.GetDiscordName(), args.User.Username);
         
         var discordAuthor = new DiscordUserWrapper(args.User);
         var discordChannel = new DiscordChannelWrapper(args.Channel);
@@ -98,7 +98,7 @@ public class ReactionHandler(
 
         var guildId = args.Guild.Id;
 
-        logger.LogInformation($"Reaction removed: {args.Emoji.GetDiscordName()} by {args.User.Username}");
+        logger.LogInformation("Reaction removed: {Emoji} by {Username}", args.Emoji.GetDiscordName(), args.User.Username);
 
         var discordAuthor = new DiscordUserWrapper(args.User);
         var discordChannel = new DiscordChannelWrapper(args.Channel);
