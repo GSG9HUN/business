@@ -21,7 +21,7 @@ Fókusz: Discord security, async deadlock-ok, command handling, tesztlefedettsé
 
 ### 2. xUnit tesztek review
 - **Async tesztek**: `async Task` visszatérési típus minden tesztnél, ne legyen `async void`; `ConfigureAwait(false)` helyes használata
-- **Mock/Stub**: `DiscordClient`, `InteractionContext`, `LavalinkExtension` mock-olása (pl. `Moq`, `NSubstitute`); ne legyen valódi Discord API-hívás tesztben
+- **Mock/Stub**: `DiscordClient`, `InteractionContext`, Lavalink4NET szolgáltatások (pl. `ILavalinkPlayer`, `LavaLinkService`) mock-olása (pl. `Moq`, `NSubstitute`); ne legyen valódi Discord API-hívás tesztben
 - **Deadlock-megelőzés**: `.Result`/`.Wait()` tiltva tesztkódban is – minden await-et ellenőrizz
 - **Lefedettség elvárások**: command handler-ek boldog út + hibaág tesztelve; voice/music flow-k legalább unit szinten lefedve
 - **Assert minőség**: ne csak `Assert.NotNull`, hanem konkrét állapot/érték ellenőrzés; exception-teszteknél `Assert.ThrowsAsync<T>`
