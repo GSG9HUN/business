@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -11,13 +12,13 @@ public class RepeatCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "repeat";
-    public string Description => localizationService.Get("repeat_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.RepeatCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.LogInformation("Repeat command invoked");
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
@@ -28,7 +29,7 @@ public class RepeatCommand(
 
         if (lavaLinkService.IsRepeatingList[guildId])
         {
-            await responseBuilder.SendSuccessAsync(message, localizationService.Get("repeat_command_list_already_repeating"));
+            await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating));
             logger.LogInformation("Repeat command executed");
             return;
         }
@@ -36,14 +37,14 @@ public class RepeatCommand(
         if (lavaLinkService.IsRepeating[guildId])
         {
             lavaLinkService.IsRepeating[guildId] = false;
-            await responseBuilder.SendSuccessAsync(message, localizationService.Get("repeat_command_repeating_off"));
+            await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOff));
             logger.LogInformation("Repeat command executed");
             return;
         }
 
         lavaLinkService.IsRepeating[guildId] = true;
-        await responseBuilder.SendSuccessAsync(message, $"{localizationService.Get("repeat_command_repeating_on")} {lavaLinkService.GetCurrentTrack(guildId)}");
-        
+        await responseBuilder.SendSuccessAsync(message, $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {lavaLinkService.GetCurrentTrack(guildId)}");
+
         logger.LogInformation("Repeat command executed");
     }
 }

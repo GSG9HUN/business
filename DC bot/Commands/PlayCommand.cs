@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +13,7 @@ public class PlayCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "play";
-    public string Description => localizationService.Get("play_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.PlayCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
@@ -31,11 +32,11 @@ public class PlayCommand(
             logger.LogInformation("The user not provided URL");
             return;
         }
-        
+
         var query = args[1].Trim();
 
         var trackSearchMode = trackSearchResolverService.ResolveSearchMode(query);
-            
+
         if (Uri.TryCreate(query, UriKind.Absolute, out var url))
         {
             logger.LogInformation("Starting playing a music through URL.");

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,7 @@ public class HelpCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "help";
-    public string Description => localizationService.Get("help_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.HelpCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
@@ -25,7 +26,7 @@ public class HelpCommand(
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
         await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get("help_command_response")}\n{response}");
+            $"{localizationService.Get(LocalizationKeys.HelpCommandResponse)}\n{response}");
         logger.LogInformation("Help Command executed!");
     }
 }

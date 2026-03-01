@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using Lavalink4NET;
@@ -12,20 +13,20 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
     public async Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId)
     {
         var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
-        if (player is not null) 
+        if (player is not null)
             return new PlayerValidationResult(true, string.Empty, player);
-        
+
         logger.LogInformation("Lavalink is not connected.");
-        return new PlayerValidationResult(false, "lavalink_error", player);
+        return new PlayerValidationResult(false, ValidationErrorKeys.LavalinkError, player);
     }
 
     public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
     {
-        if (connection.ConnectionState.IsConnected) 
+        if (connection.ConnectionState.IsConnected)
             return Task.FromResult(new ConnectionValidationResult(true, string.Empty, connection));
-        
+
         logger.LogInformation("Bot is not connected to a voice channel.");
-        return Task.FromResult(new ConnectionValidationResult(false, "bot_is_not_connected_error", null));
+        return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
     }
 
     public async Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message)
@@ -33,15 +34,15 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
         if (IsBotUser(message))
         {
             logger.LogInformation("User is Bot.");
-            return new UserValidationResult(false,string.Empty);
+            return new UserValidationResult(false, string.Empty);
         }
 
         var user = message.Author;
         var member = await message.Channel.Guild.GetMemberAsync(user.Id);
 
-        if (member.VoiceState?.Channel != null) return new UserValidationResult(true,string.Empty, member);
+        if (member.VoiceState?.Channel != null) return new UserValidationResult(true, string.Empty, member);
         logger.LogInformation("User is not in a voice channel.");
-        return new UserValidationResult(false, "user_not_in_a_voice_channel", member);
+        return new UserValidationResult(false, ValidationErrorKeys.UserNotInVoiceChannel, member);
     }
 
     public bool IsBotUser(IDiscordMessage message)

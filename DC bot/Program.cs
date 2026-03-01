@@ -15,16 +15,16 @@ internal class Program
 {
     private static async Task Main()
     {
-    
+
         var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-       
+
         if (!File.Exists(envPath))
         {
             Console.WriteLine("Please provide .env file.");
             return;
         }
 
-       
+
         Env.Load(envPath);
         await new Program().RunBotAsync();
     }
@@ -63,8 +63,8 @@ internal class Program
                 options.BaseAddress = baseAddress;
                 options.WebSocketUri = webSocketUri;
                 options.Passphrase = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD") ?? string.Empty;
-            })   
-            .AddSingleton(SingletonDiscordClient.Instance)      
+            })
+            .AddSingleton(SingletonDiscordClient.Instance)
             .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton<BotService>()
@@ -87,11 +87,11 @@ internal class Program
             .AddSingleton<ICommand, RepeatListCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
-            .AddSingleton<IMusicQueueService,MusicQueueService>()
+            .AddSingleton<IMusicQueueService, MusicQueueService>()
             .AddSingleton<IValidationService, ValidationService>()
             .AddSingleton<ILocalizationService, LocalizationService>()
             .AddSingleton<IUserValidationService, ValidationService>()
-            .AddSingleton<ITrackSearchResolverService,TrackSearchResolverService>()
+            .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
@@ -99,19 +99,16 @@ internal class Program
         ServiceLocator.SetServiceProvider(services);
         return services;
     }
-   
+
     private static void RegisterSlashCommands()
     {
         var discordClient = SingletonDiscordClient.Instance;
         var slashCommandsConfig = discordClient.UseSlashCommands();
         slashCommandsConfig.RefreshCommands();
-        slashCommandsConfig.RegisterCommands<TagSlashCommand>(1309813939563003966);
-        slashCommandsConfig.RegisterCommands<PingSlashCommand>(1309813939563003966);
-        slashCommandsConfig.RegisterCommands<HelpSlashCommand>(1309813939563003966);
-        slashCommandsConfig.RegisterCommands<PlaySlashCommand>(1309813939563003966);
-        // TODO: A guild ID (1309813939563003966) keményen be van égve a kódba. Ez azt jelenti, hogy a slash parancsok
-        //       csak ezen az egy szerveren működnek. Javasolt megoldás: a guild ID-t konfigurációból (pl. .env fájlból)
-        //       olvasni, vagy globális parancsként regisztrálni (RegisterCommands<T>() paraméter nélkül).
+        slashCommandsConfig.RegisterCommands<TagSlashCommand>();
+        slashCommandsConfig.RegisterCommands<PingSlashCommand>();
+        slashCommandsConfig.RegisterCommands<HelpSlashCommand>();
+        slashCommandsConfig.RegisterCommands<PlaySlashCommand>();
     }
 
     private static void RegisterHandlers(IServiceProvider services)

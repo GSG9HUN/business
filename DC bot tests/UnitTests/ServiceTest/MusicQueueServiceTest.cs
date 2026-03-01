@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Lavalink4NET.Tracks;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.ServiceTest;
 
@@ -33,7 +27,7 @@ public class MusicQueueServiceTests
         // Arrange
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-       MusicQueueService.QueueDirectory = tempDir;
+        MusicQueueService.QueueDirectory = tempDir;
 
         // Act
         var musicQueueService = new MusicQueueService();
@@ -87,7 +81,7 @@ public class MusicQueueServiceTests
     {
         // Arrange
         var service = new MusicQueueService();
-        var guildId = 12345UL;
+        const ulong guildId = 12345UL;
 
         var mockTrack = new Mock<ILavaLinkTrack>();
         mockTrack.Setup(t => t.ToLavalinkTrack())
@@ -149,7 +143,7 @@ public class MusicQueueServiceTests
     {
         // Arrange
         var service = new MusicQueueService();
-        var guildId = 12345UL;
+        const ulong guildId = 12345UL;
         service.Init(guildId);
 
         var currentTrack = new Mock<ILavaLinkTrack>();
@@ -206,7 +200,7 @@ public class MusicQueueServiceTests
     {
         // Arrange
         var service = new MusicQueueService();
-        var guildId = 12345UL;
+        const ulong guildId = 12345UL;
 
         var track1 = new Mock<ILavaLinkTrack>();
         track1.Setup(t => t.ToLavalinkTrack())
@@ -243,7 +237,7 @@ public class MusicQueueServiceTests
     {
         // Arrange
         var service = new MusicQueueService();
-        var guildId = 12345UL;
+        const ulong guildId = 12345UL;
 
         var track1 = new Mock<ILavaLinkTrack>();
         track1.Setup(t => t.ToLavalinkTrack())
@@ -332,7 +326,7 @@ public class MusicQueueServiceTests
     {
         // Arrange
         var service = new MusicQueueService();
-        var guildId = 12345UL;
+        const ulong guildId = 12345UL;
 
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
         File.WriteAllText(filePath, JsonSerializer.Serialize<List<SerializedTrack>>(null)); // Null érték mentése
@@ -380,12 +374,77 @@ public class MusicQueueServiceTests
         Assert.False(service.HasTracks(guildId)); // Nem szabad, hogy a queue-ban legyenek elemek
     }
 
-    // TODO: Hiányzó tesztesetek:
-    //   - Enqueue_WithoutInit_ShouldStillWork: Init() meghívása nélkül Enqueue hívás esetén ellenőrizni,
-    //     hogy a queue automatikusan létrejön-e (az implementáció ezt támogatja).
-    //   - Clone_WhenRepeatableQueueNotInitialized_ShouldThrow: Clone() hívása Init() előtt
-    //     KeyNotFoundException-t dob – ez dokumentálatlan és tesztelt viselkedés.
-    //   - HasTracks_WhenGuildNotRegistered_ShouldReturnFalse: ismeretlen guildId esetén HasTracks false-t ad-e vissza.
-    //   - LoadQueue_WithInvalidJson_ShouldThrow: érvénytelen JSON tartalmú fájl esetén a LoadQueue
-    //     JsonException-t dob – ezt le kellene kezelni vagy dokumentálni.
+    [Fact]
+    public void Enqueue_WithoutInit_ShouldStillWork()
+    {
+        // Arrange
+        var service = new MusicQueueService();
+        const ulong guildId = 12345UL;
+
+        var mockTrack = new Mock<ILavaLinkTrack>();
+        mockTrack.Setup(t => t.ToLavalinkTrack())
+            .Returns(new LavalinkTrack
+            {
+                Title = "test-track",
+                Identifier = "Test Identifier",
+                Author = "Test Author"
+            });
+
+        mockTrack.Setup(t => t.ToString()).Returns(
+            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=");
+
+        // Act - Enqueue without calling Init()
+        service.Enqueue(guildId, mockTrack.Object);
+
+        // Assert
+        Assert.True(service.HasTracks(guildId));
+        var queue = service.GetQueue(guildId);
+        Assert.Single(queue);
+    }
+
+    [Fact]
+    public void Clone_WhenRepeatableQueueNotInitialized_ShouldThrow()
+    {
+        // Arrange
+        var service = new MusicQueueService();
+        const ulong guildId = 12345UL;
+
+        var currentTrack = new LavalinkTrack
+        {
+            Title = "current-track",
+            Identifier = "Current Title",
+            Author = "Current Author"
+        };
+
+        // Act & Assert - Clone without calling Init() should throw KeyNotFoundException
+        Assert.Throws<KeyNotFoundException>(() => service.Clone(guildId, currentTrack));
+    }
+
+    [Fact]
+    public void HasTracks_WhenGuildNotRegistered_ShouldReturnFalse()
+    {
+        // Arrange
+        var service = new MusicQueueService();
+        const ulong unknownGuildId = 99999UL;
+
+        // Act
+        var hasTracks = service.HasTracks(unknownGuildId);
+
+        // Assert
+        Assert.False(hasTracks);
+    }
+
+    [Fact]
+    public async Task LoadQueue_WithInvalidJson_ShouldThrow()
+    {
+        // Arrange
+        var service = new MusicQueueService();
+        const ulong guildId = 12345UL;
+
+        var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
+        await File.WriteAllTextAsync(filePath, "{ invalid json content :::"); // Invalid JSON
+
+        // Act & Assert
+        await Assert.ThrowsAsync<JsonException>(async () => await service.LoadQueue(guildId));
+    }
 }

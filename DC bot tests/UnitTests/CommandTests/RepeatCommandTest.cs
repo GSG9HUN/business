@@ -1,16 +1,21 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class RepeatCommandTest
 {
+    private const string RepeatCommandName = "repeat";
+    private const string RepeatCommandDescriptionValue = "Repeats a specified track infinitely.";
+    private const string RepeatCommandRepeatingOffValue = "Repeating is off.";
+    private const string RepeatCommandRepeatingOnValue = "Repeat is on for :";
+    private const string RepeatCommandListAlreadyRepeatingValue = "This track is already repeating.";
+    private const string TestTrackTitle = "Test Track";
+
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IDiscordChannel> _channelMock;
@@ -27,17 +32,17 @@ public class RepeatCommandTest
         Mock<ILogger<RepeatCommand>> loggerMock = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
 
-        _localizationServiceMock.Setup(g => g.Get("repeat_command_description"))
-            .Returns("Repeats a specified track infinitely.");
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandDescription))
+            .Returns(RepeatCommandDescriptionValue);
 
-        _localizationServiceMock.Setup(g => g.Get("repeat_list_command_track_already_repeating"))
-            .Returns("This track is already repeating.");
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatListCommandTrackAlreadyRepeating))
+            .Returns(RepeatCommandListAlreadyRepeatingValue);
 
-        _localizationServiceMock.Setup(g => g.Get("repeat_command_repeating_on"))
-            .Returns("Repeat is on for :");
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandRepeatingOn))
+            .Returns(RepeatCommandRepeatingOnValue);
 
-        _localizationServiceMock.Setup(g => g.Get("repeat_command_repeating_off"))
-            .Returns("Repeating is off.");
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandRepeatingOff))
+            .Returns(RepeatCommandRepeatingOffValue);
 
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _messageMock = new Mock<IDiscordMessage>();
@@ -79,7 +84,7 @@ public class RepeatCommandTest
 
         // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-            _localizationServiceMock.Object.Get("repeat_command_list_already_repeating")));
+            _localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating)));
     }
 
     [Fact]
@@ -112,7 +117,7 @@ public class RepeatCommandTest
         Assert.False(isRepeating[guildId]);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get("repeat_command_repeating_off")}"), Times.Once);
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandRepeatingOff)}"), Times.Once);
     }
 
     [Fact]
@@ -135,7 +140,7 @@ public class RepeatCommandTest
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeating).Returns(isRepeating);
         _lavaLinkServiceMock.SetupGet(l => l.IsRepeatingList).Returns(isRepeatingList);
-        _lavaLinkServiceMock.Setup(l => l.GetCurrentTrack(guildId)).Returns("Test Track");
+        _lavaLinkServiceMock.Setup(l => l.GetCurrentTrack(guildId)).Returns(TestTrackTitle);
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
@@ -144,7 +149,7 @@ public class RepeatCommandTest
         Assert.True(isRepeating[guildId]);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get("repeat_command_repeating_on")} {_lavaLinkServiceMock.Object.GetCurrentTrack(guildId)}"),
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {_lavaLinkServiceMock.Object.GetCurrentTrack(guildId)}"),
             Times.Once);
     }
 
@@ -178,13 +183,13 @@ public class RepeatCommandTest
 
         //Assert
         _responseBuilderMock.Verify(r =>
-            r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"));
+            r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel));
     }
 
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("repeat", _repeatCommand.Name);
-        Assert.Equal("Repeats a specified track infinitely.", _repeatCommand.Description);
+        Assert.Equal(RepeatCommandName, _repeatCommand.Name);
+        Assert.Equal(RepeatCommandDescriptionValue, _repeatCommand.Description);
     }
 }

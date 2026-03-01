@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -11,18 +12,18 @@ public class ResumeCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "resume";
-    public string Description => localizationService.Get("resume_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.ResumeCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
         }
-        
+
         await lavaLinkService.ResumeAsync(message, validationResult.Member);
         logger.LogInformation("Resume command executed!");
     }

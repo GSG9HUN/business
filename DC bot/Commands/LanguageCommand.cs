@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -10,18 +11,17 @@ public class LanguageCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "language";
-    public string Description => localizationService.Get("language_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.LanguageCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.LogInformation("Language command invoked.");
-        // TODO: A logüzenet "Play command executed!" helyett "Language command executed!" kell legyen.
-      
+
         if (userValidation.IsBotUser(message))
         {
             return;
         }
-        
+
         var args = message.Content.Split(" ", 2);
         if (args.Length < 2)
         {
@@ -29,7 +29,7 @@ public class LanguageCommand(
             logger.LogInformation("The user not provided language.");
             return;
         }
-        
+
         var language = args[1].Trim();
         // TODO: Érvénytelen nyelv lekezelése nincs megvalósítva. Ha a felhasználó pl. "huen", "hu eng" vagy "asder"
         //       értéket ad meg, a bot azt hibátlanul menti és megpróbálja betölteni, ami FileNotFoundException-t dob.
@@ -37,6 +37,6 @@ public class LanguageCommand(
         //       hibaüzenetet küldeni a felhasználónak.
         localizationService.SaveLanguage(message.Channel.Guild.Id, language);
         await responseBuilder.SendCommandResponseAsync(message, Name);
-        logger.LogInformation("Play command executed!");
+        logger.LogInformation("Language command executed!");
     }
 }

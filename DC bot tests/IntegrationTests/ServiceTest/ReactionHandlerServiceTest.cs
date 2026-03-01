@@ -1,17 +1,13 @@
-using System;
-using System.IO;
-using System.Linq;
-using DotNetEnv;
-using Lavalink4NET;
-using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
-using DSharpPlus;
 using DC_bot.Wrapper;
+using DotNetEnv;
+using DSharpPlus;
+using Lavalink4NET;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.IntegrationTests.ServiceTest;
 
@@ -25,7 +21,7 @@ public class ReactionHandlerIntegrationTests
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
     private readonly Mock<IAudioService> _audioServiceMock = new();
     private readonly Mock<IResponseBuilder> _responseBuilderMock = new();
-  
+
     private const ulong TestChannelId = 1339151008307351572;
     private readonly DiscordClient _discordClient;
 
@@ -36,15 +32,15 @@ public class ReactionHandlerIntegrationTests
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
 
-        _localizationServiceMock.Setup(ls => ls.Get("skip_command_response"))
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.SkipCommandResponse))
             .Returns("Now Playing: ");
-        _localizationServiceMock.Setup(ls => ls.Get("music_control"))
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.MusicControl))
             .Returns("Music Controls");
-        
+
         var validationService =
             new ValidationService(_validationLoggerMock.Object, true);
-        var lavalinkService = new LavaLinkService(_musicQueueServiceMock.Object,_loggerLavalinkServiceMock.Object,_audioServiceMock.Object,validationService,_responseBuilderMock.Object,_localizationServiceMock.Object);
-        
+        var lavalinkService = new LavaLinkService(_musicQueueServiceMock.Object, _loggerLavalinkServiceMock.Object, _audioServiceMock.Object, validationService, _responseBuilderMock.Object, _localizationServiceMock.Object);
+
         var _reactionHandlerService = new ReactionHandler(lavalinkService,
             _loggerReactionHandlerMock.Object, _localizationServiceMock.Object);
 
@@ -136,20 +132,20 @@ public class ReactionHandlerIntegrationTests
 
         track.SetupGet(t => t.Author).Returns("Test Author");
         track.SetupGet(t => t.Title).Returns("Test Title");
-        
-        await lavalinkService.TrackStartedEventTrigger(discordChannel,_discordClient, track.Object);
+
+        await lavalinkService.TrackStartedEventTrigger(discordChannel, _discordClient, track.Object);
 
         await Task.Delay(10000);
 
         var message = await channel.GetMessagesAsync(1);
         var response = message.FirstOrDefault();
-        
+
         Assert.NotNull(response);
         Assert.NotNull(response.Reactions);
         Assert.Contains(response.Reactions, x => x.Emoji == "\u23f8\ufe0f");
         Assert.Contains(response.Reactions, x => x.Emoji == "\u25b6\ufe0f");
         Assert.Contains(response.Reactions, x => x.Emoji == "\u23ed\ufe0f");
-        Assert.Contains(response.Reactions, x => x.Emoji =="\ud83d\udd01");
+        Assert.Contains(response.Reactions, x => x.Emoji == "\ud83d\udd01");
         Assert.Contains("🎵 **Music Controls** 🎵", response.Content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Now Playing: Test Author - Test Title", response.Content, StringComparison.OrdinalIgnoreCase);
         _loggerReactionHandlerMock.Verify(

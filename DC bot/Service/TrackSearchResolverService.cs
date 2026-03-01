@@ -17,7 +17,7 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
                 "sp" => TrackSearchMode.Spotify,
                 _ => TrackSearchMode.YouTube,
             };
-        
+
         var host = uri.Host.ToLowerInvariant();
         return host switch
         {

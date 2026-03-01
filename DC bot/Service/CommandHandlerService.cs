@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Wrapper;
 using DSharpPlus;
@@ -36,7 +37,7 @@ public class CommandHandlerService
             _logger.LogInformation("CommandHandler Service is already registered");
             return;
         }
-        
+
         _messageHandler = HandleCommandAsync; // Tároljuk a referenciát
         client.MessageCreated += _messageHandler;
         _logger.LogInformation("Registered command handler");
@@ -71,7 +72,7 @@ public class CommandHandlerService
         }
         else
         {
-            await message.Channel.SendMessageAsync(_localizationService.Get("unknown_command_error"));
+            await message.Channel.SendMessageAsync(_localizationService.Get(LocalizationKeys.UnknownCommandError));
             _logger.LogInformation("Unknown command. Use `!help` to see available commands.");
         }
     }

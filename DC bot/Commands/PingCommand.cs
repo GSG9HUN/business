@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,7 @@ public class PingCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "ping";
-    public string Description => localizationService.Get("ping_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.PingCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
@@ -19,7 +20,7 @@ public class PingCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, "Pong!");
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PingCommandResponse);
         logger.LogInformation("Ping command executed!");
     }
 }

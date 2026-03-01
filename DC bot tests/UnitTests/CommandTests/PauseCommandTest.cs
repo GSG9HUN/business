@@ -1,15 +1,17 @@
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class PauseCommandTest
 {
+    private const string PauseCommandName = "pause";
+    private const string PauseCommandDescriptionValue = "Pause the current music.";
+    
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
@@ -25,9 +27,9 @@ public class PauseCommandTest
         Mock<ILogger<PauseCommand>> loggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
 
-        localizationServiceMock.Setup(g => g.Get("pause_command_description"))
-            .Returns("Pause the current music.");
-        
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.PauseCommandDescription))
+            .Returns(PauseCommandDescriptionValue);
+
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -85,7 +87,7 @@ public class PauseCommandTest
 
         // Assert
 
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Once);
         _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
 
@@ -118,7 +120,7 @@ public class PauseCommandTest
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("pause", _pauseCommand.Name);
-        Assert.Equal("Pause the current music.", _pauseCommand.Description);
+        Assert.Equal(PauseCommandName, _pauseCommand.Name);
+        Assert.Equal(PauseCommandDescriptionValue, _pauseCommand.Description);
     }
 }

@@ -1,16 +1,25 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class TagCommandTest
 {
+    private const string TagCommandName = "tag";
+    private const string TagCommandDescriptionValue = "You can tag someone.";
+    private const string TagCommandUsageContent = "!tag";
+    private const string TagCommandContentUser = "!tag TestUser";
+    private const string TagCommandContentInvalid = "!tag test";
+    private const string TestUserName = "TestUser";
+    private const string TestUserLower = "test";
+    private const string TagCommandDescriptionSetupValue = "You can tag someone.";
+    private const string TagCommandResponseValue = "Tagged: TestUser";
+    private const string TagCommandUserNotFoundValue = "User test not found.";
+
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -23,15 +32,15 @@ public class TagCommandTest
     {
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
 
-        _localizationServiceMock.Setup(g => g.Get("tag_command_description"))
-            .Returns("You can tag someone.");
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.TagCommandDescription))
+            .Returns(TagCommandDescriptionSetupValue);
 
-        _localizationServiceMock.Setup(g => g.Get("tag_command_response", "TestUser"))
-            .Returns("TestUser Wake Up!");
-        
-         _localizationServiceMock.Setup(g => g.Get("tag_command_user_not_exist_error", "test"))
-             .Returns("User test does not exist.");
- 
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.TagCommandResponse, TestUserName))
+            .Returns(TagCommandResponseValue);
+
+        _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower))
+            .Returns(TagCommandUserNotFoundValue);
+
         var logger = new Mock<ILogger<TagCommand>>();
 
         _messageMock = new Mock<IDiscordMessage>();
@@ -52,13 +61,13 @@ public class TagCommandTest
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns("!tag");
+        _messageMock.SetupGet(m => m.Content).Returns(TagCommandUsageContent);
 
         //Act
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, "tag"));
+        _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, TagCommandName));
     }
 
     [Fact]
@@ -67,8 +76,8 @@ public class TagCommandTest
         //Arrange
         var discordMemberMock = new Mock<IDiscordMember>();
         discordMemberMock.SetupGet(dm => dm.Id).Returns(123456789UL);
-        discordMemberMock.SetupGet(dm => dm.Username).Returns("TestUser");
-        discordMemberMock.SetupGet(dm => dm.Mention).Returns("TestUser");
+        discordMemberMock.SetupGet(dm => dm.Username).Returns(TestUserName);
+        discordMemberMock.SetupGet(dm => dm.Mention).Returns(TestUserName);
 
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _guildMock.Setup(g => g.GetAllMembersAsync())
@@ -76,14 +85,14 @@ public class TagCommandTest
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+        _messageMock.SetupGet(m => m.Content).Returns(TagCommandContentUser);
 
         //Act
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-            $"{_localizationServiceMock.Object.Get("tag_command_response", discordMemberMock.Object.Mention)}"), Times.Once);
+            $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"), Times.Once);
     }
 
     [Fact]
@@ -92,8 +101,8 @@ public class TagCommandTest
         //Arrange
         var discordMemberMock = new Mock<IDiscordMember>();
         discordMemberMock.SetupGet(dm => dm.Id).Returns(123456789UL);
-        discordMemberMock.SetupGet(dm => dm.Username).Returns("TestUser");
-        discordMemberMock.SetupGet(dm => dm.Mention).Returns("TestUser");
+        discordMemberMock.SetupGet(dm => dm.Username).Returns(TestUserName);
+        discordMemberMock.SetupGet(dm => dm.Mention).Returns(TestUserName);
 
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _guildMock.Setup(g => g.GetAllMembersAsync())
@@ -101,13 +110,13 @@ public class TagCommandTest
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns("!tag test");
+        _messageMock.SetupGet(m => m.Content).Returns(TagCommandContentInvalid);
 
         //Act
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, $"{_localizationServiceMock.Object.Get("tag_command_user_not_exist_error", "test")}"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower)}"), Times.Once);
     }
 
     [Fact]
@@ -127,7 +136,7 @@ public class TagCommandTest
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("tag", _tagCommand.Name);
-        Assert.Equal("You can tag someone.", _tagCommand.Description);
+        Assert.Equal(TagCommandName, _tagCommand.Name);
+        Assert.Equal(TagCommandDescriptionValue, _tagCommand.Description);
     }
 }

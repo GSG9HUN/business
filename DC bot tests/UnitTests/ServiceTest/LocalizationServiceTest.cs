@@ -1,16 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.ServiceTest;
 
 public class LocalizationServiceTest
 {
+    private const string LanguageCodeEng = "eng";
+    private const string TestKeyHello = "Hello";
+    private const string TestValueHelloWorld = "Hello World";
+    private const string TestValueHelloGuild = "Hello Guild";
+    private const string TestKeyMissing = "MissingKey";
+    private const ulong TestGuildId = 12345;
+    
     private readonly Mock<ILogger<LocalizationService>> _loggerMock;
     private readonly string _tempLocalizationDirectory;
     private readonly string _tempTranslationDirectory;
@@ -54,7 +57,7 @@ public class LocalizationServiceTest
         var service = new LocalizationService(_loggerMock.Object);
         DeleteTempFiles();
         // Act & Assert
-        Assert.Throws<FileNotFoundException>(() => service.LoadLanguage(12345));
+        Assert.Throws<FileNotFoundException>(() => service.LoadLanguage(TestGuildId));
     }
 
     [Fact]
@@ -62,14 +65,14 @@ public class LocalizationServiceTest
     {
         // Arrange
         var service = new LocalizationService(_loggerMock.Object);
-        CreateTranslationFile("eng", new Dictionary<string, string> { { "Hello", "Hello World" } });
-        service.LoadLanguage(12345);
+        CreateTranslationFile(LanguageCodeEng, new Dictionary<string, string> { { TestKeyHello, TestValueHelloWorld } });
+        service.LoadLanguage(TestGuildId);
 
         // Act
-        var result = service.Get("MissingKey");
+        var result = service.Get(TestKeyMissing);
 
         // Assert
-        Assert.Equal("MissingKey", result);
+        Assert.Equal(TestKeyMissing, result);
     }
 
     [Fact]
@@ -77,14 +80,14 @@ public class LocalizationServiceTest
     {
         // Arrange
         var service = new LocalizationService(_loggerMock.Object);
-        CreateTranslationFile("eng", new Dictionary<string, string> { { "Hello", "Hello World" } });
-        service.LoadLanguage(12345);
+        CreateTranslationFile(LanguageCodeEng, new Dictionary<string, string> { { TestKeyHello, TestValueHelloWorld } });
+        service.LoadLanguage(TestGuildId);
 
         // Act
-        var result = service.Get("Hello");
+        var result = service.Get(TestKeyHello);
 
         // Assert
-        Assert.Equal("Hello World", result);
+        Assert.Equal(TestValueHelloWorld, result);
     }
 
     [Fact]
@@ -94,14 +97,14 @@ public class LocalizationServiceTest
         var service = new LocalizationService(_loggerMock.Object);
 
         // Act
-        service.SaveLanguage(12345, "eng");
+        service.SaveLanguage(TestGuildId, LanguageCodeEng);
 
         // Assert
-        var filePath = Path.Combine(_tempLocalizationDirectory, "12345.json");
+        var filePath = Path.Combine(_tempLocalizationDirectory, $"{TestGuildId}.json");
         Assert.True(File.Exists(filePath));
 
         var savedLanguage = JsonSerializer.Deserialize<string>(File.ReadAllText(filePath));
-        Assert.Equal("eng", savedLanguage);
+        Assert.Equal(LanguageCodeEng, savedLanguage);
     }
 
     [Fact]
@@ -111,19 +114,19 @@ public class LocalizationServiceTest
         var service = new LocalizationService(_loggerMock.Object);
 
         File.WriteAllText(
-            Path.Combine(_tempLocalizationDirectory, "12345.json"),
-            JsonSerializer.Serialize("eng")
+            Path.Combine(_tempLocalizationDirectory, $"{TestGuildId}.json"),
+            JsonSerializer.Serialize(LanguageCodeEng)
         );
 
-        CreateTranslationFile("eng", new Dictionary<string, string> { { "Hello", "Hello Guild" } });
+        CreateTranslationFile(LanguageCodeEng, new Dictionary<string, string> { { TestKeyHello, TestValueHelloGuild } });
 
         // Act
-        service.LoadLanguage(12345);
+        service.LoadLanguage(TestGuildId);
 
-        var result = service.Get("Hello");
+        var result = service.Get(TestKeyHello);
 
         // Assert
-        Assert.Equal("Hello Guild", result);
+        Assert.Equal(TestValueHelloGuild, result);
     }
 
 

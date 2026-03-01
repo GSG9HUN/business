@@ -55,7 +55,8 @@
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=83fef281_002D08ba_002D4d48_002D85d0_002Da5db7a5f6d4d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="ValidationServiceTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::5891B01C-BBD8-43BF-B0CF-C4FF5F087714::net8.0::DC_bot_tests.UnitTests.ServiceTest.ValidationServiceTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::5891B01C-BBD8-43BF-B0CF-C4FF5F087714::net9.0::DC_bot_tests.UnitTests.ServiceTest.ValidationServiceTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::5891B01C-BBD8-43BF-B0CF-C4FF5F087714::net9.0::DC_bot_tests.UnitTests.ServiceTest.MusicQueueServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

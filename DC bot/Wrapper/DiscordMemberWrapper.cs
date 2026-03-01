@@ -10,6 +10,6 @@ public class DiscordMemberWrapper(DiscordMember discordMember) : IDiscordMember
     public string Username => discordMember.Username;
     public string Mention => discordMember.Mention;
     public IDiscordVoiceState VoiceState => new DiscordVoiceStateWrapper(discordMember.VoiceState);
-    
+
     public DiscordMember ToDiscordMember() => discordMember;
 }

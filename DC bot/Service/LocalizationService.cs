@@ -14,9 +14,7 @@ public class LocalizationService : ILocalizationService
     internal static string TranslationDirectory =
         Path.Combine(Directory.GetCurrentDirectory(), "localization");
 
-    private ILogger<LocalizationService> _logger;
-    // TODO: A _logger mező nem readonly, holott az értéke soha nem változik a konstruktor után.
-    //       Javasolt: private readonly ILogger<LocalizationService> _logger;
+    private readonly ILogger<LocalizationService> _logger;
     private string? _lang;
 
     public LocalizationService(ILogger<LocalizationService> logger)
@@ -49,9 +47,9 @@ public class LocalizationService : ILocalizationService
         return _translations.TryGetValue(key, out var value)
             ? string.Format(value, args)
             : key; // Ha nincs fordítás, akkor az eredeti kulcsot adja vissza
-            // TODO: Ha egy kulcs hiányzik a fordítási fájlból, a Get() visszaadja magát a kulcsot (pl. "play_command_description").
-            //       Ez nehézzé teszi a hiányzó fordítások észlelését éles környezetben. Javasolt legalább egy
-            //       warning szintű log bejegyzés, ha egy kulcs nem található a szótárban.
+                   // TODO: Ha egy kulcs hiányzik a fordítási fájlból, a Get() visszaadja magát a kulcsot (pl. "play_command_description").
+                   //       Ez nehézzé teszi a hiányzó fordítások észlelését éles környezetben. Javasolt legalább egy
+                   //       warning szintű log bejegyzés, ha egy kulcs nem található a szótárban.
     }
 
     public void LoadLanguage(ulong guildId)
@@ -74,9 +72,9 @@ public class LocalizationService : ILocalizationService
     {
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
         _lang = language;
-        
+
         File.WriteAllText(filePath, JsonSerializer.Serialize(_lang));
-        
+
         LoadTranslations(_lang);
     }
 }

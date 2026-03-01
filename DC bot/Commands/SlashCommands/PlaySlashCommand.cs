@@ -40,13 +40,13 @@ namespace DC_bot.Commands.SlashCommands
             }
 
             var textChannel = ctx.Channel;
-            
+
             if (Uri.TryCreate(query, UriKind.Absolute, out var url))
             {
-               // TODO: A PlayAsyncUrl és PlayAsyncQuery metódushívások ki vannak kommentelve, ezért a slash parancs
-               //       semmit nem csinál (csak "Now playing your request!" üzenetet küld vissza). A tényleges
-               //       zenelejátszás nincs megvalósítva ebben a parancsban.
-               // await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
+                // TODO: A PlayAsyncUrl és PlayAsyncQuery metódushívások ki vannak kommentelve, ezért a slash parancs
+                //       semmit nem csinál (csak "Now playing your request!" üzenetet küld vissza). A tényleges
+                //       zenelejátszás nincs megvalósítva ebben a parancsban.
+                // await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
             }
             else
             {

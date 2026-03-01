@@ -10,7 +10,7 @@ public class ResponseBuilder(ILocalizationService localization) : IResponseBuild
         {
             return;
         }
-        
+
         await message.RespondAsync(localization.Get(errorKey));
     }
 

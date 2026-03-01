@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
 using DC_bot.Service;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.ServiceTest;
 

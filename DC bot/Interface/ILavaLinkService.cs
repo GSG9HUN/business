@@ -7,8 +7,8 @@ public interface ILavaLinkService
 {
     string GetCurrentTrack(ulong guildId);
     string GetCurrentTrackList(ulong guildId);
-    Dictionary<ulong,bool> IsRepeating { get; set; }
-    Dictionary<ulong,bool> IsRepeatingList { get; set; }
+    Dictionary<ulong, bool> IsRepeating { get; set; }
+    Dictionary<ulong, bool> IsRepeatingList { get; set; }
     Task PauseAsync(IDiscordMessage message, IDiscordMember? member);
     Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message, TrackSearchMode trackSearchMode);
     Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message, TrackSearchMode trackSearchMode);

@@ -1,17 +1,18 @@
-using System;
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class JoinCommandTest
 {
+    private const string JoinCommandName = "join";
+    private const string JoinCommandDescriptionValue = "The bot join to your voice channel and start playing queue music if its exists.";
+
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
@@ -27,8 +28,8 @@ public class JoinCommandTest
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
 
-        localizationServiceMock.Setup(g => g.Get("join_command_description"))
-            .Returns("The bot join to your voice channel and start playing queue music if its exists.");
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.JoinCommandDescription))
+            .Returns(JoinCommandDescriptionValue);
 
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _messageMock = new Mock<IDiscordMessage>();
@@ -87,7 +88,7 @@ public class JoinCommandTest
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"),
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
             Times.Once);
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
@@ -134,8 +135,7 @@ public class JoinCommandTest
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("join", _joinCommand.Name);
-        Assert.Equal("The bot join to your voice channel and start playing queue music if its exists.",
-            _joinCommand.Description);
+        Assert.Equal(JoinCommandName, _joinCommand.Name);
+        Assert.Equal(JoinCommandDescriptionValue, _joinCommand.Description);
     }
 }

@@ -1,15 +1,17 @@
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class SkipCommandTest
 {
+    private const string SkipCommandName = "skip";
+    private const string SkipCommandDescriptionValue = "Skip the current song.";
+
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
@@ -24,10 +26,10 @@ public class SkipCommandTest
         Mock<ILogger<SkipCommand>> loggerMock = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
-        
-        localizationServiceMock.Setup(g => g.Get("skip_command_description"))
-            .Returns("Skip the current track.");
-        
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.SkipCommandDescription))
+            .Returns(SkipCommandDescriptionValue);
+
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -76,7 +78,7 @@ public class SkipCommandTest
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Once);
         _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
 
@@ -105,7 +107,7 @@ public class SkipCommandTest
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("skip", _skipCommand.Name);
-        Assert.Equal("Skip the current track.", _skipCommand.Description);
+        Assert.Equal(SkipCommandName, _skipCommand.Name);
+        Assert.Equal(SkipCommandDescriptionValue, _skipCommand.Description);
     }
 }

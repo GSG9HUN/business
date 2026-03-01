@@ -4,6 +4,6 @@ namespace DC_bot.Interface;
 
 public interface IDiscordVoiceState
 {
-    IDiscordChannel? Channel { get; } 
+    IDiscordChannel? Channel { get; }
     DiscordVoiceState ToDiscordVoiceState();
 }

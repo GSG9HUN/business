@@ -1,9 +1,10 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
 
-public class LeaveCommand(  
+public class LeaveCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<JoinCommand> logger,
@@ -11,12 +12,12 @@ public class LeaveCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "leave";
-    public string Description => localizationService.Get("leave_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.LeaveCommandDescription);
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.LogInformation("Leave command invoked.");
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
@@ -24,7 +25,7 @@ public class LeaveCommand(
         }
 
         await lavaLinkService.LeaveVoiceChannel(message, validationResult.Member);
-       
+
         logger.LogInformation("Leave command executed.");
     }
 }

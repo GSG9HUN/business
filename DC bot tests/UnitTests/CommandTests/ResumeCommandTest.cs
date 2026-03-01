@@ -1,15 +1,18 @@
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class ResumeCommandTest
 {
+    private const string ResumeCommandName = "resume";
+    private const string ResumeCommandDescriptionValue = "Resume the paused song.";
+    private const string ResumeCommandResponseValue = "Music resumed:";
+
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
@@ -24,13 +27,13 @@ public class ResumeCommandTest
         Mock<ILogger<ResumeCommand>> loggerMock = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
-        
-        localizationServiceMock.Setup(g => g.Get("resume_command_description"))
-            .Returns("Resume the current music.");
-        
-        localizationServiceMock.Setup(g => g.Get("resume_command_response"))
-            .Returns("Resumed:");
-        
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ResumeCommandDescription))
+            .Returns(ResumeCommandDescriptionValue);
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ResumeCommandResponse))
+            .Returns(ResumeCommandResponseValue);
+
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -38,7 +41,7 @@ public class ResumeCommandTest
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         _responseBuilderMock = new Mock<IResponseBuilder>();
-        
+
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object, _responseBuilderMock.Object, localizationServiceMock.Object);
     }
@@ -76,17 +79,17 @@ public class ResumeCommandTest
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_a_voice_channel"));
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel));
         _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task ExecuteAsync_UserIn_VoiceChannel()
     {
         //Arrange
         var mockDiscordVoiceState = new Mock<IDiscordVoiceState>();
         mockDiscordVoiceState.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-        
+
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(d => d.VoiceState).Returns(mockDiscordVoiceState.Object);
@@ -101,11 +104,11 @@ public class ResumeCommandTest
         //Assert
         _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Once);
     }
-    
+
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("resume", _resumeCommand.Name);
-        Assert.Equal("Resume the current music.",_resumeCommand.Description);
+        Assert.Equal(ResumeCommandName, _resumeCommand.Name);
+        Assert.Equal(ResumeCommandDescriptionValue, _resumeCommand.Description);
     }
 }

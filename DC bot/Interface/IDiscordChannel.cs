@@ -7,6 +7,6 @@ public interface IDiscordChannel
     ulong Id { get; }
     string Name { get; }
     Task SendMessageAsync(string message);
-    IDiscordGuild Guild { get; } 
+    IDiscordGuild Guild { get; }
     DiscordChannel ToDiscordChannel();
 }

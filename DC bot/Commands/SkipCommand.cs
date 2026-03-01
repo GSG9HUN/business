@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -11,12 +12,12 @@ public class SkipCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "skip";
-    public string Description => localizationService.Get("skip_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.SkipCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);

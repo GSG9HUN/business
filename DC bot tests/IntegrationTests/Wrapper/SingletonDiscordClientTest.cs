@@ -1,7 +1,4 @@
-using System;
-using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
@@ -9,7 +6,6 @@ using DotNetEnv;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.IntegrationTests.Wrapper;
 
@@ -28,7 +24,7 @@ public class SingletonDiscordClientTest
         _lavaLinkServiceMock.Reset();
         _localizationServiceMock.Reset();
     }
-    
+
     [Fact]
     public void Instance_Should_Return_Singleton_DiscordClient()
     {
@@ -54,10 +50,10 @@ public class SingletonDiscordClientTest
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
 
-        var loggerField = typeof(SingletonDiscordClient).GetField("_logger", 
+        var loggerField = typeof(SingletonDiscordClient).GetField("_logger",
             BindingFlags.Static | BindingFlags.NonPublic);
         loggerField?.SetValue(null, null);
-        
+
         // Setup ServiceLocator mocks
         var services = new ServiceCollection()
             .AddSingleton(_musicQueueServiceMock.Object)
@@ -75,7 +71,7 @@ public class SingletonDiscordClientTest
         await Task.Delay(15000);
 
         // Assert
-        
+
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Information,

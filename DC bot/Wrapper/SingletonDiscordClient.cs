@@ -9,11 +9,11 @@ namespace DC_bot.Wrapper;
 public class SingletonDiscordClient
 {
     private static ILogger<SingletonDiscordClient> _logger = null!;
-    
+
     private static readonly Lazy<DiscordClient> _instance = new(() =>
     {
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new Exception("DISCORD_TOKEN is not set.");
-        
+
         var client = new DiscordClient(new DiscordConfiguration
         {
             Token = token,
@@ -27,15 +27,15 @@ public class SingletonDiscordClient
 
         return client;
     });
-    
+
     public static DiscordClient Instance => _instance.Value;
-    
+
     public static void InitializeLogger(ILogger<SingletonDiscordClient> logger)
     {
         _logger = logger;
         _logger.LogInformation("Logger initialized for SingletonDiscordClient.");
     }
-    
+
     private static Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
     {
         try
@@ -56,13 +56,13 @@ public class SingletonDiscordClient
         var musicService = ServiceLocator.GetService<IMusicQueueService>();
         var lavaLinkService = ServiceLocator.GetService<ILavaLinkService>();
         var localizationService = ServiceLocator.GetService<ILocalizationService>();
-        
+
         localizationService.LoadLanguage(e.Guild.Id);
         lavaLinkService.Init(e.Guild.Id);
         musicService.Init(e.Guild.Id);
-        
+
         await lavaLinkService.ConnectAsync();
-        
+
         await musicService.LoadQueue(e.Guild.Id);
     }
 }

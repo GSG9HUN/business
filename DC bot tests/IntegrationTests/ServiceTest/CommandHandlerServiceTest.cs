@@ -1,8 +1,5 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
@@ -11,12 +8,11 @@ using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.IntegrationTests.ServiceTest;
 
 [Collection("Integration Tests")]
-public class CommandHandlerServiceTest
+public class CommandHandlerServiceTest : IAsyncLifetime
 {
     private readonly Mock<ILogger<SingletonDiscordClient>> _loggerSingletonDiscordClientMock = new();
     private readonly Mock<ILogger<CommandHandlerService>> _commandServiceLoggerMock = new();
@@ -27,6 +23,7 @@ public class CommandHandlerServiceTest
     private const ulong TestChannelId = 1339151008307351572;
     private readonly DiscordClient _discordClient;
     private readonly CommandHandlerService _commandHandlerService;
+    private readonly ServiceProvider _serviceProvider;
 
     public CommandHandlerServiceTest()
     {
@@ -35,10 +32,9 @@ public class CommandHandlerServiceTest
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
 
-        _localizationServiceMock.Setup(ls => ls.Get("unknown_command_error"))
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
-        var userValidationService =
-            new ValidationService(_validationLoggerMock.Object,true);
+        var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var services = new ServiceCollection()
             .AddLogging()
@@ -51,17 +47,32 @@ public class CommandHandlerServiceTest
         _commandHandlerService = new CommandHandlerService(services, _commandServiceLoggerMock.Object,
             _localizationServiceMock.Object, true);
 
-        var service = new ServiceCollection()
+        _serviceProvider = new ServiceCollection()
             .AddSingleton<IUserValidationService>(userValidationService)
             .AddSingleton(_lavaLinkServiceMock.Object)
             .AddSingleton(_musicQueueServiceMock.Object)
             .AddSingleton(_localizationServiceMock.Object)
-            .AddSingleton(_commandHandlerService).BuildServiceProvider();
+            .AddSingleton(_commandHandlerService)
+            .BuildServiceProvider();
 
-        ServiceLocator.SetServiceProvider(service);
+        ServiceLocator.SetServiceProvider(_serviceProvider);
 
         SingletonDiscordClient.InitializeLogger(_loggerSingletonDiscordClientMock.Object);
         _discordClient = SingletonDiscordClient.Instance;
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _discordClient.ConnectAsync();
+        await Task.Delay(3000);
+    }
+
+    public async Task DisposeAsync()
+    {
+        _commandHandlerService.UnRegisterHandler(_discordClient);
+        await _discordClient.DisconnectAsync();
+        await _serviceProvider.DisposeAsync();
+        _discordClient.Dispose();
     }
 
     [Fact]
@@ -87,70 +98,55 @@ public class CommandHandlerServiceTest
     public async Task HandleCommandAsync_Should_Respond_To_Test_Message()
     {
         _commandHandlerService.RegisterHandler(_discordClient);
-        await _discordClient.ConnectAsync();
-        await Task.Delay(10000);
 
         var channel = await _discordClient.GetChannelAsync(TestChannelId);
-
         var testMessage = await channel.SendMessageAsync("!ping");
 
         Assert.NotNull(testMessage);
 
-        await Task.Delay(2000);
+        await Task.Delay(1000);
 
-        var message = await channel.GetMessagesAsync(1);
-        var response = message.FirstOrDefault();
+        var messages = await channel.GetMessagesAsync(10);
+        var response = messages.FirstOrDefault(m => m.Author.Id != testMessage.Author.Id);
 
         Assert.NotNull(response);
         Assert.Contains("Pong", response.Content, StringComparison.OrdinalIgnoreCase);
 
         _commandHandlerService.UnRegisterHandler(_discordClient);
-
-        await _discordClient.DisconnectAsync();
-        await Task.Delay(10000);
     }
 
     [Fact]
     public async Task HandleCommandAsync_Responds_To_Unknown_Command()
     {
         _commandHandlerService.RegisterHandler(_discordClient);
-        await _discordClient.ConnectAsync();
-        await Task.Delay(10000);
 
         var channel = await _discordClient.GetChannelAsync(TestChannelId);
-
         var testMessage = await channel.SendMessageAsync("!unknowncommand");
 
         Assert.NotNull(testMessage);
 
-        await Task.Delay(10000);
+        await Task.Delay(1000);
 
-        var message = await channel.GetMessagesAsync(1);
-        var response = message.FirstOrDefault();
+        var messages = await channel.GetMessagesAsync(10);
+        var response = messages.FirstOrDefault(m => m.Author.Id != testMessage.Author.Id);
 
         Assert.NotNull(response);
         Assert.Contains("Unknown command.", response.Content, StringComparison.OrdinalIgnoreCase);
-        _commandHandlerService.UnRegisterHandler(_discordClient);
-        await _discordClient.DisconnectAsync();
-        await Task.Delay(10000);
     }
 
     [Fact]
-    public async Task HanldeCommandAsync_Should_Log_No_Prefix_Provided()
+    public async Task HandleCommandAsync_Should_Log_No_Prefix_Provided()
     {
         _commandHandlerService.Prefix = null;
         _commandHandlerService.RegisterHandler(_discordClient);
 
-        await _discordClient.ConnectAsync();
-        await Task.Delay(10000);
-
         var channel = await _discordClient.GetChannelAsync(TestChannelId);
-
         var testMessage = await channel.SendMessageAsync("!noPrefix");
 
         Assert.NotNull(testMessage);
 
-        await Task.Delay(10000);
+        await Task.Delay(1000);
+
         _commandServiceLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -161,10 +157,6 @@ public class CommandHandlerServiceTest
             ),
             Times.Once
         );
-        _commandHandlerService.UnRegisterHandler(_discordClient);
-
-        await _discordClient.DisconnectAsync();
-        await Task.Delay(10000);
     }
 
     [Fact]
@@ -202,7 +194,7 @@ public class CommandHandlerServiceTest
             ),
             Times.Once
         );
-        
+
         _commandHandlerService.UnRegisterHandler(_discordClient);
     }
 }

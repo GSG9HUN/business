@@ -15,7 +15,7 @@ public static class ServiceLocator
     {
         return Instance.GetRequiredService<T>();
     }
-    
+
     public static IEnumerable<T> GetServices<T>()
     {
         return Instance.GetServices<T>();

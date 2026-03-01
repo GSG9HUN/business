@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
@@ -11,12 +12,12 @@ public class PauseCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "pause";
-    public string Description => localizationService.Get("pause_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.PauseCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         var validationResult = await userValidation.ValidateUserAsync(message);
-        
+
         if (validationResult.IsValid is false)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);

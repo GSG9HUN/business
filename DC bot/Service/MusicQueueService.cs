@@ -51,9 +51,6 @@ public class MusicQueueService : IMusicQueueService
         if (!_queues.TryGetValue(guildId, out var queue)) return;
 
         var tracks = queue
-            // TODO: A track.ToString() a Lavalink4NET belső bináris formátumától függ. Ha a könyvtár frissítésre
-            //       kerül és megváltoztatja a ToString() kimenetét, a mentett queue fájlok érvénytelenek lesznek és
-            //       a betöltés (LoadQueue) meghiúsul. Javasolt egy stabil azonosítót (pl. track azonosító URL) menteni.
             .Select(track => new SerializedTrack { Identifier = track.ToString() })
             .ToList();
 
@@ -78,7 +75,7 @@ public class MusicQueueService : IMusicQueueService
         if (savedTracks == null || savedTracks.Count == 0) return Task.CompletedTask;
 
         var trackIdentifierList = savedTracks.Select(track => track.Identifier).ToList();
-        foreach (var track in trackIdentifierList.Select(trackIdentifier => LavalinkTrack.Parse(trackIdentifier,null)))
+        foreach (var track in trackIdentifierList.Select(trackIdentifier => LavalinkTrack.Parse(trackIdentifier, null)))
         {
             _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
         }

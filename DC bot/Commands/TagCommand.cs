@@ -1,4 +1,5 @@
-﻿using DC_bot.Interface;
+﻿using DC_bot.Constants;
+using DC_bot.Interface;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -10,7 +11,7 @@ public class TagCommand(
     ILocalizationService localizationService) : ICommand
 {
     public string Name => "tag";
-    public string Description => localizationService.Get("tag_command_description");
+    public string Description => localizationService.Get(LocalizationKeys.TagCommandDescription);
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
@@ -34,11 +35,11 @@ public class TagCommand(
         if (msg == null)
         {
             await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get("tag_command_user_not_exist_error", tagName[1]));
+                localizationService.Get(LocalizationKeys.TagCommandUserNotExistError, tagName[1]));
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, localizationService.Get("tag_command_response", msg.Mention));
+        await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.TagCommandResponse, msg.Mention));
 
         logger.LogInformation("Tag command executed!");
     }

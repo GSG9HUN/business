@@ -1,16 +1,26 @@
-using System.Threading.Tasks;
 using DC_bot.Commands;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace DC_bot_tests.UnitTests.CommandTests;
 
 public class HelpCommandTests
 {
+    private const string CommandNamePing = "ping";
+    private const string CommandNamePlay = "play";
+    private const string CommandDescriptionPing = "Replies with Pong!";
+    private const string CommandDescriptionPlay = "Plays a song";
+    private const string HelpCommandName = "help";
+    private const string HelpCommandDescriptionValue = "Lists all available commands.";
+    private const string HelpCommandResponseValue = "Available commands:";
+    private const string ExpectedCommandsHeader = "Available commands:\n";
+    private const string ExpectedCommandsList = ExpectedCommandsHeader +
+        $"{CommandNamePing} : {CommandDescriptionPing}\n{CommandNamePlay} : {CommandDescriptionPlay}\n";
+
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
@@ -25,12 +35,12 @@ public class HelpCommandTests
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
 
-        localizationServiceMock.Setup(g => g.Get("help_command_description"))
-            .Returns("Lists all available commands.");
-        
-        localizationServiceMock.Setup(g => g.Get("help_command_response"))
-            .Returns("Available commands:");
-        
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandDescription))
+            .Returns(HelpCommandDescriptionValue);
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns(HelpCommandResponseValue);
+
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
@@ -41,12 +51,12 @@ public class HelpCommandTests
 
         var services = new ServiceCollection();
         var mockCommand1 = new Mock<ICommand>();
-        mockCommand1.Setup(c => c.Name).Returns("ping");
-        mockCommand1.Setup(c => c.Description).Returns("Replies with Pong!");
+        mockCommand1.Setup(c => c.Name).Returns(CommandNamePing);
+        mockCommand1.Setup(c => c.Description).Returns(CommandDescriptionPing);
 
         var mockCommand2 = new Mock<ICommand>();
-        mockCommand2.Setup(c => c.Name).Returns("play");
-        mockCommand2.Setup(c => c.Description).Returns("Plays a song");
+        mockCommand2.Setup(c => c.Name).Returns(CommandNamePlay);
+        mockCommand2.Setup(c => c.Description).Returns(CommandDescriptionPlay);
 
         services.AddSingleton(mockCommand1.Object);
         services.AddSingleton(mockCommand2.Object);
@@ -77,12 +87,7 @@ public class HelpCommandTests
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        // TODO: Ez a teszt elbukik, mert a konstruktorban mockCommand2 ("play") is regisztrálásra kerül,
-        //       így a HelpCommand két parancsot listáz ki, de az assertion csak az egyiket ellenőrzi.
-        //       A várt string "Available commands:\nping : Replies with Pong!\nplay : Plays a song\n" kell legyen,
-        //       vagy a tesztkörnyezetből törölni kell a mockCommand2 regisztrációját.
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n" +
-            "ping : Replies with Pong!\n"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsList), Times.Once);
     }
 
     [Fact]
@@ -109,8 +114,7 @@ public class HelpCommandTests
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, "Available commands:\n"), Times.Once);
-        //_messageMock.Verify(m => m.RespondAsync("Available commands:\n"), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsHeader), Times.Once);
     }
 
     [Fact]
@@ -137,7 +141,7 @@ public class HelpCommandTests
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
     {
-        Assert.Equal("help", _helpCommand.Name);
-        Assert.Equal("Lists all available commands.", _helpCommand.Description);
+        Assert.Equal(HelpCommandName, _helpCommand.Name);
+        Assert.Equal(HelpCommandDescriptionValue, _helpCommand.Description);
     }
 }
