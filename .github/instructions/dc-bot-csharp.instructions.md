@@ -14,7 +14,7 @@ Fókusz: Discord security, async deadlock-ok, command handling, tesztlefedettsé
 
 ### 1. DC Bot Kritikus pontok (DSharpPlus)
 - **Slash command regisztráció**: `UseSlashCommands()` konfigurálása, `RegisterCommands<...>()` hívások (lásd `DC bot/Program.cs`)
-- **Interaction handling**: `DeferAsync()` hosszú műveleteknél, 3s timeout
+- **Interaction handling**: hosszú műveleteknél használj deferred választ (pl. `CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource)` + `EditResponseAsync`, vagy `DeferAsync()` ahol releváns), Discord 3s timeout figyelembevételével
 - **Voice/Music**: Lavalink connect/disconnect, voice state validáció
 - **Rate limiting**: `SemaphoreSlim`, user/guild limit
 - **Token security**: `.env` load (`DotNetEnv`), `IConfiguration` leak-ek
