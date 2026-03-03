@@ -1,7 +1,7 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
-using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -10,7 +10,8 @@ public class HelpCommand(
     IUserValidationService userValidation,
     ILogger<HelpCommand> logger,
     IResponseBuilder responseBuilder,
-    ILocalizationService localizationService) : ICommand
+    ILocalizationService localizationService,
+    IEnumerable<ICommand> commands) : ICommand
 {
     public string Name => "help";
     public string Description => localizationService.Get(LocalizationKeys.HelpCommandDescription);
@@ -18,12 +19,11 @@ public class HelpCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
+        if (CommandValidationHelper.IsBotUser(userValidation, message))
         {
             return;
         }
 
-        var commands = ServiceLocator.GetServices<ICommand>();
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 

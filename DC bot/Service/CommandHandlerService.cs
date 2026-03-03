@@ -1,8 +1,9 @@
 using DC_bot.Configuration;
 using DC_bot.Constants;
+using DC_bot.Exceptions;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
-using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.AsyncEvents;
 using DSharpPlus.EventArgs;
@@ -60,23 +61,33 @@ public class CommandHandlerService
 
         if (!message.Content.StartsWith(Prefix)) return;
 
-        var commandName = message.Content.Substring(1).Split(' ')[0];
+        var commandName = TryGetCommandName(message.Content, Prefix);
+        if (string.IsNullOrWhiteSpace(commandName)) return;
+
         using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, args.Guild?.Id);
 
         if (_commands.TryGetValue(commandName, out var command))
         {
             _logger.CommandInvoked(commandName);
 
-            var discordAuthor = new DiscordUserWrapper(args.Author);
-            var discordChannel = new DiscordChannelWrapper(args.Channel);
-            var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
-                discordChannel, discordAuthor, args.Message.CreationTimestamp,
-                args.Message.Embeds.ToList(), args.Message.RespondAsync,
-                args.Message.RespondAsync);
+            var discordMessageWrapper = DiscordMessageWrapperFactory.Create(args.Message, args.Channel, args.Author);
 
-            await command.ExecuteAsync(discordMessageWrapper);
-
-            _logger.CommandExecuted(commandName);
+            try
+            {
+                await command.ExecuteAsync(discordMessageWrapper);
+                _logger.CommandExecuted(commandName);
+            }
+            catch (BotException botEx)
+            {
+                _logger.CommandExecutionFailed(botEx, commandName);
+                // Custom bot exceptions are already logged with context
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.CommandExecutionFailed(ex, commandName);
+                throw;
+            }
         }
         else
         {
@@ -85,7 +96,16 @@ public class CommandHandlerService
         }
     }
 
-    internal void UnRegisterHandler(DiscordClient client)
+    private static string? TryGetCommandName(string content, string prefix)
+    {
+        if (content.Length <= prefix.Length) return null;
+        var remainder = content.Substring(prefix.Length).TrimStart();
+        if (remainder.Length == 0) return null;
+        var splitIndex = remainder.IndexOf(' ');
+        return splitIndex >= 0 ? remainder[..splitIndex] : remainder;
+    }
+
+    internal void UnregisterHandler(DiscordClient client)
     {
         if (_messageHandler != null)
         {

@@ -5,6 +5,7 @@ using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
 using DotNetEnv;
+using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,13 +50,11 @@ internal class Program
             Secured = string.Equals(Environment.GetEnvironmentVariable("LAVALINK_SECURED"), "true", StringComparison.OrdinalIgnoreCase),
             Password = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD") ?? string.Empty
         };
-
-        SingletonDiscordClient.InitializeSettings(botSettings);
-
+        
         var services = ConfigureServices(botSettings, lavaLinkSettings);
         var botService = services.GetRequiredService<BotService>();
 
-        RegisterSlashCommands();
+        RegisterSlashCommands(services);
         RegisterHandlers(services);
 
         await botService.StartAsync();
@@ -74,11 +73,14 @@ internal class Program
                 options.WebSocketUri = webSocketUri;
                 options.Passphrase = lavaLinkSettings.Password;
             })
-            .AddSingleton(SingletonDiscordClient.Instance)
             .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton(botSettings)
             .AddSingleton<IFileSystem, IO.PhysicalFileSystem>()
+            .AddSingleton<DiscordClientEventHandler>()
+            .AddSingleton(provider => DiscordClientFactory.Create(
+                provider.GetRequiredService<BotSettings>(),
+                provider.GetRequiredService<DiscordClientEventHandler>()))
             .AddSingleton<BotService>()
             .AddSingleton<ReactionHandler>()
             .AddSingleton<ICommand, TagCommand>()
@@ -98,6 +100,9 @@ internal class Program
             .AddSingleton<ICommand, ViewQueueCommand>()
             .AddSingleton<ICommand, RepeatListCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
+            .AddSingleton<Service.MusicServices.RepeatService>()
+            .AddSingleton<Service.MusicServices.CurrentTrackService>()
+            .AddSingleton<Service.MusicServices.TrackNotificationService>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService, MusicQueueService>()
             .AddSingleton<IValidationService, ValidationService>()
@@ -106,16 +111,16 @@ internal class Program
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>()
             .BuildServiceProvider();
 
-        var logger = services.GetRequiredService<ILogger<SingletonDiscordClient>>();
-        SingletonDiscordClient.InitializeLogger(logger);
-        ServiceLocator.SetServiceProvider(services);
         return services;
     }
 
-    private static void RegisterSlashCommands()
+    private static void RegisterSlashCommands(ServiceProvider services)
     {
-        var discordClient = SingletonDiscordClient.Instance;
-        var slashCommandsConfig = discordClient.UseSlashCommands();
+        var discordClient = services.GetRequiredService<DiscordClient>();
+        var slashCommandsConfig = discordClient.UseSlashCommands(new SlashCommandsConfiguration
+        {
+            Services = services
+        });
         slashCommandsConfig.RefreshCommands();
         slashCommandsConfig.RegisterCommands<TagSlashCommand>();
         slashCommandsConfig.RegisterCommands<PingSlashCommand>();
@@ -123,9 +128,9 @@ internal class Program
         slashCommandsConfig.RegisterCommands<PlaySlashCommand>();
     }
 
-    private static void RegisterHandlers(IServiceProvider services)
+    private static void RegisterHandlers(ServiceProvider services)
     {
-        var discordClient = SingletonDiscordClient.Instance;
+        var discordClient = services.GetRequiredService<DiscordClient>();
         var commandHandler = services.GetRequiredService<CommandHandlerService>();
         var reactionHandler = services.GetRequiredService<ReactionHandler>();
 

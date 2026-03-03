@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DC_bot.Exceptions;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,33 @@ public class LocalizationService : ILocalizationService
         _logger = logger;
     }
 
+    private T? ReadJson<T>(string filePath)
+    {
+        try
+        {
+            var json = _fileSystem.ReadAllText(filePath);
+            return JsonSerializer.Deserialize<T>(json);
+        }
+        catch (Exception ex)
+        {
+            _logger.LocalizationReadFailed(ex, filePath);
+            throw new LocalizationException(_lang ?? "unknown", $"Failed to read JSON file: {filePath}", ex);
+        }
+    }
+
+    private void WriteJson<T>(string filePath, T value)
+    {
+        try
+        {
+            _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(value));
+        }
+        catch (Exception ex)
+        {
+            _logger.LocalizationWriteFailed(ex, filePath);
+            throw new LocalizationException(_lang ?? "unknown", $"Failed to write JSON file: {filePath}", ex);
+        }
+    }
+
     private void LoadTranslations(string languageCode = "eng")
     {
         _logger.LocalizationLoading(languageCode);
@@ -35,12 +63,12 @@ public class LocalizationService : ILocalizationService
         var filePath = Path.Combine(TranslationDirectory, $"{languageCode}.json");
 
         if (!_fileSystem.FileExists(filePath))
-            throw new FileNotFoundException($"Localization file not found: {filePath}");
+        {
+            var exception = new FileNotFoundException($"Localization file not found: {filePath}");
+            throw new LocalizationException(languageCode, $"Translation file not found: {filePath}", exception);
+        }
 
-        var json = _fileSystem.ReadAllText(filePath);
-
-        _translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ??
-                        new Dictionary<string, string>();
+        _translations = ReadJson<Dictionary<string, string>>(filePath) ?? new Dictionary<string, string>();
 
         _logger.LocalizationLoaded();
     }
@@ -65,7 +93,7 @@ public class LocalizationService : ILocalizationService
             return;
         }
 
-        var lang = JsonSerializer.Deserialize<string>(_fileSystem.ReadAllText(filePath));
+        var lang = ReadJson<string>(filePath);
         _lang = lang ?? "eng";
 
         LoadTranslations(_lang);
@@ -76,7 +104,7 @@ public class LocalizationService : ILocalizationService
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
         _lang = language;
 
-        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(_lang));
+        WriteJson(filePath, _lang);
 
         LoadTranslations(_lang);
     }

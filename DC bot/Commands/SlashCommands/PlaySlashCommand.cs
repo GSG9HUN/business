@@ -1,7 +1,6 @@
+using DC_bot.Helper;
+using DC_bot.Interface;
 using DC_bot.Logging;
-using DC_bot.Service;
-using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
 
@@ -10,9 +9,10 @@ namespace DC_bot.Commands.SlashCommands
     public abstract class PlaySlashCommand : ApplicationCommandModule
     {
         private const string CommandNamePlay = "play";
-        private readonly LavaLinkService _lavaLinkService = ServiceLocator.GetService<LavaLinkService>();
-        private readonly ILogger<PlaySlashCommand> _logger = ServiceLocator.GetService<ILogger<PlaySlashCommand>>();
-
+        
+        // Property injection supported by DSharpPlus SlashCommands
+        public ILavaLinkService LavaLinkService { private get; set; } = null!;
+        public ILogger<PlaySlashCommand> Logger { private get; set; } = null!;
 
         [SlashCommand("play", "Start playing music in the voice channel")]
         public async Task Play(
@@ -20,24 +20,19 @@ namespace DC_bot.Commands.SlashCommands
             [Option("query", "URL or search query")]
             string query)
         {
-            _logger.CommandInvoked(CommandNamePlay);
+            Logger.CommandInvoked(CommandNamePlay);
 
-            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-
-            if (ctx.Guild == null)
+            if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent(
-                        "This command can only be used in a server."));
                 return;
             }
 
-            var member = ctx.Member;
-            if (member?.VoiceState?.Channel == null)
+            var voiceChannel = await SlashCommandResponseHelper.TryGetVoiceChannelAfterDeferAsync(
+                ctx,
+                "You must be in a voice channel to play music.");
+            if (voiceChannel == null)
             {
-                _logger.ValidationUserNotInVoiceChannel();
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
-                    "You must be in a voice channel to play music."));
+                Logger.ValidationUserNotInVoiceChannel();
                 return;
             }
 
@@ -48,15 +43,15 @@ namespace DC_bot.Commands.SlashCommands
                 // TODO: A PlayAsyncUrl és PlayAsyncQuery metódushívások ki vannak kommentelve, ezért a slash parancs
                 //       semmit nem csinál (csak "Now playing your request!" üzenetet küld vissza). A tényleges
                 //       zenelejátszás nincs megvalósítva ebben a parancsban.
-                // await _lavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
+                // await LavaLinkService.PlayAsyncUrl(member.VoiceState.Channel, url, textChannel);
             }
             else
             {
-                //await _lavaLinkService.PlayAsyncQuery(member.VoiceState.Channel, query, textChannel);
+                //await LavaLinkService.PlayAsyncQuery(member.VoiceState.Channel, query, textChannel);
             }
 
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Now playing your request!"));
-            _logger.CommandExecuted(CommandNamePlay);
+            await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, "Now playing your request!");
+            Logger.CommandExecuted(CommandNamePlay);
         }
     }
 }

@@ -1,6 +1,8 @@
 using DC_bot.Constants;
+using DC_bot.Exceptions;
 using DC_bot.Interface;
 using DC_bot.Logging;
+using DC_bot.Service.MusicServices;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using Lavalink4NET;
@@ -20,22 +22,37 @@ public class LavaLinkService(
     IAudioService audioService,
     IValidationService validationService,
     IResponseBuilder responseBuilder,
-    ILocalizationService localizationService) : ILavaLinkService
+    ILocalizationService localizationService,
+    RepeatService repeatService,
+    CurrentTrackService currentTrackService,
+    TrackNotificationService trackNotificationService) : ILavaLinkService
 {
-    public event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted = null!;
+    public event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted
+    {
+        add => trackNotificationService.TrackStarted += value;
+        remove => trackNotificationService.TrackStarted -= value;
+    }
 
     private readonly Dictionary<ulong, bool> _isPlaybackFinishedRegistered = new();
-    public Dictionary<ulong, bool> IsRepeating { get; set; } = new();
-    public Dictionary<ulong, bool> IsRepeatingList { get; set; } = new();
-
-    private readonly Dictionary<ulong, LavalinkTrack?> _currentTrack = new();
+    
+    // Backward compatibility - delegate to RepeatService  
+    public Dictionary<ulong, bool> IsRepeating
+    {
+        get => repeatService.IsRepeatingDictionary;
+        set { } // Ignore sets, use RepeatService methods instead
+    }
+    
+    public Dictionary<ulong, bool> IsRepeatingList
+    {
+        get => repeatService.IsRepeatingListDictionary;
+        set { } // Ignore sets, use RepeatService methods instead
+    }
 
     public void Init(ulong guildId)
     {
         _isPlaybackFinishedRegistered.Add(guildId, false);
-        _currentTrack.Add(guildId, null);
-        IsRepeating.Add(guildId, false);
-        IsRepeatingList.Add(guildId, false);
+        currentTrackService.Init(guildId);
+        repeatService.Init(guildId);
     }
 
     public async Task ConnectAsync()
@@ -48,35 +65,40 @@ public class LavaLinkService(
         catch (Exception ex)
         {
             logger.LavalinkConnectionFailed(ex, ex.Message);
+            throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
         }
     }
     public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
         TrackSearchMode trackSearchMode)
     {
-        var (connection, isValid) = await EnsureConnectedAndValidatedAsync(voiceStateChannel, message);
+        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
         if (!isValid || connection == null) return;
 
         var textChannel = message.Channel;
         var guildId = textChannel.Guild.Id;
 
-        if (!_isPlaybackFinishedRegistered[guildId])
+        EnsurePlaybackFinishedRegistered(guildId, connection, textChannel);
+
+        TrackLoadResult loadResult;
+        try
         {
-            audioService.TrackEnded += async (_, args) =>
-                await OnTrackFinished(connection, args, textChannel);
-            _isPlaybackFinishedRegistered[guildId] = true;
-            logger.PlaybackFinishedEventRegistered();
+            loadResult = await audioService.Tracks.LoadTracksAsync(url.ToString(), trackSearchMode)
+                .ConfigureAwait(false);
         }
-
-        var loadResult = await audioService.Tracks.LoadTracksAsync(url.ToString(), trackSearchMode)
-            .ConfigureAwait(false);
-
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "LoadTracksAsyncUrl");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            throw new TrackLoadException(url.ToString(), "Failed to load track from URL", ex);
+        }
 
         if (loadResult.Track is null || loadResult.IsFailed)
         {
-            await textChannel.SendMessageAsync(
-                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {url}");
+            await trackNotificationService.SendSafeAsync(textChannel,
+                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {url}",
+                "PlayAsyncUrl.NotFound");
             logger.FailedToFindMusicWithUrl(url.ToString());
-            return;
+            throw new TrackLoadException(url.ToString(), "Track not found or load failed");
         }
 
         await PlayTheFoundMusic(loadResult, connection, textChannel);
@@ -85,30 +107,34 @@ public class LavaLinkService(
     public async Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
         TrackSearchMode trackSearchMode)
     {
-        var (connection, isValid) = await EnsureConnectedAndValidatedAsync(voiceStateChannel, message);
+        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
         if (!isValid || connection == null) return;
 
         var textChannel = message.Channel;
         var guildId = textChannel.Guild.Id;
 
-        if (!_isPlaybackFinishedRegistered[guildId])
+        EnsurePlaybackFinishedRegistered(guildId, connection, textChannel);
+
+        TrackLoadResult loadResult;
+        try
         {
-            audioService.TrackEnded += async (_, args) =>
-                await OnTrackFinished(connection, args, textChannel);
-            _isPlaybackFinishedRegistered[guildId] = true;
-            logger.PlaybackFinishedEventRegistered();
+            loadResult = await audioService.Tracks.LoadTracksAsync(query, trackSearchMode)
+                .ConfigureAwait(false);
         }
-
-        var loadResult = await audioService.Tracks.LoadTracksAsync(query, trackSearchMode)
-            .ConfigureAwait(false);
-
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "LoadTracksAsyncQuery");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            throw new TrackLoadException(query, "Failed to load track from query", ex);
+        }
 
         if (loadResult.Track is null || loadResult.IsFailed)
         {
-            await textChannel.SendMessageAsync(
-                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {query}");
+            await trackNotificationService.SendSafeAsync(textChannel,
+                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {query}",
+                "PlayAsyncQuery.NotFound");
             logger.FailedToFindMusicWithQuery(query);
-            return;
+            throw new TrackLoadException(query, "Track not found or load failed");
         }
 
         await PlayTheFoundMusic(loadResult, connection, textChannel);
@@ -116,131 +142,123 @@ public class LavaLinkService(
 
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        await ConnectAsync();
-
-        var channel = member?.VoiceState?.Channel;
-        if (channel is null)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
-            return;
-        }
-        var guildId = channel.Guild.Id;
-
-        var connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return;
-        }
-
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return;
-        }
+        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
         {
-            await channel.SendMessageAsync(localizationService.Get(LocalizationKeys.PauseCommandError));
+            await trackNotificationService.SendSafeAsync(channel, localizationService.Get(LocalizationKeys.PauseCommandError), "PauseAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPlaying();
             return;
         }
 
-        await connection.PauseAsync();
-        logger.LogInformation(
-            "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.PauseCommandResponse), connection.CurrentTrack.Title);
+        try
+        {
+            await connection.PauseAsync();
+            logger.LogInformation(
+                "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.PauseCommandResponse), connection.CurrentTrack.Title);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "PauseAsync");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+        }
     }
 
     public async Task ResumeAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        await ConnectAsync();
-
-        var channel = member?.VoiceState?.Channel;
-        if (channel is null)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
-            return;
-        }
-        var guildId = channel.Guild.Id;
-
-        var connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return;
-        }
-
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return;
-        }
+        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
         {
-            await channel.SendMessageAsync(localizationService.Get(LocalizationKeys.ResumeCommandError));
+            await trackNotificationService.SendSafeAsync(channel, localizationService.Get(LocalizationKeys.ResumeCommandError), "ResumeAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPaused();
             return;
         }
 
-        await connection.ResumeAsync();
-        logger.LogInformation(
-            "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.ResumeCommandResponse), connection.CurrentTrack.Title);
+        try
+        {
+            await connection.ResumeAsync();
+            logger.LogInformation(
+                "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.ResumeCommandResponse), connection.CurrentTrack.Title);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "ResumeAsync");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+        }
     }
 
     public async Task SkipAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        await ConnectAsync();
-
-        var channel = member?.VoiceState?.Channel;
-        if (channel is null)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
-            return;
-        }
-        var guildId = channel.Guild.Id;
-
-        var connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return;
-        }
-
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return;
-        }
+        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null && !musicQueueService.HasTracks(channel.Guild.Id))
         {
-            await channel.SendMessageAsync(localizationService.Get(LocalizationKeys.SkipCommandError));
+            await trackNotificationService.SendSafeAsync(channel, localizationService.Get(LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
             return;
         }
 
-        await connection.StopAsync();
+        try
+        {
+            await connection.StopAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "SkipAsync");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+        }
+    }
+
+    public async Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member)
+    {
+        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null) return;
+
+        try
+        {
+            if (connection.CurrentTrack != null)
+            {
+                await connection.StopAsync();
+            }
+            await connection.DisconnectAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "LeaveVoiceChannel");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+        }
+    }
+
+    public async Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel,
+        IDiscordMember? member)
+    {
+        var (connection, _, guildId, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null) return;
+
+        EnsurePlaybackFinishedRegistered(guildId, connection, textChannel);
+
+        var nextTrack = musicQueueService.Dequeue(guildId);
+        if (nextTrack is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await connection.PlayAsync(nextTrack);
+            await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "StartPlayingQueue.PlayAsync");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return;
+        }
+
+        currentTrackService.SetCurrentTrack(guildId, nextTrack);
     }
 
     public IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId)
@@ -250,118 +268,27 @@ public class LavaLinkService(
 
     public string GetCurrentTrack(ulong guildId)
     {
-        return _currentTrack[guildId]?.Author + " " + _currentTrack[guildId]?.Title;
+        return currentTrackService.GetCurrentTrackFormatted(guildId);
     }
 
     public string GetCurrentTrackList(ulong guildId)
     {
-        var response = _currentTrack[guildId]?.Author + " " + _currentTrack[guildId]?.Title + "\n";
+        var track = currentTrackService.GetCurrentTrack(guildId);
+        var current = track != null
+            ? $"{track.Author} {track.Title}\n"
+            : string.Empty;
 
-        return musicQueueService.ViewQueue(guildId).Aggregate(response,
-            (current, track) => current + (track.Author + " " + track.Title + "\n"));
+        return musicQueueService.ViewQueue(guildId)
+            .Aggregate(current, (acc, t) => acc + $"{t.Author} {t.Title}\n");
     }
 
     public void CloneQueue(ulong guildId)
     {
-        if (_currentTrack[guildId] == null) return;
-
-        musicQueueService.Clone(guildId, _currentTrack[guildId]!);
-    }
-
-    public async Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member)
-    {
-        await ConnectAsync();
-
-        var voiceStateChannel = member?.VoiceState?.Channel;
-        if (voiceStateChannel is null)
+        var track = currentTrackService.GetCurrentTrack(guildId);
+        if (track != null)
         {
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
-            return;
+            musicQueueService.Clone(guildId, track);
         }
-        var guildId = voiceStateChannel.Guild.Id;
-
-        var connection = await audioService.Players.JoinAsync(voiceStateChannel.Guild.Id, voiceStateChannel.Id)
-            .ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return;
-        }
-
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return;
-        }
-
-        if (validationConnectionResult.Connection != null)
-            await validationConnectionResult.Connection.StopAsync();
-        await connection.DisconnectAsync().ConfigureAwait(false);
-    }
-
-    public async Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel,
-        IDiscordMember? member)
-    {
-        await ConnectAsync();
-
-        var voiceStateChannel = member?.VoiceState?.Channel;
-        if (voiceStateChannel is null)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
-            return;
-        }
-
-        var guildId = voiceStateChannel.Guild.Id;
-
-        var connection = await audioService.Players.JoinAsync(voiceStateChannel.Guild.Id, voiceStateChannel.Id)
-            .ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return;
-        }
-
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return;
-        }
-
-        if (!_isPlaybackFinishedRegistered[guildId])
-        {
-            audioService.TrackEnded += async (_, args) =>
-                await OnTrackFinished(connection, args, textChannel);
-            _isPlaybackFinishedRegistered[guildId] = true;
-            logger.PlaybackFinishedEventRegistered();
-        }
-
-        var nextTrack = musicQueueService.Dequeue(guildId);
-
-        if (nextTrack is null)
-        {
-            return;
-        }
-
-        await connection.PlayAsync(nextTrack);
-
-        await TrackStarted.Invoke(textChannel, SingletonDiscordClient.Instance,
-            $"{localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying)}{nextTrack.Author} - {nextTrack.Title}");
-
-        _currentTrack[guildId] = nextTrack;
     }
 
     private async Task PlayTheFoundMusic(TrackLoadResult searchQuery, ILavalinkPlayer connection,
@@ -379,24 +306,33 @@ public class LavaLinkService(
 
             if (nextTrack == null) return;
 
-            await connection.PlayAsync(nextTrack);
-            await TrackStarted.Invoke(textChannel, SingletonDiscordClient.Instance,
-                $"{localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying)}{nextTrack.Author} - {nextTrack.Title}");
-            _currentTrack[guildId] = nextTrack;
+            try
+            {
+                await connection.PlayAsync(nextTrack);
+                await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack);
+            }
+            catch (Exception ex)
+            {
+                logger.LavalinkOperationFailed(ex, "PlayTheFoundMusic.PlayAsync");
+                await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(ValidationErrorKeys.LavalinkError), "PlayTheFoundMusic.Error");
+                return;
+            }
+            currentTrackService.SetCurrentTrack(guildId, nextTrack);
             return;
         }
 
         if (musicTrack.Count > 1)
         {
-            await textChannel.SendMessageAsync(localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue));
+            await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue), "PlayTheFoundMusic.PlaylistQueued");
             logger.AddedToQueue();
             return;
         }
 
         var track = musicTrack.First();
-        await textChannel.SendMessageAsync(
-            $"{localizationService.Get(LocalizationKeys.PlayCommandMusicAddedQueue)} {track.Author} - {track.Title}");
-        logger.AddedToQueueWithDetails(track.Author, track.Title);
+        await trackNotificationService.SendSafeAsync(textChannel,
+            $"{localizationService.Get(LocalizationKeys.PlayCommandMusicAddedQueue)} {track.Author} - {track.Title}",
+            "PlayTheFoundMusic.AddedToQueue");
+        logger.AddedToQueueWithTrackDetails(track.Author, track.Title);
     }
 
     private async Task OnTrackFinished(ILavalinkPlayer player, TrackEndedEventArgs args, IDiscordChannel textChannel)
@@ -433,10 +369,10 @@ public class LavaLinkService(
     private bool TryRepeatCurrentTrack(ulong guildId, out LavalinkTrack? track)
     {
         track = null;
-        if (!IsRepeating.TryGetValue(guildId, out var repeating) || !repeating)
+        if (!repeatService.IsRepeating(guildId))
             return false;
 
-        if (!_currentTrack.TryGetValue(guildId, out var current) || current is null)
+        if (!currentTrackService.TryGetCurrentTrack(guildId, out var current) || current is null)
             return false;
 
         track = current;
@@ -453,10 +389,16 @@ public class LavaLinkService(
         return true;
     }
 
+    private async Task PlayTrackFromQueue(ILavalinkPlayer player, IDiscordChannel textChannel)
+    {
+        var guildId = textChannel.Guild.Id;
+        await TryPlayNextTrackAsync(player, textChannel, guildId);
+    }
+
     private async Task<bool> TryRepeatListAndPlayAsync(ILavalinkPlayer player, IDiscordChannel textChannel,
         ulong guildId)
     {
-        if (!IsRepeatingList.TryGetValue(guildId, out var repeatList) || !repeatList)
+        if (!repeatService.IsRepeatingList(guildId))
             return false;
 
         if (musicQueueService.HasTracks(guildId))
@@ -471,42 +413,58 @@ public class LavaLinkService(
 
     private async Task NotifyQueueEmptyAsync(IDiscordChannel textChannel)
     {
-        await textChannel.SendMessageAsync(localizationService.Get(LocalizationKeys.SkipCommandQueueIsEmpty));
-        logger.QueueIsEmpty();
+        await trackNotificationService.NotifyQueueEmptyAsync(textChannel);
     }
 
-    private async Task PlayTrackFromQueue(ILavalinkPlayer player, IDiscordChannel textChannel)
+    private async Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId)
     {
-        var guildId = textChannel.Guild.Id;
         var nextTrack = musicQueueService.Dequeue(guildId);
-
         if (nextTrack is null)
         {
             return;
         }
 
-        await player.PlayAsync(nextTrack);
-
-        await TrackStarted.Invoke(textChannel, SingletonDiscordClient.Instance,
-            $"{localizationService.Get(LocalizationKeys.SkipCommandResponse)}{nextTrack.Author} - {nextTrack.Title}");
-        logger.NowPlaying(nextTrack.Author, nextTrack.Title);
+        try
+        {
+            await player.PlayAsync(nextTrack);
+            await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "TryPlayNextTrackAsync");
+            await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(ValidationErrorKeys.LavalinkError), "TryPlayNextTrackAsync.Error");
+        }
     }
 
     internal async Task TrackStartedEventTrigger(IDiscordChannel channel, DiscordClient client, ILavaLinkTrack track)
     {
-        await TrackStarted.Invoke(channel, client,
-            $"{localizationService.Get(LocalizationKeys.SkipCommandResponse)}{track.Author} - {track.Title}");
+        await trackNotificationService.TrackStartedEventTrigger(channel, client, track);
     }
 
-    private async Task<(ILavalinkPlayer? connection, bool isValid)> EnsureConnectedAndValidatedAsync(
-        IDiscordChannel voiceStateChannel, IDiscordMessage message)
+    private void EnsurePlaybackFinishedRegistered(ulong guildId, ILavalinkPlayer connection, IDiscordChannel textChannel)
+    {
+        if (_isPlaybackFinishedRegistered[guildId]) return;
+
+        audioService.TrackEnded += async (_, args) =>
+            await OnTrackFinished(connection, args, textChannel);
+        _isPlaybackFinishedRegistered[guildId] = true;
+        logger.PlaybackFinishedEventRegistered();
+    }
+
+    private async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryJoinAndValidateAsync(
+        IDiscordMessage message,
+        IDiscordChannel? channel)
     {
         await ConnectAsync();
-        var textChannel = message.Channel;
-        var guildId = textChannel.Guild.Id;
 
-        var connection = await audioService.Players.JoinAsync(voiceStateChannel.Guild.Id, voiceStateChannel.Id)
-            .ConfigureAwait(false);
+        if (channel is null)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
+            return (null, null, 0, false);
+        }
+
+        var guildId = channel.Guild.Id;
+        var connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
 
         var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
             .ConfigureAwait(false);
@@ -514,18 +472,18 @@ public class LavaLinkService(
         if (!validationPlayerResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-            return (null, false);
+            return (null, channel, guildId, false);
         }
 
-        var validationConnectionResult = await validationService.ValidateConnectionAsync(connection)
-            .ConfigureAwait(false);
+        var validationConnectionResult =
+            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
         if (!validationConnectionResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
-            return (null, false);
+            return (null, channel, guildId, false);
         }
 
-        return (connection, true);
+        return (connection, channel, guildId, true);
     }
 }

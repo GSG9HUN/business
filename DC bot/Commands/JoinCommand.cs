@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,8 @@ public class JoinCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        var validationResult = await userValidation.ValidateUserAsync(message);
-
-        if (!validationResult.IsValid)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
-            return;
-        }
+        var validationResult = await CommandValidationHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
+        if (validationResult is null) return;
 
         await lavaLinkService.StartPlayingQueue(message, message.Channel, validationResult.Member);
 

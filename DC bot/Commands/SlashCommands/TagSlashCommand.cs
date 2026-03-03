@@ -1,5 +1,4 @@
-using DSharpPlus;
-using DSharpPlus.Entities;
+using DC_bot.Helper;
 using DSharpPlus.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands;
@@ -11,26 +10,20 @@ public abstract class TagSlashCommand : ApplicationCommandModule
         [Option("name", "Name of the member you want to tag.")]
         string username)
     {
-        await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        if (ctx.Guild == null)
+        if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
         {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent("This command can only be used in a server."));
             return;
         }
 
         var allMembers = await ctx.Guild.GetAllMembersAsync();
-        var member =
-            allMembers.FirstOrDefault(m =>
-                m.Username.Contains(username, StringComparison.OrdinalIgnoreCase));
+        var member = allMembers.FirstOrDefault(m =>
+            m.Username.Contains(username, StringComparison.OrdinalIgnoreCase));
         if (member == null)
         {
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent($"User '{username}' not found."));
+            await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, $"User '{username}' not found.");
             return;
         }
 
-        await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-            new DiscordInteractionResponseBuilder().WithContent($"You tagged: {member.Mention}"));
+        await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, $"You tagged: {member.Mention}");
     }
 }

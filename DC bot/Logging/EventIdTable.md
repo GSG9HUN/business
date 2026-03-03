@@ -1,4 +1,4 @@
-﻿# EventId tábla
+﻿﻿# EventId tábla
 
 Az alábbi táblázat az alkalmazásban használt `LoggerMessage` EventId‑ket és a hozzájuk tartozó üzeneteket sorolja fel.
 
@@ -7,6 +7,7 @@ Az alábbi táblázat az alkalmazásban használt `LoggerMessage` EventId‑ket 
 | 1001 | Debug | CommandInvoked | Command invoked: {CommandName} |
 | 1002 | Debug | CommandExecuted | Command executed: {CommandName} |
 | 1003 | Debug | CommandMissingArgument | Command missing argument: {CommandName} |
+| 1004 | Error | CommandExecutionFailed | Command execution failed: {CommandName} |
 | 1101 | Information | CommandHandlerAlreadyRegistered | CommandHandler Service is already registered |
 | 1102 | Information | CommandHandlerRegistered | Registered command handler |
 | 1103 | Error | CommandHandlerNoPrefix | No prefix provided |
@@ -22,6 +23,8 @@ Az alábbi táblázat az alkalmazásban használt `LoggerMessage` EventId‑ket 
 | 1207 | Information | ReactionRemoved | Reaction removed: {Emoji} by {Username} |
 | 1301 | Information | LocalizationLoading | Loading localization for {LanguageCode} |
 | 1302 | Information | LocalizationLoaded | Localization loaded. |
+| 1303 | Error | LocalizationReadFailed | Localization read failed: {FilePath} |
+| 1304 | Error | LocalizationWriteFailed | Localization write failed: {FilePath} |
 | 1401 | Information | ValidationLavalinkNotConnected | Lavalink is not connected. |
 | 1402 | Information | ValidationBotNotConnected | Bot is not connected to a voice channel. |
 | 1403 | Information | ValidationUserIsBot | User is Bot. |
@@ -29,6 +32,7 @@ Az alábbi táblázat az alkalmazásban használt `LoggerMessage` EventId‑ket 
 | 1501 | Information | DiscordClientLoggerInitialized | Logger initialized for SingletonDiscordClient. |
 | 1502 | Information | DiscordClientReady | Bot is ready! |
 | 1503 | Information | DiscordClientGuildAvailable | Guild available: {GuildName} |
+| 1504 | Error | DiscordClientEventFailed | Discord client event failed: {EventName} |
 | 1601 | Information | PlayCommandStartUrl | Starting playing a music through URL. |
 | 1602 | Information | PlayCommandStartQuery | Starting playing a music through search result. |
 | 1701 | Information | QueueIsEmpty | Queue is empty. Playback has stopped. |
@@ -40,7 +44,11 @@ Az alábbi táblázat az alkalmazásban használt `LoggerMessage` EventId‑ket 
 | 2006 | Information | ThereIsNoTrackCurrentlyPlaying | There is no track currently playing. |
 | 2007 | Information | ThereIsNoTrackCurrentlyPaused | There is no track currently paused. |
 | 2008 | Information | AddedToQueue | Added to queue. |
-| 2009 | Information | AddedToQueueWithDetails | Added to queue: {Author} - {Title} |
+| 2009 | Information | AddedToQueueWithTrackDetails | Added to queue: {Author} - {Title} |
 | 2011 | Information | NowPlaying | Now Playing: {Author} - {Title} |
 | 2012 | Information | Repeating | Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle} |
-
+| 2013 | Error | LavalinkOperationFailed | Lavalink operation failed: {Operation} |
+| 2101 | Error | MusicQueueSaveFailed | Queue save failed: {FilePath} |
+| 2102 | Error | MusicQueueLoadFailed | Queue load failed: {FilePath} |
+| 3001 | Error | ResponseSendFailed | Response send failed: {Operation} |
+| 3002 | Error | MessageSendFailed | Message send failed: {Operation} |

@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -18,20 +19,15 @@ public class LanguageCommand(
     {
         logger.CommandInvoked(Name);
 
-        if (userValidation.IsBotUser(message))
+        if (CommandValidationHelper.IsBotUser(userValidation, message))
         {
             return;
         }
 
-        var args = message.Content.Split(" ", 2);
-        if (args.Length < 2)
-        {
-            await responseBuilder.SendUsageAsync(message, Name);
-            logger.CommandMissingArgument(Name);
-            return;
-        }
+        var language = await CommandValidationHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
+        if (language is null) return;
 
-        var language = args[1].Trim();
+        //var language = args[1].Trim();
         // TODO: Érvénytelen nyelv lekezelése nincs megvalósítva. Ha a felhasználó pl. "huen", "hu eng" vagy "asder"
         //       értéket ad meg, a bot azt hibátlanul menti és megpróbálja betölteni, ami FileNotFoundException-t dob.
         //       Szükséges lenne egy engedélyezett nyelvkódok listáját ellenőrizni (pl. ["eng", "hu"]) és hiba esetén

@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ public class PingCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
+        if (CommandValidationHelper.IsBotUser(userValidation, message))
         {
             return;
         }

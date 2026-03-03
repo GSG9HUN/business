@@ -1,8 +1,12 @@
 using System.Text.Json;
+using DC_bot.Exceptions;
 using DC_bot.Helper;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DC_bot.Wrapper;
 using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service;
 
@@ -11,14 +15,16 @@ public class MusicQueueService : IMusicQueueService
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
     private readonly IFileSystem _fileSystem;
+    private readonly ILogger<MusicQueueService> _logger;
 
     internal static string QueueDirectory = Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/queues");
 
     public bool HasTracks(ulong guildId) => _queues.ContainsKey(guildId) && _queues[guildId].Count > 0;
 
-    public MusicQueueService(IFileSystem? fileSystem = null)
+    public MusicQueueService(IFileSystem? fileSystem = null, ILogger<MusicQueueService>? logger = null)
     {
         _fileSystem = fileSystem ?? new IO.PhysicalFileSystem();
+        _logger = logger ?? NullLogger<MusicQueueService>.Instance;
         if (!_fileSystem.DirectoryExists(QueueDirectory))
             _fileSystem.CreateDirectory(QueueDirectory);
     }
@@ -56,7 +62,15 @@ public class MusicQueueService : IMusicQueueService
             .Select(track => new SerializedTrack { Identifier = track.ToString() })
             .ToList();
 
-        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
+        try
+        {
+            _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
+        }
+        catch (Exception ex)
+        {
+            _logger.MusicQueueSaveFailed(ex, filePath);
+            throw new QueueOperationException("SaveQueue", guildId, "Failed to save queue to file", ex);
+        }
     }
 
     public Task LoadQueue(ulong guildId)
@@ -66,23 +80,31 @@ public class MusicQueueService : IMusicQueueService
         if (!_fileSystem.FileExists(filePath)) return Task.CompletedTask;
         var options = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true, // Ha a JSON kis-nagybetű érzékeny problémákat okozna
+            PropertyNameCaseInsensitive = true,
             WriteIndented = true
         };
 
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath), options);
-
-        _queues[guildId] = new Queue<ILavaLinkTrack>();
-
-        if (savedTracks == null || savedTracks.Count == 0) return Task.CompletedTask;
-
-        var trackIdentifierList = savedTracks.Select(track => track.Identifier).ToList();
-        foreach (var track in trackIdentifierList.Select(trackIdentifier => LavalinkTrack.Parse(trackIdentifier, null)))
+        try
         {
-            _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
-        }
+            var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath), options);
 
-        return Task.CompletedTask;
+            _queues[guildId] = new Queue<ILavaLinkTrack>();
+
+            if (savedTracks == null || savedTracks.Count == 0) return Task.CompletedTask;
+
+            var trackIdentifierList = savedTracks.Select(track => track.Identifier).ToList();
+            foreach (var track in trackIdentifierList.Select(trackIdentifier => LavalinkTrack.Parse(trackIdentifier, null)))
+            {
+                _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
+            }
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.MusicQueueLoadFailed(ex, filePath);
+            throw new QueueOperationException("LoadQueue", guildId, "Failed to load queue from file", ex);
+        }
     }
 
     public void Clone(ulong guildId, LavalinkTrack currentTrack)

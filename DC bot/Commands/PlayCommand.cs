@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -19,23 +20,11 @@ public class PlayCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        var validationResult = await userValidation.ValidateUserAsync(message);
+        var validationResult = await CommandValidationHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
+        if (validationResult is null) return;
 
-        if (validationResult.IsValid is false)
-        {
-            await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
-            return;
-        }
-
-        var args = message.Content.Split(" ", 2);
-        if (args.Length < 2)
-        {
-            await responseBuilder.SendUsageAsync(message, Name);
-            logger.CommandMissingArgument(Name);
-            return;
-        }
-
-        var query = args[1].Trim();
+        var query = await CommandValidationHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
+        if (query is null) return;
 
         var trackSearchMode = trackSearchResolverService.ResolveSearchMode(query);
 

@@ -1,4 +1,5 @@
 ﻿using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -17,27 +18,21 @@ public class TagCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
+        if (CommandValidationHelper.IsBotUser(userValidation, message))
         {
             return;
         }
 
-        var tagName = message.Content.Split(" ", 2);
-
-        if (tagName.Length != 2)
-        {
-            await responseBuilder.SendUsageAsync(message, Name);
-            logger.CommandMissingArgument(Name);
-            return;
-        }
+        var username = await CommandValidationHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
+        if (username is null) return;
 
         var allMembers = await message.Channel.Guild.GetAllMembersAsync();
-        var msg = allMembers.FirstOrDefault(x => x.Username.Contains(tagName[1]));
+        var msg = allMembers.FirstOrDefault(x => x.Username.Contains(username));
 
         if (msg == null)
         {
             await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get(LocalizationKeys.TagCommandUserNotExistError, tagName[1]));
+                localizationService.Get(LocalizationKeys.TagCommandUserNotExistError, username));
             return;
         }
 
