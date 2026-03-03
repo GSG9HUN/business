@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -16,10 +17,10 @@ public class RepeatCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
-        logger.LogInformation("Repeat command invoked");
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
-        if (validationResult.IsValid is false)
+        if (!validationResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
@@ -30,7 +31,7 @@ public class RepeatCommand(
         if (lavaLinkService.IsRepeatingList[guildId])
         {
             await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating));
-            logger.LogInformation("Repeat command executed");
+            logger.CommandExecuted(Name);
             return;
         }
 
@@ -38,13 +39,13 @@ public class RepeatCommand(
         {
             lavaLinkService.IsRepeating[guildId] = false;
             await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOff));
-            logger.LogInformation("Repeat command executed");
+            logger.CommandExecuted(Name);
             return;
         }
 
         lavaLinkService.IsRepeating[guildId] = true;
         await responseBuilder.SendSuccessAsync(message, $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {lavaLinkService.GetCurrentTrack(guildId)}");
 
-        logger.LogInformation("Repeat command executed");
+        logger.CommandExecuted(Name);
     }
 }

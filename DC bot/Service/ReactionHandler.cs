@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.AsyncEvents;
@@ -23,7 +24,7 @@ public class ReactionHandler(
     {
         if (_isRegistered)
         {
-            logger.LogInformation("ReactionHandler Service is already registered");
+            logger.ReactionHandlerAlreadyRegistered();
             return;
         }
 
@@ -35,7 +36,7 @@ public class ReactionHandler(
         client.MessageReactionAdded += _messageReactionAdded;
         client.MessageReactionRemoved += _messageReactionRemoved;
         _isRegistered = true;
-        logger.LogInformation("Registered reaction handler.");
+        logger.ReactionHandlerRegistered();
     }
 
     private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, string msg)
@@ -53,7 +54,7 @@ public class ReactionHandler(
         await message.CreateReactionAsync(DiscordEmoji.FromName(client, ":track_next:"));
         await message.CreateReactionAsync(DiscordEmoji.FromName(client, ":repeat:"));
 
-        logger.LogInformation("Reaction control message sent and reactions added.");
+        logger.ReactionControlMessageSent();
     }
 
     private async Task OnReactionAdded(DiscordClient sender, MessageReactionAddEventArgs args)
@@ -62,7 +63,7 @@ public class ReactionHandler(
 
         var guildId = args.Guild.Id;
 
-        logger.LogInformation("Reaction added: {Emoji} by {Username}", args.Emoji.GetDiscordName(), args.User.Username);
+        logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
 
         var discordAuthor = new DiscordUserWrapper(args.User);
         var discordChannel = new DiscordChannelWrapper(args.Channel);
@@ -99,7 +100,7 @@ public class ReactionHandler(
 
         var guildId = args.Guild.Id;
 
-        logger.LogInformation("Reaction removed: {Emoji} by {Username}", args.Emoji.GetDiscordName(), args.User.Username);
+        logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
 
         var discordAuthor = new DiscordUserWrapper(args.User);
         var discordChannel = new DiscordChannelWrapper(args.Channel);
@@ -141,11 +142,11 @@ public class ReactionHandler(
             _messageReactionRemoved = null;
             _sendReactionControlMessage = null;
             _isRegistered = false;
-            logger.LogInformation("Unregistered reaction handler");
+            logger.ReactionHandlerUnregistered();
         }
         else
         {
-            logger.LogWarning("Tried to unregister handlers, but it was not registered");
+            logger.ReactionHandlerUnregisterNotRegistered();
         }
     }
 }

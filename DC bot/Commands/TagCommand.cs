@@ -1,5 +1,6 @@
 ﻿using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -15,6 +16,7 @@ public class TagCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         if (userValidation.IsBotUser(message))
         {
             return;
@@ -25,7 +27,7 @@ public class TagCommand(
         if (tagName.Length != 2)
         {
             await responseBuilder.SendUsageAsync(message, Name);
-            logger.LogInformation("Username provided.");
+            logger.CommandMissingArgument(Name);
             return;
         }
 
@@ -41,6 +43,6 @@ public class TagCommand(
 
         await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.TagCommandResponse, msg.Mention));
 
-        logger.LogInformation("Tag command executed!");
+        logger.CommandExecuted(Name);
     }
 }

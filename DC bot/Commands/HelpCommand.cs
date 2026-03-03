@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
 
@@ -16,6 +17,7 @@ public class HelpCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         if (userValidation.IsBotUser(message))
         {
             return;
@@ -27,6 +29,6 @@ public class HelpCommand(
 
         await responseBuilder.SendSuccessAsync(message,
             $"{localizationService.Get(LocalizationKeys.HelpCommandResponse)}\n{response}");
-        logger.LogInformation("Help Command executed!");
+        logger.CommandExecuted(Name);
     }
 }

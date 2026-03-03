@@ -1,6 +1,7 @@
 using DC_bot.Constants;
 using DC_bot.Helper;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
         if (player is not null)
             return new PlayerValidationResult(true, string.Empty, player);
 
-        logger.LogInformation("Lavalink is not connected.");
+        logger.ValidationLavalinkNotConnected();
         return new PlayerValidationResult(false, ValidationErrorKeys.LavalinkError, player);
     }
 
@@ -25,7 +26,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
         if (connection.ConnectionState.IsConnected)
             return Task.FromResult(new ConnectionValidationResult(true, string.Empty, connection));
 
-        logger.LogInformation("Bot is not connected to a voice channel.");
+        logger.ValidationBotNotConnected();
         return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
     }
 
@@ -33,7 +34,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
     {
         if (IsBotUser(message))
         {
-            logger.LogInformation("User is Bot.");
+            logger.ValidationUserIsBot();
             return new UserValidationResult(false, string.Empty);
         }
 
@@ -41,7 +42,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
         var member = await message.Channel.Guild.GetMemberAsync(user.Id);
 
         if (member.VoiceState?.Channel != null) return new UserValidationResult(true, string.Empty, member);
-        logger.LogInformation("User is not in a voice channel.");
+        logger.ValidationUserNotInVoiceChannel();
         return new UserValidationResult(false, ValidationErrorKeys.UserNotInVoiceChannel, member);
     }
 

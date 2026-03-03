@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -17,9 +18,10 @@ public class ViewQueueCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
-        if (validationResult.IsValid is false)
+        if (!validationResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
@@ -30,7 +32,7 @@ public class ViewQueueCommand(
         if (queue.Count == 0)
         {
             await responseBuilder.SendCommandErrorResponse(message, Name);
-            logger.LogInformation("Queue is empty.");
+            logger.QueueIsEmpty();
             return;
         }
 
@@ -50,6 +52,6 @@ public class ViewQueueCommand(
 
         await message.RespondAsync(embed);
 
-        logger.LogInformation("View Queue command executed.");
+        logger.CommandExecuted(Name);
     }
 }

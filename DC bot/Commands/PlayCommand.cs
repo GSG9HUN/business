@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -17,6 +18,7 @@ public class PlayCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
         if (validationResult.IsValid is false)
@@ -29,7 +31,7 @@ public class PlayCommand(
         if (args.Length < 2)
         {
             await responseBuilder.SendUsageAsync(message, Name);
-            logger.LogInformation("The user not provided URL");
+            logger.CommandMissingArgument(Name);
             return;
         }
 
@@ -39,15 +41,15 @@ public class PlayCommand(
 
         if (Uri.TryCreate(query, UriKind.Absolute, out var url))
         {
-            logger.LogInformation("Starting playing a music through URL.");
+            logger.PlayCommandStartUrl();
             await lavaLinkService.PlayAsyncUrl(validationResult.Member?.VoiceState!.Channel!, url, message, trackSearchMode);
         }
         else
         {
-            logger.LogInformation("Starting playing a music through search result.");
+            logger.PlayCommandStartQuery();
             await lavaLinkService.PlayAsyncQuery(validationResult.Member?.VoiceState!.Channel!, query, message, trackSearchMode);
         }
 
-        logger.LogInformation("Play command executed!");
+        logger.CommandExecuted(Name);
     }
 }

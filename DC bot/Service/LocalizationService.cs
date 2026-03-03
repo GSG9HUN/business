@@ -1,5 +1,7 @@
 using System.Text.Json;
+using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service;
@@ -27,7 +29,7 @@ public class LocalizationService : ILocalizationService
 
     private void LoadTranslations(string languageCode = "eng")
     {
-        _logger.LogInformation("Loading localization for {LanguageCode}", languageCode);
+        _logger.LocalizationLoading(languageCode);
 
         var filePath = Path.Combine(TranslationDirectory, $"{languageCode}.json");
 
@@ -39,7 +41,7 @@ public class LocalizationService : ILocalizationService
         _translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ??
                         new Dictionary<string, string>();
 
-        _logger.LogInformation("Localization loaded.");
+        _logger.LocalizationLoaded();
     }
 
     public string Get(string key, params object[] args)

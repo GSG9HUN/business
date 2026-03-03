@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -15,12 +16,13 @@ public class PingCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         if (userValidation.IsBotUser(message))
         {
             return;
         }
 
         await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PingCommandResponse);
-        logger.LogInformation("Ping command executed!");
+        logger.CommandExecuted(Name);
     }
 }

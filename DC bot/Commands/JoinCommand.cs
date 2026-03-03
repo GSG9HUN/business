@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -15,9 +16,10 @@ public class JoinCommand(
     public string Description => localizationService.Get(LocalizationKeys.JoinCommandDescription);
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
-        if (validationResult.IsValid is false)
+        if (!validationResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
@@ -25,6 +27,6 @@ public class JoinCommand(
 
         await lavaLinkService.StartPlayingQueue(message, message.Channel, validationResult.Member);
 
-        logger.LogInformation("Join command executed!");
+        logger.CommandExecuted(Name);
     }
 }

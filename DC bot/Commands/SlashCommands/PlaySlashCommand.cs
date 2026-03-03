@@ -1,3 +1,4 @@
+using DC_bot.Logging;
 using DC_bot.Service;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -8,6 +9,7 @@ namespace DC_bot.Commands.SlashCommands
 {
     public abstract class PlaySlashCommand : ApplicationCommandModule
     {
+        private const string CommandNamePlay = "play";
         private readonly LavaLinkService _lavaLinkService = ServiceLocator.GetService<LavaLinkService>();
         private readonly ILogger<PlaySlashCommand> _logger = ServiceLocator.GetService<ILogger<PlaySlashCommand>>();
 
@@ -18,7 +20,7 @@ namespace DC_bot.Commands.SlashCommands
             [Option("query", "URL or search query")]
             string query)
         {
-            _logger.LogInformation("Play slash command invoked");
+            _logger.CommandInvoked(CommandNamePlay);
 
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
@@ -33,7 +35,7 @@ namespace DC_bot.Commands.SlashCommands
             var member = ctx.Member;
             if (member?.VoiceState?.Channel == null)
             {
-                _logger.LogInformation("The user is not in a voice channel");
+                _logger.ValidationUserNotInVoiceChannel();
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(
                     "You must be in a voice channel to play music."));
                 return;
@@ -54,7 +56,7 @@ namespace DC_bot.Commands.SlashCommands
             }
 
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Now playing your request!"));
-            _logger.LogInformation("Play slash command executed!");
+            _logger.CommandExecuted(CommandNamePlay);
         }
     }
 }

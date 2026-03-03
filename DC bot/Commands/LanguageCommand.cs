@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -15,7 +16,7 @@ public class LanguageCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
-        logger.LogInformation("Language command invoked.");
+        logger.CommandInvoked(Name);
 
         if (userValidation.IsBotUser(message))
         {
@@ -26,7 +27,7 @@ public class LanguageCommand(
         if (args.Length < 2)
         {
             await responseBuilder.SendUsageAsync(message, Name);
-            logger.LogInformation("The user not provided language.");
+            logger.CommandMissingArgument(Name);
             return;
         }
 
@@ -37,6 +38,6 @@ public class LanguageCommand(
         //       hibaüzenetet küldeni a felhasználónak.
         localizationService.SaveLanguage(message.Channel.Guild.Id, language);
         await responseBuilder.SendCommandResponseAsync(message, Name);
-        logger.LogInformation("Language command executed!");
+        logger.CommandExecuted(Name);
     }
 }

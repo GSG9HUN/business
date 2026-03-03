@@ -1,4 +1,5 @@
 using DC_bot.Commands;
+using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Service;
@@ -14,6 +15,7 @@ namespace DC_bot_tests.IntegrationTests.ServiceTest;
 [Collection("Integration Tests")]
 public class CommandHandlerServiceTest : IAsyncLifetime
 {
+    private const string BotPrefix = "!";
     private readonly Mock<ILogger<SingletonDiscordClient>> _loggerSingletonDiscordClientMock = new();
     private readonly Mock<ILogger<CommandHandlerService>> _commandServiceLoggerMock = new();
     private readonly Mock<ILogger<ValidationService>> _validationLoggerMock = new();
@@ -32,12 +34,15 @@ public class CommandHandlerServiceTest : IAsyncLifetime
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
 
+        var botSettings = new BotSettings { Token = "fake-test-token", Prefix = BotPrefix };
+
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var services = new ServiceCollection()
             .AddLogging()
+            .AddSingleton(botSettings)
             .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton<ICommand, PingCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
@@ -45,7 +50,7 @@ public class CommandHandlerServiceTest : IAsyncLifetime
             .BuildServiceProvider();
 
         _commandHandlerService = new CommandHandlerService(services, _commandServiceLoggerMock.Object,
-            _localizationServiceMock.Object, true);
+            _localizationServiceMock.Object, botSettings, true);
 
         _serviceProvider = new ServiceCollection()
             .AddSingleton<IUserValidationService>(userValidationService)

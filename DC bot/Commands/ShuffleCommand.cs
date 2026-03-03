@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -16,10 +17,10 @@ public class ShuffleCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
-        logger.LogInformation("Shuffle command invoked.");
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
-        if (validationResult.IsValid is false)
+        if (!validationResult.IsValid)
         {
             await responseBuilder.SendValidationErrorAsync(message, validationResult.ErrorKey);
             return;
@@ -39,7 +40,7 @@ public class ShuffleCommand(
         musicQueueService.SetQueue(guildId, shuffledQueue);
 
         await responseBuilder.SendCommandResponseAsync(message, Name);
-        logger.LogInformation("Shuffle command Executed.");
+        logger.CommandExecuted(Name);
     }
 
     private Queue<ILavaLinkTrack> ShuffleQueue(Queue<ILavaLinkTrack> queue)

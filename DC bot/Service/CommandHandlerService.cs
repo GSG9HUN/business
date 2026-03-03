@@ -1,5 +1,7 @@
+using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.AsyncEvents;
@@ -21,26 +23,26 @@ public class CommandHandlerService
 
 
     public CommandHandlerService(IServiceProvider services, ILogger<CommandHandlerService> logger,
-        ILocalizationService localizationService, bool isTestMode = false)
+        ILocalizationService localizationService, BotSettings botSettings, bool isTestMode = false)
     {
         _logger = logger;
         _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);
         _localizationService = localizationService;
         _isTestMode = isTestMode;
-        Prefix = Environment.GetEnvironmentVariable("BOT_PREFIX");
+        Prefix = botSettings.Prefix;
     }
 
     public void RegisterHandler(DiscordClient client)
     {
         if (_isRegistered)
         {
-            _logger.LogInformation("CommandHandler Service is already registered");
+            _logger.CommandHandlerAlreadyRegistered();
             return;
         }
 
         _messageHandler = HandleCommandAsync; // Tároljuk a referenciát
         client.MessageCreated += _messageHandler;
-        _logger.LogInformation("Registered command handler");
+        _logger.CommandHandlerRegistered();
         _isRegistered = true;
     }
 
@@ -48,7 +50,7 @@ public class CommandHandlerService
     {
         if (Prefix == null)
         {
-            _logger.LogError("No prefix provided");
+            _logger.CommandHandlerNoPrefix();
             return;
         }
 
@@ -59,8 +61,12 @@ public class CommandHandlerService
         if (!message.Content.StartsWith(Prefix)) return;
 
         var commandName = message.Content.Substring(1).Split(' ')[0];
+        using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, args.Guild?.Id);
+
         if (_commands.TryGetValue(commandName, out var command))
         {
+            _logger.CommandInvoked(commandName);
+
             var discordAuthor = new DiscordUserWrapper(args.Author);
             var discordChannel = new DiscordChannelWrapper(args.Channel);
             var discordMessageWrapper = new DiscordMessageWrapper(args.Message.Id, args.Message.Content,
@@ -69,11 +75,13 @@ public class CommandHandlerService
                 args.Message.RespondAsync);
 
             await command.ExecuteAsync(discordMessageWrapper);
+
+            _logger.CommandExecuted(commandName);
         }
         else
         {
             await message.Channel.SendMessageAsync(_localizationService.Get(LocalizationKeys.UnknownCommandError));
-            _logger.LogInformation("Unknown command. Use `!help` to see available commands.");
+            _logger.CommandHandlerUnknownCommand();
         }
     }
 
@@ -82,13 +90,13 @@ public class CommandHandlerService
         if (_messageHandler != null)
         {
             client.MessageCreated -= _messageHandler; // Eltávolítás az eltárolt referenciával
-            _logger.LogInformation("Unregistered command handler");
+            _logger.CommandHandlerUnregistered();
             _messageHandler = null; // Megszüntetjük a referenciát
             _isRegistered = false;
         }
         else
         {
-            _logger.LogWarning("Tried to unregister handler, but it was not registered");
+            _logger.CommandHandlerUnregisterNotRegistered();
         }
     }
 }

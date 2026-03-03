@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using Lavalink4NET;
@@ -42,11 +43,11 @@ public class LavaLinkService(
         try
         {
             await audioService.StartAsync().ConfigureAwait(false);
-            logger.LogInformation(LogMessages.LavalinkNodeConnectedSuccessfully);
+            logger.LavalinkNodeConnectedSuccessfully();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, LogMessages.LavalinkConnectionFailed, ex.Message);
+            logger.LavalinkConnectionFailed(ex, ex.Message);
         }
     }
     public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
@@ -63,7 +64,7 @@ public class LavaLinkService(
             audioService.TrackEnded += async (_, args) =>
                 await OnTrackFinished(connection, args, textChannel);
             _isPlaybackFinishedRegistered[guildId] = true;
-            logger.LogInformation(LogMessages.PlaybackFinishedEventRegistered);
+            logger.PlaybackFinishedEventRegistered();
         }
 
         var loadResult = await audioService.Tracks.LoadTracksAsync(url.ToString(), trackSearchMode)
@@ -74,7 +75,7 @@ public class LavaLinkService(
         {
             await textChannel.SendMessageAsync(
                 $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {url}");
-            logger.LogInformation(LogMessages.FailedToFindMusicWithUrl, url);
+            logger.FailedToFindMusicWithUrl(url.ToString());
             return;
         }
 
@@ -95,7 +96,7 @@ public class LavaLinkService(
             audioService.TrackEnded += async (_, args) =>
                 await OnTrackFinished(connection, args, textChannel);
             _isPlaybackFinishedRegistered[guildId] = true;
-            logger.LogInformation(LogMessages.PlaybackFinishedEventRegistered);
+            logger.PlaybackFinishedEventRegistered();
         }
 
         var loadResult = await audioService.Tracks.LoadTracksAsync(query, trackSearchMode)
@@ -106,7 +107,7 @@ public class LavaLinkService(
         {
             await textChannel.SendMessageAsync(
                 $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {query}");
-            logger.LogInformation(LogMessages.FailedToFindMusicWithQuery, query);
+            logger.FailedToFindMusicWithQuery(query);
             return;
         }
 
@@ -148,7 +149,7 @@ public class LavaLinkService(
         if (connection.CurrentTrack == null)
         {
             await channel.SendMessageAsync(localizationService.Get(LocalizationKeys.PauseCommandError));
-            logger.LogInformation(LogMessages.ThereIsNoTrackCurrentlyPlaying);
+            logger.ThereIsNoTrackCurrentlyPlaying();
             return;
         }
 
@@ -192,7 +193,7 @@ public class LavaLinkService(
         if (connection.CurrentTrack == null)
         {
             await channel.SendMessageAsync(localizationService.Get(LocalizationKeys.ResumeCommandError));
-            logger.LogInformation(LogMessages.ThereIsNoTrackCurrentlyPaused);
+            logger.ThereIsNoTrackCurrentlyPaused();
             return;
         }
 
@@ -345,7 +346,7 @@ public class LavaLinkService(
             audioService.TrackEnded += async (_, args) =>
                 await OnTrackFinished(connection, args, textChannel);
             _isPlaybackFinishedRegistered[guildId] = true;
-            logger.LogInformation(LogMessages.PlaybackFinishedEventRegistered);
+            logger.PlaybackFinishedEventRegistered();
         }
 
         var nextTrack = musicQueueService.Dequeue(guildId);
@@ -388,14 +389,14 @@ public class LavaLinkService(
         if (musicTrack.Count > 1)
         {
             await textChannel.SendMessageAsync(localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue));
-            logger.LogInformation(LogMessages.AddedToQueue);
+            logger.AddedToQueue();
             return;
         }
 
         var track = musicTrack.First();
         await textChannel.SendMessageAsync(
             $"{localizationService.Get(LocalizationKeys.PlayCommandMusicAddedQueue)} {track.Author} - {track.Title}");
-        logger.LogInformation(LogMessages.AddedToQueueWithDetails, track.Author, track.Title);
+        logger.AddedToQueueWithDetails(track.Author, track.Title);
     }
 
     private async Task OnTrackFinished(ILavalinkPlayer player, TrackEndedEventArgs args, IDiscordChannel textChannel)
@@ -413,7 +414,7 @@ public class LavaLinkService(
             }
 
             await player.PlayAsync(repeatTrack);
-            logger.LogInformation(LogMessages.Repeating, repeatTrack.Author, repeatTrack.Title);
+            logger.Repeating(repeatTrack.Author, repeatTrack.Title);
             return;
         }
 
@@ -471,7 +472,7 @@ public class LavaLinkService(
     private async Task NotifyQueueEmptyAsync(IDiscordChannel textChannel)
     {
         await textChannel.SendMessageAsync(localizationService.Get(LocalizationKeys.SkipCommandQueueIsEmpty));
-        logger.LogInformation(LogMessages.QueueIsEmpty);
+        logger.QueueIsEmpty();
     }
 
     private async Task PlayTrackFromQueue(ILavalinkPlayer player, IDiscordChannel textChannel)
@@ -488,7 +489,7 @@ public class LavaLinkService(
 
         await TrackStarted.Invoke(textChannel, SingletonDiscordClient.Instance,
             $"{localizationService.Get(LocalizationKeys.SkipCommandResponse)}{nextTrack.Author} - {nextTrack.Title}");
-        logger.LogInformation(LogMessages.NowPlaying, nextTrack.Author, nextTrack.Title);
+        logger.NowPlaying(nextTrack.Author, nextTrack.Title);
     }
 
     internal async Task TrackStartedEventTrigger(IDiscordChannel channel, DiscordClient client, ILavaLinkTrack track)

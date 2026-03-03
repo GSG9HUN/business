@@ -1,8 +1,10 @@
 ﻿using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
+
 public class ClearCommand(
     IUserValidationService userValidation,
     IMusicQueueService musicQueueService,
@@ -15,7 +17,7 @@ public class ClearCommand(
 
     public async Task ExecuteAsync(IDiscordMessage message)
     {
-        logger.LogInformation("Clear command invoked.");
+        logger.CommandInvoked(Name);
         var validationResult = await userValidation.ValidateUserAsync(message);
 
         if (!validationResult.IsValid)
@@ -29,6 +31,6 @@ public class ClearCommand(
 
         await responseBuilder.SendSuccessAsync(message,
             $"{localizationService.Get(LocalizationKeys.ClearCommandResponse)}\n");
-        logger.LogInformation("Clear command Executed.");
+        logger.CommandExecuted(Name);
     }
 }

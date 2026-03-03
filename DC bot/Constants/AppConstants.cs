@@ -65,8 +65,7 @@ public static class LocalizationKeys
     public const string RepeatListCommandDescription = "repeat_list_command_description";
     public const string RepeatListCommandRepeatingOn = "repeat_list_command_repeating_on";
     public const string RepeatListCommandRepeatingOff = "repeat_list_command_repeating_off";
-    public const string RepeatListCommandTrackAlreadyRepeatingKey = "repeat_list_command_track_already_repeating";
-
+   
     // Tag Command
     public const string TagCommandDescription = "tag_command_description";
     public const string TagCommandResponse = "tag_command_response";
@@ -99,23 +98,3 @@ public static class ValidationErrorKeys
     public const string LavalinkError = "lavalink_error";
     public const string BotIsNotConnectedError = "bot_is_not_connected_error";
 }
-
-/// <summary>
-/// Contains all logging messages used throughout the application.
-/// </summary>
-public static class LogMessages
-{
-    public const string LavalinkNodeConnectedSuccessfully = "Lavalink node connected successfully";
-    public const string LavalinkConnectionFailed = "Lavalink connection failed: {Message}";
-    public const string PlaybackFinishedEventRegistered = "PlaybackFinished event registered.";
-    public const string FailedToFindMusicWithUrl = "Failed to find music with url: {Url}";
-    public const string FailedToFindMusicWithQuery = "Failed to find music with query: {Query}";
-    public const string ThereIsNoTrackCurrentlyPlaying = "There is no track currently playing.";
-    public const string ThereIsNoTrackCurrentlyPaused = "There is no track currently paused.";
-    public const string AddedToQueue = "Added to queue.";
-    public const string AddedToQueueWithDetails = "Added to queue: {Author} - {Title}";
-    public const string QueueIsEmpty = "Queue is empty. Playback has stopped.";
-    public const string NowPlaying = "Now Playing: {Author} - {Title}";
-    public const string Repeating = "Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle}";
-}
-
