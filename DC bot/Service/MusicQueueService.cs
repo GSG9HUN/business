@@ -10,15 +10,17 @@ public class MusicQueueService : IMusicQueueService
 {
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
     private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
+    private readonly IFileSystem _fileSystem;
 
     internal static string QueueDirectory = Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/queues");
 
     public bool HasTracks(ulong guildId) => _queues.ContainsKey(guildId) && _queues[guildId].Count > 0;
 
-    public MusicQueueService()
+    public MusicQueueService(IFileSystem? fileSystem = null)
     {
-        if (!Directory.Exists(QueueDirectory))
-            Directory.CreateDirectory(QueueDirectory);
+        _fileSystem = fileSystem ?? new IO.PhysicalFileSystem();
+        if (!_fileSystem.DirectoryExists(QueueDirectory))
+            _fileSystem.CreateDirectory(QueueDirectory);
     }
 
     public void Enqueue(ulong guildId, ILavaLinkTrack track)
@@ -54,21 +56,21 @@ public class MusicQueueService : IMusicQueueService
             .Select(track => new SerializedTrack { Identifier = track.ToString() })
             .ToList();
 
-        File.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
     }
 
     public Task LoadQueue(ulong guildId)
     {
         var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
 
-        if (!File.Exists(filePath)) return Task.CompletedTask;
+        if (!_fileSystem.FileExists(filePath)) return Task.CompletedTask;
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true, // Ha a JSON kis-nagybetű érzékeny problémákat okozna
             WriteIndented = true
         };
 
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath), options);
+        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath), options);
 
         _queues[guildId] = new Queue<ILavaLinkTrack>();
 

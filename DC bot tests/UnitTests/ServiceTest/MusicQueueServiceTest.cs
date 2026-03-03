@@ -2,6 +2,7 @@ using System.Text.Json;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Service;
+using DC_bot_tests.Helpers;
 using Lavalink4NET.Tracks;
 using Moq;
 
@@ -9,13 +10,17 @@ namespace DC_bot_tests.UnitTests.ServiceTest;
 
 public class MusicQueueServiceTests
 {
+    private const string QueueRoot = "mem/queues";
+    private readonly InMemoryFileSystem _fileSystem;
     private readonly string _tempQueueDirectory;
+
+    private MusicQueueService CreateService() => new MusicQueueService(_fileSystem);
 
     public MusicQueueServiceTests()
     {
-        // Ideiglenes könyvtár létrehozása a tesztekhez
-        _tempQueueDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(_tempQueueDirectory);
+        _fileSystem = new InMemoryFileSystem();
+        _tempQueueDirectory = QueueRoot;
+        _fileSystem.CreateDirectory(_tempQueueDirectory);
 
         // Beállítjuk a statikus QueueDirectory-t az ideiglenes könyvtárra
         MusicQueueService.QueueDirectory = _tempQueueDirectory;
@@ -25,26 +30,21 @@ public class MusicQueueServiceTests
     public void Constructor_CreatesQueueDirectory_WhenNotExists()
     {
         // Arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
+        var tempDir = "mem/queues-temp";
         MusicQueueService.QueueDirectory = tempDir;
 
         // Act
-        var musicQueueService = new MusicQueueService();
+        var musicQueueService = CreateService();
 
         // Assert
-        Assert.True(Directory.Exists(tempDir));
-
-        // Cleanup
-        if (Directory.Exists(tempDir))
-            Directory.Delete(tempDir, true);
+        Assert.True(_fileSystem.DirectoryExists(tempDir));
     }
 
     [Fact]
     public void Enqueue_AddsTrackToQueue_AndSavesToFile()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var mockTrack = new Mock<ILavaLinkTrack>();
@@ -66,9 +66,9 @@ public class MusicQueueServiceTests
         Assert.True(service.HasTracks(guildId));
 
         var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        Assert.True(File.Exists(filePath));
+        Assert.True(_fileSystem.FileExists(filePath));
 
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath));
+        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath));
         Assert.NotNull(savedTracks);
         Assert.Single(savedTracks);
         Assert.Equal(
@@ -80,7 +80,7 @@ public class MusicQueueServiceTests
     public void Dequeue_RemovesTrackFromQueue_AndUpdatesFile()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var mockTrack = new Mock<ILavaLinkTrack>();
@@ -104,7 +104,7 @@ public class MusicQueueServiceTests
         Assert.NotNull(dequeuedTrack);
 
         var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(File.ReadAllText(filePath));
+        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath));
 
         Assert.Empty(savedTracks!);
     }
@@ -113,7 +113,7 @@ public class MusicQueueServiceTests
     public async Task LoadQueue_LoadsTracksFromFile()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
 
         var savedTracks = new List<SerializedTrack>
@@ -126,7 +126,7 @@ public class MusicQueueServiceTests
         };
 
         var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(savedTracks));
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(savedTracks));
 
         // Act
         await service.LoadQueue(guildId);
@@ -142,7 +142,7 @@ public class MusicQueueServiceTests
     public void Clone_CreatesRepeatableQueueWithCurrentTrackAndExistingTracks()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
         service.Init(guildId);
 
@@ -181,7 +181,7 @@ public class MusicQueueServiceTests
     public void Init_CreatesEmptyQueues()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
 
         // Act
@@ -199,7 +199,7 @@ public class MusicQueueServiceTests
     public void GetQueue_ReturnsCorrectTracks()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var track1 = new Mock<ILavaLinkTrack>();
@@ -236,7 +236,7 @@ public class MusicQueueServiceTests
     public void SetQueue_UpdatesTheQueueCorrectly()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var track1 = new Mock<ILavaLinkTrack>();
@@ -274,7 +274,7 @@ public class MusicQueueServiceTests
     public void GetRepeatableQueue_ReturnsCorrectTracks()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
         service.Init(guildId);
 
@@ -311,7 +311,7 @@ public class MusicQueueServiceTests
     public void Dequeue_ReturnsNullWhenItsEmpty()
     {
         //Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
         service.Init(guildId);
 
@@ -325,11 +325,11 @@ public class MusicQueueServiceTests
     public async Task LoadQueue_DoesNotAddTracks_WhenSavedTracksIsNull()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        File.WriteAllText(filePath, JsonSerializer.Serialize<List<SerializedTrack>>(null)); // Null érték mentése
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize<List<SerializedTrack>>(null));
 
         // Act
         await service.LoadQueue(guildId);
@@ -342,11 +342,11 @@ public class MusicQueueServiceTests
     public async Task LoadQueue_DoesNotAddTracks_WhenSavedTracksIsEmpty()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
 
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        File.WriteAllText(filePath, JsonSerializer.Serialize(new List<SerializedTrack>())); // Üres lista mentése
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(new List<SerializedTrack>()));
 
         // Act
         await service.LoadQueue(guildId);
@@ -359,13 +359,11 @@ public class MusicQueueServiceTests
     public async Task LoadQueue_DoesNothing_WhenFileDoesNotExist()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         var guildId = 12345UL;
 
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-
-        // Biztosítjuk, hogy a fájl nem létezik
-        File.Delete(filePath);
+        // fájl nem jön létre, így a LoadQueue nem tölt semmit
 
         // Act
         await service.LoadQueue(guildId);
@@ -378,7 +376,7 @@ public class MusicQueueServiceTests
     public void Enqueue_WithoutInit_ShouldStillWork()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var mockTrack = new Mock<ILavaLinkTrack>();
@@ -406,7 +404,7 @@ public class MusicQueueServiceTests
     public void Clone_WhenRepeatableQueueNotInitialized_ShouldThrow()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var currentTrack = new LavalinkTrack
@@ -424,7 +422,7 @@ public class MusicQueueServiceTests
     public void HasTracks_WhenGuildNotRegistered_ShouldReturnFalse()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong unknownGuildId = 99999UL;
 
         // Act
@@ -438,13 +436,14 @@ public class MusicQueueServiceTests
     public async Task LoadQueue_WithInvalidJson_ShouldThrow()
     {
         // Arrange
-        var service = new MusicQueueService();
+        var service = CreateService();
         const ulong guildId = 12345UL;
 
         var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        await File.WriteAllTextAsync(filePath, "{ invalid json content :::"); // Invalid JSON
+        _fileSystem.WriteAllText(filePath, "{ invalid json content :::");
 
         // Act & Assert
         await Assert.ThrowsAsync<JsonException>(async () => await service.LoadQueue(guildId));
     }
 }
+

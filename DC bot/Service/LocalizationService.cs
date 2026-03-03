@@ -1,5 +1,4 @@
 using System.Text.Json;
-using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -18,11 +17,13 @@ public class LocalizationService : ILocalizationService
 
     private readonly ILogger<LocalizationService> _logger;
     private string? _lang;
+    private readonly IFileSystem _fileSystem;
 
-    public LocalizationService(ILogger<LocalizationService> logger)
+    public LocalizationService(ILogger<LocalizationService> logger, IFileSystem? fileSystem = null)
     {
-        if (!Directory.Exists(LocalizationDirectory))
-            Directory.CreateDirectory(LocalizationDirectory);
+        _fileSystem = fileSystem ?? new IO.PhysicalFileSystem();
+        if (!_fileSystem.DirectoryExists(LocalizationDirectory))
+            _fileSystem.CreateDirectory(LocalizationDirectory);
 
         _logger = logger;
     }
@@ -33,10 +34,10 @@ public class LocalizationService : ILocalizationService
 
         var filePath = Path.Combine(TranslationDirectory, $"{languageCode}.json");
 
-        if (!File.Exists(filePath))
+        if (!_fileSystem.FileExists(filePath))
             throw new FileNotFoundException($"Localization file not found: {filePath}");
 
-        var json = File.ReadAllText(filePath);
+        var json = _fileSystem.ReadAllText(filePath);
 
         _translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ??
                         new Dictionary<string, string>();
@@ -58,13 +59,13 @@ public class LocalizationService : ILocalizationService
     {
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
 
-        if (!File.Exists(filePath))
+        if (!_fileSystem.FileExists(filePath))
         {
             LoadTranslations();
             return;
         }
 
-        var lang = JsonSerializer.Deserialize<string>(File.ReadAllText(filePath));
+        var lang = JsonSerializer.Deserialize<string>(_fileSystem.ReadAllText(filePath));
         _lang = lang ?? "eng";
 
         LoadTranslations(_lang);
@@ -75,7 +76,7 @@ public class LocalizationService : ILocalizationService
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
         _lang = language;
 
-        File.WriteAllText(filePath, JsonSerializer.Serialize(_lang));
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(_lang));
 
         LoadTranslations(_lang);
     }

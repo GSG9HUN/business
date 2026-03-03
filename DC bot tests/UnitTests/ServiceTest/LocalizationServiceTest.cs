@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DC_bot.Service;
+using DC_bot_tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -13,49 +14,42 @@ public class LocalizationServiceTest
     private const string TestValueHelloGuild = "Hello Guild";
     private const string TestKeyMissing = "MissingKey";
     private const ulong TestGuildId = 12345;
+    private const string LocalizationRoot = "mem/localization";
+    private const string TranslationRoot = "mem/translations";
     
     private readonly Mock<ILogger<LocalizationService>> _loggerMock;
-    private readonly string _tempLocalizationDirectory;
-    private readonly string _tempTranslationDirectory;
+    private readonly InMemoryFileSystem _fileSystem;
 
     public LocalizationServiceTest()
     {
         _loggerMock = new Mock<ILogger<LocalizationService>>();
+        _fileSystem = new InMemoryFileSystem();
 
-        // Ideiglenes könyvtárak létrehozása a tesztekhez
-        _tempLocalizationDirectory = Path.Combine(Path.GetTempPath(), "localization");
-        _tempTranslationDirectory = Path.Combine(Path.GetTempPath(), "translations");
+        LocalizationService.LocalizationDirectory = LocalizationRoot;
+        LocalizationService.TranslationDirectory = TranslationRoot;
 
-        LocalizationService.LocalizationDirectory = _tempLocalizationDirectory;
-        LocalizationService.TranslationDirectory = _tempTranslationDirectory;
-
-        Directory.CreateDirectory(_tempLocalizationDirectory);
-        Directory.CreateDirectory(_tempTranslationDirectory);
+        _fileSystem.CreateDirectory(LocalizationRoot);
+        _fileSystem.CreateDirectory(TranslationRoot);
     }
 
     [Fact]
     public void Constructor_CreatesLocalizationDirectory_WhenNotExists()
     {
         // Arrange
-        var tempLocalizationDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        var tempLocalizationDirectory = "mem/localization-temp";
         LocalizationService.LocalizationDirectory = tempLocalizationDirectory;
         // Act
-        var service = new LocalizationService(_loggerMock.Object);
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
 
         // Assert
-        Assert.True(Directory.Exists(tempLocalizationDirectory));
-
-        // Cleanup
-        if (Directory.Exists(tempLocalizationDirectory))
-            Directory.Delete(tempLocalizationDirectory, true);
+        Assert.True(_fileSystem.DirectoryExists(tempLocalizationDirectory));
     }
 
     [Fact]
     public void LoadTranslations_ThrowsFileNotFoundException_WhenLanguageFileMissing()
     {
         // Arrange
-        var service = new LocalizationService(_loggerMock.Object);
-        DeleteTempFiles();
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
         // Act & Assert
         Assert.Throws<FileNotFoundException>(() => service.LoadLanguage(TestGuildId));
     }
@@ -64,7 +58,7 @@ public class LocalizationServiceTest
     public void Get_ReturnsKey_WhenTranslationMissing()
     {
         // Arrange
-        var service = new LocalizationService(_loggerMock.Object);
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
         CreateTranslationFile(LanguageCodeEng, new Dictionary<string, string> { { TestKeyHello, TestValueHelloWorld } });
         service.LoadLanguage(TestGuildId);
 
@@ -79,7 +73,7 @@ public class LocalizationServiceTest
     public void Get_ReturnsTranslatedValue_WhenKeyExists()
     {
         // Arrange
-        var service = new LocalizationService(_loggerMock.Object);
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
         CreateTranslationFile(LanguageCodeEng, new Dictionary<string, string> { { TestKeyHello, TestValueHelloWorld } });
         service.LoadLanguage(TestGuildId);
 
@@ -94,16 +88,16 @@ public class LocalizationServiceTest
     public void SaveLanguage_CreatesGuildSpecificFile()
     {
         // Arrange
-        var service = new LocalizationService(_loggerMock.Object);
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
 
         // Act
         service.SaveLanguage(TestGuildId, LanguageCodeEng);
 
         // Assert
-        var filePath = Path.Combine(_tempLocalizationDirectory, $"{TestGuildId}.json");
-        Assert.True(File.Exists(filePath));
+        var filePath = Path.Combine(LocalizationRoot, $"{TestGuildId}.json");
+        Assert.True(_fileSystem.FileExists(filePath));
 
-        var savedLanguage = JsonSerializer.Deserialize<string>(File.ReadAllText(filePath));
+        var savedLanguage = JsonSerializer.Deserialize<string>(_fileSystem.ReadAllText(filePath));
         Assert.Equal(LanguageCodeEng, savedLanguage);
     }
 
@@ -111,10 +105,10 @@ public class LocalizationServiceTest
     public void LoadLanguage_UsesGuildSpecificFileIfExists()
     {
         // Arrange
-        var service = new LocalizationService(_loggerMock.Object);
+        var service = new LocalizationService(_loggerMock.Object, _fileSystem);
 
-        File.WriteAllText(
-            Path.Combine(_tempLocalizationDirectory, $"{TestGuildId}.json"),
+        _fileSystem.WriteAllText(
+            Path.Combine(LocalizationRoot, $"{TestGuildId}.json"),
             JsonSerializer.Serialize(LanguageCodeEng)
         );
 
@@ -129,25 +123,10 @@ public class LocalizationServiceTest
         Assert.Equal(TestValueHelloGuild, result);
     }
 
-
     private void CreateTranslationFile(string languageCode, Dictionary<string, string> translations)
     {
-        var filePath = Path.Combine(_tempTranslationDirectory, $"{languageCode}.json");
+        var filePath = Path.Combine(TranslationRoot, $"{languageCode}.json");
 
-        File.WriteAllText(filePath, JsonSerializer.Serialize(translations));
-    }
-
-    ~LocalizationServiceTest()
-    {
-        DeleteTempFiles();
-    }
-
-    private void DeleteTempFiles()
-    {
-        if (Directory.Exists(_tempLocalizationDirectory))
-            Directory.Delete(_tempLocalizationDirectory, true);
-
-        if (Directory.Exists(_tempTranslationDirectory))
-            Directory.Delete(_tempTranslationDirectory, true);
+        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(translations));
     }
 }

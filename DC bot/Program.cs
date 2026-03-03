@@ -78,6 +78,7 @@ internal class Program
             .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton(botSettings)
+            .AddSingleton<IFileSystem, IO.PhysicalFileSystem>()
             .AddSingleton<BotService>()
             .AddSingleton<ReactionHandler>()
             .AddSingleton<ICommand, TagCommand>()

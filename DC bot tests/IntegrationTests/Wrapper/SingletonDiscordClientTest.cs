@@ -1,4 +1,5 @@
 using System.Reflection;
+using DC_bot.Configuration;
 using DC_bot.Interface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
@@ -29,7 +30,7 @@ public class SingletonDiscordClientTest
     public void Instance_Should_Return_Singleton_DiscordClient()
     {
         //Arrange
-        Environment.SetEnvironmentVariable("DISCORD_TOKEN", "fake-test-token");
+        SingletonDiscordClient.InitializeSettings(new BotSettings { Token = "fake-test-token" });
 
         // Act
         var instance1 = SingletonDiscordClient.Instance;
