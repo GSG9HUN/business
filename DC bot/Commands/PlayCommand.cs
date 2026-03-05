@@ -26,17 +26,24 @@ public class PlayCommand(
         var query = await CommandValidationHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         if (query is null) return;
 
+        var voiceChannel = validationResult.Member?.VoiceState?.Channel;
+        if (voiceChannel is null)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, "user_not_in_voice_channel");
+            return;
+        }
+
         var trackSearchMode = trackSearchResolverService.ResolveSearchMode(query);
 
         if (Uri.TryCreate(query, UriKind.Absolute, out var url))
         {
             logger.PlayCommandStartUrl();
-            await lavaLinkService.PlayAsyncUrl(validationResult.Member?.VoiceState!.Channel!, url, message, trackSearchMode);
+            await lavaLinkService.PlayAsyncUrl(voiceChannel, url, message, trackSearchMode);
         }
         else
         {
             logger.PlayCommandStartQuery();
-            await lavaLinkService.PlayAsyncQuery(validationResult.Member?.VoiceState!.Channel!, query, message, trackSearchMode);
+            await lavaLinkService.PlayAsyncQuery(voiceChannel, query, message, trackSearchMode);
         }
 
         logger.CommandExecuted(Name);

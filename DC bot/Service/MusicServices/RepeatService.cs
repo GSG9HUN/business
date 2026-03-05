@@ -10,8 +10,8 @@ public class RepeatService
 
     public void Init(ulong guildId)
     {
-        _isRepeating.Add(guildId, false);
-        _isRepeatingList.Add(guildId, false);
+        _isRepeating.TryAdd(guildId, false);
+        _isRepeatingList.TryAdd(guildId, false);
     }
 
     public bool IsRepeating(ulong guildId)

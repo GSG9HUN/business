@@ -8,7 +8,7 @@ using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace DC_bot.Service;
+namespace DC_bot.Service.MusicServices;
 
 public class MusicQueueService : IMusicQueueService
 {
@@ -27,6 +27,12 @@ public class MusicQueueService : IMusicQueueService
         _logger = logger ?? NullLogger<MusicQueueService>.Instance;
         if (!_fileSystem.DirectoryExists(QueueDirectory))
             _fileSystem.CreateDirectory(QueueDirectory);
+    }
+
+    public void Init(ulong guildId)
+    {
+        _queues.TryAdd(guildId, new Queue<ILavaLinkTrack>());
+        _repeatableQueue.TryAdd(guildId, new Queue<ILavaLinkTrack>());
     }
 
     public void Enqueue(ulong guildId, ILavaLinkTrack track)
@@ -116,13 +122,6 @@ public class MusicQueueService : IMusicQueueService
             _repeatableQueue[guildId].Enqueue(track);
         }
     }
-
-    public void Init(ulong guildId)
-    {
-        _queues.Add(guildId, new Queue<ILavaLinkTrack>());
-        _repeatableQueue.Add(guildId, new Queue<ILavaLinkTrack>());
-    }
-
     public Queue<ILavaLinkTrack> GetQueue(ulong guildId)
     {
         return _queues[guildId];

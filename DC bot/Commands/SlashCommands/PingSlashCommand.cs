@@ -8,6 +8,6 @@ public abstract class PingSlashCommand : ApplicationCommandModule
     [SlashCommand("ping", "Replies with Pong!")]
     public async Task Ping(InteractionContext ctx)
     {
-        await SlashCommandResponseHelper.RespondAsync(ctx, "Pong!");
+        //await SlashCommandResponseHelper.RespondAsync(ctx, "Pong!");
     }
 }

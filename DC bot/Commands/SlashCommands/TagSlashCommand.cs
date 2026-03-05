@@ -10,7 +10,7 @@ public abstract class TagSlashCommand : ApplicationCommandModule
         [Option("name", "Name of the member you want to tag.")]
         string username)
     {
-        if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
+        /*if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
         {
             return;
         }
@@ -24,6 +24,6 @@ public abstract class TagSlashCommand : ApplicationCommandModule
             return;
         }
 
-        await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, $"You tagged: {member.Mention}");
+        await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, $"You tagged: {member.Mention}");*/
     }
 }

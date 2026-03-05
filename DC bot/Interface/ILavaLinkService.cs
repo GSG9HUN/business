@@ -1,4 +1,5 @@
 using DSharpPlus;
+using Lavalink4NET.Players;
 using Lavalink4NET.Rest.Entities.Tracks;
 
 namespace DC_bot.Interface;
@@ -21,4 +22,5 @@ public interface ILavaLinkService
     event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
+    Task CleanupGuildAsync(ILavalinkPlayer connection, ulong guildId, IDiscordChannel textChannel);
 }

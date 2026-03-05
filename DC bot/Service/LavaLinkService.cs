@@ -6,6 +6,7 @@ using DC_bot.Service.MusicServices;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using Lavalink4NET;
+using Lavalink4NET.Events;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
@@ -32,10 +33,9 @@ public class LavaLinkService(
         add => trackNotificationService.TrackStarted += value;
         remove => trackNotificationService.TrackStarted -= value;
     }
-
-    private readonly Dictionary<ulong, bool> _isPlaybackFinishedRegistered = new();
     
-    // Backward compatibility - delegate to RepeatService  
+    private readonly Dictionary<ulong , AsyncEventHandler<TrackEndedEventArgs>> _trackEndedHandlers = new();
+    
     public Dictionary<ulong, bool> IsRepeating
     {
         get => repeatService.IsRepeatingDictionary;
@@ -48,18 +48,28 @@ public class LavaLinkService(
         set { } // Ignore sets, use RepeatService methods instead
     }
 
+    private readonly SemaphoreSlim _connectLock = new(1, 1);
+    private bool _isAudioServiceStarted;
+
     public void Init(ulong guildId)
     {
-        _isPlaybackFinishedRegistered.Add(guildId, false);
         currentTrackService.Init(guildId);
         repeatService.Init(guildId);
     }
 
     public async Task ConnectAsync()
     {
+        if (_isAudioServiceStarted) 
+        {
+            return;
+        }
+
+        await _connectLock.WaitAsync().ConfigureAwait(false);
+
         try
         {
             await audioService.StartAsync().ConfigureAwait(false);
+            _isAudioServiceStarted = true;
             logger.LavalinkNodeConnectedSuccessfully();
         }
         catch (Exception ex)
@@ -67,15 +77,18 @@ public class LavaLinkService(
             logger.LavalinkConnectionFailed(ex, ex.Message);
             throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
         }
+        finally 
+        {            
+            _connectLock.Release();
+        }
     }
     public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
         TrackSearchMode trackSearchMode)
     {
-        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
+        var (connection, _, guildId, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
         if (!isValid || connection == null) return;
 
         var textChannel = message.Channel;
-        var guildId = textChannel.Guild.Id;
 
         EnsurePlaybackFinishedRegistered(guildId, connection, textChannel);
 
@@ -107,11 +120,10 @@ public class LavaLinkService(
     public async Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
         TrackSearchMode trackSearchMode)
     {
-        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
+        var (connection, _, guildId, isValid) = await TryJoinAndValidateAsync(message, voiceStateChannel);
         if (!isValid || connection == null) return;
 
         var textChannel = message.Channel;
-        var guildId = textChannel.Guild.Id;
 
         EnsurePlaybackFinishedRegistered(guildId, connection, textChannel);
 
@@ -142,7 +154,7 @@ public class LavaLinkService(
 
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        var (connection, channel, _, isValid) = await TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
@@ -167,7 +179,7 @@ public class LavaLinkService(
 
     public async Task ResumeAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        var (connection, channel, _, isValid) = await TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
@@ -192,7 +204,7 @@ public class LavaLinkService(
 
     public async Task SkipAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, channel, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        var (connection, channel, _, isValid) = await TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null && !musicQueueService.HasTracks(channel.Guild.Id))
@@ -214,7 +226,7 @@ public class LavaLinkService(
 
     public async Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, _, _, isValid) = await TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
+        var (connection, _, guildId, isValid) = await TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null) return;
 
         try
@@ -223,6 +235,7 @@ public class LavaLinkService(
             {
                 await connection.StopAsync();
             }
+            await CleanupGuildAsync(connection, guildId, message.Channel).ConfigureAwait(false);
             await connection.DisconnectAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -443,20 +456,34 @@ public class LavaLinkService(
 
     private void EnsurePlaybackFinishedRegistered(ulong guildId, ILavalinkPlayer connection, IDiscordChannel textChannel)
     {
-        if (_isPlaybackFinishedRegistered[guildId]) return;
-
-        audioService.TrackEnded += async (_, args) =>
+        if (_trackEndedHandlers.ContainsKey(guildId)) { return; }
+        
+        AsyncEventHandler<TrackEndedEventArgs> handler = async (_, args) =>
             await OnTrackFinished(connection, args, textChannel);
-        _isPlaybackFinishedRegistered[guildId] = true;
+        audioService.TrackEnded += handler;
+        _trackEndedHandlers[guildId] = handler;
         logger.PlaybackFinishedEventRegistered();
+    }
+    
+    public Task CleanupGuildAsync(ILavalinkPlayer connection, ulong guildId, IDiscordChannel textChannel)
+    {
+        try
+        {
+            if (!_trackEndedHandlers.TryGetValue(guildId, out var handler)) return Task.CompletedTask;
+            audioService.TrackEnded -= handler;
+            _trackEndedHandlers.Remove(guildId);
+            return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException(exception);
+        }
     }
 
     private async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryJoinAndValidateAsync(
         IDiscordMessage message,
         IDiscordChannel? channel)
     {
-        await ConnectAsync();
-
         if (channel is null)
         {
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
@@ -464,26 +491,98 @@ public class LavaLinkService(
         }
 
         var guildId = channel.Guild.Id;
-        var connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
-
-        var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-            .ConfigureAwait(false);
-
-        if (!validationPlayerResult.IsValid)
+        
+        if (guildId == 0)
         {
-            await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
+            logger.LogError("Invalid guild ID (0) when trying to join voice channel");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
 
-        var validationConnectionResult =
-            await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-
-        if (!validationConnectionResult.IsValid)
+        if (channel.Id == 0)
         {
+            logger.LogError("Invalid channel ID (0) when trying to join voice channel");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return (null, channel, guildId, false);
+        }
+        LavalinkPlayer? connection;
+        try
+        {
+            connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
+
+            var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
+                .ConfigureAwait(false);
+
+            if (!validationPlayerResult.IsValid)
+            {
+                await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
+                return (null, channel, guildId, false);
+            }
+
+            var validationConnectionResult =
+                await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
+
+            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
+
+        }
+        catch (HttpRequestException httpEx) when (httpEx.Message.Contains("400"))
+        {
+            logger.LogError(httpEx, "Lavalink 400 Bad Request when joining voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId, channel.Id);
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return (null, channel, guildId, false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to join voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId, channel.Id);
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return (null, channel, guildId, false);
+        }
+    }
+    
+    private async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryGetAndValidateExistingPlayerAsync(
+        IDiscordMessage message,
+        IDiscordChannel? channel)
+    {
+        if (channel is null)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
+            return (null, null, 0, false);
         }
 
-        return (connection, channel, guildId, true);
+        var guildId = channel.Guild.Id;
+
+        try
+        {
+            var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
+                .ConfigureAwait(false);
+
+            if (!validationPlayerResult.IsValid)
+            {
+                await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
+                return (null, channel, guildId, false);
+            }
+
+            if (validationPlayerResult.Player is not LavalinkPlayer connection)
+            {
+                await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+                return (null, channel, guildId, false);
+            }
+
+            var validationConnectionResult =
+                await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
+
+            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
+            await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
+            return (null, channel, guildId, false);
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to get existing player. Guild: {GuildId}", guildId);
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return (null, channel, guildId, false);
+        }
     }
 }

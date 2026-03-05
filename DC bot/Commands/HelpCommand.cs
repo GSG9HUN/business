@@ -2,6 +2,7 @@ using DC_bot.Constants;
 using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands;
@@ -11,7 +12,7 @@ public class HelpCommand(
     ILogger<HelpCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
-    IEnumerable<ICommand> commands) : ICommand
+    IServiceProvider serviceProvider) : ICommand
 {
     public string Name => "help";
     public string Description => localizationService.Get(LocalizationKeys.HelpCommandDescription);
@@ -23,7 +24,8 @@ public class HelpCommand(
         {
             return;
         }
-
+        
+        var commands = serviceProvider.GetServices<ICommand>();
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 

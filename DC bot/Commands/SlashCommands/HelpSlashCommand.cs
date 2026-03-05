@@ -18,12 +18,12 @@ public abstract class HelpSlashCommand : ApplicationCommandModule
     public async Task Help(InteractionContext ctx)
     {
         Logger.CommandInvoked(CommandNameHelp);
-        await SlashCommandResponseHelper.DeferAsync(ctx);
+        //await SlashCommandResponseHelper.DeferAsync(ctx);
 
         var response = Commands.Aggregate(String.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
-        await SlashCommandResponseHelper.EditResponseAsync(ctx, $"Available commands:\n{response}");
+        //await SlashCommandResponseHelper.EditResponseAsync(ctx, $"Available commands:\n{response}");
 
         Logger.CommandExecuted(CommandNameHelp);
     }

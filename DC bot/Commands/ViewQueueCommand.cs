@@ -27,7 +27,7 @@ public class ViewQueueCommand(
 
         if (queue.Count == 0)
         {
-            await responseBuilder.SendCommandErrorResponse(message, Name);
+            await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.ViewListCommandError);
             logger.QueueIsEmpty();
             return;
         }

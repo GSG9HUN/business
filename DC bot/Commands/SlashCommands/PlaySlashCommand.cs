@@ -22,7 +22,7 @@ namespace DC_bot.Commands.SlashCommands
         {
             Logger.CommandInvoked(CommandNamePlay);
 
-            if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
+           /* if (!await SlashCommandResponseHelper.DeferAndRequireGuildAsync(ctx, "This command can only be used in a server."))
             {
                 return;
             }
@@ -51,7 +51,7 @@ namespace DC_bot.Commands.SlashCommands
             }
 
             await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, "Now playing your request!");
-            Logger.CommandExecuted(CommandNamePlay);
+            Logger.CommandExecuted(CommandNamePlay);*/
         }
     }
 }

@@ -11,7 +11,7 @@ public class CurrentTrackService
 
     public void Init(ulong guildId)
     {
-        _currentTrack.Add(guildId, null);
+        _currentTrack.TryAdd(guildId, null);
     }
 
     public LavalinkTrack? GetCurrentTrack(ulong guildId)

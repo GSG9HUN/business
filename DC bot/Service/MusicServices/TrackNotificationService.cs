@@ -8,9 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.MusicServices;
 
-/// <summary>
-/// Handles track event notifications and messaging.
-/// </summary>
 public class TrackNotificationService(
     ILocalizationService localizationService,
     ILogger<TrackNotificationService> logger,

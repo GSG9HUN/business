@@ -1,5 +1,6 @@
 using DC_bot.Logging;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

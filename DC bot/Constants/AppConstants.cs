@@ -75,6 +75,7 @@ public static class LocalizationKeys
     public const string ViewListCommandDescription = "view_list_command_description";
     public const string ViewListCommandEmbedTitle = "view_list_command_embed_title";
     public const string ViewListCommandResponse = "view_list_command_response";
+    public const string ViewListCommandError = "view_list_command_error";
 
     // Reaction Handler
     public const string MusicControl = "music_control";

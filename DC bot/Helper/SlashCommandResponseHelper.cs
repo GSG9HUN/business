@@ -6,7 +6,7 @@ namespace DC_bot.Helper;
 
 public static class SlashCommandResponseHelper
 {
-    public static Task DeferAsync(InteractionContext ctx)
+  /*  public static Task DeferAsync(InteractionContext ctx)
     {
         return ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
     }
@@ -60,5 +60,5 @@ public static class SlashCommandResponseHelper
 
         await RespondAfterDeferAsync(ctx, message);
         return null;
-    }
+    }*/
 }

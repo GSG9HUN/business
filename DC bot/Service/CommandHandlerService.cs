@@ -49,50 +49,59 @@ public class CommandHandlerService
 
     private async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
     {
-        if (Prefix == null)
+        try
         {
-            _logger.CommandHandlerNoPrefix();
-            return;
+            if (Prefix == null)
+            {
+                _logger.CommandHandlerNoPrefix();
+                return;
+            }
+
+            if (args.Message is not { } message) return;
+
+            if (args.Author.IsBot && !_isTestMode) return;
+
+            if (!message.Content.StartsWith(Prefix)) return;
+
+            var commandName = TryGetCommandName(message.Content, Prefix);
+            if (string.IsNullOrWhiteSpace(commandName)) return;
+
+            using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, args.Guild?.Id);
+
+            if (_commands.TryGetValue(commandName, out var command))
+            {
+                _logger.CommandInvoked(commandName);
+
+                var discordMessageWrapper = DiscordMessageWrapperFactory.Create(args.Message, args.Channel, args.Author);
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await command.ExecuteAsync(discordMessageWrapper);
+                        _logger.CommandExecuted(commandName);
+                    }
+                    catch (BotException botEx)
+                    {
+                        _logger.CommandExecutionFailed(botEx, commandName);
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.CommandExecutionFailed(ex, commandName);
+                        throw;
+                    }
+                });
+            }
+            else
+            {
+                await message.Channel.SendMessageAsync(_localizationService.Get(LocalizationKeys.UnknownCommandError));
+                _logger.CommandHandlerUnknownCommand();
+            }
         }
-
-        if (args.Message is not { } message) return;
-
-        if (args.Author.IsBot && !_isTestMode) return;
-
-        if (!message.Content.StartsWith(Prefix)) return;
-
-        var commandName = TryGetCommandName(message.Content, Prefix);
-        if (string.IsNullOrWhiteSpace(commandName)) return;
-
-        using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, args.Guild?.Id);
-
-        if (_commands.TryGetValue(commandName, out var command))
+        catch (Exception ex)
         {
-            _logger.CommandInvoked(commandName);
-
-            var discordMessageWrapper = DiscordMessageWrapperFactory.Create(args.Message, args.Channel, args.Author);
-
-            try
-            {
-                await command.ExecuteAsync(discordMessageWrapper);
-                _logger.CommandExecuted(commandName);
-            }
-            catch (BotException botEx)
-            {
-                _logger.CommandExecutionFailed(botEx, commandName);
-                // Custom bot exceptions are already logged with context
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.CommandExecutionFailed(ex, commandName);
-                throw;
-            }
-        }
-        else
-        {
-            await message.Channel.SendMessageAsync(_localizationService.Get(LocalizationKeys.UnknownCommandError));
-            _logger.CommandHandlerUnknownCommand();
+            _logger.CommandExecutionFailed(ex, "message_created");
         }
     }
 

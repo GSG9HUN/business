@@ -13,7 +13,7 @@ public static class DiscordClientFactory
         {
             Token = token,
             TokenType = TokenType.Bot,
-            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents | DiscordIntents.GuildMembers | DiscordIntents.Guilds,
+            Intents = DiscordIntents.All,
             AutoReconnect = true
         });
 

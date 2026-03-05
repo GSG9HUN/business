@@ -2,28 +2,27 @@
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Wrapper;
 
 public class DiscordClientEventHandler(
     ILogger<DiscordClientEventHandler> logger,
-    IMusicQueueService musicQueueService,
-    ILavaLinkService lavaLinkService,
-    ILocalizationService localizationService)
+    IServiceProvider serviceProvider)
 {
-    public Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
+    public async Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
     {
         try
         {
             logger.DiscordClientReady();
+            var lavaLinkService = serviceProvider.GetRequiredService<ILavaLinkService>();
+            await lavaLinkService.ConnectAsync();
         }
         catch (Exception exception)
         {
             logger.DiscordClientEventFailed(exception, nameof(OnClientReady));
         }
-
-        return Task.CompletedTask;
     }
 
     public async Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
@@ -32,11 +31,15 @@ public class DiscordClientEventHandler(
         {
             logger.DiscordClientGuildAvailable(e.Guild.Name);
 
+            // Resolve these only when the event fires, not during DiscordClient construction.
+            var localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
+            var lavaLinkService = serviceProvider.GetRequiredService<ILavaLinkService>();
+            var musicQueueService = serviceProvider.GetRequiredService<IMusicQueueService>();
+
             localizationService.LoadLanguage(e.Guild.Id);
             lavaLinkService.Init(e.Guild.Id);
             musicQueueService.Init(e.Guild.Id);
 
-            await lavaLinkService.ConnectAsync();
             await musicQueueService.LoadQueue(e.Guild.Id);
         }
         catch (Exception exception)
@@ -45,4 +48,3 @@ public class DiscordClientEventHandler(
         }
     }
 }
-
