@@ -1,124 +1,252 @@
-﻿# Custom Exception Handling Implementation
+﻿# Exceptions
+
+This folder contains custom exception types for domain-specific error handling.
 
 ## Overview
-This document describes the custom exception handling system implemented in the Discord bot application.
 
-## Custom Exception Hierarchy
+All custom exceptions inherit from `BotException`, providing:
+- Type-safe error handling
+- Domain-specific context data
+- Clear error boundaries
 
-### Base Exception
-- **`BotException`**: Abstract base class for all bot-related exceptions
-  - Location: `DC bot/Exceptions/BotException.cs`
-  - All custom exceptions inherit from this base class
+## Exception Hierarchy
 
-### Specific Exception Types
+```
+System.Exception
+    ↓
+BotException (abstract)
+    ├── LocalizationException (Localization/)
+    ├── MessageSendException (Messaging/)
+    ├── ValidationException (Validation/) [Not currently used]
+    └── Music Exceptions (Music/)
+        ├── LavalinkOperationException
+        ├── QueueOperationException
+        └── TrackLoadException
+```
 
-1. **`LavalinkOperationException`**
-   - Used for: Lavalink audio service operation failures
-   - Properties: `Operation` (string)
-   - Usage: Connection failures, track loading errors, playback issues
+## Base Exception
 
-2. **`TrackLoadException`**
-   - Used for: Track loading and playback failures
-   - Properties: `Query` (string)
-   - Usage: Track not found, invalid URLs, search failures
+### BotException.cs
 
-3. **`MessageSendException`**
-   - Used for: Discord message sending failures
-   - Properties: `Operation` (string)
-   - Usage: Channel message sending errors, reaction control messages
-
-4. **`QueueOperationException`**
-   - Used for: Music queue operation failures
-   - Properties: `Operation` (string), `GuildId` (ulong)
-   - Usage: Queue save/load errors, serialization failures
-
-5. **`ValidationException`**
-   - Used for: Validation failures
-   - Properties: `ValidationKey` (string)
-   - Usage: User validation, connection validation errors
-
-6. **`LocalizationException`**
-   - Used for: Localization service failures
-   - Properties: `LanguageCode` (string)
-   - Usage: Translation file not found, JSON read/write errors
-
-## Implementation Details
-
-### Services with Exception Handling
-
-#### LavaLinkService
-- **Operations covered**:
-  - `ConnectAsync()`: Throws `LavalinkOperationException` on connection failure
-  - `PlayAsyncUrl()`: Throws `TrackLoadException` on track load failure
-  - `PlayAsyncQuery()`: Throws `TrackLoadException` on search failure
-  - `SafeSendAsync()`: Throws `MessageSendException` on message send failure
-  
-#### LocalizationService
-- **Operations covered**:
-  - `ReadJson<T>()`: Throws `LocalizationException` on file read failure
-  - `WriteJson<T>()`: Throws `LocalizationException` on file write failure
-  - `LoadTranslations()`: Throws `LocalizationException` when translation file not found
-
-#### MusicQueueService
-- **Operations covered**:
-  - `SaveQueue()`: Throws `QueueOperationException` on save failure
-  - `LoadQueue()`: Throws `QueueOperationException` on load failure
-
-#### CommandHandlerService
-- **Operations covered**:
-  - `ExecuteAsync()`: Catches and re-throws `BotException` and general exceptions
-  - Differentiates between custom bot exceptions and unexpected errors
-
-#### ReactionHandler
-- **Operations covered**:
-  - `SendReactionControlMessage()`: Throws `MessageSendException` on failure
-  - `OnReactionAdded()`: Catches `BotException` and general exceptions
-  - `OnReactionRemoved()`: Catches `BotException` and general exceptions
-
-## Logging Integration
-
-All custom exceptions are integrated with structured logging:
-
-### New Log Events
-- **EventId 1208**: `ReactionHandlerOperationFailed` - Reaction handler operation errors
-- **EventId 1209**: `ReactionHandlerMessageSendFailed` - Reaction message send errors
-
-### Existing Log Events Enhanced
-- All exception catch blocks now log with appropriate context
-- Custom exceptions preserve inner exception details for debugging
-
-## Benefits
-
-1. **Type Safety**: Strongly typed exceptions for different failure scenarios
-2. **Contextual Information**: Each exception carries relevant context (operation name, guild ID, query, etc.)
-3. **Better Debugging**: Inner exceptions preserved with full stack traces
-4. **Centralized Handling**: Consistent exception handling across services
-5. **Structured Logging**: Integration with existing logging infrastructure
-
-## Usage Example
+**Purpose:** Abstract base class for all bot-related exceptions.
 
 ```csharp
-try
+public abstract class BotException : Exception
 {
-    await audioService.Tracks.LoadTracksAsync(url.ToString(), trackSearchMode);
-}
-catch (Exception ex)
-{
-    logger.LavalinkOperationFailed(ex, "LoadTracksAsyncUrl");
-    throw new TrackLoadException(url.ToString(), "Failed to load track from URL", ex);
+    protected BotException(string message) : base(message) { }
+    
+    protected BotException(string message, Exception innerException) 
+        : base(message, innerException) { }
 }
 ```
 
-## Testing Recommendations
+---
 
-1. Unit tests should verify custom exceptions are thrown in failure scenarios
-2. Integration tests should verify exception handling doesn't break service operations
-3. Log output should be verified to ensure exceptions are properly logged
+## Subfolders
 
-## Future Enhancements
+### Localization/
+Contains `LocalizationException` for language file loading errors.
 
-1. Add retry logic for transient failures (e.g., network errors)
-2. Implement circuit breaker pattern for Lavalink connection failures
-3. Add telemetry/metrics for exception occurrences
-4. Consider adding user-friendly error messages based on exception type
+**Thrown by:**
+- `LocalizationService` - File read/write failures, translation file not found
+
+**Common causes:**
+- Missing language file
+- Invalid JSON in language file
+- File I/O errors
+
+---
+
+### Messaging/
+Contains `MessageSendException` for Discord message operation failures.
+
+**Thrown by:**
+- `ReactionHandler` - Reaction message send failures
+- `TrackNotificationService` - Track notification send failures
+
+**Common causes:**
+- Missing channel permissions
+- Discord API rate limiting
+- Channel deleted during send
+
+---
+
+### Music/
+Contains music playback exceptions.
+
+**Exception types:**
+- `LavalinkOperationException` - Lavalink connection failures
+- `QueueOperationException` - Queue save/load failures
+- `TrackLoadException` - Track loading failures
+
+**Thrown by:**
+- `LavaLinkService` - Lavalink operations and track loading
+- `MusicQueueService` - Queue persistence
+
+---
+
+### Validation/
+Contains `ValidationException` (currently not used in code).
+
+The application uses validation result objects instead (`UserValidationResult`, `PlayerValidationResult`, `ConnectionValidationResult`).
+
+---
+
+## Usage Example
+
+### Throwing Exceptions
+
+```csharp
+// Localization
+try
+{
+    var json = _fileSystem.ReadAllText(filePath);
+    return JsonSerializer.Deserialize<T>(json);
+}
+catch (Exception ex)
+{
+    throw new LocalizationException(_lang ?? "unknown", $"Failed to read JSON file: {filePath}", ex);
+}
+
+// Messaging
+try
+{
+    await channel.SendMessageAsync(embed);
+}
+catch (Exception ex)
+{
+    throw new MessageSendException("SendReactionControlMessage", "Failed to send reaction control message", ex);
+}
+
+// Music - Lavalink
+try
+{
+    await _audioService.ConnectAsync(configuration);
+}
+catch (Exception ex)
+{
+    throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
+}
+
+// Music - Queue
+try
+{
+    await File.WriteAllTextAsync(filePath, json);
+}
+catch (Exception ex)
+{
+    throw new QueueOperationException("SaveQueue", guildId, "Failed to save queue to file", ex);
+}
+
+// Music - Track Loading
+if (loadResult.Tracks.Count == 0)
+{
+    throw new TrackLoadException(url.ToString(), "Track not found or load failed");
+}
+```
+
+### Catching Exceptions
+
+```csharp
+// Catch specific exception
+try
+{
+    await lavaLinkService.PlayAsyncUrl(channel, url, message, mode);
+}
+catch (TrackLoadException ex)
+{
+    logger.LogWarning(ex, "Track not found: {Query}", ex.Query);
+    await responseBuilder.SendErrorAsync(message, "track_not_found");
+}
+
+// Catch all bot exceptions
+try
+{
+    await command.ExecuteAsync(message);
+}
+catch (BotException ex)
+{
+    logger.LogError(ex, "Bot exception in command: {CommandName}", command.Name);
+    await responseBuilder.SendErrorAsync(message, "command_failed");
+}
+```
+
+---
+
+## Exception Properties
+
+### LocalizationException
+- `LanguageCode` (string) - Language code that caused the error
+
+### MessageSendException
+- `Operation` (string) - Operation that failed
+
+### LavalinkOperationException
+- `Operation` (string) - Lavalink operation that failed
+
+### QueueOperationException
+- `Operation` (string) - Queue operation that failed
+- `GuildId` (ulong) - Discord guild ID
+
+### TrackLoadException
+- `Query` (string) - URL or search query that failed
+
+---
+
+## Testing
+
+### Unit Test Examples
+
+```csharp
+[Fact]
+public async Task LoadLanguageAsync_FileNotFound_ThrowsLocalizationException()
+{
+    // Arrange
+    var service = new LocalizationService(mockFileSystem.Object);
+
+    // Act & Assert
+    var exception = await Assert.ThrowsAsync<LocalizationException>(
+        () => service.LoadLanguageAsync("invalid")
+    );
+    
+    Assert.Equal("invalid", exception.LanguageCode);
+    Assert.Contains("not found", exception.Message);
+}
+
+[Fact]
+public async Task ExecuteAsync_TrackLoadException_SendsErrorMessage()
+{
+    // Arrange
+    mockLavaLink
+        .Setup(x => x.PlayAsync(It.IsAny<string>()))
+        .ThrowsAsync(new TrackLoadException("query", "Not found"));
+
+    // Act
+    await command.ExecuteAsync(message);
+
+    // Assert
+    mockResponseBuilder.Verify(
+        x => x.SendErrorAsync(message, "track_not_found"),
+        Times.Once
+    );
+}
+```
+
+---
+
+## Related Components
+
+- **Logging/LogExtensions.cs** - Exception logging extensions
+- **Service/** - Services that throw domain exceptions
+- **Helper/Validation/** - Validation result objects
+- **Constants/LocalizationKeys.cs** - Error message keys
+
+---
+
+## Best Practices
+
+- Include relevant context in exception properties
+- Preserve inner exceptions when wrapping
+- Log exceptions with structured logging
+- Don't expose sensitive data in exception messages
 

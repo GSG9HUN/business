@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.Interface.Discord;
 using DSharpPlus.Entities;
 
 namespace DC_bot.Wrapper;

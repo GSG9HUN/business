@@ -1,230 +1,84 @@
-﻿# Logging Extensions
+﻿# Logging
 
-This folder contains structured logging (ILogger) extensions and scope helpers for the application.
+This folder contains structured logging extensions and configuration.
 
-## What's here?
+## Files
 
-- **LogExtensions.cs** - `LoggerMessage`-based source-generated logging extension methods
-- **LoggingScopes.cs** - Unified scope helper for consistent structured logging (e.g., during command execution)
+### LogExtensions.cs
 
-## Event ID Reference
+**Purpose:** Structured logging methods for application events.
 
-See: `EventIdTable.md` for complete event ID mapping
-
-## Usage Example
-
+**Format:**
 ```csharp
-using DC_bot.Logging;
-
-// Simple logging
-logger.CommandInvoked(commandName);
-logger.CommandExecuted(commandName);
-
-// Structured logging with scope
-using var scope = logger.BeginCommandScope(commandName, userId, channelId, guildId);
-logger.LogInformation("Processing command");
+[LoggerMessage(EventId = 1001, Level = LogLevel.Debug, Message = "...")]
+public static partial void MethodName(this ILogger logger, ...parameters);
 ```
 
-## Extension Methods
-
-### Command Logging
+**Usage:**
 ```csharp
-// Log command invocation
-logger.CommandInvoked(string commandName);
-
-// Log successful execution
-logger.CommandExecuted(string commandName);
-
-// Log missing arguments
-logger.CommandMissingArgument(string commandName);
-
-// Log execution failure
-logger.CommandExecutionFailed(string commandName, Exception ex);
-```
-
-### Lavalink Logging
-```csharp
-logger.LavalinkNodeConnectedSuccessfully();
-logger.LavalinkConnectionFailed(Exception ex, string message);
-logger.LavalinkOperationFailed(Exception ex, string operation);
-logger.PlaybackFinishedEventRegistered();
-```
-
-### Validation Logging
-```csharp
-logger.ValidationLavalinkNotConnected();
-logger.ValidationBotNotConnected();
-logger.ValidationUserIsBot();
-logger.ValidationUserNotInVoiceChannel();
-```
-
-### Queue Logging
-```csharp
-logger.AddedToQueue();
-logger.AddedToQueueWithTrackDetails(string author, string title);
-logger.QueueIsEmpty();
-logger.MusicQueueSaveFailed(string filePath, Exception ex);
-logger.MusicQueueLoadFailed(string filePath, Exception ex);
-```
-
-## Logging Levels
-
-Use appropriate levels for different scenarios:
-
-- **Debug** - `CommandInvoked`, `CommandExecuted`
-  - Low-level operation tracking
-  - Command invocations and completions
-  - Should be disabled in production
-
-- **Information** - `ValidationLavalinkNotConnected`, `AddedToQueue`, `PlaybackFinished`
-  - Important state changes
-  - Significant events
-  - Safe to keep in production
-
-- **Warning** - `CommandHandlerUnregisterNotRegistered`, `ReactionHandlerUnregisterNotRegistered`
-  - Unexpected but recoverable conditions
-  - Suggest a problem but not a failure
-  - Requires investigation
-
-- **Error** - `CommandExecutionFailed`, `LavalinkConnectionFailed`, `ResponseSendFailed`
-  - Serious problems
-  - Operation failures
-  - Exceptions with context
-  - Always logged with exception details
-
-## Scope Helpers
-
-### Command Scope
-```csharp
-using var scope = logger.BeginCommandScope(
-    commandName: "play",
-    userId: 123456,
-    channelId: 789012,
-    guildId: 345678);
-
-// All logs within this scope include the context
-logger.LogInformation("Executing command");
-// Output: [play] [user:123456] [channel:789012] [guild:345678] Executing command
-```
-
-**Includes in scope:**
-- Command name
-- User ID
-- Channel ID
-- Guild ID
-
-**Use when:** Executing commands or guild-specific operations
-
-## Source-Generated Logging
-
-The extension methods use `LoggerMessage.Define()` for optimal performance:
-
-```csharp
-[LoggerMessage(
-    EventId = 1001,
-    Level = LogLevel.Debug,
-    Message = "Command invoked: {CommandName}")]
-private static partial void CommandInvokedCore(
-    ILogger logger,
-    string commandName);
-
-public static void CommandInvoked(
-    this ILogger logger,
-    string commandName) =>
-    CommandInvokedCore(logger, commandName);
+logger.CommandInvoked("play");           // EventId 1001
+logger.CommandExecuted("play");          // EventId 1002
+logger.LavalinkNodeConnectedSuccessfully();  // Lavalink event
+logger.ValidationUserIsBot();            // Validation event
+logger.ValidationUserNotInVoiceChannel(); // Validation event
 ```
 
 **Benefits:**
-- ✅ Zero-allocation logging
-- ✅ AOT-friendly
-- ✅ Compile-time checking
-- ✅ Performance optimized
-- ✅ Type-safe
+- Type-safe logging
+- Structured parameters
+- Consistent format
+- Unique event IDs
+- No string concatenation
 
-## Guidelines
+---
 
-### ✅ DO's
-- ✅ Include relevant context in log messages
-- ✅ Use appropriate log levels
-- ✅ Use scope helpers for related operations
-- ✅ Log exceptions with full context
-- ✅ Use structured logging (named properties)
+### LoggingScopes.cs
 
-### ❌ DON'Ts
-- ❌ Don't log sensitive information (tokens, passwords)
-- ❌ Don't use string concatenation (use parameters)
-- ❌ Don't log on every iteration (causes spam)
-- ❌ Don't forget to dispose scopes (use `using`)
-- ❌ Don't mix logging levels in related operations
+**Purpose:** Logging scope helpers for context tracking.
 
-## Example: Command Execution Flow
-
+**Usage:**
 ```csharp
-public async Task ExecuteAsync(IDiscordMessage message)
+using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 {
-    logger.CommandInvoked(Name); // Debug
-    
-    using var scope = logger.BeginCommandScope(
-        Name, 
-        message.Author.Id, 
-        message.Channel.Id, 
-        message.Channel.Guild.Id);
-
-    try
-    {
-        var result = await userValidation.ValidateUserAsync(message);
-        if (!result.IsValid)
-        {
-            logger.LogWarning("User validation failed: {ErrorKey}", result.ErrorKey);
-            return;
-        }
-
-        await service.ExecuteAsync(message);
-        logger.CommandExecuted(Name); // Debug
-    }
-    catch (Exception ex)
-    {
-        logger.CommandExecutionFailed(Name, ex); // Error
-        throw;
-    }
+    // Logs in this scope automatically include GuildId and UserId
+    logger.CommandInvoked("play");
 }
-
-// Output:
-// DEBUG: Command invoked: play
-// INFO: [play] [user:123456] [channel:789012] [guild:345678] (scope active)
-// DEBUG: Command executed: play
 ```
 
-## Viewing Logs
+---
 
-### Console Output (Development)
+### EventIdTable.md
+
+**Purpose:** Documentation of all event IDs used in logging.
+
+**Format:**
 ```
-info: DC_bot.Commands.PlayCommand[1602]
-      Starting playing a music through search result.
-dbug: DC_bot.Commands.PlayCommand[1001]
-      Command invoked: play
+1001 - CommandInvoked
+1002 - CommandExecuted
+1003 - CommandMissingArgument
+1004 - CommandExecutionFailed
+1101 - CommandHandlerAlreadyRegistered
+...
 ```
 
-### Structured Logging (Production)
-Logs include:
-- Timestamp
-- Log level
-- Event ID (for filtering)
-- Category (namespace)
-- Message
-- Structured properties
-- Exception (if applicable)
+**Benefits:**
+- Single source of truth for event IDs
+- Prevents ID collisions
+- Aids debugging and monitoring
 
-## Performance Implications
+---
 
-- **Source-generated logging** - Zero allocations
-- **Scope allocation** - Minimal overhead
-- **Structured parameters** - No string formatting overhead
-- **Debug logs in production** - Negligible impact (filtered out)
+## Log Levels
 
-## Related
+- **Debug** - Detailed execution flow (command invocation)
+- **Information** - Normal operation (handler registered, message sent)
+- **Warning** - Unexpected but handled (rate limit, retry)
+- **Error** - Operation failed (command execution, connection)
+- **Critical** - Application may not recover (startup failure)
 
-- **EventIdTable.md** - Complete event ID reference
-- **Service/** - Consumers of logging extensions
-- **Commands/** - Primary logging users
-- **Program.cs** - Logging configuration
+## Related Components
+
+- **Service/** - Uses logging extensions
+- **Commands/** - Log command execution
+- **Wrapper/** - Log Discord operations
+

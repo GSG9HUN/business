@@ -1,4 +1,7 @@
 ﻿using DC_bot.Interface;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.EventArgs;

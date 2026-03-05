@@ -2,424 +2,172 @@
 
 This folder contains wrapper classes that abstract the DSharpPlus Discord library.
 
-## What's here?
+## Overview
 
-Wrapper implementations that:
-- Decouple application code from DSharpPlus
-- Provide testable interfaces
-- Simplify Discord API interactions
-- Enable library migration if needed
-- Centralize Discord-specific logic
+Wrappers implement interfaces defined in `Interface/Discord/`, providing:
+- Abstraction from DSharpPlus
+- Testable interfaces
+- Exception handling
+- Consistent Discord API interaction
 
-These wrappers implement the interfaces defined in `Interface/IDiscord*.cs`.
-
-## Why Wrap DSharpPlus?
-
-### Without Wrappers (❌ Bad)
-```csharp
-// Command directly uses DSharpPlus types
-public class PlayCommand : ICommand
-{
-    public async Task ExecuteAsync(DiscordMessage message) // DSharpPlus type!
-    {
-        var channel = message.Channel;
-        await channel.SendMessageAsync("Playing...");
-    }
-}
-
-// Problems:
-// 1. Can't mock DiscordMessage for testing
-// 2. Tightly coupled to DSharpPlus
-// 3. Hard to switch Discord libraries
-// 4. DSharpPlus exceptions leak everywhere
-```
-
-### With Wrappers (✅ Good)
-```csharp
-// Command uses interface
-public class PlayCommand : ICommand
-{
-    public async Task ExecuteAsync(IDiscordMessage message) // Interface!
-    {
-        var channel = message.Channel;
-        await channel.SendMessageAsync("Playing...");
-    }
-}
-
-// Benefits:
-// 1. Easy to mock in tests
-// 2. Loosely coupled
-// 3. Can swap libraries (DSharpPlus → Discord.Net)
-// 4. Wrapper handles exceptions
-```
-
-## Contents
+## Files
 
 ### DiscordMessageWrapper.cs
-Wraps `DiscordMessage` from DSharpPlus.
 
-**Interface:** `IDiscordMessage`
+**Implements:** `IDiscordMessage`
 
-**Key Properties:**
+**Purpose:** Wraps DSharpPlus `DiscordMessage`.
+
+**Properties:**
+- `Id` - Message ID
+- `Content` - Message text
+- `Author` - Message author
+- `Channel` - Message channel
+- `CreatedAt` - Message creation timestamp
+- `Embeds` - Embedded content
+
+**Methods:**
+- `RespondAsync()` - Send text or embed response
+
+---
+
+### DiscordChannelWrapper.cs
+
+**Implements:** `IDiscordChannel`
+
+**Purpose:** Wraps DSharpPlus `DiscordChannel`.
+
+**Properties:**
+- `Id` - Channel ID
+- `Name` - Channel name
+- `Guild` - Parent guild
+
+**Methods:**
+- `SendMessageAsync()` - Send message to channel
+- `ToDiscordChannel()` - Get underlying DSharpPlus channel
+
+---
+
+### DiscordUserWrapper.cs
+
+**Implements:** `IDiscordUser`
+
+**Purpose:** Wraps DSharpPlus `DiscordUser`.
+
+**Properties:**
+- `Id` - User ID
+- `Username` - User name
+- `IsBot` - Whether user is a bot
+
+---
+
+### DiscordMemberWrapper.cs
+
+**Implements:** `IDiscordMember`
+
+**Purpose:** Wraps DSharpPlus `DiscordMember`.
+
+**Properties:**
+- `Id` - Member ID
+- `Username` - Member name
+- `IsBot` - Whether member is a bot
+- `Guild` - Parent guild
+- `VoiceState` - Voice channel state (nullable)
+
+---
+
+### DiscordGuildWrapper.cs
+
+**Implements:** `IDiscordGuild`
+
+**Purpose:** Wraps DSharpPlus `DiscordGuild`.
+
+**Properties:**
+- `Id` - Guild ID
+- `Name` - Guild name
+
+---
+
+### DiscordVoiceStateWrapper.cs
+
+**Implements:** `IDiscordVoiceState`
+
+**Purpose:** Wraps DSharpPlus `DiscordVoiceState`.
+
+**Properties:**
+- `Channel` - Voice channel (nullable)
+- `IsDeafened` - Whether member is deafened
+- `IsMuted` - Whether member is muted
+
+---
+
+### LavalinkTrackWrapper.cs
+
+**Implements:** `ILavaLinkTrack`
+
+**Purpose:** Wraps Lavalink4NET `LavalinkTrack`.
+
+**Properties:**
+- `Title` - Track title
+- `Author` - Track artist
+
+**Methods:**
+- `ToLavalinkTrack()` - Get underlying Lavalink track
+
+---
+
+### DiscordClientEventHandler.cs
+
+**Purpose:** Register and manage Discord client event handlers.
+
+**Methods:**
+- `RegisterHandler()` - Register event listeners
+- `OnMessageCreated()` - Handle message events
+- `OnGuildMemberUpdated()` - Handle member updates
+- `OnVoiceStateUpdated()` - Handle voice state changes
+
+**Features:**
+- Routes messages to command handler
+- Routes reactions to reaction handler
+- Tracks voice state changes
+
+---
+
+### DiscordClientFactory.cs
+
+**Purpose:** Create and configure Discord client instances.
+
+**Methods:**
+- `CreateClient()` - Create configured Discord client
+
+**Configuration:**
+- Sets intents (privileged and unprivileged)
+- Configures caching
+- Enables message content
+
+---
+
+## Usage Pattern
+
+Wrappers are created from DSharpPlus objects:
+
 ```csharp
-public class DiscordMessageWrapper : IDiscordMessage
-{
-    public ulong Id { get; }
-    public string Content { get; }
-    public IDiscordUser Author { get; }
-    public IDiscordChannel Channel { get; }
-    
-    public async Task DeleteAsync();
-}
-```
+// In CommandHandlerService
+var wrappedMessage = DiscordMessageWrapperFactory.Create(
+    discordMessage, 
+    channel, 
+    author, 
+    logger
+);
 
-**Usage:**
-```csharp
-// Create wrapper
-var wrappedMessage = new DiscordMessageWrapper(discordMessage, logger);
-
-// Use in command
+// Pass to command (expects IDiscordMessage interface)
 await command.ExecuteAsync(wrappedMessage);
 ```
 
-### DiscordChannelWrapper.cs
-Wraps `DiscordChannel` from DSharpPlus.
+## Related Components
 
-**Interface:** `IDiscordChannel`
-
-**Key Properties:**
-```csharp
-public class DiscordChannelWrapper : IDiscordChannel
-{
-    public ulong Id { get; }
-    public string Name { get; }
-    public IDiscordGuild Guild { get; }
-    
-    public async Task SendMessageAsync(string message);
-}
-```
-
-**Error Handling:**
-```csharp
-public async Task SendMessageAsync(string message)
-{
-    try
-    {
-        await _discordChannel.SendMessageAsync(message);
-    }
-    catch (DiscordException ex)
-    {
-        _logger.LogError(ex, "Failed to send message to channel {ChannelId}", Id);
-        throw new MessageSendException("Failed to send message", ex);
-    }
-}
-```
-
-### DiscordUserWrapper.cs
-Wraps `DiscordUser` from DSharpPlus.
-
-**Interface:** `IDiscordUser`
-
-**Key Properties:**
-```csharp
-public class DiscordUserWrapper : IDiscordUser
-{
-    public ulong Id { get; }
-    public string Username { get; }
-    public bool IsBot { get; }
-}
-```
-
-### DiscordMemberWrapper.cs
-Wraps `DiscordMember` from DSharpPlus.
-
-**Interface:** `IDiscordMember`
-
-**Key Properties:**
-```csharp
-public class DiscordMemberWrapper : IDiscordMember
-{
-    public ulong Id { get; }
-    public string Username { get; }
-    public bool IsBot { get; }
-    public IDiscordGuild Guild { get; }
-    public IDiscordVoiceState? VoiceState { get; }
-}
-```
-
-**Voice State:**
-```csharp
-var member = new DiscordMemberWrapper(discordMember);
-var voiceChannel = member.VoiceState?.Channel;
-
-if (voiceChannel != null)
-{
-    // User is in a voice channel
-}
-```
-
-### DiscordGuildWrapper.cs
-Wraps `DiscordGuild` from DSharpPlus.
-
-**Interface:** `IDiscordGuild`
-
-**Key Properties:**
-```csharp
-public class DiscordGuildWrapper : IDiscordGuild
-{
-    public ulong Id { get; }
-    public string Name { get; }
-}
-```
-
-### DiscordVoiceStateWrapper.cs
-Wraps `DiscordVoiceState` from DSharpPlus.
-
-**Interface:** `IDiscordVoiceState`
-
-**Key Properties:**
-```csharp
-public class DiscordVoiceStateWrapper : IDiscordVoiceState
-{
-    public IDiscordChannel? Channel { get; }
-    public bool IsDeafened { get; }
-    public bool IsMuted { get; }
-}
-```
-
-### LavalinkTrackWrapper.cs
-Wraps `LavalinkTrack` from Lavalink4NET.
-
-**Interface:** `ILavaLinkTrack`
-
-**Key Properties:**
-```csharp
-public class LavalinkTrackWrapper : ILavaLinkTrack
-{
-    public string Title { get; }
-    public string Author { get; }
-    
-    public LavalinkTrack ToLavalinkTrack();
-}
-```
-
-**Purpose:**
-- Allow serialization/deserialization
-- Provide consistent interface for queue storage
-- Enable mocking in tests
-
-### DiscordClientEventHandler.cs
-Handles Discord client events.
-
-**Purpose:**
-- Register event handlers
-- Route events to appropriate handlers
-- Unregister handlers on cleanup
-
-**Events Handled:**
-- `MessageCreated` → Command handler
-- `GuildMemberUpdated` → State updates
-- `VoiceStateUpdated` → Track voice changes
-
-### DiscordClientFactory.cs
-Factory for creating Discord client instances.
-
-**Purpose:**
-- Centralize client configuration
-- Configure intents and caching
-- Set up event handlers
-- Support dependency injection
-
-**Usage:**
-```csharp
-public class DiscordClientFactory
-{
-    public DiscordClient CreateClient(DiscordConfiguration config)
-    {
-        var client = new DiscordClient(config);
-        
-        // Configure intents
-        config.Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContent;
-        
-        // Configure caching
-        config.MessageCacheSize = 1024;
-        
-        return client;
-    }
-}
-```
-
-## Factory Pattern
-
-Wrappers are typically created via factory:
-
-```csharp
-public class DiscordMessageWrapperFactory
-{
-    public IDiscordMessage CreateMessage(DiscordMessage message)
-    {
-        var channel = new DiscordChannelWrapper(message.Channel, _channelLogger);
-        var author = new DiscordUserWrapper(message.Author);
-        return new DiscordMessageWrapper(message, channel, author, _messageLogger);
-    }
-}
-```
-
-**Benefits:**
-- Consistent wrapper creation
-- Proper dependency injection
-- Nested wrapper creation
-- Centralized logic
-
-## Testing with Wrappers
-
-Wrappers make testing trivial:
-
-```csharp
-[Fact]
-public async Task PlayCommand_SendsMessage()
-{
-    // Arrange
-    var mockMessage = new Mock<IDiscordMessage>();
-    var mockChannel = new Mock<IDiscordChannel>();
-    mockMessage.Setup(m => m.Channel).Returns(mockChannel.Object);
-    
-    var command = new PlayCommand(...);
-
-    // Act
-    await command.ExecuteAsync(mockMessage.Object);
-
-    // Assert
-    mockChannel.Verify(c => c.SendMessageAsync(It.IsAny<string>()), Times.Once);
-}
-```
-
-Without wrappers, you'd need to:
-1. Create real Discord objects (impossible)
-2. Use reflection hacks
-3. Integration tests only (slow)
-
-## Exception Mapping
-
-Wrappers translate Discord exceptions to custom exceptions:
-
-```csharp
-public async Task SendMessageAsync(string message)
-{
-    try
-    {
-        await _channel.SendMessageAsync(message);
-    }
-    catch (NotFoundException ex)
-    {
-        throw new MessageSendException("Channel not found", ex);
-    }
-    catch (UnauthorizedException ex)
-    {
-        throw new MessageSendException("Missing permissions", ex);
-    }
-    catch (RateLimitException ex)
-    {
-        _logger.LogWarning("Rate limited, retrying...");
-        await Task.Delay(ex.RetryAfter);
-        await _channel.SendMessageAsync(message); // Retry
-    }
-}
-```
-
-## Logging
-
-Wrappers centralize logging:
-
-```csharp
-public class DiscordChannelWrapper
-{
-    private readonly ILogger<DiscordChannelWrapper> _logger;
-
-    public async Task SendMessageAsync(string message)
-    {
-        _logger.LogDebug("Sending message to channel {ChannelId}: {Message}", 
-            Id, message.Substring(0, Math.Min(50, message.Length)));
-        
-        await _channel.SendMessageAsync(message);
-        
-        _logger.LogInformation("Message sent to channel {ChannelId}", Id);
-    }
-}
-```
-
-## Null Handling
-
-Wrappers handle Discord's nullable types:
-
-```csharp
-public class DiscordMemberWrapper : IDiscordMember
-{
-    public IDiscordVoiceState? VoiceState 
-    {
-        get
-        {
-            var voiceState = _member.VoiceState;
-            if (voiceState == null) return null;
-            
-            return new DiscordVoiceStateWrapper(voiceState);
-        }
-    }
-}
-```
-
-## Performance Considerations
-
-Wrappers add minimal overhead:
-- **Memory:** One wrapper object per Discord object (~50 bytes)
-- **CPU:** Negligible (simple property access)
-- **I/O:** None (wrappers don't do I/O)
-
-Trade-off:
-- ❌ Slight memory overhead
-- ✅ Massive testability improvement
-- ✅ Cleaner architecture
-- ✅ Future-proof (library migration)
-
-## Migration Example
-
-If switching from DSharpPlus to Discord.Net:
-
-**Before:** 50+ files need changes  
-**After:** Only wrapper implementations need changes
-
-```csharp
-// DSharpPlus implementation
-public class DiscordChannelWrapper : IDiscordChannel
-{
-    private readonly DiscordChannel _channel; // DSharpPlus type
-    // ...
-}
-
-// Discord.Net implementation (only this file changes!)
-public class DiscordChannelWrapper : IDiscordChannel
-{
-    private readonly IMessageChannel _channel; // Discord.Net type
-    // ...
-}
-```
-
-## Best Practices
-
-- ✅ Always use interfaces (`IDiscordMessage`) in application code
-- ✅ Create wrappers via factory
-- ✅ Log important operations
-- ✅ Handle Discord exceptions in wrappers
-- ✅ Map exceptions to custom types
-- ✅ Keep wrappers thin (no business logic)
-- ❌ Don't expose DSharpPlus types in wrapper interfaces
-- ❌ Don't put business logic in wrappers
-- ❌ Don't bypass wrappers (use interfaces everywhere)
-
-## Related
-
-- **Interface/IDiscord*.cs** - Wrapper contracts
-- **Exceptions/** - Custom exception types
-- **Service/** - Wrapper consumers
+- **Interface/Discord/** - Wrapper contracts
+- **Service/** - Consumes wrappers
 - **Commands/** - Primary wrapper users
+- **Exceptions/** - Wrapped exceptions
 

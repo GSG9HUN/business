@@ -1,5 +1,6 @@
 using DC_bot.Helper;
 using DC_bot.Interface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Logging;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;

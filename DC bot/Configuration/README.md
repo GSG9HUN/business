@@ -1,193 +1,87 @@
 ﻿# Configuration
 
-This folder contains configuration models and settings classes.
+This folder contains application configuration models using the Options pattern.
 
-## What's here?
-
-Configuration classes that represent structured settings loaded from:
-- Environment variables
-- `.env` files
-- Command-line arguments
-
-These classes use the **Options Pattern** in ASP.NET Core for type-safe configuration.
-
-## Configuration Classes
+## Files
 
 ### BotSettings.cs
-Core bot configuration:
+
+**Purpose:** Bot Discord settings.
+
 ```csharp
 public sealed class BotSettings
 {
-    public string? Token { get; init; }      // Discord bot token
-    public string Prefix { get; init; }      // Command prefix (default: "!")
-}
-```
-
-**Usage:**
-```csharp
-services.Configure<BotSettings>(configuration.GetSection("Bot"));
-
-// Inject via IOptions<BotSettings>
-public class MyService(IOptions<BotSettings> botOptions)
-{
-    private readonly BotSettings _settings = botOptions.Value;
-    
-    public void DoSomething()
-    {
-        var token = _settings.Token;
-        var prefix = _settings.Prefix;
-    }
-}
-```
-
-### LavalinkSettings.cs
-Lavalink audio server configuration:
-```csharp
-public sealed class LavalinkSettings
-{
-    public string Hostname { get; init; }    // Lavalink server hostname
-    public int Port { get; init; }           // Lavalink server port
-    public string Password { get; init; }    // Lavalink server password
-}
-```
-
-**Usage:**
-```csharp
-services.Configure<LavalinkSettings>(configuration.GetSection("Lavalink"));
-
-// Automatically injected into Lavalink4NET services
-```
-
-## Configuration Sources
-
-### .env File
-```env
-BOT__TOKEN=your_discord_bot_token_here
-BOT__PREFIX=!
-LAVALINK__HOSTNAME=localhost
-LAVALINK__PORT=2333
-LAVALINK__PASSWORD=youshallnotpass
-```
-
-**Note:** Double underscore `__` represents nested configuration.
-
-### Environment Variables (Production)
-```bash
-export BOT__TOKEN="production_token"
-export LAVALINK__HOSTNAME="lavalink.example.com"
-export LAVALINK__PORT="2333"
-export LAVALINK__PASSWORD="secure_password"
-```
-
-## Loading Configuration
-
-Configuration is loaded in `Program.cs`:
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-// Load configuration from multiple sources
-builder.Configuration
-    .AddEnvironmentVariables()
-    .AddCommandLine(args);
-
-// Bind configuration to strongly-typed classes
-builder.Services.Configure<BotSettings>(
-    builder.Configuration.GetSection("Bot"));
-    
-builder.Services.Configure<LavalinkSettings>(
-    builder.Configuration.GetSection("Lavalink"));
-```
-
-## Configuration Priority (Highest to Lowest)
-
-1. **Command-line arguments** - `--Bot:Token=xyz`
-2. **Environment variables** - `BOT__TOKEN=xyz`
-3. **Default values** - Hardcoded in classes
-
-## Validation
-
-Configuration can be validated on startup:
-
-```csharp
-services.AddOptions<BotSettings>()
-    .Bind(configuration.GetSection("Bot"))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-// BotSettings.cs with validation
-public sealed class BotSettings
-{
-    [Required]
-    [MinLength(50)]
-    public string Token { get; init; } = string.Empty;
-    
-    [Required]
-    [RegularExpression(@"^[!@#$%^&*]$")]
+    public string? Token { get; init; }
     public string Prefix { get; init; } = "!";
 }
 ```
 
-## Security Best Practices
+**Properties:**
+- `Token` - Discord bot token (from environment or appsettings)
+- `Prefix` - Command prefix (default: `!`)
 
-- ✅ **Never** commit secrets to source control
-- ✅ Use `.env` files for local development (add to `.gitignore`)
-- ✅ Use environment variables in production
-- ✅ Use Azure Key Vault / AWS Secrets Manager for cloud deployments
-- ✅ Mark sensitive properties as `internal` or `private`
-- ❌ Don't log sensitive configuration values
-- ❌ Don't expose tokens in error messages
-
-## Example .gitignore
-
-```gitignore
-appsettings.Development.json
-appsettings.Production.json
-.env
-.env.local
-*.user
-appsettings.*.json
-!appsettings.json
-```
-
-## Adding New Configuration
-
-To add new configuration:
-
-1. **Create the class:**
+**Usage:**
 ```csharp
-public sealed class NewFeatureSettings
-{
-    public bool Enabled { get; init; }
-    public int MaxRetries { get; init; } = 3;
-}
+// In Program.cs
+var botSettings = configuration.GetSection("Bot").Get<BotSettings>();
+
+// In services
+var commandHandler = new CommandHandlerService(..., botSettings);
 ```
 
-2. **Register in Program.cs:**
-```csharp
-builder.Services.Configure<NewFeatureSettings>(
-    builder.Configuration.GetSection("NewFeature"));
-```
+---
 
-3. **Inject where needed:**
-```csharp
-public class MyService(IOptions<NewFeatureSettings> options)
-{
-    private readonly NewFeatureSettings _settings = options.Value;
-}
-```
+### LavalinkSettings.cs
 
-## Options Pattern Benefits
+**Purpose:** Lavalink audio server connection settings.
 
-- ✅ **Type safety** - Compile-time checking
-- ✅ **IntelliSense** - Auto-completion in IDE
-- ✅ **Validation** - Data annotations support
-- ✅ **Reloading** - `IOptionsSnapshot<T>` for hot reload
-- ✅ **Testing** - Easy to mock with `Options.Create()`
-- ✅ **Separation** - Different configs for different features
+**Properties:**
+- `Hostname` - Lavalink server host
+- `Port` - Lavalink server port
+- `Password` - Lavalink server password
 
-## Related
+---
 
-- **Program.cs** - Configuration loading and service registration
-- **.env** - Local development secrets (gitignored)
+### SearchResolverOptions.cs
+
+**Purpose:** Music search resolution options.
+
+**Properties:**
+- `DefaultQueryMode` - Default search mode (YouTube, Spotify, etc.)
+
+---
+
+## Configuration Sources
+
+Configuration can come from:
+
+1. **Environment Variables** (highest priority)
+   ```
+   BOT__TOKEN=your_token
+   BOT__PREFIX=!
+   LAVALINK__HOSTNAME=localhost
+   ```
+
+2. **appsettings.json**
+   ```json
+   {
+     "Bot": {
+       "Token": "your_token",
+       "Prefix": "!"
+     },
+     "Lavalink": {
+       "Hostname": "localhost",
+       "Port": 2333,
+       "Password": "youshallnotpass"
+     }
+   }
+   ```
+
+3. **.env file** (via environment variable binding)
+
+## Related Components
+
+- **Program.cs** - Configuration setup
+- **Service/** - Consumes configuration
+- **Interface/Service/** - Configuration injection
 

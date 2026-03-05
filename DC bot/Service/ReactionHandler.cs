@@ -1,7 +1,10 @@
 using DC_bot.Constants;
 using DC_bot.Exceptions;
-using DC_bot.Helper;
-using DC_bot.Interface;
+using DC_bot.Exceptions.Messaging;
+using DC_bot.Helper.Factory;
+using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus;
@@ -73,7 +76,7 @@ public class ReactionHandler(
         {
             if (args.User.IsBot) return;
 
-            var (member, discordMessageWrapper, guildId) = await BuildContextAsync(args.Message, args.User, args.Channel);
+            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
 
             logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
 
@@ -92,7 +95,7 @@ public class ReactionHandler(
                     break;
 
                 case "🔁": // Repeat emoji
-                    lavaLinkService.IsRepeating[guildId] = true;
+                    //lavaLinkService.IsRepeating[guildId] = true;
                     await args.Message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOn));
                     break;
             }
@@ -114,7 +117,7 @@ public class ReactionHandler(
         {
             if (args.User.IsBot) return;
 
-            var (member, discordMessageWrapper, guildId) = await BuildContextAsync(args.Message, args.User, args.Channel);
+            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
 
             logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
 
@@ -133,7 +136,7 @@ public class ReactionHandler(
                     break;
 
                 case "🔁": // Repeat emoji
-                    lavaLinkService.IsRepeating[guildId] = false;
+                    //lavaLinkService.IsRepeating[guildId] = false;
                     await args.Message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOff));
                     break;
             }

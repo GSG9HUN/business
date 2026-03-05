@@ -1,15 +1,22 @@
-﻿using DC_bot.Commands;
-using DC_bot.Commands.SlashCommands;
+﻿using DC_bot.Commands.Music;
+using DC_bot.Commands.Queue;
+using DC_bot.Commands.Utility;
 using DC_bot.Configuration;
-using DC_bot.Helper;
 using DC_bot.Interface;
+using DC_bot.Interface.Core;
+using DC_bot.Interface.Service.IO;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service;
-using DC_bot.Service.MusicServices;
+using DC_bot.Service.Core;
+using DC_bot.Service.Music;
+using DC_bot.Service.Music.MusicServices;
+using DC_bot.Service.Presentation;
 using DC_bot.Wrapper;
 using DotNetEnv;
 using DSharpPlus;
-using DSharpPlus.SlashCommands;
-using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -117,9 +124,15 @@ internal class Program
             .AddSingleton<ICommand, ViewQueueCommand>()
             .AddSingleton<ICommand, RepeatListCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
-            .AddSingleton<RepeatService>()
-            .AddSingleton<CurrentTrackService>()
-            .AddSingleton<TrackNotificationService>()
+            .AddSingleton<ICommandHelper, CommandValidationService>()
+            .AddSingleton<IRepeatService, RepeatService>()
+            .AddSingleton<ICurrentTrackService, CurrentTrackService>()
+            .AddSingleton<ITrackNotificationService, TrackNotificationService>()
+            .AddSingleton<ITrackFormatterService, TrackFormatterService>()
+            .AddSingleton<IPlayerConnectionService, PlayerConnectionService>()
+            .AddSingleton<IPlaybackEventHandlerService, PlaybackEventHandlerService>()
+            .AddSingleton<ITrackPlaybackService, TrackPlaybackService>()
+            .AddSingleton<ITrackEndedHandlerService, TrackEndedHandlerService>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService, MusicQueueService>()
             .AddSingleton<IValidationService, ValidationService>()

@@ -1,3 +1,5 @@
+using DC_bot.Interface.Discord;
+
 namespace DC_bot.Interface;
 
 public interface ICommand
