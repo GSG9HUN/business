@@ -24,8 +24,10 @@ public class CommandHandlerService
     private bool _isRegistered;
 
 
-    public CommandHandlerService(IServiceProvider services, ILogger<CommandHandlerService> logger,
-        ILocalizationService localizationService, BotSettings botSettings, bool isTestMode = false)
+    public CommandHandlerService(IServiceProvider services, 
+        ILogger<CommandHandlerService> logger,
+        ILocalizationService localizationService, 
+        BotSettings botSettings, bool isTestMode = false)
     {
         _logger = logger;
         _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);

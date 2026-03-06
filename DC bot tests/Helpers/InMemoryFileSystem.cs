@@ -1,5 +1,4 @@
-﻿using DC_bot.Interface;
-using DC_bot.Interface.Service.IO;
+﻿using DC_bot.Interface.Service.IO;
 
 namespace DC_bot_tests.Helpers;
 
@@ -34,4 +33,3 @@ public sealed class InMemoryFileSystem : IFileSystem
 
     private static string Normalize(string path) => path.Replace('\\', '/');
 }
-

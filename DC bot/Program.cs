@@ -50,7 +50,7 @@ internal class Program
         var botSettings = new BotSettings
         {
             Token = GetEnv("DISCORD_TOKEN"),
-            Prefix = GetEnv("BOT_PREFIX") ?? "!"
+            Prefix = GetEnv("BOT_PREFIX")
         };
 
         if (string.IsNullOrWhiteSpace(botSettings.Token))

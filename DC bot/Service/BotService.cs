@@ -1,27 +1,19 @@
 using DC_bot.Logging;
 using DSharpPlus;
-using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service;
 
-public class BotService
+public class BotService(DiscordClient client, ILogger<BotService>? logger = null)
 {
-    private readonly DiscordClient _client;
-    private readonly ILogger<BotService> _logger;
-
-    public BotService(DiscordClient client, ILogger<BotService>? logger = null)
-    {
-        _client = client;
-        _logger = logger ?? NullLogger<BotService>.Instance;
-    }
+    private readonly ILogger<BotService> _logger = logger ?? NullLogger<BotService>.Instance;
 
     public async Task StartAsync(bool isTestEnvironment = false)
     {
         try
         {
-            await _client.ConnectAsync();
+            await client.ConnectAsync();
         }
         catch (Exception ex)
         {

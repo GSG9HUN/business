@@ -1,7 +1,5 @@
 using DC_bot.Constants;
-using DC_bot.Exceptions;
 using DC_bot.Exceptions.Music;
-using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;

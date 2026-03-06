@@ -1,0 +1,71 @@
+﻿using DC_bot.Interface;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Service.Music.MusicServices;
+using Moq;
+
+namespace DC_bot_tests.UnitTests.Service.Music;
+
+public class TrackFormatterServiceTests
+{
+    [Fact]
+    public void FormatCurrentTrack_DelegatesToCurrentTrackService()
+    {
+        var current = new Mock<ICurrentTrackService>();
+        var queue = new Mock<IMusicQueueService>();
+        const ulong guildId = 21;
+        current.Setup(x => x.GetCurrentTrackFormatted(guildId)).Returns("A T");
+
+        var service = new TrackFormatterService(current.Object, queue.Object);
+
+        var result = service.FormatCurrentTrack(guildId);
+
+        Assert.Equal("A T", result);
+    }
+
+    [Fact]
+    public void FormatCurrentTrackList_WithCurrentAndQueue_ReturnsCombinedLines()
+    {
+        var current = new Mock<ICurrentTrackService>();
+        var queue = new Mock<IMusicQueueService>();
+        const ulong guildId = 22;
+
+        current.Setup(x => x.GetCurrentTrack(guildId))
+            .Returns(new Lavalink4NET.Tracks.LavalinkTrack { Author = "CurA", Title = "CurT", Identifier = "id0" });
+
+        var t1 = new Mock<ILavaLinkTrack>();
+        t1.SetupGet(x => x.Author).Returns("Q1A");
+        t1.SetupGet(x => x.Title).Returns("Q1T");
+        var t2 = new Mock<ILavaLinkTrack>();
+        t2.SetupGet(x => x.Author).Returns("Q2A");
+        t2.SetupGet(x => x.Title).Returns("Q2T");
+
+        queue.Setup(x => x.ViewQueue(guildId)).Returns(new[] { t1.Object, t2.Object });
+
+        var service = new TrackFormatterService(current.Object, queue.Object);
+
+        var result = service.FormatCurrentTrackList(guildId);
+
+        Assert.Equal("CurA CurT\nQ1A Q1T\nQ2A Q2T\n", result);
+    }
+
+    [Fact]
+    public void FormatCurrentTrackList_WithoutCurrentTrack_ReturnsQueueOnly()
+    {
+        var current = new Mock<ICurrentTrackService>();
+        var queue = new Mock<IMusicQueueService>();
+        const ulong guildId = 23;
+
+        current.Setup(x => x.GetCurrentTrack(guildId)).Returns((Lavalink4NET.Tracks.LavalinkTrack?)null);
+
+        var t1 = new Mock<ILavaLinkTrack>();
+        t1.SetupGet(x => x.Author).Returns("Q1A");
+        t1.SetupGet(x => x.Title).Returns("Q1T");
+        queue.Setup(x => x.ViewQueue(guildId)).Returns(new[] { t1.Object });
+
+        var service = new TrackFormatterService(current.Object, queue.Object);
+
+        var result = service.FormatCurrentTrackList(guildId);
+
+        Assert.Equal("Q1A Q1T\n", result);
+    }
+}
