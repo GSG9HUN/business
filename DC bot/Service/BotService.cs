@@ -1,15 +1,25 @@
-using DC_bot.Wrapper;
+using DC_bot.Logging;
 using DSharpPlus;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service;
 
-public class BotService
+public class BotService(DiscordClient client, ILogger<BotService>? logger = null)
 {
-    private readonly DiscordClient _client = SingletonDiscordClient.Instance;
+    private readonly ILogger<BotService> _logger = logger ?? NullLogger<BotService>.Instance;
 
     public async Task StartAsync(bool isTestEnvironment = false)
     {
-        await _client.ConnectAsync();
+        try
+        {
+            await client.ConnectAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LavalinkOperationFailed(ex, "DiscordClient.ConnectAsync");
+            throw;
+        }
 
         if (!isTestEnvironment)
         {

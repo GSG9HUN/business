@@ -1,7 +1,6 @@
 using DC_bot.Interface;
-using DC_bot.Service;
-using DSharpPlus;
-using DSharpPlus.Entities;
+using DC_bot.Logging;
+using DC_bot.Helper;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
 
@@ -9,21 +8,23 @@ namespace DC_bot.Commands.SlashCommands;
 
 public abstract class HelpSlashCommand : ApplicationCommandModule
 {
-    private readonly ILogger<PlaySlashCommand> _logger = ServiceLocator.GetService<ILogger<PlaySlashCommand>>();
+    private const string CommandNameHelp = "help";
+    
+    // Property injection supported by DSharpPlus SlashCommands
+    public ILogger<PlaySlashCommand> Logger { private get; set; } = null!;
+    public IEnumerable<ICommand> Commands { private get; set; } = null!;
 
     [SlashCommand("help", "List the available commands")]
     public async Task Help(InteractionContext ctx)
     {
-        _logger.LogInformation("Help slash command invoked!");
-        await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+        Logger.CommandInvoked(CommandNameHelp);
+        //await SlashCommandResponseHelper.DeferAsync(ctx);
 
-        var commands = ServiceLocator.GetServices<ICommand>();
-        var response = commands.Aggregate(String.Empty,
+        var response = Commands.Aggregate(String.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
-        await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-            .WithContent($"Available commands:\n{response}"));
+        //await SlashCommandResponseHelper.EditResponseAsync(ctx, $"Available commands:\n{response}");
 
-        _logger.LogInformation("Help Command executed!");
+        Logger.CommandExecuted(CommandNameHelp);
     }
 }
