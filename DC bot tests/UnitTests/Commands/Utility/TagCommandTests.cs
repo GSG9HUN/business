@@ -22,15 +22,15 @@ public class TagCommandTests
     private const string TagCommandDescriptionSetupValue = "You can tag someone.";
     private const string TagCommandResponseValue = "Tagged: TestUser";
     private const string TagCommandUserNotFoundValue = "User test not found.";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
 
     private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly TagCommand _tagCommand;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
 
     public TagCommandTests()
     {
@@ -57,14 +57,13 @@ public class TagCommandTests
             .Setup(h => h.TryGetArgumentAsync(
                 It.IsAny<IDiscordMessage>(),
                 It.IsAny<IResponseBuilder>(),
-                It.IsAny<Microsoft.Extensions.Logging.ILogger>(),
+                It.IsAny<ILogger>(),
                 It.IsAny<string>()))
-            .Returns<IDiscordMessage, IResponseBuilder, Microsoft.Extensions.Logging.ILogger, string>(
-                (msg, _, _, _) =>
-                {
-                    var parts = (msg.Content ?? string.Empty).Split(" ", 2);
-                    return Task.FromResult(parts.Length < 2 ? (string?)null : parts[1].Trim());
-                });
+            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>((msg, _, _, _) =>
+            {
+                var parts = (msg.Content ?? string.Empty).Split(" ", 2);
+                return Task.FromResult(parts.Length < 2 ? null : parts[1].Trim());
+            });
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _tagCommand = new TagCommand(userValidationService, logger.Object, _responseBuilderMock.Object,
@@ -109,7 +108,8 @@ public class TagCommandTests
 
         //Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-            $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"), Times.Once);
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+            Times.Once);
     }
 
     [Fact]
@@ -133,7 +133,10 @@ public class TagCommandTests
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower)}"), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower)}"),
+            Times.Once);
     }
 
     [Fact]

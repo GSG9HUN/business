@@ -16,9 +16,10 @@ public class PlayerConnectionService(
     IResponseBuilder responseBuilder,
     ILogger<PlayerConnectionService> logger) : IPlayerConnectionService
 {
-    public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryJoinAndValidateAsync(
-        IDiscordMessage message,
-        IDiscordChannel? channel)
+    public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
+        TryJoinAndValidateAsync(
+            IDiscordMessage message,
+            IDiscordChannel? channel)
     {
         if (channel is null)
         {
@@ -59,31 +60,32 @@ public class PlayerConnectionService(
             var validationConnectionResult =
                 await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-            if (validationConnectionResult.IsValid)
-            {
-                return (connection, channel, guildId, true);
-            }
+            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
 
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
         }
         catch (HttpRequestException httpEx) when (httpEx.Message.Contains("400"))
         {
-            logger.LogError(httpEx, "Lavalink 400 Bad Request when joining voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId, channel.Id);
+            logger.LogError(httpEx,
+                "Lavalink 400 Bad Request when joining voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId,
+                channel.Id);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to join voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId, channel.Id);
+            logger.LogError(ex, "Failed to join voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId,
+                channel.Id);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
     }
 
-    public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryGetAndValidateExistingPlayerAsync(
-        IDiscordMessage message,
-        IDiscordChannel? channel)
+    public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
+        TryGetAndValidateExistingPlayerAsync(
+            IDiscordMessage message,
+            IDiscordChannel? channel)
     {
         if (channel is null)
         {
@@ -113,10 +115,7 @@ public class PlayerConnectionService(
             var validationConnectionResult =
                 await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-            if (validationConnectionResult.IsValid)
-            {
-                return (connection, channel, guildId, true);
-            }
+            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
 
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
@@ -129,4 +128,3 @@ public class PlayerConnectionService(
         }
     }
 }
-

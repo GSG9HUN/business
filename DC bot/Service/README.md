@@ -4,7 +4,8 @@ This folder contains the business logic layer of the application.
 
 ## Overview
 
-Services implement core business logic separated from presentation (commands) and data access. Services delegate to external dependencies and other services.
+Services implement core business logic separated from presentation (commands) and data access. Services delegate to
+external dependencies and other services.
 
 ## Root Files
 
@@ -13,9 +14,11 @@ Services implement core business logic separated from presentation (commands) an
 **Purpose:** Bot lifecycle management.
 
 **Methods:**
+
 - `StartAsync()` - Connect Discord client and run bot
 
 **Usage:**
+
 ```csharp
 var botService = new BotService(discordClient, logger);
 await botService.StartAsync();
@@ -30,6 +33,7 @@ await botService.StartAsync();
 **Implements:** `ILocalizationService`
 
 **Methods:**
+
 - `Get()` - Retrieve localized string by key
 - `LoadLanguage()` - Load language for guild
 - `SaveLanguage()` - Save guild's language preference
@@ -41,10 +45,12 @@ await botService.StartAsync();
 **Purpose:** Handle Discord message reactions for music control.
 
 **Methods:**
+
 - `RegisterHandler()` - Register reaction event handlers
 - `SendReactionControlMessage()` - Send control panel with reactions
 
 **Features:**
+
 - Listens to message reactions
 - Sends reaction control messages for music playback
 - Integrates with `ILavaLinkService` events
@@ -54,9 +60,11 @@ await botService.StartAsync();
 ## Subfolders
 
 ### Core/
+
 Core orchestration services.
 
 **Services:**
+
 - `CommandHandlerService.cs` - Route messages to commands
 - `CommandValidationService.cs` - Command validation logic
 - `ValidationService.cs` - User, player, and connection validation
@@ -64,9 +72,11 @@ Core orchestration services.
 ---
 
 ### Music/
+
 Music playback and queue services.
 
 **Main Services:**
+
 - `LavaLinkService.cs` - Lavalink audio server orchestration
 - `TrackSearchResolverService.cs` - URL/query resolution
 
@@ -75,9 +85,11 @@ Music playback and queue services.
 ---
 
 ### Presentation/
+
 Response and communication services.
 
 **Services:**
+
 - `ResponseBuilder.cs` - Discord message responses
 
 ---

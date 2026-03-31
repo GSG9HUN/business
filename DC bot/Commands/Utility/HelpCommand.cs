@@ -23,11 +23,8 @@ public class HelpCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
-        {
-            return;
-        }
-        
+        if (userValidation.IsBotUser(message)) return;
+
         var commands = serviceProvider.GetServices<ICommand>();
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");

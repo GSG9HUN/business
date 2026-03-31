@@ -4,13 +4,15 @@ This folder contains validation result models used by validation services.
 
 ## Overview
 
-Result models represent validation outcomes **without using exceptions**. These are returned by `ValidationService` and consumed by commands.
+Result models represent validation outcomes **without using exceptions**. These are returned by `ValidationService` and
+consumed by commands.
 
 ## Files
 
 ### ConnectionValidationResult.cs
 
 **Definition:**
+
 ```csharp
 public class ConnectionValidationResult(bool isValid, string errorKey, ILavalinkPlayer? connection)
 {
@@ -23,11 +25,13 @@ public class ConnectionValidationResult(bool isValid, string errorKey, ILavalink
 **Purpose:** Represents the result of validating a Lavalink player connection.
 
 **Properties:**
+
 - `IsValid` - Whether the connection is valid
 - `ErrorKey` - Localization key for error message (if invalid)
 - `Connection` - The validated connection (if valid)
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidateConnectionAsync(player);
 if (!result.IsValid)
@@ -40,6 +44,7 @@ if (!result.IsValid)
 ```
 
 **Used By:**
+
 - `Service/Core/ValidationService.cs` - Returns this result
 - Music commands - Consume this result
 
@@ -48,6 +53,7 @@ if (!result.IsValid)
 ### PlayerValidationResult.cs
 
 **Definition:**
+
 ```csharp
 public class PlayerValidationResult(bool isValid, string errorKey, ILavalinkPlayer? player)
 {
@@ -60,11 +66,13 @@ public class PlayerValidationResult(bool isValid, string errorKey, ILavalinkPlay
 **Purpose:** Represents the result of validating a Lavalink player exists.
 
 **Properties:**
+
 - `IsValid` - Whether the player is valid
 - `ErrorKey` - Localization key for error message (if invalid)
 - `Player` - The validated player (if valid)
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidatePlayerAsync(audioService, guildId);
 if (!result.IsValid)
@@ -78,6 +86,7 @@ await player.PauseAsync();
 ```
 
 **Used By:**
+
 - `Service/Core/ValidationService.cs` - Returns this result
 - Music commands - Consume this result
 
@@ -86,6 +95,7 @@ await player.PauseAsync();
 ### UserValidationResult.cs
 
 **Definition:**
+
 ```csharp
 public class UserValidationResult(bool isValid, string errorKey, IDiscordMember? member = null)
 {
@@ -98,11 +108,13 @@ public class UserValidationResult(bool isValid, string errorKey, IDiscordMember?
 **Purpose:** Represents the result of validating a Discord user for command execution.
 
 **Properties:**
+
 - `IsValid` - Whether the user is valid
 - `ErrorKey` - Localization key for error message (if invalid)
 - `Member` - The Discord member (if valid)
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidateUserAsync(message);
 if (!result.IsValid)
@@ -115,11 +127,13 @@ var voiceChannel = result.Member?.VoiceState?.Channel;
 ```
 
 **Validation Checks:**
+
 - User is not a bot
 - User is in a voice channel
 - User is in the same voice channel as bot (if bot is connected)
 
 **Used By:**
+
 - `Service/Core/ValidationService.cs` - Returns this result
 - All commands - Validate user before execution
 
@@ -128,6 +142,7 @@ var voiceChannel = result.Member?.VoiceState?.Channel;
 ## Why Result Objects Instead of Exceptions?
 
 ### Advantages:
+
 - **Expected outcomes** - Validation failures are expected, not exceptional
 - **Performance** - No exception overhead
 - **Control flow** - Explicit handling without try-catch
@@ -136,6 +151,7 @@ var voiceChannel = result.Member?.VoiceState?.Channel;
 ### Comparison:
 
 **With Exceptions (❌ Not used):**
+
 ```csharp
 try
 {
@@ -149,6 +165,7 @@ catch (ValidationException ex)
 ```
 
 **With Result Objects (✅ Current approach):**
+
 ```csharp
 var result = await validationService.ValidateUserAsync(message);
 if (!result.IsValid)

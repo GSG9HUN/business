@@ -1,5 +1,6 @@
 using DC_bot.Commands.Music;
 using DC_bot.Constants;
+using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -16,16 +17,16 @@ public class ResumeCommandTests
     private const string ResumeCommandName = "resume";
     private const string ResumeCommandDescriptionValue = "Resume the paused song.";
     private const string ResumeCommandResponseValue = "Music resumed:";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
 
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly ResumeCommand _resumeCommand;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
 
     public ResumeCommandTests()
     {
@@ -49,11 +50,12 @@ public class ResumeCommandTests
         _commandHelperMock = new Mock<ICommandHelper>();
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
-        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object, 
-            userValidationService, 
-            loggerMock.Object, 
+        _resumeCommand = new ResumeCommand(_lavaLinkServiceMock.Object,
+            userValidationService,
+            loggerMock.Object,
             _responseBuilderMock.Object, localizationServiceMock.Object, _commandHelperMock.Object);
     }
+
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
@@ -65,15 +67,17 @@ public class ResumeCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
 
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -87,15 +91,19 @@ public class ResumeCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Never);
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -113,14 +121,16 @@ public class ResumeCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync(new DC_bot.Helper.Validation.UserValidationResult(true, string.Empty, _discordMemberMock.Object));
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
         //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Once);
     }
 
     [Fact]

@@ -141,9 +141,9 @@ public class DiscordClientFactoryTests
         var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => 
+        var exception = Assert.Throws<Exception>(() =>
             DiscordClientFactory.Create(settings, eventHandler));
-        
+
         Assert.Equal("DISCORD_TOKEN is not set.", exception.Message);
     }
 
@@ -159,7 +159,7 @@ public class DiscordClientFactoryTests
         // Act & Assert
         try
         {
-           DiscordClientFactory.Create(settings, eventHandler);
+            DiscordClientFactory.Create(settings, eventHandler);
         }
         catch (ArgumentNullException e)
         {
@@ -179,7 +179,7 @@ public class DiscordClientFactoryTests
         // Act & Assert
         try
         {
-           DiscordClientFactory.Create(settings, eventHandler);
+            DiscordClientFactory.Create(settings, eventHandler);
         }
         catch (ArgumentNullException e)
         {

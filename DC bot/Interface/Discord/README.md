@@ -5,6 +5,7 @@ This folder contains Discord abstraction interfaces.
 ## Overview
 
 These interfaces abstract the DSharpPlus library, making the code:
+
 - Easier to test (mockable)
 - Less coupled to DSharpPlus
 - Portable to other Discord libraries

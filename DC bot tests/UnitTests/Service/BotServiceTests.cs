@@ -167,13 +167,13 @@ public class BotServiceTests
         var service = new BotService(client, mockLogger.Object);
 
         // Act
-        var task = service.StartAsync(isTestEnvironment: true);
+        var task = service.StartAsync(true);
 
         // Give it a short time to try to connect (will fail with fake token, but that's expected)
         var completedTask = await Task.WhenAny(task, Task.Delay(5000));
 
         // Assert - should either complete quickly or throw (not hang)
-        Assert.True(completedTask == task || task.IsFaulted, 
+        Assert.True(completedTask == task || task.IsFaulted,
             "StartAsync with isTestEnvironment=true should return quickly or throw, not hang indefinitely");
     }
 
@@ -195,7 +195,7 @@ public class BotServiceTests
 
         // Act
         var cts = new CancellationTokenSource(2000); // 2 second timeout
-        var task = service.StartAsync(isTestEnvironment: false);
+        var task = service.StartAsync(false);
 
         // Wait for either completion or timeout
         var completedTask = await Task.WhenAny(task, Task.Delay(2000, cts.Token));
@@ -204,11 +204,9 @@ public class BotServiceTests
         // Since we can't actually test infinite wait, we verify it doesn't complete quickly
         // Note: This will likely throw due to fake token, which is fine - we're testing the delay logic
         if (task.IsCompleted && !task.IsFaulted)
-        {
-            Assert.True(completedTask != task, 
+            Assert.True(completedTask != task,
                 "StartAsync with isTestEnvironment=false should not complete quickly (should wait indefinitely after connect)");
-        }
-        
+
         cts.Cancel();
     }
 
@@ -229,8 +227,8 @@ public class BotServiceTests
         var service = new BotService(client, mockLogger.Object);
 
         // Act & Assert
-        await Assert.ThrowsAnyAsync<Exception>(async () => 
-            await service.StartAsync(isTestEnvironment: true));
+        await Assert.ThrowsAnyAsync<Exception>(async () =>
+            await service.StartAsync(true));
 
         // Verify logger was called with error
         mockLogger.Verify(
@@ -261,9 +259,9 @@ public class BotServiceTests
         // Act & Assert
         // With invalid token, ConnectAsync will throw
         // This verifies that StartAsync attempts to call ConnectAsync
-        await Assert.ThrowsAnyAsync<Exception>(async () => 
-            await service.StartAsync(isTestEnvironment: true));
-        
+        await Assert.ThrowsAnyAsync<Exception>(async () =>
+            await service.StartAsync(true));
+
         // The fact that an exception was thrown from ConnectAsync proves it was called
     }
 }

@@ -11,6 +11,7 @@ This folder contains services for building and sending Discord responses.
 **Implements:** `IResponseBuilder`
 
 **Methods:**
+
 - `SendValidationErrorAsync()` - Send localized validation error
 - `SendUsageAsync()` - Send command usage instructions
 - `SendSuccessAsync()` - Send success message
@@ -18,9 +19,11 @@ This folder contains services for building and sending Discord responses.
 - `SendCommandErrorResponse()` - Send command error message
 
 **Internal Method:**
+
 - `SafeRespondAsync()` - Send message with error handling
 
 **Usage:**
+
 ```csharp
 // Validation error
 if (!result.IsValid)
@@ -37,12 +40,14 @@ await responseBuilder.SendCommandResponseAsync(message, "play");
 ```
 
 **Features:**
+
 - Automatic localization lookup
 - Error handling with try-catch
 - Consistent formatting
 - Wrapped `IDiscordMessage` usage
 
 **Localization Integration:**
+
 ```csharp
 // Retrieves from localization service
 localization.Get(errorKey)

@@ -12,6 +12,33 @@ namespace DC_bot.Service.Core;
 public class ValidationService(ILogger<ValidationService> logger, bool isTestMod = false)
     : IValidationService, IUserValidationService
 {
+    public async Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message)
+    {
+        if (IsBotUser(message))
+        {
+            logger.ValidationUserIsBot();
+            return new UserValidationResult(false, string.Empty);
+        }
+
+        var user = message.Author;
+        var member = await message.Channel.Guild.GetMemberAsync(user.Id);
+
+        var voiceState = member.VoiceState;
+
+        if (voiceState?.Channel is null)
+        {
+            logger.ValidationUserNotInVoiceChannel();
+            return new UserValidationResult(false, ValidationErrorKeys.UserNotInVoiceChannel, member);
+        }
+
+        return new UserValidationResult(true, string.Empty, member);
+    }
+
+    public bool IsBotUser(IDiscordMessage message)
+    {
+        return message.Author.IsBot && !isTestMod;
+    }
+
     public async Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId)
     {
         var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
@@ -29,32 +56,5 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
 
         logger.ValidationBotNotConnected();
         return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
-    }
-
-    public async Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message)
-    {
-        if (IsBotUser(message))
-        {
-            logger.ValidationUserIsBot();
-            return new UserValidationResult(false, string.Empty);
-        }
-
-        var user = message.Author;
-        var member = await message.Channel.Guild.GetMemberAsync(user.Id);
-        
-        var voiceState = member.VoiceState;
-        
-        if (voiceState?.Channel is null)
-        {
-            logger.ValidationUserNotInVoiceChannel();
-            return new UserValidationResult(false, ValidationErrorKeys.UserNotInVoiceChannel, member);
-        }
-
-        return new UserValidationResult(true, string.Empty, member);
-    }
-
-    public bool IsBotUser(IDiscordMessage message)
-    {
-        return message.Author.IsBot && !isTestMod;
     }
 }

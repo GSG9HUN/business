@@ -9,6 +9,7 @@ This folder contains data model classes.
 **Purpose:** Persist music tracks to disk.
 
 **Definition:**
+
 ```csharp
 public class SerializedTrack
 {
@@ -20,6 +21,7 @@ public class SerializedTrack
 ```
 
 **Usage:**
+
 ```csharp
 // In MusicQueueService
 var serialized = new SerializedTrack
@@ -36,6 +38,7 @@ await fileSystem.WriteAllText(filePath, json);
 ```
 
 **Persistence:**
+
 - Stored in `guildFiles/queues/{guildId}.json`
 - Allows queue restoration on bot restart
 - Contains only essential track information

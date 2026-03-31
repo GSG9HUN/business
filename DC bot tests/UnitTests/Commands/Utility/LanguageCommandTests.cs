@@ -19,13 +19,13 @@ public class LanguageCommandTests
     private const string LanguageCodeHu = "hu";
     private const ulong TestGuildId = 123456UL;
     private const ulong TestUserId = 111112UL;
-
-    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly LanguageCommand _languageCommand;
-    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly Mock<ILocalizationService> _localizationServiceMock;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
+
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
 
     public LanguageCommandTests()
     {
@@ -49,15 +49,13 @@ public class LanguageCommandTests
                 It.IsAny<IResponseBuilder>(),
                 It.IsAny<ILogger>(),
                 It.IsAny<string>()))
-            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(
-                async (msg, rb, _, commandName) =>
-                {
-                    var parts = msg.Content.Split(" ", 2);
-                    if (parts.Length >= 2) return parts[1].Trim();
-                    await rb.SendUsageAsync(msg, commandName);
-                    return null;
-
-                });
+            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(async (msg, rb, _, commandName) =>
+            {
+                var parts = msg.Content.Split(" ", 2);
+                if (parts.Length >= 2) return parts[1].Trim();
+                await rb.SendUsageAsync(msg, commandName);
+                return null;
+            });
 
         _messageMock.Setup(m => m.Channel).Returns(channelMock.Object);
         channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
@@ -104,7 +102,8 @@ public class LanguageCommandTests
 
         // Assert
         _localizationServiceMock.Verify(l => l.SaveLanguage(TestGuildId, LanguageCodeHu), Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, LanguageCommandName), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, LanguageCommandName),
+            Times.Once);
     }
 
     [Fact]
@@ -130,8 +129,10 @@ public class LanguageCommandTests
 
         // Assert
         _localizationServiceMock.Verify(l => l.SaveLanguage(It.IsAny<ulong>(), It.IsAny<string>()), Times.Never);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
-        _responseBuilderMock.Verify(r => r.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
+        _responseBuilderMock.Verify(r => r.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     // TODO: ExecuteAsync_Should_Error_WhenInvalidLanguageProvided: érvénytelen nyelvkód (pl. "huen", "asder") ->

@@ -8,9 +8,9 @@ namespace DC_bot_tests.UnitTests.Service.Presentation;
 
 public class ResponseBuilderTests
 {
-    private readonly ResponseBuilder _responseBuilder;
     private readonly Mock<ILocalizationService> _mockLocalizationService;
     private readonly Mock<IDiscordMessage> _mockMessage;
+    private readonly ResponseBuilder _responseBuilder;
 
     public ResponseBuilderTests()
     {
@@ -18,6 +18,53 @@ public class ResponseBuilderTests
         _responseBuilder = new ResponseBuilder(_mockLocalizationService.Object, NullLogger<ResponseBuilder>.Instance);
         _mockMessage = new Mock<IDiscordMessage>();
     }
+
+    #region Exception Handling Tests
+
+    [Fact]
+    public async Task ResponseBuilder_MessageRespondThrows_DoesNotThrowException()
+    {
+        // Arrange
+        const string commandName = "test";
+
+        _mockLocalizationService
+            .Setup(x => x.Get(It.IsAny<string>()))
+            .Returns("Test message");
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("Discord API error"));
+
+        // Act & Assert - Should not throw
+        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, commandName);
+    }
+
+    #endregion
+
+    #region Integration Tests
+
+    [Fact]
+    public async Task ResponseBuilder_SendMultipleResponses_SendsAllMessages()
+    {
+        // Arrange
+        _mockLocalizationService
+            .Setup(x => x.Get(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] _) => $"Message for {key}");
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _responseBuilder.SendValidationErrorAsync(_mockMessage.Object, "error1");
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, "Success!");
+        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, "test");
+
+        // Assert
+        _mockMessage.Verify(x => x.RespondAsync(It.IsAny<string>()), Times.Exactly(3));
+    }
+
+    #endregion
 
     #region SendValidationErrorAsync Tests
 
@@ -125,11 +172,9 @@ public class ResponseBuilderTests
         var commands = new[] { "pause", "skip", "resume" };
 
         foreach (var cmd in commands)
-        {
             _mockLocalizationService
                 .Setup(x => x.Get($"{cmd}_command_usage"))
                 .Returns($"Usage: !{cmd}");
-        }
 
         // Act & Assert
         foreach (var cmd in commands)
@@ -295,53 +340,6 @@ public class ResponseBuilderTests
 
         // Assert
         _mockLocalizationService.Verify(x => x.Get(expectedKey), Times.Once);
-    }
-
-    #endregion
-
-    #region Exception Handling Tests
-
-    [Fact]
-    public async Task ResponseBuilder_MessageRespondThrows_DoesNotThrowException()
-    {
-        // Arrange
-        const string commandName = "test";
-
-        _mockLocalizationService
-            .Setup(x => x.Get(It.IsAny<string>()))
-            .Returns("Test message");
-
-        _mockMessage
-            .Setup(x => x.RespondAsync(It.IsAny<string>()))
-            .ThrowsAsync(new InvalidOperationException("Discord API error"));
-
-        // Act & Assert - Should not throw
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, commandName);
-    }
-
-    #endregion
-
-    #region Integration Tests
-
-    [Fact]
-    public async Task ResponseBuilder_SendMultipleResponses_SendsAllMessages()
-    {
-        // Arrange
-        _mockLocalizationService
-            .Setup(x => x.Get(It.IsAny<string>(), It.IsAny<object[]>()))
-            .Returns((string key, object[] _) => $"Message for {key}");
-
-        _mockMessage
-            .Setup(x => x.RespondAsync(It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        await _responseBuilder.SendValidationErrorAsync(_mockMessage.Object, "error1");
-        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, "Success!");
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, "test");
-
-        // Assert
-        _mockMessage.Verify(x => x.RespondAsync(It.IsAny<string>()), Times.Exactly(3));
     }
 
     #endregion

@@ -15,16 +15,19 @@ namespace DC_bot_tests.UnitTests.Commands.Music;
 public class JoinCommandTests
 {
     private const string JoinCommandName = "join";
-    private const string JoinCommandDescriptionValue = "The bot join to your voice channel and start playing queue music if its exists.";
+
+    private const string JoinCommandDescriptionValue =
+        "The bot join to your voice channel and start playing queue music if its exists.";
+
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly JoinCommand _joinCommand;
 
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly JoinCommand _joinCommand;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
 
     public JoinCommandTests()
     {
@@ -42,12 +45,13 @@ public class JoinCommandTests
         _channelMock = new Mock<IDiscordChannel>();
         _lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var joinCommandLoggerMock = new Mock<ILogger<JoinCommand>>();
-       
+
         _commandHelperMock = new Mock<ICommandHelper>();
         var responseBuilderMock = new Mock<IResponseBuilder>();
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _joinCommand = new JoinCommand(_lavaLinkServiceMock.Object, userValidationService,
-            joinCommandLoggerMock.Object, responseBuilderMock.Object, localizationServiceMock.Object, _commandHelperMock.Object);
+            joinCommandLoggerMock.Object, responseBuilderMock.Object, localizationServiceMock.Object,
+            _commandHelperMock.Object);
     }
 
     [Fact]
@@ -72,7 +76,8 @@ public class JoinCommandTests
 
         // Assert
         _lavaLinkServiceMock.Verify(
-            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(), It.IsAny<IDiscordMember>()),
+            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
+                It.IsAny<IDiscordMember>()),
             Times.Never);
     }
 
@@ -99,7 +104,8 @@ public class JoinCommandTests
 
         // Assert
         _lavaLinkServiceMock.Verify(
-            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(), It.IsAny<IDiscordMember>()),
+            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
+                It.IsAny<IDiscordMember>()),
             Times.Never);
     }
 
@@ -129,7 +135,8 @@ public class JoinCommandTests
 
         // Assert
         _lavaLinkServiceMock.Verify(
-            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(), It.IsAny<IDiscordMember>()),
+            l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
+                It.IsAny<IDiscordMember>()),
             Times.Once);
     }
 

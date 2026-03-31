@@ -9,6 +9,7 @@ This folder contains language translation files.
 **Language:** English (default)
 
 **Format:**
+
 ```json
 {
   "clear_command_description": "Clear all queued tracks",

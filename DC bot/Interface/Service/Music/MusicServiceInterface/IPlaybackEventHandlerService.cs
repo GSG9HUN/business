@@ -8,4 +8,3 @@ public interface IPlaybackEventHandlerService
     void RegisterPlaybackFinishedHandler(ulong guildId, ILavalinkPlayer connection, IDiscordChannel textChannel);
     Task CleanupGuildAsync(ulong guildId);
 }
-

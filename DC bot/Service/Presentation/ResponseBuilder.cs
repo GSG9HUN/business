@@ -7,16 +7,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service.Presentation;
 
-public class ResponseBuilder(ILocalizationService localization, ILogger<ResponseBuilder>? logger = null) : IResponseBuilder
+public class ResponseBuilder(ILocalizationService localization, ILogger<ResponseBuilder>? logger = null)
+    : IResponseBuilder
 {
     private readonly ILogger<ResponseBuilder> _logger = logger ?? NullLogger<ResponseBuilder>.Instance;
 
     public async Task SendValidationErrorAsync(IDiscordMessage message, string errorKey)
     {
-        if (string.IsNullOrEmpty(errorKey))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(errorKey)) return;
 
         await SafeRespondAsync(message, localization.Get(errorKey), "SendValidationErrorAsync");
     }
@@ -33,7 +31,8 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
 
     public async Task SendCommandResponseAsync(IDiscordMessage message, string commandName)
     {
-        await SafeRespondAsync(message, localization.Get($"{commandName}_command_response"), "SendCommandResponseAsync");
+        await SafeRespondAsync(message, localization.Get($"{commandName}_command_response"),
+            "SendCommandResponseAsync");
     }
 
     public async Task SendCommandErrorResponse(IDiscordMessage message, string commandName)

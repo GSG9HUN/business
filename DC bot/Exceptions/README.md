@@ -5,6 +5,7 @@ This folder contains custom exception types for domain-specific error handling.
 ## Overview
 
 All custom exceptions inherit from `BotException`, providing:
+
 - Type-safe error handling
 - Domain-specific context data
 - Clear error boundaries
@@ -45,12 +46,15 @@ public abstract class BotException : Exception
 ## Subfolders
 
 ### Localization/
+
 Contains `LocalizationException` for language file loading errors.
 
 **Thrown by:**
+
 - `LocalizationService` - File read/write failures, translation file not found
 
 **Common causes:**
+
 - Missing language file
 - Invalid JSON in language file
 - File I/O errors
@@ -58,13 +62,16 @@ Contains `LocalizationException` for language file loading errors.
 ---
 
 ### Messaging/
+
 Contains `MessageSendException` for Discord message operation failures.
 
 **Thrown by:**
+
 - `ReactionHandler` - Reaction message send failures
 - `TrackNotificationService` - Track notification send failures
 
 **Common causes:**
+
 - Missing channel permissions
 - Discord API rate limiting
 - Channel deleted during send
@@ -72,23 +79,28 @@ Contains `MessageSendException` for Discord message operation failures.
 ---
 
 ### Music/
+
 Contains music playback exceptions.
 
 **Exception types:**
+
 - `LavalinkOperationException` - Lavalink connection failures
 - `QueueOperationException` - Queue save/load failures
 - `TrackLoadException` - Track loading failures
 
 **Thrown by:**
+
 - `LavaLinkService` - Lavalink operations and track loading
 - `MusicQueueService` - Queue persistence
 
 ---
 
 ### Validation/
+
 Contains `ValidationException` (currently not used in code).
 
-The application uses validation result objects instead (`UserValidationResult`, `PlayerValidationResult`, `ConnectionValidationResult`).
+The application uses validation result objects instead (`UserValidationResult`, `PlayerValidationResult`,
+`ConnectionValidationResult`).
 
 ---
 
@@ -176,19 +188,24 @@ catch (BotException ex)
 ## Exception Properties
 
 ### LocalizationException
+
 - `LanguageCode` (string) - Language code that caused the error
 
 ### MessageSendException
+
 - `Operation` (string) - Operation that failed
 
 ### LavalinkOperationException
+
 - `Operation` (string) - Lavalink operation that failed
 
 ### QueueOperationException
+
 - `Operation` (string) - Queue operation that failed
 - `GuildId` (ulong) - Discord guild ID
 
 ### TrackLoadException
+
 - `Query` (string) - URL or search query that failed
 
 ---

@@ -18,6 +18,7 @@ public interface ILocalizationService
 ```
 
 **Methods:**
+
 - `Get()` - Retrieve localized string by key with optional formatting
 - `LoadLanguage()` - Load language for guild
 - `SaveLanguage()` - Save guild's language preference
@@ -25,6 +26,7 @@ public interface ILocalizationService
 **Implementation:** `Service/LocalizationService.cs`
 
 **Usage:**
+
 ```csharp
 // Get localized string
 var description = localizationService.Get(LocalizationKeys.PlayCommandDescription);
@@ -38,6 +40,7 @@ localizationService.LoadLanguage(guildId);
 ```
 
 **Language Files:**
+
 - `localization/eng.json` - English
 - `localization/hu.json` - Hungarian
 - `guildFiles/localization/{guildId}.json` - Guild preferences

@@ -12,11 +12,11 @@ namespace DC_bot_tests.UnitTests.Service.Core;
 
 public class CommandHandlerServiceTests
 {
-    private readonly Mock<ILogger<CommandHandlerService>> _mockLogger;
-    private readonly Mock<ILocalizationService> _mockLocalization;
-    private readonly ServiceProvider _serviceProvider;
     private readonly BotSettings _botSettings;
     private readonly CommandHandlerService _commandHandlerService;
+    private readonly Mock<ILocalizationService> _mockLocalization;
+    private readonly Mock<ILogger<CommandHandlerService>> _mockLogger;
+    private readonly ServiceProvider _serviceProvider;
 
     public CommandHandlerServiceTests()
     {
@@ -30,7 +30,7 @@ public class CommandHandlerServiceTests
         mockCommand.Setup(x => x.Name).Returns("test");
         mockCommand.Setup(x => x.Description).Returns("Test command");
         mockCommand.Setup(x => x.ExecuteAsync(It.IsAny<IDiscordMessage>())).Returns(Task.CompletedTask);
-        
+
         var services = new ServiceCollection();
         services.AddSingleton(mockCommand.Object);
         _serviceProvider = services.BuildServiceProvider();
@@ -40,8 +40,75 @@ public class CommandHandlerServiceTests
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings,
-            isTestMode: true);
+            true);
     }
+
+    #region Prefix Edge Cases
+
+    [Fact]
+    public void SetPrefix_ValidPrefix_StoresCorrectly()
+    {
+        // Arrange
+        const string newPrefix = "?";
+
+        // Act
+        _commandHandlerService.Prefix = newPrefix;
+
+        // Assert
+        Assert.Equal(newPrefix, _commandHandlerService.Prefix);
+    }
+
+    #endregion
+
+    #region Localization Tests
+
+    [Fact]
+    public void CommandHandlerService_UsesLocalizationService()
+    {
+        // Arrange
+        _mockLocalization.Setup(x => x.Get(LocalizationKeys.UnknownCommandError))
+            .Returns("Unknown command");
+
+        // Act
+        var service = new CommandHandlerService(
+            _serviceProvider,
+            _mockLogger.Object,
+            _mockLocalization.Object,
+            _botSettings,
+            false);
+
+        // Assert
+        Assert.NotNull(service);
+    }
+
+    #endregion
+
+    #region Edge Cases
+
+    [Fact]
+    public void Constructor_DuplicateCommandNames_UsesLastCommand()
+    {
+        // Arrange
+        var cmd1 = new Mock<ICommand>();
+        cmd1.Setup(x => x.Name).Returns("play");
+        var cmd2 = new Mock<ICommand>();
+        cmd2.Setup(x => x.Name).Returns("play"); // Duplicate name
+
+        var services = new ServiceCollection();
+        services.AddSingleton(cmd1.Object);
+        services.AddSingleton(cmd2.Object);
+        var provider = services.BuildServiceProvider();
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new CommandHandlerService(
+            provider,
+            _mockLogger.Object,
+            _mockLocalization.Object,
+            _botSettings,
+            false));
+    }
+
+    #endregion
 
     #region Constructor Tests
 
@@ -67,7 +134,7 @@ public class CommandHandlerServiceTests
             _mockLogger.Object,
             _mockLocalization.Object,
             customSettings,
-            isTestMode: false);
+            false);
 
         // Assert
         Assert.Equal("$", service.Prefix);
@@ -85,7 +152,7 @@ public class CommandHandlerServiceTests
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings,
-            isTestMode: false);
+            false);
 
         // Assert
         Assert.NotNull(service);
@@ -111,7 +178,7 @@ public class CommandHandlerServiceTests
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings,
-            isTestMode: false);
+            false);
 
         // Assert
         Assert.NotNull(service);
@@ -177,73 +244,6 @@ public class CommandHandlerServiceTests
 
         // Assert
         Assert.Null(_commandHandlerService.Prefix);
-    }
-
-    #endregion
-
-    #region Prefix Edge Cases
-    
-    [Fact]
-    public void SetPrefix_ValidPrefix_StoresCorrectly()
-    {
-        // Arrange
-        const string newPrefix = "?";
-
-        // Act
-        _commandHandlerService.Prefix = newPrefix;
-
-        // Assert
-        Assert.Equal(newPrefix, _commandHandlerService.Prefix);
-    }
-
-    #endregion
-
-    #region Localization Tests
-
-    [Fact]
-    public void CommandHandlerService_UsesLocalizationService()
-    {
-        // Arrange
-        _mockLocalization.Setup(x => x.Get(LocalizationKeys.UnknownCommandError))
-            .Returns("Unknown command");
-
-        // Act
-        var service = new CommandHandlerService(
-            _serviceProvider,
-            _mockLogger.Object,
-            _mockLocalization.Object,
-            _botSettings,
-            isTestMode: false);
-
-        // Assert
-        Assert.NotNull(service);
-    }
-
-    #endregion
-
-    #region Edge Cases
-
-    [Fact]
-    public void Constructor_DuplicateCommandNames_UsesLastCommand()
-    {
-        // Arrange
-        var cmd1 = new Mock<ICommand>();
-        cmd1.Setup(x => x.Name).Returns("play");
-        var cmd2 = new Mock<ICommand>();
-        cmd2.Setup(x => x.Name).Returns("play"); // Duplicate name
-
-        var services = new ServiceCollection();
-        services.AddSingleton(cmd1.Object);
-        services.AddSingleton(cmd2.Object);
-        var provider = services.BuildServiceProvider();
-
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => new CommandHandlerService(
-            provider,
-            _mockLogger.Object,
-            _mockLocalization.Object,
-            _botSettings,
-            isTestMode: false));
     }
 
     #endregion

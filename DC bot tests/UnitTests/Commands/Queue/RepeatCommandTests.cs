@@ -20,18 +20,18 @@ public class RepeatCommandTests
     private const string RepeatCommandRepeatingOnValue = "Repeat is on for :";
     private const string RepeatCommandListAlreadyRepeatingValue = "This track is already repeating.";
     private const string TestTrackTitle = "Test Track";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<ICurrentTrackService> _currentTrackServiceMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly RepeatCommand _repeatCommand;
 
     private readonly Mock<IRepeatService> _repeatServiceMock;
-    private readonly Mock<ICurrentTrackService> _currentTrackServiceMock;
-    private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
-    private readonly RepeatCommand _repeatCommand;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
 
     public RepeatCommandTests()
     {
@@ -62,7 +62,8 @@ public class RepeatCommandTests
         _commandHelperMock = new Mock<ICommandHelper>();
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
-        _repeatCommand = new RepeatCommand(_repeatServiceMock.Object, _currentTrackServiceMock.Object, userValidationService, loggerMock.Object,
+        _repeatCommand = new RepeatCommand(_repeatServiceMock.Object, _currentTrackServiceMock.Object,
+            userValidationService, loggerMock.Object,
             _responseBuilderMock.Object, _localizationServiceMock.Object, _commandHelperMock.Object);
     }
 
@@ -145,7 +146,8 @@ public class RepeatCommandTests
 
         _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(false);
         _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(false);
-        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormatted(guildId)).Returns($"{TestTrackTitle} Test Author");
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormatted(guildId))
+            .Returns($"{TestTrackTitle} Test Author");
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
@@ -173,7 +175,8 @@ public class RepeatCommandTests
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
@@ -188,12 +191,11 @@ public class RepeatCommandTests
                 It.IsAny<IUserValidationService>(),
                 It.IsAny<IResponseBuilder>(),
                 It.IsAny<IDiscordMessage>()))
-            .Returns<IUserValidationService, IResponseBuilder, IDiscordMessage>(
-                async (_, rb, msg) =>
-                {
-                    await rb.SendValidationErrorAsync(msg, ValidationErrorKeys.UserNotInVoiceChannel);
-                    return null;
-                });
+            .Returns<IUserValidationService, IResponseBuilder, IDiscordMessage>(async (_, rb, msg) =>
+            {
+                await rb.SendValidationErrorAsync(msg, ValidationErrorKeys.UserNotInVoiceChannel);
+                return null;
+            });
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);

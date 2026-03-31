@@ -5,6 +5,7 @@ This folder contains service abstraction contracts grouped by domain.
 ## Subfolders
 
 ### IO/
+
 File system service interfaces.
 
 **File:** `IFileSystem.cs`
@@ -12,6 +13,7 @@ File system service interfaces.
 ---
 
 ### Localization/
+
 Localization service interfaces.
 
 **File:** `ILocalizationService.cs`
@@ -19,9 +21,11 @@ Localization service interfaces.
 ---
 
 ### Music/
+
 Music and playback service interfaces.
 
 **Files:**
+
 - `ILavaLinkService.cs`
 - `ITrackSearchResolverService.cs`
 - `MusicServiceInterface/` - Granular music service interfaces
@@ -29,6 +33,7 @@ Music and playback service interfaces.
 ---
 
 ### Presentation/
+
 Response and presentation interfaces.
 
 **File:** `IResponseBuilder.cs`

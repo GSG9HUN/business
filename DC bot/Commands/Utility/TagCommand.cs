@@ -22,10 +22,7 @@ public class TagCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
-        {
-            return;
-        }
+        if (userValidation.IsBotUser(message)) return;
 
         var username = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         if (username is null) return;
@@ -40,7 +37,8 @@ public class TagCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, localizationService.Get(LocalizationKeys.TagCommandResponse, msg.Mention));
+        await responseBuilder.SendSuccessAsync(message,
+            localizationService.Get(LocalizationKeys.TagCommandResponse, msg.Mention));
 
         logger.CommandExecuted(Name);
     }

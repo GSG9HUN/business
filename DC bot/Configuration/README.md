@@ -17,10 +17,12 @@ public sealed class BotSettings
 ```
 
 **Properties:**
+
 - `Token` - Discord bot token (from environment or appsettings)
 - `Prefix` - Command prefix (default: `!`)
 
 **Usage:**
+
 ```csharp
 // In Program.cs
 var botSettings = configuration.GetSection("Bot").Get<BotSettings>();
@@ -36,6 +38,7 @@ var commandHandler = new CommandHandlerService(..., botSettings);
 **Purpose:** Lavalink audio server connection settings.
 
 **Properties:**
+
 - `Hostname` - Lavalink server host
 - `Port` - Lavalink server port
 - `Password` - Lavalink server password
@@ -47,6 +50,7 @@ var commandHandler = new CommandHandlerService(..., botSettings);
 **Purpose:** Music search resolution options.
 
 **Properties:**
+
 - `DefaultQueryMode` - Default search mode (YouTube, Spotify, etc.)
 
 ---

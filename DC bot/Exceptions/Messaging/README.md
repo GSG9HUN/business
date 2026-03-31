@@ -7,11 +7,13 @@ This folder contains exceptions for Discord message operation failures.
 **Namespace:** `DC_bot.Exceptions.Messaging`
 
 **Properties:**
+
 - `Operation` (string) - The operation that failed (e.g., "SendMessage", "SendReactionControlMessage")
 
 **When Thrown:**
 
 ### 1. Reaction Control Message Send Failure
+
 ```csharp
 // In ReactionHandler.SendReactionControlMessageAsync()
 catch (Exception ex)
@@ -21,6 +23,7 @@ catch (Exception ex)
 ```
 
 ### 2. Track Notification Send Failure
+
 ```csharp
 // In TrackNotificationService.SafeSendAsync()
 catch (Exception ex)
@@ -32,10 +35,12 @@ catch (Exception ex)
 ## Usage in Code
 
 ### ReactionHandler.cs
+
 - Thrown when sending reaction control messages fails
 - Wraps underlying Discord API exceptions
 
 ### TrackNotificationService.cs
+
 - Thrown when sending track notification messages fails
 - Used in "now playing" messages and queue updates
 

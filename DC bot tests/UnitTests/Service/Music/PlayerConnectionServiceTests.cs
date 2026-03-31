@@ -15,14 +15,14 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 public class PlayerConnectionServiceTests
 {
     private readonly Mock<IAudioService> _audioServiceMock = new();
-    private readonly Mock<IValidationService> _validationServiceMock = new();
-    private readonly Mock<IResponseBuilder> _responseBuilderMock = new();
-    private readonly Mock<ILogger<PlayerConnectionService>> _loggerMock = new();
-    private readonly Mock<IDiscordMessage> _messageMock = new();
     private readonly Mock<IDiscordChannel> _channelMock = new();
     private readonly Mock<IDiscordGuild> _guildMock = new();
+    private readonly Mock<ILogger<PlayerConnectionService>> _loggerMock = new();
+    private readonly Mock<IDiscordMessage> _messageMock = new();
     private readonly Mock<IPlayerManager> _playerManagerMock = new();
+    private readonly Mock<IResponseBuilder> _responseBuilderMock = new();
     private readonly PlayerConnectionService _service;
+    private readonly Mock<IValidationService> _validationServiceMock = new();
 
     public PlayerConnectionServiceTests()
     {
@@ -38,6 +38,18 @@ public class PlayerConnectionServiceTests
             _loggerMock.Object);
     }
 
+    #region Helper Methods
+
+    private void SetupJoinAsyncWithInterface()
+    {
+        _playerManagerMock
+            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(),
+                It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
+            .Returns(new ValueTask<LavalinkPlayer>((LavalinkPlayer)null!));
+    }
+
+    #endregion
+
     #region TryJoinAndValidateAsync Tests
 
     [Fact]
@@ -49,7 +61,9 @@ public class PlayerConnectionServiceTests
         // Assert
         Assert.False(result.isValid);
         Assert.Null(result.connection);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
+            Times.Once);
     }
 
     [Fact]
@@ -63,7 +77,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -77,7 +92,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -95,7 +111,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -118,7 +135,9 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.BotIsNotConnectedError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.BotIsNotConnectedError),
+            Times.Once);
     }
 
     [Fact]
@@ -131,7 +150,7 @@ public class PlayerConnectionServiceTests
         _validationServiceMock
             .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
             .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
-        
+
         _validationServiceMock
             .Setup(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()))
             .ReturnsAsync(new ConnectionValidationResult(true, string.Empty, playerMock.Object));
@@ -149,7 +168,8 @@ public class PlayerConnectionServiceTests
     {
         // Arrange
         _playerManagerMock
-            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(), It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
+            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(),
+                It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
             .Throws(new HttpRequestException("400 Bad Request"));
 
         // Act
@@ -157,7 +177,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -165,7 +186,8 @@ public class PlayerConnectionServiceTests
     {
         // Arrange
         _playerManagerMock
-            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(), It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
+            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(),
+                It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
             .Throws(new InvalidOperationException("unexpected"));
 
         // Act
@@ -173,7 +195,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     #endregion
@@ -189,7 +212,9 @@ public class PlayerConnectionServiceTests
         // Assert
         Assert.False(result.isValid);
         Assert.Null(result.connection);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
+            Times.Once);
     }
 
     [Fact]
@@ -205,7 +230,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -222,7 +248,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     [Fact]
@@ -244,7 +271,7 @@ public class PlayerConnectionServiceTests
         // Assert
         Assert.False(result.isValid);
     }
-    
+
     [Fact]
     public async Task TryGetAndValidateExistingPlayerAsync_Exception_ReturnsInvalid()
     {
@@ -258,18 +285,8 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
-    }
-
-    #endregion
-
-    #region Helper Methods
-    
-    private void SetupJoinAsyncWithInterface()
-    {
-        _playerManagerMock
-            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(), It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
-            .Returns(new ValueTask<LavalinkPlayer>((LavalinkPlayer)null!));
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
 
     #endregion

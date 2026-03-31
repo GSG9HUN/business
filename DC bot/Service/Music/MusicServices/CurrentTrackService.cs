@@ -1,28 +1,25 @@
-﻿using DC_bot.Interface.Service.Music.MusicServiceInterface;
-using Lavalink4NET.Tracks;
+﻿using DC_bot.Interface;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
 
 namespace DC_bot.Service.Music.MusicServices;
 
 public class CurrentTrackService : ICurrentTrackService
 {
-    private readonly Dictionary<ulong, LavalinkTrack?> _currentTrack = new();
+    private readonly Dictionary<ulong, ILavaLinkTrack?> _currentTrack = new();
 
     public void Init(ulong guildId)
     {
         _currentTrack.TryAdd(guildId, null);
     }
 
-    public LavalinkTrack? GetCurrentTrack(ulong guildId)
+    public ILavaLinkTrack? GetCurrentTrack(ulong guildId)
     {
         return _currentTrack.GetValueOrDefault(guildId);
     }
 
-    public void SetCurrentTrack(ulong guildId, LavalinkTrack? track)
+    public void SetCurrentTrack(ulong guildId, ILavaLinkTrack? track)
     {
-        if (_currentTrack.ContainsKey(guildId))
-        {
-            _currentTrack[guildId] = track;
-        }
+        if (_currentTrack.ContainsKey(guildId)) _currentTrack[guildId] = track;
     }
 
     public string GetCurrentTrackFormatted(ulong guildId)
@@ -32,7 +29,7 @@ public class CurrentTrackService : ICurrentTrackService
             : string.Empty;
     }
 
-    public bool TryGetCurrentTrack(ulong guildId, out LavalinkTrack? track)
+    public bool TryGetCurrentTrack(ulong guildId, out ILavaLinkTrack? track)
     {
         track = null;
         if (!_currentTrack.TryGetValue(guildId, out var current) || current is null)
@@ -42,4 +39,3 @@ public class CurrentTrackService : ICurrentTrackService
         return true;
     }
 }
-

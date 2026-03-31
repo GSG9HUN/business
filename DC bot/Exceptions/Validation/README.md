@@ -7,9 +7,11 @@ This folder contains exceptions for validation failures.
 **Namespace:** `DC_bot.Exceptions.Validation`
 
 **Properties:**
+
 - `ValidationKey` (string) - Identifier for the validation rule that failed
 
 **Definition:**
+
 ```csharp
 public class ValidationException : BotException
 {
@@ -34,6 +36,7 @@ public class ValidationException : BotException
 **Note:** This exception type is currently **not used** in the codebase. No services throw `ValidationException`.
 
 The application uses **validation result objects** instead:
+
 - `UserValidationResult` - For user validation
 - `PlayerValidationResult` - For player state validation
 - `ConnectionValidationResult` - For connection validation

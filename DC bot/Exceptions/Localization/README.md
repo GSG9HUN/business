@@ -7,11 +7,13 @@ This folder contains exceptions for localization system errors.
 **Namespace:** `DC_bot.Exceptions.Localization`
 
 **Properties:**
+
 - `LanguageCode` (string) - The language code that caused the error
 
 **When Thrown:**
 
 ### 1. File Read Failure
+
 ```csharp
 // In LocalizationService.ReadJson<T>()
 catch (Exception ex)
@@ -21,6 +23,7 @@ catch (Exception ex)
 ```
 
 ### 2. File Write Failure
+
 ```csharp
 // In LocalizationService.WriteJson<T>()
 catch (Exception ex)
@@ -30,6 +33,7 @@ catch (Exception ex)
 ```
 
 ### 3. Translation File Not Found
+
 ```csharp
 // In LocalizationService.LoadTranslations()
 if (!_fileSystem.FileExists(filePath))
@@ -41,6 +45,7 @@ if (!_fileSystem.FileExists(filePath))
 ## Usage in Code
 
 ### LocalizationService.cs
+
 - Thrown when reading/writing JSON fails
 - Thrown when language file doesn't exist
 - Wraps underlying IOException or JsonException

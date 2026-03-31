@@ -16,10 +16,7 @@ public class PhysicalFileSystemTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_testDirectory))
-        {
-            Directory.Delete(_testDirectory, true);
-        }
+        if (Directory.Exists(_testDirectory)) Directory.Delete(_testDirectory, true);
     }
 
     #region DirectoryExists Tests

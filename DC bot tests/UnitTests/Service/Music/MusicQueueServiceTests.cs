@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DC_bot_tests.Helpers;
+using DC_bot_tests.TestHelperFiles;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface;
 using DC_bot.Model;
@@ -15,15 +16,18 @@ public class MusicQueueServiceTests
     private readonly InMemoryFileSystem _fileSystem;
     private readonly string _tempQueueDirectory;
 
-    private MusicQueueService CreateService() => new(_fileSystem);
-
     public MusicQueueServiceTests()
     {
         _fileSystem = new InMemoryFileSystem();
         _tempQueueDirectory = QueueRoot;
         _fileSystem.CreateDirectory(_tempQueueDirectory);
-        
+
         MusicQueueService.QueueDirectory = _tempQueueDirectory;
+    }
+
+    private MusicQueueService CreateService()
+    {
+        return new MusicQueueService(_fileSystem);
     }
 
     [Fact]
@@ -53,7 +57,7 @@ public class MusicQueueServiceTests
             {
                 Title = "test-track",
                 Identifier = "Test Title",
-                Author = "Test Author",
+                Author = "Test Author"
             });
 
         mockTrack.Setup(t => t.ToString()).Returns(
@@ -167,7 +171,7 @@ public class MusicQueueServiceTests
         service.Enqueue(guildId, nextTrack.Object);
 
         // Act
-        service.Clone(guildId, currentTrack.Object.ToLavalinkTrack());
+        service.Clone(guildId, currentTrack.Object);
 
         // Assert
         var repeatableQueue = service.GetRepeatableQueue(guildId).ToList();
@@ -299,7 +303,7 @@ public class MusicQueueServiceTests
         service.Enqueue(guildId, nextTrack.Object);
 
         // Act
-        service.Clone(guildId, currentTrack.Object.ToLavalinkTrack());
+        service.Clone(guildId, currentTrack.Object);
 
         // Assert
         var repeatableQueue = service.GetRepeatableQueue(guildId).ToList();
@@ -352,7 +356,7 @@ public class MusicQueueServiceTests
         await service.LoadQueue(guildId);
 
         // Assert
-        Assert.False(service.HasTracks(guildId)); 
+        Assert.False(service.HasTracks(guildId));
     }
 
     [Fact]
@@ -366,7 +370,7 @@ public class MusicQueueServiceTests
         await service.LoadQueue(guildId);
 
         // Assert
-        Assert.False(service.HasTracks(guildId)); 
+        Assert.False(service.HasTracks(guildId));
     }
 
     [Fact]
@@ -404,12 +408,7 @@ public class MusicQueueServiceTests
         var service = CreateService();
         const ulong guildId = 12345UL;
 
-        var currentTrack = new LavalinkTrack
-        {
-            Title = "current-track",
-            Identifier = "Current Title",
-            Author = "Current Author"
-        };
+        var currentTrack = TrackTestHelper.CreateTrackWrapper("Current Author", "current-track", "Current Title");
 
         // Act & Assert 
         Assert.Throws<KeyNotFoundException>(() => service.Clone(guildId, currentTrack));

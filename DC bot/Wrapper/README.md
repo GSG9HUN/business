@@ -5,6 +5,7 @@ This folder contains wrapper classes that abstract the DSharpPlus Discord librar
 ## Overview
 
 Wrappers implement interfaces defined in `Interface/Discord/`, providing:
+
 - Abstraction from DSharpPlus
 - Testable interfaces
 - Exception handling
@@ -19,6 +20,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordMessage`.
 
 **Properties:**
+
 - `Id` - Message ID
 - `Content` - Message text
 - `Author` - Message author
@@ -27,6 +29,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 - `Embeds` - Embedded content
 
 **Methods:**
+
 - `RespondAsync()` - Send text or embed response
 
 ---
@@ -38,11 +41,13 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordChannel`.
 
 **Properties:**
+
 - `Id` - Channel ID
 - `Name` - Channel name
 - `Guild` - Parent guild
 
 **Methods:**
+
 - `SendMessageAsync()` - Send message to channel
 - `ToDiscordChannel()` - Get underlying DSharpPlus channel
 
@@ -55,6 +60,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordUser`.
 
 **Properties:**
+
 - `Id` - User ID
 - `Username` - User name
 - `IsBot` - Whether user is a bot
@@ -68,6 +74,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordMember`.
 
 **Properties:**
+
 - `Id` - Member ID
 - `Username` - Member name
 - `IsBot` - Whether member is a bot
@@ -83,6 +90,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordGuild`.
 
 **Properties:**
+
 - `Id` - Guild ID
 - `Name` - Guild name
 
@@ -95,6 +103,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps DSharpPlus `DiscordVoiceState`.
 
 **Properties:**
+
 - `Channel` - Voice channel (nullable)
 - `IsDeafened` - Whether member is deafened
 - `IsMuted` - Whether member is muted
@@ -108,10 +117,12 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Wraps Lavalink4NET `LavalinkTrack`.
 
 **Properties:**
+
 - `Title` - Track title
 - `Author` - Track artist
 
 **Methods:**
+
 - `ToLavalinkTrack()` - Get underlying Lavalink track
 
 ---
@@ -121,12 +132,14 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Register and manage Discord client event handlers.
 
 **Methods:**
+
 - `RegisterHandler()` - Register event listeners
 - `OnMessageCreated()` - Handle message events
 - `OnGuildMemberUpdated()` - Handle member updates
 - `OnVoiceStateUpdated()` - Handle voice state changes
 
 **Features:**
+
 - Routes messages to command handler
 - Routes reactions to reaction handler
 - Tracks voice state changes
@@ -138,9 +151,11 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Purpose:** Create and configure Discord client instances.
 
 **Methods:**
+
 - `CreateClient()` - Create configured Discord client
 
 **Configuration:**
+
 - Sets intents (privileged and unprivileged)
 - Configures caching
 - Enables message content

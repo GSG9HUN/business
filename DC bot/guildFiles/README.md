@@ -19,6 +19,7 @@ guildFiles/
 **Purpose:** Store guild language preferences.
 
 **Format:**
+
 ```json
 {
   "language": "en"
@@ -28,6 +29,7 @@ guildFiles/
 **File:** `{guildId}.json`
 
 **Usage:**
+
 ```csharp
 // Save guild preference
 localizationService.SaveLanguage(guildId, "hu");
@@ -43,6 +45,7 @@ localizationService.LoadLanguage(guildId);
 **Purpose:** Persist music queue per guild.
 
 **Format:**
+
 ```json
 [
   {
@@ -58,6 +61,7 @@ localizationService.LoadLanguage(guildId);
 **File:** `{guildId}.json`
 
 **Usage:**
+
 ```csharp
 // Save queue
 musicQueueService.SaveQueue(guildId);

@@ -5,6 +5,7 @@ This folder contains utility classes and helper methods.
 ## Overview
 
 Reusable helper classes that:
+
 - Reduce code duplication
 - Provide validation result types
 - Offer factory methods for wrappers
@@ -13,9 +14,11 @@ Reusable helper classes that:
 ## Subfolders
 
 ### Validation/
+
 Contains validation result models.
 
 **Files:**
+
 - `ConnectionValidationResult.cs`
 - `PlayerValidationResult.cs`
 - `UserValidationResult.cs`
@@ -25,9 +28,11 @@ Contains validation result models.
 ---
 
 ### Factory/
+
 Contains factory classes for object creation.
 
 **Files:**
+
 - `DiscordMessageWrapperFactory.cs`
 
 **Purpose:** Create Discord wrapper instances from DSharpPlus objects.
@@ -41,6 +46,7 @@ Contains factory classes for object creation.
 **Purpose:** Utility methods for slash command responses.
 
 **Note:** Currently commented out in the code. Contains helper methods for:
+
 - `DeferAsync()` - Defer slash command response
 - `RespondAsync()` - Send response
 - `EditResponseAsync()` - Edit deferred response
@@ -53,6 +59,7 @@ Contains factory classes for object creation.
 ### UserValidationResult
 
 **Properties:**
+
 ```csharp
 public bool IsValid { get; }
 public string ErrorKey { get; }
@@ -60,6 +67,7 @@ public IDiscordMember? Member { get; }
 ```
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidateUserAsync(message);
 if (!result.IsValid)
@@ -72,6 +80,7 @@ var member = result.Member;
 ```
 
 **Validation Checks:**
+
 - User is not a bot
 - User is in a voice channel
 - User is in the same voice channel as bot (if bot connected)
@@ -81,6 +90,7 @@ var member = result.Member;
 ### PlayerValidationResult
 
 **Properties:**
+
 ```csharp
 public bool IsValid { get; }
 public string ErrorKey { get; }
@@ -88,6 +98,7 @@ public ILavalinkPlayer? Player { get; }
 ```
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidatePlayerAsync(audioService, guildId);
 if (!result.IsValid)
@@ -100,6 +111,7 @@ var player = result.Player;
 ```
 
 **Validation Checks:**
+
 - Player exists for guild
 - Player is connected to voice channel
 
@@ -108,6 +120,7 @@ var player = result.Player;
 ### ConnectionValidationResult
 
 **Properties:**
+
 ```csharp
 public bool IsValid { get; }
 public string ErrorKey { get; }
@@ -115,6 +128,7 @@ public ILavalinkPlayer? Connection { get; }
 ```
 
 **Usage:**
+
 ```csharp
 var result = await validationService.ValidateConnectionAsync(player);
 if (!result.IsValid)
@@ -125,6 +139,7 @@ if (!result.IsValid)
 ```
 
 **Validation Checks:**
+
 - Connection is established
 - Connection is in valid state
 
@@ -137,6 +152,7 @@ if (!result.IsValid)
 **Purpose:** Create `IDiscordMessage` wrapper from DSharpPlus `DiscordMessage`.
 
 **Method:**
+
 ```csharp
 public static IDiscordMessage Create(
     DiscordMessage message, 
@@ -146,6 +162,7 @@ public static IDiscordMessage Create(
 ```
 
 **Usage:**
+
 ```csharp
 var wrappedMessage = DiscordMessageWrapperFactory.Create(
     discordMessage, 
@@ -156,6 +173,7 @@ var wrappedMessage = DiscordMessageWrapperFactory.Create(
 ```
 
 **Benefits:**
+
 - Centralizes wrapper creation logic
 - Ensures consistent wrapper initialization
 - Simplifies testing with mock objects

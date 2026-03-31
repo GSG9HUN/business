@@ -1,5 +1,6 @@
 using DC_bot.Commands.Music;
 using DC_bot.Constants;
+using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -15,16 +16,16 @@ public class LeaveCommandTests
 {
     private const string LeaveCommandName = "leave";
     private const string LeaveCommandDescriptionValue = "Leave the voice channel.";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
 
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly LeaveCommand _leaveCommand;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly LeaveCommand _leaveCommand;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
 
     public LeaveCommandTests()
     {
@@ -65,15 +66,18 @@ public class LeaveCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
-        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -95,15 +99,18 @@ public class LeaveCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
-        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -126,14 +133,16 @@ public class LeaveCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync(new DC_bot.Helper.Validation.UserValidationResult(true, string.Empty, _discordMemberMock.Object));
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
         // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(_messageMock.Object, _discordMemberMock.Object), Times.Once);
+        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(_messageMock.Object, _discordMemberMock.Object),
+            Times.Once);
     }
 
     [Fact]
@@ -151,14 +160,16 @@ public class LeaveCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]

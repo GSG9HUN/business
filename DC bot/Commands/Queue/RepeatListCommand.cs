@@ -55,7 +55,7 @@ public class RepeatListCommand(
             $"{localizationService.Get(LocalizationKeys.RepeatListCommandRepeatingOn)}\n {trackFormatterService.FormatCurrentTrackList(guildId)}");
 
         var track = currentTrackService.GetCurrentTrack(guildId);
-        
+
         if (track != null)
         {
             queueService.Clone(guildId, track);

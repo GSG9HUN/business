@@ -20,16 +20,16 @@ public class ShuffleCommandTests
     private const string ShuffleCommandErrorValue = "There is no music in queue.";
     private const string ShuffleCommandNotEnoughTracksValue = "Not enough tracks to shuffle.";
     private const string ValidationErrorKey = "validation_error_key";
-
-    private readonly Mock<IUserValidationService> _userValidationMock;
-    private readonly Mock<IMusicQueueService> _musicQueueServiceMock;
-    private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<ILocalizationService> _localizationServiceMock;
-    private readonly ShuffleCommand _shuffleCommand;
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IMusicQueueService> _musicQueueServiceMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly ShuffleCommand _shuffleCommand;
+
+    private readonly Mock<IUserValidationService> _userValidationMock;
 
     public ShuffleCommandTests()
     {
@@ -83,7 +83,8 @@ public class ShuffleCommandTests
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+            Times.Once);
     }
 
     [Fact]
@@ -109,8 +110,9 @@ public class ShuffleCommandTests
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
             .Returns(originalQueue);
-        
-        _commandHelperMock.Setup(c => c.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
+
+        _commandHelperMock.Setup(c => c.TryValidateUserAsync(It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
 
         // Act
@@ -119,11 +121,12 @@ public class ShuffleCommandTests
         // Assert
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Once);
-        
+
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(),
             It.Is<Queue<ILavaLinkTrack>>(q => !q.SequenceEqual(originalQueue))), Times.Once);
 
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, ShuffleCommandName), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, ShuffleCommandName),
+            Times.Once);
     }
 
     [Fact]
@@ -164,8 +167,10 @@ public class ShuffleCommandTests
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()), Times.Never);
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName), Times.Once);
+        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
+            Times.Never);
+        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+            Times.Once);
     }
 
     [Fact]
@@ -184,6 +189,7 @@ public class ShuffleCommandTests
 
         // Assert
         _musicQueueServiceMock.Verify(m => m.GetQueue(It.IsAny<ulong>()), Times.Never);
-        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()), Times.Never);
+        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
+            Times.Never);
     }
 }

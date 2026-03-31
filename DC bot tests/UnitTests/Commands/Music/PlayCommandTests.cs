@@ -24,7 +24,10 @@ public class PlayCommandTests
     private const string PlayCommandContentYouTube = "!play https://www.youtube.com/watch?v=zIRszCXKzGc";
     private const string PlayCommandContentSoundCloud = "!play https://soundcloud.com/madeon/imperium";
     private const string PlayCommandContentSpotify = "!play https://open.spotify.com/track/0DI3WNmIyfi2fS3a15wZDP";
-    private const string PlayCommandContentAppleMusic = "!play https://music.apple.com/us/album/bad-guy/1450695723?i=1450695739";
+
+    private const string PlayCommandContentAppleMusic =
+        "!play https://music.apple.com/us/album/bad-guy/1450695723?i=1450695739";
+
     private const string PlayCommandContentDeezer = "!play https://www.deezer.com/track/3135556";
     private const string PlayCommandContentYandex = "!play https://music.yandex.ru/album/12345/track/67890";
     private const string PlayCommandContentYouTubeMusic = "!play https://music.youtube.com/watch?v=zIRszCXKzGc";
@@ -34,16 +37,16 @@ public class PlayCommandTests
     private const string PlayCommandContentYouTubeSearch = "!play ytsearch:madeon imperium";
     private const string PlayCommandContentYouTubeMusicSearch = "!play ytmsearch:madeon imperium";
     private const string SearchModeDefault = "yt";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
 
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
-    private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly PlayCommand _playCommand;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
 
     public PlayCommandTests()
     {
@@ -79,19 +82,18 @@ public class PlayCommandTests
                 It.IsAny<IResponseBuilder>(),
                 It.IsAny<ILogger>(),
                 It.IsAny<string>()))
-            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(
-                async (msg, rb, _, commandName) =>
-                {
-                    var parts = msg.Content.Split(" ", 2);
-                    if (parts.Length >= 2) return parts[1].Trim();
-                    await rb.SendUsageAsync(msg, commandName);
-                    return null;
-
-                });
+            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(async (msg, rb, _, commandName) =>
+            {
+                var parts = msg.Content.Split(" ", 2);
+                if (parts.Length >= 2) return parts[1].Trim();
+                await rb.SendUsageAsync(msg, commandName);
+                return null;
+            });
 
         var userValidationService = new ValidationService(new Mock<ILogger<ValidationService>>().Object);
         _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, _responseBuilderMock.Object,
-            loggerMock.Object, trackSearchResolverServiceMock, localizationServiceMock.Object, _commandHelperMock.Object);
+            loggerMock.Object, trackSearchResolverServiceMock, localizationServiceMock.Object,
+            _commandHelperMock.Object);
     }
 
     [Fact]
@@ -99,9 +101,9 @@ public class PlayCommandTests
     {
         //Arrange
         _commandHelperMock.Setup(h => h.TryValidateUserAsync(
-            It.IsAny<IUserValidationService>(), 
-            It.IsAny<IResponseBuilder>(), 
-            It.IsAny<IDiscordMessage>()))
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
         //Act
@@ -125,16 +127,16 @@ public class PlayCommandTests
         //Arrange
         var validationResult = new UserValidationResult(true, string.Empty, _discordMemberMock.Object);
         _commandHelperMock.Setup(h => h.TryValidateUserAsync(
-            It.IsAny<IUserValidationService>(), 
-            It.IsAny<IResponseBuilder>(), 
-            It.IsAny<IDiscordMessage>()))
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(validationResult);
-        
+
         _commandHelperMock.Setup(h => h.TryGetArgumentAsync(
-            It.IsAny<IDiscordMessage>(), 
-            It.IsAny<IResponseBuilder>(), 
-            It.IsAny<ILogger>(), 
-            It.IsAny<string>()))
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<string>()))
             .ReturnsAsync("test query");
 
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
@@ -164,16 +166,16 @@ public class PlayCommandTests
 
         var validationResult = new UserValidationResult(true, string.Empty, _discordMemberMock.Object);
         _commandHelperMock.Setup(h => h.TryValidateUserAsync(
-            It.IsAny<IUserValidationService>(), 
-            It.IsAny<IResponseBuilder>(), 
-            It.IsAny<IDiscordMessage>()))
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(validationResult);
-        
+
         _commandHelperMock.Setup(h => h.TryGetArgumentAsync(
-            It.IsAny<IDiscordMessage>(), 
-            It.IsAny<IResponseBuilder>(), 
-            It.IsAny<ILogger>(), 
-            It.IsAny<string>()))
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<string>()))
             .ReturnsAsync("test query");
 
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
@@ -556,7 +558,8 @@ public class PlayCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_UserProvidedYouTubeMusicSearch_ShouldCall_PlayAsyncQuery_With_YouTubeMusic_Search_Mode()
+    public async Task
+        ExecuteAsync_UserProvidedYouTubeMusicSearch_ShouldCall_PlayAsyncQuery_With_YouTubeMusic_Search_Mode()
     {
         //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
@@ -584,4 +587,3 @@ public class PlayCommandTests
                 TrackSearchMode.YouTubeMusic), Times.Once);
     }
 }
-

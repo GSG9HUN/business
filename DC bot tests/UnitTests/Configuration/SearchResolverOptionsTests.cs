@@ -45,7 +45,7 @@ public class SearchResolverOptionsTests
     public void SearchResolverOptions_DefaultNull_CanBe_Set()
     {
         // Arrange & Act
-        var options = new SearchResolverOptions { DefaultQueryMode = null};
+        var options = new SearchResolverOptions { DefaultQueryMode = null };
 
         // Assert
         Assert.Null(options.DefaultQueryMode);

@@ -20,6 +20,7 @@ public sealed class PhysicalFileSystem : IFileSystem
 ```
 
 **Methods:**
+
 - `DirectoryExists()` - Check if directory exists
 - `CreateDirectory()` - Create directory
 - `FileExists()` - Check if file exists
@@ -27,6 +28,7 @@ public sealed class PhysicalFileSystem : IFileSystem
 - `WriteAllText()` - Write file contents
 
 **Usage:**
+
 ```csharp
 // In LocalizationService
 var fileSystem = new PhysicalFileSystem();
@@ -35,6 +37,7 @@ var content = fileSystem.ReadAllText(path);
 ```
 
 **Used By:**
+
 - `Service/LocalizationService.cs` - Language file operations
 - `Service/Music/MusicServices/MusicQueueService.cs` - Queue file operations
 

@@ -25,6 +25,7 @@ public interface ICommandHelper
 ```
 
 **Methods:**
+
 - `TryValidateUserAsync()` - Validates user and sends error if invalid
 - `TryGetArgumentAsync()` - Extracts command arguments from message
 
@@ -45,6 +46,7 @@ public interface IValidationService
 ```
 
 **Methods:**
+
 - `ValidatePlayerAsync()` - Check if player exists for guild
 - `ValidateConnectionAsync()` - Check if connection is established
 
@@ -65,6 +67,7 @@ public interface IUserValidationService
 ```
 
 **Methods:**
+
 - `ValidateUserAsync()` - Validate user is in voice channel, not a bot, etc.
 - `IsBotUser()` - Check if message author is a bot
 

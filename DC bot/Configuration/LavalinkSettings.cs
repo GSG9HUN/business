@@ -7,4 +7,3 @@ public sealed class LavalinkSettings
     public bool Secured { get; init; }
     public string Password { get; init; } = string.Empty;
 }
-

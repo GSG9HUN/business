@@ -8,8 +8,8 @@ public class LavalinkSettingsTests
     public void LavalinkSettings_CanBeInitialized()
     {
         // Arrange & Act
-        var settings = new LavalinkSettings 
-        { 
+        var settings = new LavalinkSettings
+        {
             Hostname = "localhost",
             Port = 2333,
             Password = "password",
@@ -75,8 +75,8 @@ public class LavalinkSettingsTests
     public void LavalinkSettings_AllProperties_CanBeSet()
     {
         // Arrange & Act
-        var settings = new LavalinkSettings 
-        { 
+        var settings = new LavalinkSettings
+        {
             Hostname = "lavalink.example.com",
             Port = 443,
             Password = "password123",
@@ -94,15 +94,15 @@ public class LavalinkSettingsTests
     public void LavalinkSettings_DifferentInstances_AreIndependent()
     {
         // Arrange & Act
-        var settings1 = new LavalinkSettings 
-        { 
-            Hostname = "host1", 
-            Port = 2333 
+        var settings1 = new LavalinkSettings
+        {
+            Hostname = "host1",
+            Port = 2333
         };
-        var settings2 = new LavalinkSettings 
-        { 
-            Hostname = "host2", 
-            Port = 443 
+        var settings2 = new LavalinkSettings
+        {
+            Hostname = "host2",
+            Port = 443
         };
 
         // Assert

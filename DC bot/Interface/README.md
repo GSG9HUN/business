@@ -5,6 +5,7 @@ This folder contains all interface definitions (contracts) for the application.
 ## Overview
 
 Interfaces enable:
+
 - **Loose coupling** - Components depend on abstractions
 - **Testability** - Easy to mock in unit tests
 - **Flexibility** - Swap implementations without changing consumers
@@ -49,9 +50,11 @@ public interface ILavaLinkTrack
 ## Subfolders
 
 ### Core/
+
 Core application interfaces.
 
 **Files:**
+
 - `ICommandHelper.cs` - Command validation helpers
 - `IValidationService.cs` - Player/connection validation
 - `IUserValidationService.cs` - User validation
@@ -59,9 +62,11 @@ Core application interfaces.
 ---
 
 ### Discord/
+
 Discord abstraction interfaces.
 
 **Files:**
+
 - `IDiscordMessage.cs`
 - `IDiscordChannel.cs`
 - `IDiscordUser.cs`
@@ -76,9 +81,11 @@ Discord abstraction interfaces.
 ---
 
 ### Service/
+
 Service layer interfaces grouped by domain.
 
 **Subfolders:**
+
 - `IO/` - File system interfaces
 - `Localization/` - Localization service
 - `Music/` - Music and playback services

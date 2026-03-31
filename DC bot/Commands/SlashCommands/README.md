@@ -5,6 +5,7 @@ This folder contains modern Discord slash command implementations.
 ## Overview
 
 Slash commands are Discord's interaction system that provides:
+
 - Auto-completion
 - Built-in type validation
 - Ephemeral (private) responses
@@ -19,17 +20,18 @@ Slash commands are Discord's interaction system that provides:
 
 ## Slash Command vs Text Command
 
-| Aspect | Text Commands | Slash Commands |
-|--------|--------------|----------------|
-| Prefix | `!play` | `/play` |
-| Type Safety | Manual parsing | Built-in validation |
-| Auto-complete | No | Yes |
-| Discoverability | Poor | Excellent |
-| Ephemeral Responses | No | Yes |
+| Aspect              | Text Commands  | Slash Commands      |
+|---------------------|----------------|---------------------|
+| Prefix              | `!play`        | `/play`             |
+| Type Safety         | Manual parsing | Built-in validation |
+| Auto-complete       | No             | Yes                 |
+| Discoverability     | Poor           | Excellent           |
+| Ephemeral Responses | No             | Yes                 |
 
 ## Structure
 
 Slash commands:
+
 1. Receive an `InteractionContext` instead of `IDiscordMessage`
 2. Use `SlashCommandResponseHelper` for responses
 3. Support options with validation

@@ -20,6 +20,7 @@ public interface IFileSystem
 ```
 
 **Methods:**
+
 - `DirectoryExists()` - Check if directory exists
 - `CreateDirectory()` - Create directory
 - `FileExists()` - Check if file exists
@@ -29,10 +30,12 @@ public interface IFileSystem
 **Implementation:** `IO/PhysicalFileSystem.cs`
 
 **Used By:**
+
 - `Service/LocalizationService.cs` - Read/write language files
 - `Service/Music/MusicServices/MusicQueueService.cs` - Read/write queue files
 
 **Benefits:**
+
 - Testable with in-memory file system
 - Isolates I/O operations
 - Simplifies mocking in tests

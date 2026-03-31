@@ -20,10 +20,7 @@ public class RepeatService : IRepeatService
 
     public void SetRepeating(ulong guildId, bool value)
     {
-        if (_isRepeating.ContainsKey(guildId))
-        {
-            _isRepeating[guildId] = value;
-        }
+        if (_isRepeating.ContainsKey(guildId)) _isRepeating[guildId] = value;
     }
 
     public bool IsRepeatingList(ulong guildId)
@@ -33,10 +30,6 @@ public class RepeatService : IRepeatService
 
     public void SetRepeatingList(ulong guildId, bool value)
     {
-        if (_isRepeatingList.ContainsKey(guildId))
-        {
-            _isRepeatingList[guildId] = value;
-        }
+        if (_isRepeatingList.ContainsKey(guildId)) _isRepeatingList[guildId] = value;
     }
 }
-

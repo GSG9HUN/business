@@ -13,6 +13,7 @@ Factory classes centralize object creation logic for Discord wrappers.
 **Purpose:** Create `IDiscordMessage` wrapper instances from DSharpPlus `DiscordMessage` objects.
 
 **Definition:**
+
 ```csharp
 public static class DiscordMessageWrapperFactory
 {
@@ -41,6 +42,7 @@ public static class DiscordMessageWrapperFactory
 ```
 
 **Usage:**
+
 ```csharp
 // In event handlers or service code
 var wrappedMessage = DiscordMessageWrapperFactory.Create(
@@ -55,12 +57,14 @@ await command.ExecuteAsync(wrappedMessage);
 ```
 
 **Benefits:**
+
 - **Centralizes wrapper creation** - Single place for initialization logic
 - **Consistent initialization** - All wrappers created the same way
 - **Simplifies testing** - Easy to mock `IDiscordMessage` in tests
 - **Reduces duplication** - No repeated wrapper construction code
 
 **Created Wrappers:**
+
 - `DiscordMessageWrapper` - Main message wrapper
 - `DiscordUserWrapper` - Wraps message author
 - `DiscordChannelWrapper` - Wraps message channel

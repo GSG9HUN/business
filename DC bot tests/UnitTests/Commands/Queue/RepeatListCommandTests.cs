@@ -1,6 +1,8 @@
+using DC_bot_tests.TestHelperFiles;
 using DC_bot.Commands.Queue;
 using DC_bot.Constants;
 using DC_bot.Helper.Validation;
+using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -21,21 +23,21 @@ public class RepeatListCommandTests
     private const string RepeatListTrackAlreadyRepeatingValue = "This track is already repeating.";
     private const string VoiceChannelRequiredValue = "You must be in a voice channel!";
     private const string TestTrackList = "test track list";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<ICurrentTrackService> _currentTrackServiceMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordVoiceState> _discordVoiceStateMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IMusicQueueService> _queueServiceMock;
+    private readonly RepeatListCommand _repeatListCommand;
 
     private readonly Mock<IRepeatService> _repeatServiceMock;
-    private readonly Mock<ICurrentTrackService> _currentTrackServiceMock;
-    private readonly Mock<IMusicQueueService> _queueServiceMock;
-    private readonly Mock<ITrackFormatterService> _trackServiceFormatter;
-    private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<IDiscordVoiceState> _discordVoiceStateMock;
-    private readonly RepeatListCommand _repeatListCommand;
-    private readonly Mock<ILocalizationService> _localizationServiceMock = new();
-    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<ITrackFormatterService> _trackServiceFormatter;
 
     public RepeatListCommandTests()
     {
@@ -73,12 +75,12 @@ public class RepeatListCommandTests
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _repeatListCommand =
             new RepeatListCommand(
-                _repeatServiceMock.Object, 
+                _repeatServiceMock.Object,
                 _currentTrackServiceMock.Object,
-                _queueServiceMock.Object, 
-                userValidationService, 
+                _queueServiceMock.Object,
+                userValidationService,
                 loggerMock.Object,
-                _responseBuilderMock.Object, 
+                _responseBuilderMock.Object,
                 _trackServiceFormatter.Object,
                 _localizationServiceMock.Object, _commandHelperMock.Object);
     }
@@ -182,7 +184,9 @@ public class RepeatListCommandTests
         _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(false);
         _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(false);
         _trackServiceFormatter.Setup(c => c.FormatCurrentTrackList(guildId)).Returns(TestTrackList);
-        _currentTrackServiceMock.Setup(c => c.GetCurrentTrack(guildId)).Returns(new Lavalink4NET.Tracks.LavalinkTrack { Title = "Test", Author = "Test Author", Identifier = "asdasdasdad"});
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrack(guildId)).Returns(
+            TrackTestHelper.CreateTrackWrapper("Test", "Test Author", "asdasdasdad")
+        );
 
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
@@ -192,7 +196,7 @@ public class RepeatListCommandTests
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
                 It.IsAny<string>()), Times.Once);
-        _queueServiceMock.Verify(q => q.Clone(guildId, It.IsAny<Lavalink4NET.Tracks.LavalinkTrack>()), Times.Once);
+        _queueServiceMock.Verify(q => q.Clone(guildId, It.IsAny<ILavaLinkTrack>()), Times.Once);
     }
 
 
@@ -233,12 +237,11 @@ public class RepeatListCommandTests
                 It.IsAny<IUserValidationService>(),
                 It.IsAny<IResponseBuilder>(),
                 It.IsAny<IDiscordMessage>()))
-            .Returns<IUserValidationService, IResponseBuilder, IDiscordMessage>(
-                async (_, rb, msg) =>
-                {
-                    await rb.SendValidationErrorAsync(msg, ValidationErrorKeys.UserNotInVoiceChannel);
-                    return null;
-                });
+            .Returns<IUserValidationService, IResponseBuilder, IDiscordMessage>(async (_, rb, msg) =>
+            {
+                await rb.SendValidationErrorAsync(msg, ValidationErrorKeys.UserNotInVoiceChannel);
+                return null;
+            });
 
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);

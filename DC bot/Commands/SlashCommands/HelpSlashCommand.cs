@@ -1,6 +1,5 @@
 using DC_bot.Interface;
 using DC_bot.Logging;
-using DC_bot.Helper;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
 
@@ -9,7 +8,7 @@ namespace DC_bot.Commands.SlashCommands;
 public abstract class HelpSlashCommand : ApplicationCommandModule
 {
     private const string CommandNameHelp = "help";
-    
+
     // Property injection supported by DSharpPlus SlashCommands
     public ILogger<PlaySlashCommand> Logger { private get; set; } = null!;
     public IEnumerable<ICommand> Commands { private get; set; } = null!;
@@ -20,7 +19,7 @@ public abstract class HelpSlashCommand : ApplicationCommandModule
         Logger.CommandInvoked(CommandNameHelp);
         //await SlashCommandResponseHelper.DeferAsync(ctx);
 
-        var response = Commands.Aggregate(String.Empty,
+        var response = Commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
         //await SlashCommandResponseHelper.EditResponseAsync(ctx, $"Available commands:\n{response}");

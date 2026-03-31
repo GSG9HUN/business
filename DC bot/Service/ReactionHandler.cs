@@ -5,6 +5,7 @@ using DC_bot.Helper.Factory;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus;
@@ -18,12 +19,13 @@ namespace DC_bot.Service;
 public class ReactionHandler(
     ILavaLinkService lavaLinkService,
     ILogger<ReactionHandler> logger,
+    IProgressiveTimerService progressTimerService,
     ILocalizationService localizationService)
 {
+    private bool _isRegistered;
     private AsyncEventHandler<DiscordClient, MessageReactionAddEventArgs>? _messageReactionAdded;
     private AsyncEventHandler<DiscordClient, MessageReactionRemoveEventArgs>? _messageReactionRemoved;
-    private Func<IDiscordChannel, DiscordClient, string, Task>? _sendReactionControlMessage;
-    private bool _isRegistered;
+    private Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task>? _sendReactionControlMessage;
 
     public void RegisterHandler(DiscordClient client)
     {
@@ -44,16 +46,26 @@ public class ReactionHandler(
         logger.ReactionHandlerRegistered();
     }
 
-    private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, string msg)
+    private async Task SendReactionControlMessage(IDiscordChannel textChannel, DiscordClient client, DiscordEmbed msg)
     {
         try
         {
-            var message = await textChannel.ToDiscordChannel().SendMessageAsync(
-                $"{msg}\n 🎵 **{localizationService.Get(LocalizationKeys.MusicControl)}** 🎵\n" +
-                $"⏸️ - {localizationService.Get(LocalizationKeys.PauseReaction)} " +
-                $"▶️ - {localizationService.Get(LocalizationKeys.ResumeReaction)} " +
-                $"⏭️ - {localizationService.Get(LocalizationKeys.SkipReaction)} " +
-                $"🔁 - {localizationService.Get(LocalizationKeys.RepeatReaction)}");
+            var controlText = $"🎵 **{localizationService.Get(LocalizationKeys.MusicControl)}** 🎵\n" +
+                              $"⏸️ - {localizationService.Get(LocalizationKeys.PauseReaction)} " +
+                              $"▶️ - {localizationService.Get(LocalizationKeys.ResumeReaction)} " +
+                              $"⏭️ - {localizationService.Get(LocalizationKeys.SkipReaction)} " +
+                              $"🔁 - {localizationService.Get(LocalizationKeys.RepeatReaction)}";
+
+            var builder = new DiscordMessageBuilder()
+                .WithContent(controlText)
+                .AddEmbed(msg);
+
+            var message = await textChannel.ToDiscordChannel().SendMessageAsync(builder);
+
+            var wrappedMessage =
+                DiscordMessageWrapperFactory.Create(message, textChannel.ToDiscordChannel(), client.CurrentUser);
+
+            await progressTimerService.StartAsync(wrappedMessage, textChannel.Guild.Id);
 
             // Reakciók hozzáadása az üzenethez
             await message.CreateReactionAsync(DiscordEmoji.FromName(client, ":pause_button:"));

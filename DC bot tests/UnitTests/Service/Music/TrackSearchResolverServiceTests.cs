@@ -17,6 +17,22 @@ public class TrackSearchResolverServiceTests
         _resolverService = new TrackSearchResolverService(mockOptions.Object);
     }
 
+    #region Invalid URL Tests
+
+    [Fact]
+    public void ResolveSearchMode_UnknownUrl_ReturnsNone()
+    {
+        // Act
+        var result1 = _resolverService.ResolveSearchMode("https://unknown-domain.com/song");
+        var result2 = _resolverService.ResolveSearchMode("https://example.com/audio");
+
+        // Assert
+        Assert.Equal(TrackSearchMode.None, result1);
+        Assert.Equal(TrackSearchMode.None, result2);
+    }
+
+    #endregion
+
     #region Prefix Resolution Tests
 
     [Fact]
@@ -255,22 +271,6 @@ public class TrackSearchResolverServiceTests
 
         // Assert
         Assert.Equal(TrackSearchMode.Spotify, result);
-    }
-
-    #endregion
-
-    #region Invalid URL Tests
-
-    [Fact]
-    public void ResolveSearchMode_UnknownUrl_ReturnsNone()
-    {
-        // Act
-        var result1 = _resolverService.ResolveSearchMode("https://unknown-domain.com/song");
-        var result2 = _resolverService.ResolveSearchMode("https://example.com/audio");
-
-        // Assert
-        Assert.Equal(TrackSearchMode.None, result1);
-        Assert.Equal(TrackSearchMode.None, result2);
     }
 
     #endregion

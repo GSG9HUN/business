@@ -1,5 +1,6 @@
 ﻿using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Service;
 using DSharpPlus;
 using Microsoft.Extensions.Logging;
@@ -13,12 +14,13 @@ public class ReactionHandlerTests
     public void RegisterHandler_WithDiscordClient_SubscribesToEvents()
     {
         // Arrange
-        var mockLavaLinkService = new Mock<ILavaLinkService>();
-        var mockLogger = new Mock<ILogger<ReactionHandler>>();
-        var mockLocalizationService = new Mock<ILocalizationService>();
-        
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        mockLocalizationService.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
+
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
         var discordConfig = new DiscordConfiguration
         {
@@ -28,16 +30,17 @@ public class ReactionHandlerTests
         var discordClient = new DiscordClient(discordConfig);
 
         var reactionHandler = new ReactionHandler(
-            mockLavaLinkService.Object,
-            mockLogger.Object,
-            mockLocalizationService.Object
+            lavaLinkServiceMock.Object,
+            loggerMock.Object,
+            progressiveTimerServiceMock.Object,
+            localizationServiceMock.Object
         );
 
         // Act
         reactionHandler.RegisterHandler(discordClient);
 
         // Assert
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
                 It.Is<EventId>(e => e.Id == 1202),
@@ -55,12 +58,13 @@ public class ReactionHandlerTests
     public void RegisterHandler_ThenUnregister_UnsubscribesFromEvents()
     {
         // Arrange
-        var mockLavaLinkService = new Mock<ILavaLinkService>();
-        var mockLogger = new Mock<ILogger<ReactionHandler>>();
-        var mockLocalizationService = new Mock<ILocalizationService>();
-        
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        mockLocalizationService.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
+
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
         var discordConfig = new DiscordConfiguration
         {
@@ -70,9 +74,10 @@ public class ReactionHandlerTests
         var discordClient = new DiscordClient(discordConfig);
 
         var reactionHandler = new ReactionHandler(
-            mockLavaLinkService.Object,
-            mockLogger.Object,
-            mockLocalizationService.Object
+            lavaLinkServiceMock.Object,
+            loggerMock.Object,
+            progressiveTimerServiceMock.Object,
+            localizationServiceMock.Object
         );
 
         // Act
@@ -80,7 +85,7 @@ public class ReactionHandlerTests
         reactionHandler.UnregisterHandler(discordClient);
 
         // Assert
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
                 It.Is<EventId>(e => e.Id == 1203),
@@ -96,12 +101,13 @@ public class ReactionHandlerTests
     public void RegisterHandler_CalledTwice_LogsAlreadyRegisteredSecondTime()
     {
         // Arrange
-        var mockLavaLinkService = new Mock<ILavaLinkService>();
-        var mockLogger = new Mock<ILogger<ReactionHandler>>();
-        var mockLocalizationService = new Mock<ILocalizationService>();
-        
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        mockLocalizationService.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
+
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
         var discordConfig = new DiscordConfiguration
         {
@@ -111,9 +117,10 @@ public class ReactionHandlerTests
         var discordClient = new DiscordClient(discordConfig);
 
         var reactionHandler = new ReactionHandler(
-            mockLavaLinkService.Object,
-            mockLogger.Object,
-            mockLocalizationService.Object
+            lavaLinkServiceMock.Object,
+            loggerMock.Object,
+            progressiveTimerServiceMock.Object,
+            localizationServiceMock.Object
         );
 
         // Act
@@ -121,7 +128,7 @@ public class ReactionHandlerTests
         reactionHandler.RegisterHandler(discordClient);
 
         // Assert
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
                 It.Is<EventId>(e => e.Id == 1201),
@@ -139,12 +146,13 @@ public class ReactionHandlerTests
     public void UnregisterHandler_WithoutPreviousRegister_LogsWarning()
     {
         // Arrange
-        var mockLavaLinkService = new Mock<ILavaLinkService>();
-        var mockLogger = new Mock<ILogger<ReactionHandler>>();
-        var mockLocalizationService = new Mock<ILocalizationService>();
-        
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        mockLocalizationService.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
+
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
         var discordConfig = new DiscordConfiguration
         {
@@ -154,20 +162,22 @@ public class ReactionHandlerTests
         var discordClient = new DiscordClient(discordConfig);
 
         var reactionHandler = new ReactionHandler(
-            mockLavaLinkService.Object,
-            mockLogger.Object,
-            mockLocalizationService.Object
+            lavaLinkServiceMock.Object,
+            loggerMock.Object,
+            progressiveTimerServiceMock.Object,
+            localizationServiceMock.Object
         );
 
         // Act
         reactionHandler.UnregisterHandler(discordClient);
 
         // Assert
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Warning),
                 It.Is<EventId>(e => e.Id == 1204),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Tried to unregister handlers, but it was not registered")),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains("Tried to unregister handlers, but it was not registered")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
@@ -179,12 +189,13 @@ public class ReactionHandlerTests
     public void RegisterUnregisterCycle_MaintainsConsistentState()
     {
         // Arrange
-        var mockLavaLinkService = new Mock<ILavaLinkService>();
-        var mockLogger = new Mock<ILogger<ReactionHandler>>();
-        var mockLocalizationService = new Mock<ILocalizationService>();
-        
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        mockLocalizationService.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
+
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
         var discordConfig = new DiscordConfiguration
         {
@@ -194,17 +205,18 @@ public class ReactionHandlerTests
         var discordClient = new DiscordClient(discordConfig);
 
         var reactionHandler = new ReactionHandler(
-            mockLavaLinkService.Object,
-            mockLogger.Object,
-            mockLocalizationService.Object
+            lavaLinkServiceMock.Object,
+            loggerMock.Object,
+            progressiveTimerServiceMock.Object,
+            localizationServiceMock.Object
         );
 
         // Act & Assert
         reactionHandler.RegisterHandler(discordClient);
-        mockLogger.Invocations.Clear();
+        loggerMock.Invocations.Clear();
 
         reactionHandler.UnregisterHandler(discordClient);
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
                 It.Is<EventId>(e => e.Id == 1203),
@@ -215,11 +227,11 @@ public class ReactionHandlerTests
             Times.Once
         );
 
-        mockLogger.Reset();
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        
+        loggerMock.Reset();
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
         reactionHandler.RegisterHandler(discordClient);
-        mockLogger.Verify(
+        loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
                 It.Is<EventId>(e => e.Id == 1202),

@@ -1,4 +1,5 @@
-﻿using DC_bot.Exceptions.Localization;
+﻿using System.Text.Json;
+using DC_bot.Exceptions.Localization;
 using DC_bot.Interface.Service.IO;
 using DC_bot.Service;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,52 @@ namespace DC_bot_tests.UnitTests.Service.Localization;
 public class LocalizationServiceTests
 {
     private readonly Mock<IFileSystem> _mockFileSystem = new();
+
+    #region Integration Tests
+
+    [Fact]
+    public void LocalizationService_LoadAndSaveLanguage_Works()
+    {
+        // Arrange
+        const ulong guildId = 987654321;
+        const string languageCode = "hu";
+
+        _mockFileSystem.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+        _mockFileSystem.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Callback(() => { });
+
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("guildFiles") && p.Contains($"{guildId}.json"))))
+            .Returns(true);
+
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("localization") && p.EndsWith("hu.json"))))
+            .Returns(true);
+
+        // Guild preference file stores a JSON string, not an object.
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(s => s.Contains("guildFiles") && s.Contains($"{guildId}.json"))))
+            .Returns("\"hu\"");
+
+        var languageJson = "{\"play_command\":\"Play Command\",\"pause_command\":\"Pause Command\"}";
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(s => s.EndsWith("hu.json"))))
+            .Returns(languageJson);
+
+        var service = new LocalizationService(NullLogger<LocalizationService>.Instance, _mockFileSystem.Object);
+
+        // Act
+        service.SaveLanguage(guildId, languageCode);
+        service.LoadLanguage(guildId);
+
+        var result1 = service.Get("play_command");
+        var result2 = service.Get("pause_command");
+
+        // Assert
+        Assert.Equal("Play Command", result1);
+        Assert.Equal("Pause Command", result2);
+    }
+
+    #endregion
 
     #region Constructor Tests
 
@@ -168,7 +215,7 @@ public class LocalizationServiceTests
             .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("localization") && p.EndsWith("eng.json"))))
             .Returns(true);
 
-        var json = System.Text.Json.JsonSerializer.Serialize(keys);
+        var json = JsonSerializer.Serialize(keys);
 
         _mockFileSystem
             .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("eng.json"))))
@@ -456,52 +503,6 @@ public class LocalizationServiceTests
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-    }
-
-    #endregion
-
-    #region Integration Tests
-
-    [Fact]
-    public void LocalizationService_LoadAndSaveLanguage_Works()
-    {
-        // Arrange
-        const ulong guildId = 987654321;
-        const string languageCode = "hu";
-
-        _mockFileSystem.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
-        _mockFileSystem.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Callback(() => { });
-
-        _mockFileSystem
-            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("guildFiles") && p.Contains($"{guildId}.json"))))
-            .Returns(true);
-
-        _mockFileSystem
-            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("localization") && p.EndsWith("hu.json"))))
-            .Returns(true);
-
-        // Guild preference file stores a JSON string, not an object.
-        _mockFileSystem
-            .Setup(x => x.ReadAllText(It.Is<string>(s => s.Contains("guildFiles") && s.Contains($"{guildId}.json"))))
-            .Returns("\"hu\"");
-
-        var languageJson = "{\"play_command\":\"Play Command\",\"pause_command\":\"Pause Command\"}";
-        _mockFileSystem
-            .Setup(x => x.ReadAllText(It.Is<string>(s => s.EndsWith("hu.json"))))
-            .Returns(languageJson);
-
-        var service = new LocalizationService(NullLogger<LocalizationService>.Instance, _mockFileSystem.Object);
-
-        // Act
-        service.SaveLanguage(guildId, languageCode);
-        service.LoadLanguage(guildId);
-
-        var result1 = service.Get("play_command");
-        var result2 = service.Get("pause_command");
-
-        // Assert
-        Assert.Equal("Play Command", result1);
-        Assert.Equal("Pause Command", result2);
     }
 
     #endregion

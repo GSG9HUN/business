@@ -6,7 +6,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Wrapper;
 
-public class DiscordChannelWrapper(DiscordChannel discordChannel, ILogger<DiscordChannelWrapper>? logger = null) : IDiscordChannel
+public class DiscordChannelWrapper(DiscordChannel discordChannel, ILogger<DiscordChannelWrapper>? logger = null)
+    : IDiscordChannel
 {
     private readonly ILogger<DiscordChannelWrapper> _logger = logger ?? NullLogger<DiscordChannelWrapper>.Instance;
 
@@ -18,6 +19,18 @@ public class DiscordChannelWrapper(DiscordChannel discordChannel, ILogger<Discor
         try
         {
             await discordChannel.SendMessageAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.MessageSendFailed(ex, "DiscordChannelWrapper.SendMessageAsync");
+        }
+    }
+
+    public async Task SendMessageAsync(DiscordEmbed embed)
+    {
+        try
+        {
+            await discordChannel.SendMessageAsync(embed);
         }
         catch (Exception ex)
         {
