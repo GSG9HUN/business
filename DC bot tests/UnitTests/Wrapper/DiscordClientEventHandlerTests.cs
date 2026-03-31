@@ -9,12 +9,12 @@ namespace DC_bot_tests.UnitTests.Wrapper;
 
 public class DiscordClientEventHandlerTests
 {
-    private readonly Mock<ILogger<DiscordClientEventHandler>> _loggerMock = new();
-    private readonly Mock<IServiceProvider> _serviceProviderMock = new();
+    private readonly DiscordClientEventHandler _eventHandler;
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
+    private readonly Mock<ILogger<DiscordClientEventHandler>> _loggerMock = new();
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
-    private readonly DiscordClientEventHandler _eventHandler;
+    private readonly Mock<IServiceProvider> _serviceProviderMock = new();
 
     public DiscordClientEventHandlerTests()
     {
@@ -30,6 +30,20 @@ public class DiscordClientEventHandlerTests
 
         _eventHandler = new DiscordClientEventHandler(_loggerMock.Object, _serviceProviderMock.Object);
     }
+
+    #region OnGuildAvailable Tests
+
+    [Fact]
+    public void Constructor_InitializesWithProperDependencies()
+    {
+        // Arrange & Act
+        var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _serviceProviderMock.Object);
+
+        // Assert - If we got here without exception, initialization succeeded
+        Assert.NotNull(testEventHandler);
+    }
+
+    #endregion
 
     #region OnClientReady Tests
 
@@ -89,20 +103,6 @@ public class DiscordClientEventHandlerTests
             ),
             Times.Once
         );
-    }
-
-    #endregion
-
-    #region OnGuildAvailable Tests
-    
-    [Fact]
-    public void Constructor_InitializesWithProperDependencies()
-    {
-        // Arrange & Act
-        var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _serviceProviderMock.Object);
-
-        // Assert - If we got here without exception, initialization succeeded
-        Assert.NotNull(testEventHandler);
     }
 
     #endregion

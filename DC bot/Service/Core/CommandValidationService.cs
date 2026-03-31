@@ -41,4 +41,3 @@ public class CommandValidationService : ICommandHelper
         return args[1].Trim();
     }
 }
-

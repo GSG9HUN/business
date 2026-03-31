@@ -11,10 +11,12 @@ This folder contains core application services for command handling and validati
 **Implements:** No interface (event handler service)
 
 **Key Methods:**
+
 - `RegisterHandler()` - Register message event handler
 - `HandleCommandAsync()` - Process Discord messages
 
 **Behavior:**
+
 1. Listens to Discord MessageCreated events
 2. Parses message prefix (e.g., `!play`)
 3. Extracts command name
@@ -23,6 +25,7 @@ This folder contains core application services for command handling and validati
 6. Logs result
 
 **Initialization:**
+
 ```csharp
 var commandHandler = new CommandHandlerService(services, logger, localization, botSettings);
 commandHandler.RegisterHandler(discordClient);
@@ -35,20 +38,24 @@ commandHandler.RegisterHandler(discordClient);
 **Purpose:** Validate user, player, and connection state.
 
 **Implements:**
+
 - `IValidationService` - Player and connection validation
 - `IUserValidationService` - User validation
 
 **Methods:**
 
 #### IValidationService
+
 - `ValidatePlayerAsync()` - Check if Lavalink player exists for guild
 - `ValidateConnectionAsync()` - Check if player connection is established
 
 #### IUserValidationService
+
 - `ValidateUserAsync()` - Validate user (not bot, in voice channel)
 - `IsBotUser()` - Check if message author is a bot
 
 **Usage:**
+
 ```csharp
 // Validate user
 var userResult = await validationService.ValidateUserAsync(message);
@@ -70,11 +77,13 @@ if (!playerResult.IsValid)
 **Validation Checks:**
 
 User validation:
+
 - User is not a bot
 - User is in a voice channel
 - User is in same voice channel as bot (if bot connected)
 
 Player validation:
+
 - Player exists for guild
 - Connection is established
 

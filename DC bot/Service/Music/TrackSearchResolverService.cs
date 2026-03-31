@@ -28,6 +28,8 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
                     return TrackSearchMode.Deezer;
                 case "ymsearch" or "yandexmusic":
                     return TrackSearchMode.YandexMusic;
+                case "bcsearch" or "bandcamp":
+                    return TrackSearchMode.Bandcamp;
             }
         }
 
@@ -37,7 +39,7 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
                 "ytm" => TrackSearchMode.YouTubeMusic,
                 "sc" => TrackSearchMode.SoundCloud,
                 "sp" => TrackSearchMode.Spotify,
-                _ => TrackSearchMode.YouTube,
+                _ => TrackSearchMode.YouTube
             };
 
         var host = uri.Host.ToLowerInvariant();
@@ -50,7 +52,8 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
             "music.apple.com" => TrackSearchMode.AppleMusic,
             "www.deezer.com" or "deezer.com" => TrackSearchMode.Deezer,
             "music.yandex.ru" or "yandex.ru" => TrackSearchMode.YandexMusic,
-            _ => TrackSearchMode.None,
+            "bandcamp.com" => TrackSearchMode.Bandcamp,
+            _ => TrackSearchMode.None
         };
     }
 }

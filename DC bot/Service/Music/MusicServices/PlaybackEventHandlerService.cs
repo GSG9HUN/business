@@ -17,14 +17,11 @@ public class PlaybackEventHandlerService(
 
     public void RegisterPlaybackFinishedHandler(ulong guildId, ILavalinkPlayer connection, IDiscordChannel textChannel)
     {
-        if (_trackEndedHandlers.ContainsKey(guildId))
-        {
-            return;
-        }
+        if (_trackEndedHandlers.ContainsKey(guildId)) return;
 
         AsyncEventHandler<TrackEndedEventArgs> handler = async (_, args) =>
             await trackEndedHandlerService.HandleTrackEndedAsync(connection, args, textChannel);
-        
+
         audioService.TrackEnded += handler;
         _trackEndedHandlers[guildId] = handler;
         logger.LogInformation("Playback finished event registered for guild {GuildId}", guildId);
@@ -34,10 +31,7 @@ public class PlaybackEventHandlerService(
     {
         try
         {
-            if (!_trackEndedHandlers.TryGetValue(guildId, out var handler))
-            {
-                return Task.CompletedTask;
-            }
+            if (!_trackEndedHandlers.TryGetValue(guildId, out var handler)) return Task.CompletedTask;
 
             audioService.TrackEnded -= handler;
             _trackEndedHandlers.Remove(guildId);
@@ -51,4 +45,3 @@ public class PlaybackEventHandlerService(
         }
     }
 }
-

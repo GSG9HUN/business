@@ -22,25 +22,27 @@ namespace DC_bot_tests.IntegrationTests.Service.Core;
 public class CommandHandlerServiceTests : IAsyncLifetime
 {
     private const string BotPrefix = "!";
+    private const ulong TestChannelId = 1339151008307351572;
+    private readonly CommandHandlerService _commandHandlerService;
     private readonly Mock<ILogger<CommandHandlerService>> _commandServiceLoggerMock = new();
-    private readonly Mock<ILogger<ValidationService>> _validationLoggerMock = new();
+    private readonly DiscordClient _discordClient;
+    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
-    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
-    private const ulong TestChannelId = 1339151008307351572;
-    private readonly DiscordClient _discordClient;
-    private readonly CommandHandlerService _commandHandlerService;
     private readonly ServiceProvider _serviceProvider;
+    private readonly Mock<ILogger<ValidationService>> _validationLoggerMock = new();
 
     public CommandHandlerServiceTests()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
+        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
+                            "";
 
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
-        
+
         var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        var botSettings = new BotSettings { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
+        var botSettings = new BotSettings
+            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
 
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
@@ -70,7 +72,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton(_commandHandlerService)
             .BuildServiceProvider();
-        
+
         _discordClient = _serviceProvider.GetRequiredService<DiscordClient>();
     }
 
@@ -88,21 +90,24 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         _discordClient.Dispose();
     }
 
-    private (Mock<ILogger<CommandHandlerService>> freshLoggerMock, CommandHandlerService freshCommandHandlerService, BotSettings botSettings) Init()
+    private (Mock<ILogger<CommandHandlerService>> freshLoggerMock, CommandHandlerService freshCommandHandlerService,
+        BotSettings botSettings) Init()
     {
         var freshLoggerMock = new Mock<ILogger<CommandHandlerService>>();
-        
+
         freshLoggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
+        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
+                            "";
 
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
-        
+
         var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        var botSettings = new BotSettings { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
-        
+        var botSettings = new BotSettings
+            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
+
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
-        
+
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
@@ -113,20 +118,20 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             .BuildServiceProvider();
 
         var freshCommandHandlerService = new CommandHandlerService(
-            services, 
+            services,
             freshLoggerMock.Object,
-            _localizationServiceMock.Object, 
-            botSettings, 
+            _localizationServiceMock.Object,
+            botSettings,
             true);
 
         return (freshLoggerMock, freshCommandHandlerService, botSettings);
     }
-    
+
     [Fact]
     public void RegisterHandler_ShouldRegisterEvent()
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
-   
+
         var discordConfig = new DiscordConfiguration
         {
             Token = botSettings.Token ?? "fake-test-token"
@@ -156,7 +161,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     public void UnregisterHandler_ShouldUnregisterEvent()
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
-   
+
         var discordConfig = new DiscordConfiguration
         {
             Token = botSettings.Token ?? "fake-test-token"
@@ -166,7 +171,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshCommandHandlerService.UnregisterHandler(mockClient);
-        
+
         // Assert
         freshLoggerMock.Verify(
             x => x.Log(
@@ -229,7 +234,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
         freshCommandHandlerService.Prefix = null;
-   
+
         var discordConfig = new DiscordConfiguration
         {
             Token = botSettings.Token ?? "fake-test-token",
@@ -239,10 +244,10 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         await mockClient.ConnectAsync();
         // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
-     
+
         var channel = await mockClient.GetChannelAsync(TestChannelId);
         await channel.SendMessageAsync("!noPrefix");
-        
+
         await Task.Delay(3000);
 
         // Assert
@@ -265,7 +270,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     public void UnregisterCommandHandler_Should_Log_Warning()
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
-   
+
         var discordConfig = new DiscordConfiguration
         {
             Token = botSettings.Token ?? "fake-test-token"
@@ -280,7 +285,8 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Warning),
                 It.Is<EventId>(e => e.Id == 1106),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Tried to unregister handler, but it was not registered")),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains("Tried to unregister handler, but it was not registered")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
@@ -294,7 +300,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     public void RegisterCommandAsync_Twice_Should_Log_Already_Registered()
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
-   
+
         var discordConfig = new DiscordConfiguration
         {
             Token = botSettings.Token ?? "fake-test-token"

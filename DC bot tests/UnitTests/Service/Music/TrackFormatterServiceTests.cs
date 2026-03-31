@@ -1,4 +1,5 @@
-﻿using DC_bot.Interface;
+﻿using DC_bot_tests.TestHelperFiles;
+using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Service.Music.MusicServices;
 using Moq;
@@ -30,7 +31,7 @@ public class TrackFormatterServiceTests
         const ulong guildId = 22;
 
         current.Setup(x => x.GetCurrentTrack(guildId))
-            .Returns(new Lavalink4NET.Tracks.LavalinkTrack { Author = "CurA", Title = "CurT", Identifier = "id0" });
+            .Returns(TrackTestHelper.CreateTrackWrapper("CurA", "CurT", "id0"));
 
         var t1 = new Mock<ILavaLinkTrack>();
         t1.SetupGet(x => x.Author).Returns("Q1A");
@@ -55,7 +56,7 @@ public class TrackFormatterServiceTests
         var queue = new Mock<IMusicQueueService>();
         const ulong guildId = 23;
 
-        current.Setup(x => x.GetCurrentTrack(guildId)).Returns((Lavalink4NET.Tracks.LavalinkTrack?)null);
+        current.Setup(x => x.GetCurrentTrack(guildId)).Returns((ILavaLinkTrack?)null);
 
         var t1 = new Mock<ILavaLinkTrack>();
         t1.SetupGet(x => x.Author).Returns("Q1A");

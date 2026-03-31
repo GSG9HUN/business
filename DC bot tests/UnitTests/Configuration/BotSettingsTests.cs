@@ -67,10 +67,10 @@ public class BotSettingsTests
         const string prefix = "$";
 
         // Act
-        var settings = new BotSettings 
-        { 
-            Token = token, 
-            Prefix = prefix 
+        var settings = new BotSettings
+        {
+            Token = token,
+            Prefix = prefix
         };
 
         // Assert
@@ -101,12 +101,11 @@ public class BotSettingsTests
     [Fact]
     public void BotSettings_Properties_UseInitAccessor()
     {
-
         // Act
-        var settings = new BotSettings 
-        { 
-            Token = "token", 
-            Prefix = "!" 
+        var settings = new BotSettings
+        {
+            Token = "token",
+            Prefix = "!"
         };
 
         // Assert

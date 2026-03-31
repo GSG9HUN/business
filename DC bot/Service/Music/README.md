@@ -11,6 +11,7 @@ This folder contains music playback and queue management services.
 **Implements:** `ILavaLinkService`
 
 **Key Methods:**
+
 - `ConnectAsync()` - Connect to Lavalink server
 - `PlayAsyncUrl()` - Play track from URL
 - `PlayAsyncQuery()` - Play track from search query
@@ -22,9 +23,11 @@ This folder contains music playback and queue management services.
 - `Init()` - Initialize guild state
 
 **Events:**
+
 - `TrackStarted` - Fired when track begins playing
 
 **Architecture:**
+
 - Delegates to specialized services for specific tasks
 - Uses `IPlayerConnectionService` for voice channel management
 - Uses `ITrackPlaybackService` for playback control
@@ -40,9 +43,11 @@ This folder contains music playback and queue management services.
 **Implements:** `ITrackSearchResolverService`
 
 **Method:**
+
 - `ResolveSearchMode()` - Determine search mode from input string
 
 **Supported Prefixes:**
+
 - `spotify:` or `sptfy:` → Spotify
 - `soundcloud:` or `scsearch:` → SoundCloud
 - `youtubemusic:` or `ytmsearch:` → YouTube Music
@@ -52,6 +57,7 @@ This folder contains music playback and queue management services.
 - `yandexmusic:` or `ymsearch:` → Yandex Music
 
 **Default Search Mode:**
+
 - Configurable via `SearchResolverOptions`
 - Falls back to YouTube if not specified
 
@@ -60,9 +66,11 @@ This folder contains music playback and queue management services.
 ## Subfolders
 
 ### MusicServices/
+
 Granular music component services.
 
 **Services:**
+
 - `CurrentTrackService.cs`
 - `MusicQueueService.cs`
 - `PlaybackEventHandlerService.cs`

@@ -22,14 +22,14 @@ public class HelpCommandTests
     private const string HelpCommandResponseValue = "Available commands:";
     private const string ExpectedCommandsHeader = "Available commands:\n";
     private const string ExpectedCommandsList = "Available commands:\nping : Replies with Pong!\nplay : Plays a song\n";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly HelpCommand _helpCommand;
 
     private readonly Mock<IDiscordMessage> _messageMock;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly HelpCommand _helpCommand;
 
     public HelpCommandTests()
     {
@@ -107,11 +107,11 @@ public class HelpCommandTests
             .Returns(HelpCommandResponseValue);
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
-        
+
         var services = new ServiceCollection();
         var emptyServiceProvider = services.BuildServiceProvider();
-        
-        var helpCommandWithNoCommands = new HelpCommand(userValidationService, mockLogger.Object, 
+
+        var helpCommandWithNoCommands = new HelpCommand(userValidationService, mockLogger.Object,
             _responseBuilderMock.Object, localizationServiceMock.Object, emptyServiceProvider);
 
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
@@ -150,7 +150,8 @@ public class HelpCommandTests
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]

@@ -9,6 +9,7 @@ This folder contains assembly-level project properties.
 **Purpose:** Assembly metadata and attributes.
 
 **Contains:**
+
 - Assembly version information
 - Company and product information
 - Copyright and license details

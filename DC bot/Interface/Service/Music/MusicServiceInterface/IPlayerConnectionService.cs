@@ -6,11 +6,11 @@ namespace DC_bot.Interface.Service.Music.MusicServiceInterface;
 public interface IPlayerConnectionService
 {
     Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryJoinAndValidateAsync(
-        IDiscordMessage message, 
+        IDiscordMessage message,
         IDiscordChannel? channel);
 
-    Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryGetAndValidateExistingPlayerAsync(
-        IDiscordMessage message, 
-        IDiscordChannel? channel);
+    Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
+        TryGetAndValidateExistingPlayerAsync(
+            IDiscordMessage message,
+            IDiscordChannel? channel);
 }
-

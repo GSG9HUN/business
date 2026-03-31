@@ -81,7 +81,6 @@ public class ValidationServiceTests
         Assert.False(result.IsValid);
         Assert.Null(result.Connection);
         Assert.Equal(ValidationErrorKeys.BotIsNotConnectedError, result.ErrorKey);
-
     }
 
     [Fact]

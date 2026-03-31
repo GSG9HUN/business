@@ -25,6 +25,7 @@ public interface ILavaLinkService
 ```
 
 **Methods:**
+
 - `ConnectAsync()` - Connect to Lavalink server
 - `PlayAsyncUrl()` - Play track from URL
 - `PlayAsyncQuery()` - Play track from search query
@@ -36,6 +37,7 @@ public interface ILavaLinkService
 - `Init()` - Initialize guild state
 
 **Events:**
+
 - `TrackStarted` - Fired when track starts playing
 
 **Implementation:** `Service/Music/LavaLinkService.cs`
@@ -53,6 +55,7 @@ public interface ILavaLinkService
 ### MusicServiceInterface/
 
 Contains granular music service interfaces:
+
 - `ICurrentTrackService.cs`
 - `IMusicQueueService.cs`
 - `IPlaybackEventHandlerService.cs`

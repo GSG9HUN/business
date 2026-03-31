@@ -10,4 +10,3 @@ public interface ITrackPlaybackService
     Task PlayTrackFromQueueAsync(ILavalinkPlayer player, IDiscordChannel textChannel);
     Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId);
 }
-

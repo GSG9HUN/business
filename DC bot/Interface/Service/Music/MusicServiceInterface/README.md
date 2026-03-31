@@ -23,6 +23,7 @@ These interfaces split music domain responsibilities into focused contracts.
 All implementations are in `Service/Music/MusicServices/` with matching filenames.
 
 **Example:**
+
 - `IMusicQueueService.cs` → `Service/Music/MusicServices/MusicQueueService.cs`
 - `IRepeatService.cs` → `Service/Music/MusicServices/RepeatService.cs`
 

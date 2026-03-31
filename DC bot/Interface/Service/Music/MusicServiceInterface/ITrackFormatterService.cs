@@ -5,4 +5,3 @@ public interface ITrackFormatterService
     string FormatCurrentTrack(ulong guildId);
     string FormatCurrentTrackList(ulong guildId);
 }
-

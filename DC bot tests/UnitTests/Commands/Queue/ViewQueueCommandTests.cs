@@ -25,16 +25,16 @@ public class ViewQueueCommandTests
     private const string TestTitle = "Test title";
     private const string TitlePrefix = "Title ";
     private const string AuthorPrefix = "Author ";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<IDiscordMessage> _messageMock;
 
     private readonly Mock<IMusicQueueService> _musicQueueMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
-    private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly ViewQueueCommand _viewQueueCommand;
     private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly ViewQueueCommand _viewQueueCommand;
 
     public ViewQueueCommandTests()
     {
@@ -103,7 +103,7 @@ public class ViewQueueCommandTests
         //Assert
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task ExecuteAsync_QueueIsEmpty_ShouldSendErrorMessage()
     {
@@ -134,10 +134,11 @@ public class ViewQueueCommandTests
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
         //Assert
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, LocalizationKeys.ViewListCommandError), Times.Once);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, LocalizationKeys.ViewListCommandError), Times.Once);
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
     }
-    
+
     [Fact]
     public async Task ExecuteAsync_Should_Run_Correctly()
     {
@@ -190,7 +191,7 @@ public class ViewQueueCommandTests
 
         var tracks = new List<ILavaLinkTrack>();
 
-        for (int i = 1; i <= 11; i++)
+        for (var i = 1; i <= 11; i++)
         {
             var trackMock = new Mock<ILavaLinkTrack>();
             trackMock.SetupGet(t => t.Author).Returns($"{AuthorPrefix}{i}");
@@ -221,13 +222,13 @@ public class ViewQueueCommandTests
 
         // Assert
         _messageMock.Verify(m => m.RespondAsync(It.Is<DiscordEmbed>(embed =>
-                embed.Title == ViewListEmbedTitleValue &&
-                embed.Fields.Count == 10 && // Csak 10 track-et kell megjelenítenie
-                embed.Fields[0].Name == $"{TitlePrefix}1" &&
-                embed.Fields[0].Value == $"🎵 {AuthorPrefix}1" &&
-                embed.Fields[9].Name == $"{TitlePrefix}10" &&
-                embed.Fields[9].Value == $"🎵 {AuthorPrefix}10" &&
-                embed.Footer.Text == ViewListFooterValue
+            embed.Title == ViewListEmbedTitleValue &&
+            embed.Fields.Count == 10 && // Csak 10 track-et kell megjelenítenie
+            embed.Fields[0].Name == $"{TitlePrefix}1" &&
+            embed.Fields[0].Value == $"🎵 {AuthorPrefix}1" &&
+            embed.Fields[9].Name == $"{TitlePrefix}10" &&
+            embed.Fields[9].Value == $"🎵 {AuthorPrefix}10" &&
+            embed.Footer.Text == ViewListFooterValue
         )), Times.Once);
 
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);

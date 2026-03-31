@@ -41,6 +41,7 @@ public static class ValidationErrorKeys
 ```
 
 **Usage:**
+
 ```csharp
 // In commands
 var description = localizationService.Get(LocalizationKeys.PlayCommandDescription);
@@ -50,6 +51,7 @@ await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.User
 ```
 
 **Benefits:**
+
 - Type-safe key references
 - Compile-time checking
 - IDE auto-completion
@@ -67,6 +69,7 @@ Keys defined here map to language files:
 - `localization/hu.json` - Hungarian values
 
 **Example JSON:**
+
 ```json
 {
   "play_command_description": "Play music from URL or search query",

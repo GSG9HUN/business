@@ -5,6 +5,7 @@ This document describes the Discord bot application entry point and initializati
 ## Overview
 
 `Program.cs` is responsible for:
+
 - Loading environment variables from `.env` file
 - Configuring application services (Dependency Injection)
 - Registering Discord event handlers
@@ -29,6 +30,7 @@ private static async Task Main()
 ```
 
 **Flow:**
+
 1. Check if `.env` file exists in current directory
 2. Load environment variables from `.env`
 3. Call `RunBotAsync()` to start the bot
@@ -42,12 +44,14 @@ private static async Task Main()
 ### Required Variables
 
 #### Bot Settings
+
 - **DISCORD_TOKEN** - Discord bot token (required)
   ```
   DISCORD_TOKEN=your_bot_token_here
   ```
 
 #### Lavalink Settings
+
 - **LAVALINK_HOSTNAME** - Lavalink server host (required)
   ```
   LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
@@ -56,12 +60,14 @@ private static async Task Main()
 ### Optional Variables
 
 #### Bot Settings
+
 - **BOT_PREFIX** - Command prefix (default: `!`)
   ```
   BOT_PREFIX=!
   ```
 
 #### Lavalink Settings
+
 - **LAVALINK_PORT** - Lavalink server port (default: `2333`)
   ```
   LAVALINK_PORT=443
@@ -117,6 +123,7 @@ var lavaLinkSettings = new LavalinkSettings
 ```
 
 **Behavior:**
+
 - Strips whitespace and quotes from values
 - Provides sensible defaults
 - Validates required settings
@@ -130,15 +137,18 @@ var services = ConfigureServices(botSettings, lavaLinkSettings);
 The `ConfigureServices()` method configures the DI container with:
 
 #### Logging
+
 ```csharp
 .AddLogging(builder => { 
     builder.AddConsole().SetMinimumLevel(LogLevel.Debug); 
 })
 ```
+
 - Console logging enabled
 - Minimum level: Debug
 
 #### Lavalink Configuration
+
 ```csharp
 .ConfigureLavalink(options =>
 {
@@ -155,23 +165,25 @@ The `ConfigureServices()` method configures the DI container with:
 ```
 
 **Features:**
+
 - Automatically selects HTTP/HTTPS based on `LAVALINK_SECURED`
 - Automatically selects WS/WSS based on `LAVALINK_SECURED`
 - Configures Lavalink server address and authentication
 
 #### Core Services Registration
 
-| Service | Implementation | Lifetime |
-|---------|----------------|----------|
-| `IFileSystem` | `PhysicalFileSystem` | Singleton |
-| `BotService` | `BotService` | Singleton |
-| `DiscordClient` | `DiscordClient` | Singleton |
+| Service                 | Implementation          | Lifetime  |
+|-------------------------|-------------------------|-----------|
+| `IFileSystem`           | `PhysicalFileSystem`    | Singleton |
+| `BotService`            | `BotService`            | Singleton |
+| `DiscordClient`         | `DiscordClient`         | Singleton |
 | `CommandHandlerService` | `CommandHandlerService` | Singleton |
-| `ReactionHandler` | `ReactionHandler` | Singleton |
+| `ReactionHandler`       | `ReactionHandler`       | Singleton |
 
 #### Command Registration
 
 All text commands registered as `ICommand`:
+
 - `TagCommand`
 - `JoinCommand`
 - `PingCommand`
@@ -190,29 +202,29 @@ All text commands registered as `ICommand`:
 
 #### Music Services Registration
 
-| Service | Implementation |
-|---------|----------------|
-| `ILavaLinkService` | `LavaLinkService` |
-| `IMusicQueueService` | `MusicQueueService` |
-| `IRepeatService` | `RepeatService` |
-| `ICurrentTrackService` | `CurrentTrackService` |
-| `ITrackNotificationService` | `TrackNotificationService` |
-| `ITrackFormatterService` | `TrackFormatterService` |
-| `IPlayerConnectionService` | `PlayerConnectionService` |
+| Service                        | Implementation                |
+|--------------------------------|-------------------------------|
+| `ILavaLinkService`             | `LavaLinkService`             |
+| `IMusicQueueService`           | `MusicQueueService`           |
+| `IRepeatService`               | `RepeatService`               |
+| `ICurrentTrackService`         | `CurrentTrackService`         |
+| `ITrackNotificationService`    | `TrackNotificationService`    |
+| `ITrackFormatterService`       | `TrackFormatterService`       |
+| `IPlayerConnectionService`     | `PlayerConnectionService`     |
 | `IPlaybackEventHandlerService` | `PlaybackEventHandlerService` |
-| `ITrackPlaybackService` | `TrackPlaybackService` |
-| `ITrackEndedHandlerService` | `TrackEndedHandlerService` |
-| `ITrackSearchResolverService` | `TrackSearchResolverService` |
+| `ITrackPlaybackService`        | `TrackPlaybackService`        |
+| `ITrackEndedHandlerService`    | `TrackEndedHandlerService`    |
+| `ITrackSearchResolverService`  | `TrackSearchResolverService`  |
 
 #### Validation & Localization Services
 
-| Service | Implementation |
-|---------|----------------|
-| `IValidationService` | `ValidationService` |
-| `IUserValidationService` | `ValidationService` |
-| `ILocalizationService` | `LocalizationService` |
-| `IResponseBuilder` | `ResponseBuilder` |
-| `ICommandHelper` | `CommandValidationService` |
+| Service                  | Implementation             |
+|--------------------------|----------------------------|
+| `IValidationService`     | `ValidationService`        |
+| `IUserValidationService` | `ValidationService`        |
+| `ILocalizationService`   | `LocalizationService`      |
+| `IResponseBuilder`       | `ResponseBuilder`          |
+| `ICommandHelper`         | `CommandValidationService` |
 
 ### 3. Handler Registration
 
@@ -228,6 +240,7 @@ reactionHandler.RegisterHandler(discordClient);  // Reaction handling
 ```
 
 **Features:**
+
 - `CommandHandlerService` - Routes Discord messages to registered commands
 - `ReactionHandler` - Handles music control reactions
 
@@ -239,10 +252,11 @@ await botService.StartAsync();
 ```
 
 **Flow:**
+
 1. Retrieve `BotService` from DI container
 2. Call `StartAsync()` to:
-   - Connect Discord client
-   - Run bot indefinitely
+    - Connect Discord client
+    - Run bot indefinitely
 
 ---
 
@@ -300,6 +314,7 @@ slashCommandsConfig.RegisterCommands<PlaySlashCommand>();
 ```
 
 **To Enable:**
+
 1. Uncomment the code
 2. Discord bot must have `applications.commands` scope
 3. Slash commands will be registered on bot startup
@@ -325,6 +340,7 @@ if (string.IsNullOrWhiteSpace(lavalinkHost))
 ```
 
 **Missing Required Variables:**
+
 - Application prints error message
 - Exits without starting bot
 
@@ -366,20 +382,20 @@ dotnet publish -c Release
 ## Configuration Loading Order
 
 1. **Default Values** (hardcoded in code)
-   - `Prefix = "!"`
-   - `Port = 2333`
-   - `Secured = false`
-   - `Password = ""`
+    - `Prefix = "!"`
+    - `Port = 2333`
+    - `Secured = false`
+    - `Password = ""`
 
 2. **Environment Variables** (override defaults)
-   - `BOT_PREFIX`
-   - `LAVALINK_PORT`
-   - `LAVALINK_SECURED`
-   - `LAVALINK_PASSWORD`
+    - `BOT_PREFIX`
+    - `LAVALINK_PORT`
+    - `LAVALINK_SECURED`
+    - `LAVALINK_PASSWORD`
 
 3. **Validation** (check required values)
-   - `DISCORD_TOKEN` - Required, exit if missing
-   - `LAVALINK_HOSTNAME` - Required, exit if missing
+    - `DISCORD_TOKEN` - Required, exit if missing
+    - `LAVALINK_HOSTNAME` - Required, exit if missing
 
 ---
 
@@ -400,29 +416,35 @@ dotnet publish -c Release
 ## Troubleshooting
 
 ### "Please provide .env file."
+
 **Cause:** `.env` file not found in project root
 
 **Solution:** Create `.env` file in project root with required variables
 
 ### "DISCORD_TOKEN is not set"
+
 **Cause:** `DISCORD_TOKEN` environment variable missing or empty
 
 **Solution:** Add `DISCORD_TOKEN=your_token` to `.env` file
 
 ### "LAVALINK_HOSTNAME is not set"
+
 **Cause:** `LAVALINK_HOSTNAME` environment variable missing or empty
 
 **Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env` file
 
 ### Bot connects but commands don't work
+
 **Cause:** Command prefix doesn't match `!`
 
 **Solution:** Check `BOT_PREFIX` in `.env` or use correct prefix
 
 ### Lavalink connection fails
+
 **Cause:** Wrong hostname, port, password, or Lavalink server offline
 
 **Solution:**
+
 - Verify `LAVALINK_HOSTNAME`, `LAVALINK_PORT`, `LAVALINK_PASSWORD`
 - Check Lavalink server is running and accessible
 - Verify `LAVALINK_SECURED` matches server configuration

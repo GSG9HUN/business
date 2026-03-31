@@ -1,5 +1,6 @@
 using DC_bot.Commands.Music;
 using DC_bot.Constants;
+using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -15,16 +16,16 @@ public class PauseCommandTests
 {
     private const string PauseCommandName = "pause";
     private const string PauseCommandDescriptionValue = "Pause the current music.";
-    
-    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IDiscordMember> _discordMemberMock;
-    private readonly Mock<IDiscordGuild> _guildMock;
     private readonly Mock<IDiscordChannel> _channelMock;
-    private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly Mock<IResponseBuilder> _responseBuilderMock;
-    private readonly PauseCommand _pauseCommand;
     private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+
+    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly PauseCommand _pauseCommand;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
 
     public PauseCommandTests()
     {
@@ -46,7 +47,7 @@ public class PauseCommandTests
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
         _pauseCommand = new PauseCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
-            _responseBuilderMock.Object, localizationServiceMock.Object,_commandHelperMock.Object);
+            _responseBuilderMock.Object, localizationServiceMock.Object, _commandHelperMock.Object);
     }
 
     [Fact]
@@ -64,14 +65,16 @@ public class PauseCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         // Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -93,16 +96,20 @@ public class PauseCommandTests
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync((DC_bot.Helper.Validation.UserValidationResult?)null);
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
 
         //Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
 
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Never);
-        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()), Times.Never);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
     }
 
     [Fact]
@@ -126,8 +133,9 @@ public class PauseCommandTests
         voiceChannel.SetupGet(vc => vc.Channel).Returns(_channelMock.Object);
 
         _commandHelperMock
-            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
-            .ReturnsAsync(new DC_bot.Helper.Validation.UserValidationResult(true, string.Empty, _discordMemberMock.Object));
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
         // Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);

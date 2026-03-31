@@ -20,6 +20,7 @@ public class LeaveCommand(
 {
     public string Name => "leave";
     public string Description => localizationService.Get(LocalizationKeys.LeaveCommandDescription);
+
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);

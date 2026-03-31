@@ -22,4 +22,3 @@ public class TrackFormatterService(
             .Aggregate(current, (acc, t) => acc + $"{t.Author} {t.Title}\n");
     }
 }
-

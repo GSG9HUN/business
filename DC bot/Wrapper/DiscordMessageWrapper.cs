@@ -1,4 +1,3 @@
-using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Logging;
 using DSharpPlus.Entities;
@@ -16,6 +15,7 @@ public class DiscordMessageWrapper(
     List<DiscordEmbed> embeds,
     Func<string, Task<DiscordMessage>> responseAsync,
     Func<DiscordEmbed, Task<DiscordMessage>> responseEmbedAsync,
+    Func<DiscordMessageBuilder, Task<DiscordMessage>> modifyAsync,
     ILogger<DiscordMessageWrapper>? logger = null)
     : IDiscordMessage
 {
@@ -49,6 +49,18 @@ public class DiscordMessageWrapper(
         catch (Exception ex)
         {
             _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.RespondAsync(embed)");
+        }
+    }
+
+    public async Task ModifyAsync(DiscordMessageBuilder builder)
+    {
+        try
+        {
+            await modifyAsync(builder);
+        }
+        catch (Exception ex)
+        {
+            _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.ModifyAsync(builder)");
         }
     }
 }

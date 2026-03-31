@@ -20,6 +20,7 @@ public interface IResponseBuilder
 ```
 
 **Methods:**
+
 - `SendValidationErrorAsync()` - Send localized validation error
 - `SendUsageAsync()` - Send command usage instructions
 - `SendSuccessAsync()` - Send success message
@@ -29,6 +30,7 @@ public interface IResponseBuilder
 **Implementation:** `Service/Presentation/ResponseBuilder.cs`
 
 **Usage:**
+
 ```csharp
 // In commands
 if (!result.IsValid)
@@ -41,6 +43,7 @@ await responseBuilder.SendSuccessAsync(message, "Track added to queue");
 ```
 
 **Benefits:**
+
 - Consistent message formatting
 - Automatic localization
 - Centralized error handling

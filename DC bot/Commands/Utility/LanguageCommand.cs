@@ -23,10 +23,7 @@ public class LanguageCommand(
     {
         logger.CommandInvoked(Name);
 
-        if (userValidation.IsBotUser(message))
-        {
-            return;
-        }
+        if (userValidation.IsBotUser(message)) return;
 
         var language = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         if (language is null) return;

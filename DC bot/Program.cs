@@ -8,11 +8,14 @@ using DC_bot.Interface.Service.IO;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Presentation;
+using DC_bot.IO;
 using DC_bot.Service;
 using DC_bot.Service.Core;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.MusicServices;
+using DC_bot.Service.Music.ProgressiveTimer;
 using DC_bot.Service.Presentation;
 using DC_bot.Wrapper;
 using DotNetEnv;
@@ -34,7 +37,7 @@ internal class Program
             Console.WriteLine("Please provide .env file.");
             return;
         }
-        
+
         Env.Load(envPath);
         await new Program().RunBotAsync();
     }
@@ -73,7 +76,7 @@ internal class Program
             Secured = string.Equals(GetEnv("LAVALINK_SECURED"), "true", StringComparison.OrdinalIgnoreCase),
             Password = GetEnv("LAVALINK_PASSWORD") ?? string.Empty
         };
-        
+
         var services = ConfigureServices(botSettings, lavaLinkSettings);
         var botService = services.GetRequiredService<BotService>();
 
@@ -87,22 +90,22 @@ internal class Program
     {
         var services = new ServiceCollection()
             .ConfigureLavalink(options =>
-                {
-                    var httpScheme = lavaLinkSettings.Secured ? "https" : "http";
-                    var wsScheme = lavaLinkSettings.Secured ? "wss" : "ws";
-                    var baseAddress = new Uri($"{httpScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}");
-                    var webSocketUri =
-                        new Uri($"{wsScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}/v4/websocket");
-                    options.BaseAddress = baseAddress;
-                    options.WebSocketUri = webSocketUri;
-                    options.Passphrase = lavaLinkSettings.Password;            
-                })
+            {
+                var httpScheme = lavaLinkSettings.Secured ? "https" : "http";
+                var wsScheme = lavaLinkSettings.Secured ? "wss" : "ws";
+                var baseAddress = new Uri($"{httpScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}");
+                var webSocketUri =
+                    new Uri($"{wsScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}/v4/websocket");
+                options.BaseAddress = baseAddress;
+                options.WebSocketUri = webSocketUri;
+                options.Passphrase = lavaLinkSettings.Password;
+            })
             .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
             .AddSingleton(botSettings)
-            .AddSingleton<IFileSystem, IO.PhysicalFileSystem>()
+            .AddSingleton<IFileSystem, PhysicalFileSystem>()
             .AddSingleton<DiscordClientEventHandler>()
-            .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(
+            .AddSingleton(provider => DiscordClientFactory.Create(
                 provider.GetRequiredService<BotSettings>(),
                 provider.GetRequiredService<DiscordClientEventHandler>()))
             .AddSingleton<BotService>()
@@ -138,6 +141,7 @@ internal class Program
             .AddSingleton<IValidationService, ValidationService>()
             .AddSingleton<ILocalizationService, LocalizationService>()
             .AddSingleton<IUserValidationService, ValidationService>()
+            .AddSingleton<IProgressiveTimerService, ProgressiveTimerService>()
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>()
             .BuildServiceProvider();
 
@@ -147,15 +151,15 @@ internal class Program
     private static void RegisterSlashCommands(ServiceProvider services)
     {
         var discordClient = services.GetRequiredService<DiscordClient>();
-       /* var slashCommandsConfig = discordClient.UseSlashCommands(new SlashCommandsConfiguration
-        {
-            Services = services
-        });
-        slashCommandsConfig.RefreshCommands();
-        slashCommandsConfig.RegisterCommands<TagSlashCommand>();
-        slashCommandsConfig.RegisterCommands<PingSlashCommand>();
-        slashCommandsConfig.RegisterCommands<HelpSlashCommand>();
-        slashCommandsConfig.RegisterCommands<PlaySlashCommand>();*/
+        /* var slashCommandsConfig = discordClient.UseSlashCommands(new SlashCommandsConfiguration
+         {
+             Services = services
+         });
+         slashCommandsConfig.RefreshCommands();
+         slashCommandsConfig.RegisterCommands<TagSlashCommand>();
+         slashCommandsConfig.RegisterCommands<PingSlashCommand>();
+         slashCommandsConfig.RegisterCommands<HelpSlashCommand>();
+         slashCommandsConfig.RegisterCommands<PlaySlashCommand>();*/
     }
 
     private static void RegisterHandlers(ServiceProvider services)

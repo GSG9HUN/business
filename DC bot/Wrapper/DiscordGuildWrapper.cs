@@ -1,4 +1,3 @@
-using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DSharpPlus.Entities;
 
@@ -14,6 +13,7 @@ public class DiscordGuildWrapper(DiscordGuild discordGuild) : IDiscordGuild
         var discordMember = await discordGuild.GetMemberAsync(id);
         return new DiscordMemberWrapper(discordMember);
     }
+
     public DiscordGuild ToDiscordGuild()
     {
         return discordGuild;

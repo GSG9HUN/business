@@ -1,5 +1,4 @@
-﻿using DC_bot.Interface;
-using DC_bot.Interface.Service.Localization;
+﻿using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Logging;
@@ -34,7 +33,6 @@ public class DiscordClientEventHandler(
         {
             logger.DiscordClientGuildAvailable(e.Guild.Name);
 
-            // Resolve these only when the event fires, not during DiscordClient construction.
             var localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
             var lavaLinkService = serviceProvider.GetRequiredService<ILavaLinkService>();
             var musicQueueService = serviceProvider.GetRequiredService<IMusicQueueService>();

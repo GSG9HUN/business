@@ -13,11 +13,12 @@ public class PingCommandTests
 {
     private const string PingCommandName = "ping";
     private const string PingCommandDescriptionValue = "Answer with pong!";
+    private readonly Mock<IDiscordUser> _discordUserMock;
 
     private readonly Mock<IDiscordMessage> _messageMock;
-    private readonly Mock<IDiscordUser> _discordUserMock;
-    private readonly Mock<IResponseBuilder> _responseBuilderMock;
     private readonly PingCommand _pingCommand;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
+
     public PingCommandTests()
     {
         Mock<ILogger<PingCommand>> mockLogger = new();
@@ -48,7 +49,8 @@ public class PingCommandTests
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
@@ -62,7 +64,8 @@ public class PingCommandTests
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.PingCommandResponse), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.PingCommandResponse),
+            Times.Once);
     }
 
     [Fact]

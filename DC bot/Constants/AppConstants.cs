@@ -1,7 +1,7 @@
 ﻿namespace DC_bot.Constants;
 
 /// <summary>
-/// Contains all localization keys used throughout the application.
+///     Contains all localization keys used throughout the application.
 /// </summary>
 public static class LocalizationKeys
 {
@@ -65,7 +65,7 @@ public static class LocalizationKeys
     public const string RepeatListCommandDescription = "repeat_list_command_description";
     public const string RepeatListCommandRepeatingOn = "repeat_list_command_repeating_on";
     public const string RepeatListCommandRepeatingOff = "repeat_list_command_repeating_off";
-   
+
     // Tag Command
     public const string TagCommandDescription = "tag_command_description";
     public const string TagCommandResponse = "tag_command_response";
@@ -91,7 +91,7 @@ public static class LocalizationKeys
 }
 
 /// <summary>
-/// Contains all validation error keys used for user and system validation.
+///     Contains all validation error keys used for user and system validation.
 /// </summary>
 public static class ValidationErrorKeys
 {

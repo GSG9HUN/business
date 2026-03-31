@@ -4,7 +4,8 @@ This folder contains granular music component services.
 
 ## Overview
 
-These services split music functionality into focused responsibilities. Each implements a corresponding interface from `Interface/Service/Music/MusicServiceInterface/`.
+These services split music functionality into focused responsibilities. Each implements a corresponding interface from
+`Interface/Service/Music/MusicServiceInterface/`.
 
 ## Services
 
@@ -23,6 +24,7 @@ These services split music functionality into focused responsibilities. Each imp
 **Purpose:** Manage music queue for each guild.
 
 **Key Methods:**
+
 - `Init()` - Initialize queue for guild
 - `Enqueue()` - Add track to queue
 - `Dequeue()` - Remove and return next track
@@ -33,6 +35,7 @@ These services split music functionality into focused responsibilities. Each imp
 - `GetRepeatableQueue()` - Get queue for repeat mode
 
 **Persistence:**
+
 - Saves to `guildFiles/queues/{guildId}.json`
 - Uses `IFileSystem` for file operations
 - Serializes/deserializes `SerializedTrack` objects
@@ -54,6 +57,7 @@ These services split music functionality into focused responsibilities. Each imp
 **Purpose:** Manage player connections to voice channels.
 
 **Key Methods:**
+
 - `TryJoinAndValidateAsync()` - Join voice channel and validate connection
 
 ---
@@ -89,9 +93,11 @@ These services split music functionality into focused responsibilities. Each imp
 **Purpose:** Send notifications about track changes.
 
 **Events:**
+
 - `TrackStarted` - Fired when new track starts playing
 
 **Methods:**
+
 - `SafeSendAsync()` - Send notification with error handling
 
 ---

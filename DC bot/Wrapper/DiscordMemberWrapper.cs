@@ -1,4 +1,3 @@
-using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DSharpPlus.Entities;
 
@@ -12,5 +11,8 @@ public class DiscordMemberWrapper(DiscordMember discordMember) : IDiscordMember
     public string Mention => discordMember.Mention;
     public IDiscordVoiceState VoiceState => new DiscordVoiceStateWrapper(discordMember.VoiceState);
 
-    public DiscordMember ToDiscordMember() => discordMember;
+    public DiscordMember ToDiscordMember()
+    {
+        return discordMember;
+    }
 }

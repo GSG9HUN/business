@@ -21,9 +21,6 @@ public class BotService(DiscordClient client, ILogger<BotService>? logger = null
             throw;
         }
 
-        if (!isTestEnvironment)
-        {
-            await Task.Delay(-1);
-        }
+        if (!isTestEnvironment) await Task.Delay(-1);
     }
 }

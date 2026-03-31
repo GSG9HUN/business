@@ -4,7 +4,8 @@ This folder contains command implementations for the Discord bot.
 
 ## Overview
 
-Commands handle user input from Discord messages and delegate business logic to services. The bot supports two command types:
+Commands handle user input from Discord messages and delegate business logic to services. The bot supports two command
+types:
 
 1. **Text Commands** - Prefix-based commands (`!play`, `!pause`)
 2. **Slash Commands** - Discord interactions (`/play`, `/ping`)
@@ -12,9 +13,11 @@ Commands handle user input from Discord messages and delegate business logic to 
 ## Folder Structure
 
 ### Music/
+
 Music playback control commands.
 
 **Commands:**
+
 - `PlayCommand` - Play music from URL or search query
 - `PauseCommand` - Pause current track
 - `ResumeCommand` - Resume paused track
@@ -25,9 +28,11 @@ Music playback control commands.
 ---
 
 ### Queue/
+
 Queue management commands.
 
 **Commands:**
+
 - `ViewQueueCommand` - Display current queue
 - `ShuffleCommand` - Randomize queue order
 - `RepeatCommand` - Toggle single-track repeat
@@ -37,9 +42,11 @@ Queue management commands.
 ---
 
 ### SlashCommands/
+
 Slash command implementations.
 
 **Commands:**
+
 - `PlaySlashCommand` - `/play`
 - `PingSlashCommand` - `/ping`
 - `HelpSlashCommand` - `/help`
@@ -48,9 +55,11 @@ Slash command implementations.
 ---
 
 ### Utility/
+
 General-purpose bot commands.
 
 **Commands:**
+
 - `HelpCommand` - List all commands
 - `PingCommand` - Check bot latency
 - `LanguageCommand` - Change guild language
@@ -109,6 +118,7 @@ public async Task ExecuteAsync(IDiscordMessage message)
 ## Dependencies
 
 Commands typically inject:
+
 - `ILavaLinkService` / `IMusicQueueService` - Business logic
 - `IUserValidationService` - User validation
 - `IResponseBuilder` - Message sending

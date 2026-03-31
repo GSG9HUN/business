@@ -13,7 +13,7 @@
 - `IResponseBuilder` - Discord message sending
 - `IUserValidationService` - User/voice state validation
 - `ILavaLinkService` - Music playback orchestration
-All music commands inject:
+  All music commands inject:
 
 ## Dependencies
 
@@ -116,9 +116,11 @@ All music commands follow this pattern:
 **Behavior:**
 
 ```
+
 !play spotify:track:3cfOd4CMv2snFaKAnMdnvK
 !play never gonna give you up
 !play https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
 ```
 **Usage:**
 

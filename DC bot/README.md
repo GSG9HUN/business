@@ -1,10 +1,12 @@
 ﻿# DC Bot - Discord Music Bot
 
-A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuring queue management, multiple languages, robust error handling, and comprehensive documentation.
+A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuring queue management, multiple languages,
+robust error handling, and comprehensive documentation.
 
 ## Quick Start
 
 ### Prerequisites
+
 - .NET 9.0 SDK
 - Lavalink server (audio processing)
 - Discord bot token
@@ -12,6 +14,7 @@ A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuri
 ### Setup
 
 1. **Create `.env` file** in project root:
+
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
@@ -22,6 +25,7 @@ LAVALINK_SECURED=true
 ```
 
 2. **Build and run**:
+
 ```bash
 dotnet restore
 dotnet build
@@ -152,6 +156,7 @@ DC bot/
 ## Key Features
 
 ### 🎵 Music Playback
+
 - **Multiple sources:** YouTube, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music
 - **Queue management:** Persistent queue storage per guild
 - **Repeat modes:** Single track repeat, queue repeat
@@ -159,18 +164,21 @@ DC bot/
 - **Voice channel management:** Auto-join, disconnect, state tracking
 
 ### 🌍 Multi-Language Support
+
 - **Languages:** English (default), Hungarian
 - **Per-guild selection:** Each guild can choose preferred language
 - **Extensible:** Easy to add new languages
 - **Localization system:** Type-safe key constants
 
 ### 🎯 Command System
+
 - **Text commands:** Traditional prefix-based (`!play`, `!pause`)
 - **Slash commands:** Modern Discord interactions (currently disabled)
 - **Comprehensive validation:** User, player, connection checks
 - **Consistent error handling:** Localized error messages
 
 ### 🔧 Architecture
+
 - **Clean layers:** Commands → Services → External APIs
 - **Dependency injection:** Full DI throughout application
 - **Interface-based design:** Testable and flexible
@@ -178,6 +186,7 @@ DC bot/
 - **Repository pattern:** Queue persistence abstraction
 
 ### 📊 Observability
+
 - **Structured logging:** Event IDs for all operations
 - **Execution tracking:** Command start/completion logging
 - **Context preservation:** Log scopes with guild/user IDs
@@ -221,15 +230,15 @@ DC bot/
 
 ### Design Patterns
 
-| Pattern | Implementation | Benefits |
-|---------|----------------|----------|
-| **Dependency Injection** | Constructor injection | Loose coupling, testability |
-| **Service Layer** | Commands delegate to services | Separation of concerns |
-| **Repository** | Queue persistence abstraction | Flexible storage |
-| **Wrapper/Adapter** | DSharpPlus abstraction | Library independence |
-| **Factory** | Discord client creation | Centralized setup |
-| **Options** | Configuration models | Type-safe config |
-| **Result Objects** | Validation results | Exception-free errors |
+| Pattern                  | Implementation                | Benefits                    |
+|--------------------------|-------------------------------|-----------------------------|
+| **Dependency Injection** | Constructor injection         | Loose coupling, testability |
+| **Service Layer**        | Commands delegate to services | Separation of concerns      |
+| **Repository**           | Queue persistence abstraction | Flexible storage            |
+| **Wrapper/Adapter**      | DSharpPlus abstraction        | Library independence        |
+| **Factory**              | Discord client creation       | Centralized setup           |
+| **Options**              | Configuration models          | Type-safe config            |
+| **Result Objects**       | Validation results            | Exception-free errors       |
 
 ### SOLID Principles
 
@@ -246,6 +255,7 @@ DC bot/
 ### Overview
 
 `Program.cs` is responsible for:
+
 1. Loading environment variables from `.env` file
 2. Creating configuration objects
 3. Configuring the Dependency Injection container
@@ -324,14 +334,14 @@ LAVALINK_PASSWORD=your_lavalink_password
 
 ### Environment Variables
 
-| Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
-| `DISCORD_TOKEN` | ✅ Yes | N/A | Bot authentication |
-| `LAVALINK_HOSTNAME` | ✅ Yes | N/A | Lavalink server host |
-| `BOT_PREFIX` | ❌ No | `!` | Command prefix |
-| `LAVALINK_PORT` | ❌ No | `2333` | Lavalink port |
-| `LAVALINK_SECURED` | ❌ No | `false` | Use HTTPS/WSS |
-| `LAVALINK_PASSWORD` | ❌ No | `` | Lavalink password |
+| Variable            | Required | Default | Purpose              |
+|---------------------|----------|---------|----------------------|
+| `DISCORD_TOKEN`     | ✅ Yes    | N/A     | Bot authentication   |
+| `LAVALINK_HOSTNAME` | ✅ Yes    | N/A     | Lavalink server host |
+| `BOT_PREFIX`        | ❌ No     | `!`     | Command prefix       |
+| `LAVALINK_PORT`     | ❌ No     | `2333`  | Lavalink port        |
+| `LAVALINK_SECURED`  | ❌ No     | `false` | Use HTTPS/WSS        |
+| `LAVALINK_PASSWORD` | ❌ No     | ``      | Lavalink password    |
 
 ---
 
@@ -340,17 +350,20 @@ LAVALINK_PASSWORD=your_lavalink_password
 ### Total Services Registered: 43
 
 #### Logging Configuration
+
 - Console logging enabled
 - Minimum level: Debug
 - All services receive `ILogger<T>`
 
 #### Lavalink Configuration
+
 - HTTP/HTTPS automatic selection
 - WebSocket (WS/WSS) automatic selection
 - Server address configuration
 - Authentication setup
 
 #### Core Services (5 services)
+
 - `DiscordClient` - Discord connection
 - `BotService` - Bot lifecycle
 - `CommandHandlerService` - Message routing
@@ -358,11 +371,13 @@ LAVALINK_PASSWORD=your_lavalink_password
 - `IFileSystem` - File operations
 
 #### All 15 Text Commands
+
 - 6 Music commands (play, pause, resume, skip, join, leave)
 - 5 Queue commands (viewList, shuffle, repeat, repeatList, clear)
 - 4 Utility commands (help, ping, language, tag)
 
 #### All 11 Music Services
+
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management
 - `RepeatService` - Repeat logic
@@ -376,6 +391,7 @@ LAVALINK_PASSWORD=your_lavalink_password
 - `TrackSearchResolverService` - URL/query resolution
 
 #### Validation & Localization (5 services)
+
 - `IValidationService` → `ValidationService`
 - `IUserValidationService` → `ValidationService`
 - `ILocalizationService` → `LocalizationService`
@@ -391,24 +407,24 @@ The project has **40+ README.md files** documenting every component:
 ### Start Here
 
 1. **[Commands/README.md](Commands/README.md)** - Understand command system
-   - Command architecture
-   - Text vs. slash commands
-   - Adding new commands
+    - Command architecture
+    - Text vs. slash commands
+    - Adding new commands
 
 2. **[Service/README.md](Service/README.md)** - Business logic layer
-   - Service patterns
-   - Core services (CommandHandler, Validation)
-   - Music services architecture
+    - Service patterns
+    - Core services (CommandHandler, Validation)
+    - Music services architecture
 
 3. **[Interface/README.md](Interface/README.md)** - Architecture abstractions
-   - Why interfaces matter
-   - Service contracts
-   - Discord wrapper contracts
+    - Why interfaces matter
+    - Service contracts
+    - Discord wrapper contracts
 
 4. **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** - Application startup
-   - Environment variables
-   - Service registration details
-   - Initialization flow
+    - Environment variables
+    - Service registration details
+    - Initialization flow
 
 ### Detailed Documentation
 
@@ -430,6 +446,7 @@ The project has **40+ README.md files** documenting every component:
 ### Adding a New Text Command
 
 1. **Create command class** in `Commands/` folder:
+
 ```csharp
 public class MyCommand(
     IMyService service,
@@ -453,16 +470,19 @@ public class MyCommand(
 ```
 
 2. **Register in Program.cs:**
+
 ```csharp
 .AddSingleton<ICommand, MyCommand>()
 ```
 
 3. **Add localization keys** in `Constants/AppConstants.cs`:
+
 ```csharp
 public const string MyCommandDescription = "mycommand_description";
 ```
 
 4. **Add translations** in `localization/*.json`:
+
 ```json
 {
   "mycommand_description": "Does something cool"
@@ -542,6 +562,7 @@ dotnet test --collect:"XPlat Code Coverage"
 ```
 
 **Test structure:**
+
 ```
 DC bot tests/
 ├── UnitTests/
@@ -558,48 +579,59 @@ DC bot tests/
 ## Troubleshooting
 
 ### "Please provide .env file."
+
 **Cause:** `.env` file not found
 
 **Solution:** Create `.env` in project root with required variables
 
 ### "DISCORD_TOKEN is not set"
+
 **Cause:** `DISCORD_TOKEN` missing or empty in `.env`
 
 **Solution:** Add `DISCORD_TOKEN=your_token` to `.env`
 
 ### "LAVALINK_HOSTNAME is not set"
+
 **Cause:** `LAVALINK_HOSTNAME` missing or empty
 
 **Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env`
 
 ### Bot connects but commands don't work
+
 **Cause:** Command prefix doesn't match or bot lacks permissions
 
 **Solution:**
+
 - Verify `BOT_PREFIX` in `.env` (default: `!`)
 - Check bot has `MESSAGE_CONTENT` intent enabled
 - Verify bot has message permissions in Discord
 
 ### Lavalink connection fails
+
 **Cause:** Wrong hostname, port, password, or server offline
 
 **Solution:**
+
 - Verify Lavalink server is running
 - Check `LAVALINK_HOSTNAME`, `LAVALINK_PORT`, `LAVALINK_PASSWORD`
 - Verify `LAVALINK_SECURED` matches server configuration
 
 ### Music doesn't play
+
 **Cause:** Bot not in voice channel or queue empty
 
 **Solution:**
+
 - Join voice channel first
 - Use `!play <query>` to add track
 - Check logs for errors
 
 ### Queue not persisting
+
 **Cause:** File system permissions or `guildFiles/` directory missing
 
 **Solution:**
+
 - Ensure bot has write permissions
 - Directory is auto-created if missing
 - Check disk space
@@ -608,13 +640,13 @@ DC bot tests/
 
 ## Performance Characteristics
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Memory (idle) | ~50-100MB | Base overhead |
-| Memory (per guild) | ~20MB | With active music |
-| CPU (idle) | <1% | Waiting for events |
-| CPU (per guild) | ~5% | During playback |
-| Disk I/O | Minimal | Queue save on changes |
+| Metric             | Value     | Notes                 |
+|--------------------|-----------|-----------------------|
+| Memory (idle)      | ~50-100MB | Base overhead         |
+| Memory (per guild) | ~20MB     | With active music     |
+| CPU (idle)         | <1%       | Waiting for events    |
+| CPU (per guild)    | ~5%       | During playback       |
+| Disk I/O           | Minimal   | Queue save on changes |
 
 ---
 
@@ -631,6 +663,7 @@ DC bot tests/
 ## Contributing
 
 ### Code Style
+
 - Use C# naming conventions
 - Async methods end with `Async`
 - Interfaces start with `I`
@@ -638,6 +671,7 @@ DC bot tests/
 - XML comments on public APIs
 
 ### Documentation
+
 - Update README in modified folder
 - Update PROGRAM_CS_README.md for changes
 - Add localization keys for user text

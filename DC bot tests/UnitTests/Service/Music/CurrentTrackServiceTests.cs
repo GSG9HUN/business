@@ -1,5 +1,5 @@
-﻿using DC_bot.Service.Music.MusicServices;
-using Lavalink4NET.Tracks;
+﻿using DC_bot_tests.TestHelperFiles;
+using DC_bot.Service.Music.MusicServices;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
@@ -21,7 +21,7 @@ public class CurrentTrackServiceTests
     {
         var service = new CurrentTrackService();
         const ulong guildId = 2;
-        var track = new LavalinkTrack { Author = "A", Title = "T", Identifier = "id" };
+        var track = TrackTestHelper.CreateTrackWrapper("A", "T");
 
         service.SetCurrentTrack(guildId, track);
 
@@ -33,7 +33,7 @@ public class CurrentTrackServiceTests
     {
         var service = new CurrentTrackService();
         const ulong guildId = 3;
-        var track = new LavalinkTrack { Author = "Author", Title = "Title", Identifier = "id" };
+        var track = TrackTestHelper.CreateTrackWrapper("Author", "Title");
 
         service.Init(guildId);
         service.SetCurrentTrack(guildId, track);
@@ -46,7 +46,7 @@ public class CurrentTrackServiceTests
     {
         var service = new CurrentTrackService();
         const ulong guildId = 4;
-        var track = new LavalinkTrack { Author = "Rick", Title = "Never Gonna", Identifier = "id" };
+        var track = TrackTestHelper.CreateTrackWrapper("Rick", "Never Gonna");
 
         service.Init(guildId);
         service.SetCurrentTrack(guildId, track);
@@ -55,22 +55,11 @@ public class CurrentTrackServiceTests
     }
 
     [Fact]
-    public void GetCurrentTrackFormatted_WithoutTrack_ReturnsEmpty()
-    {
-        var service = new CurrentTrackService();
-        const ulong guildId = 5;
-
-        service.Init(guildId);
-
-        Assert.Equal(string.Empty, service.GetCurrentTrackFormatted(guildId));
-    }
-
-    [Fact]
     public void TryGetCurrentTrack_WithTrack_ReturnsTrueAndTrack()
     {
         var service = new CurrentTrackService();
         const ulong guildId = 6;
-        var track = new LavalinkTrack { Author = "A", Title = "T", Identifier = "id" };
+        var track = TrackTestHelper.CreateTrackWrapper("A", "T");
 
         service.Init(guildId);
         service.SetCurrentTrack(guildId, track);

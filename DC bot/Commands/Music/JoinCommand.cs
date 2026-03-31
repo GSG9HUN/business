@@ -20,6 +20,7 @@ public class JoinCommand(
 {
     public string Name => "join";
     public string Description => localizationService.Get(LocalizationKeys.JoinCommandDescription);
+
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);

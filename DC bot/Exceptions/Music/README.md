@@ -7,6 +7,7 @@ This folder contains exceptions for music playback operations.
 **Namespace:** `DC_bot.Exceptions.Music`
 
 **Properties:**
+
 - `Operation` (string) - The Lavalink operation that failed
 
 **When Thrown:**
@@ -28,12 +29,14 @@ catch (Exception ex)
 **Namespace:** `DC_bot.Exceptions.Music`
 
 **Properties:**
+
 - `Operation` (string) - The queue operation that failed
 - `GuildId` (ulong) - Discord guild ID
 
 **When Thrown:**
 
 ### 1. Save Queue Failure
+
 ```csharp
 // In MusicQueueService.SaveQueue()
 catch (Exception ex)
@@ -43,6 +46,7 @@ catch (Exception ex)
 ```
 
 ### 2. Load Queue Failure
+
 ```csharp
 // In MusicQueueService.LoadQueue()
 catch (Exception ex)
@@ -60,11 +64,13 @@ catch (Exception ex)
 **Namespace:** `DC_bot.Exceptions.Music`
 
 **Properties:**
+
 - `Query` (string) - The URL or search query that failed
 
 **When Thrown:**
 
 ### 1. Track Load from URL Failure
+
 ```csharp
 // In LavaLinkService.PlayAsyncUrl()
 catch (Exception ex)
@@ -80,6 +86,7 @@ if (loadResult.Tracks.Count == 0)
 ```
 
 ### 2. Track Load from Query Failure
+
 ```csharp
 // In LavaLinkService.PlayAsyncQuery()
 catch (Exception ex)
@@ -101,10 +108,12 @@ if (loadResult.Tracks.Count == 0)
 ## Usage in Code
 
 ### LavaLinkService.cs
+
 - `LavalinkOperationException` - Lavalink connection failures
 - `TrackLoadException` - Track loading from URLs or search queries
 
 ### MusicQueueService.cs
+
 - `QueueOperationException` - Queue file save/load failures
 
 ## Handling

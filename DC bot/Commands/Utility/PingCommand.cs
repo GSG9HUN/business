@@ -21,10 +21,7 @@ public class PingCommand(
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        if (userValidation.IsBotUser(message))
-        {
-            return;
-        }
+        if (userValidation.IsBotUser(message)) return;
 
         await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PingCommandResponse);
         logger.CommandExecuted(Name);

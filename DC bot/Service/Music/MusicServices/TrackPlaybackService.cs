@@ -17,7 +17,8 @@ public class TrackPlaybackService(
     ILocalizationService localizationService,
     ILogger<TrackPlaybackService> logger) : ITrackPlaybackService
 {
-    public async Task PlayTheFoundMusicAsync(TrackLoadResult searchQuery, ILavalinkPlayer connection, IDiscordChannel textChannel)
+    public async Task PlayTheFoundMusicAsync(TrackLoadResult searchQuery, ILavalinkPlayer connection,
+        IDiscordChannel textChannel)
     {
         var musicTrack = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
         var guildId = textChannel.Guild.Id;
@@ -28,20 +29,19 @@ public class TrackPlaybackService(
         {
             var nextTrack = musicQueueService.Dequeue(guildId);
 
-            if (nextTrack == null)
-            {
-                return;
-            }
+            if (nextTrack == null) return;
 
             try
             {
-                await connection.PlayAsync(nextTrack);
-                await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack);
+                await connection.PlayAsync(nextTrack.ToLavalinkTrack());
+                await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
+                    nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
             }
             catch (Exception ex)
             {
                 logger.LavalinkOperationFailed(ex, "PlayTheFoundMusicAsync.PlayAsync");
-                await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(ValidationErrorKeys.LavalinkError), "PlayTheFoundMusicAsync.Error");
+                await trackNotificationService.SendSafeAsync(textChannel,
+                    localizationService.Get(ValidationErrorKeys.LavalinkError), "PlayTheFoundMusicAsync.Error");
                 return;
             }
 
@@ -51,7 +51,9 @@ public class TrackPlaybackService(
 
         if (musicTrack.Count > 1)
         {
-            await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue), "PlayTheFoundMusicAsync.PlaylistQueued");
+            await trackNotificationService.SendSafeAsync(textChannel,
+                localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue),
+                "PlayTheFoundMusicAsync.PlaylistQueued");
             logger.AddedToQueue();
             return;
         }
@@ -72,21 +74,19 @@ public class TrackPlaybackService(
     public async Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId)
     {
         var nextTrack = musicQueueService.Dequeue(guildId);
-        if (nextTrack is null)
-        {
-            return;
-        }
+        if (nextTrack is null) return;
 
         try
         {
-            await player.PlayAsync(nextTrack);
-            await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack);
+            await player.PlayAsync(nextTrack.ToLavalinkTrack());
+            await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
+                nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
         }
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "TryPlayNextTrackAsync");
-            await trackNotificationService.SendSafeAsync(textChannel, localizationService.Get(ValidationErrorKeys.LavalinkError), "TryPlayNextTrackAsync.Error");
+            await trackNotificationService.SendSafeAsync(textChannel,
+                localizationService.Get(ValidationErrorKeys.LavalinkError), "TryPlayNextTrackAsync.Error");
         }
     }
 }
-

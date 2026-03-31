@@ -1,6 +1,5 @@
-﻿using DC_bot.Interface;
+﻿using DC_bot_tests.TestHelperFiles;
 using DC_bot.Service.Music.MusicServices;
-using Lavalink4NET.Tracks;
 
 namespace DC_bot_tests.IntegrationTests.Service.Music;
 
@@ -19,11 +18,30 @@ public class TrackFormatterServiceIntegrationTests
 
         var formatter = new TrackFormatterService(currentTrackService, queueService);
 
-        var current = CreateTrack("CurrentAuthor", "CurrentTitle", "track-current");
-
+        var current = TrackTestHelper.CreateTrackWrapper(
+            "Noize Generation",
+            "Sugababes - Round Round (Noize Generation Remix)",
+            "4g7MsUvOZN4",
+            100D
+        );
+        
         currentTrackService.SetCurrentTrack(guildId, current);
-        queueService.Enqueue(guildId, CreateQueueTrack("QueueAuthorA", "QueueTitleA", "track-a"));
-        queueService.Enqueue(guildId, CreateQueueTrack("QueueAuthorB", "QueueTitleB", "track-b"));
+
+        queueService.Enqueue(guildId,
+            TrackTestHelper.CreateTrackWrapper(
+                "Noize Generation",
+                "Sugababes - Round Round (Noize Generation Remix)",
+                "4g7MsUvOZN4"
+                )
+            );
+
+        queueService.Enqueue(guildId,
+            TrackTestHelper.CreateTrackWrapper(
+                "Noize Generation",
+                "Sugababes - Round Round (Noize Generation Remix)",
+                "4g7MsUvOZN4"
+            )
+        );
 
         // Act
         var beforeDequeue = formatter.FormatCurrentTrackList(guildId);
@@ -60,11 +78,18 @@ public class TrackFormatterServiceIntegrationTests
 
         var formatter = new TrackFormatterService(currentTrackService, queueService);
 
-        currentTrackService.SetCurrentTrack(guildA, CreateTrack("A-CurrentAuthor", "A-CurrentTitle", "a-current"));
-        currentTrackService.SetCurrentTrack(guildB, CreateTrack("B-CurrentAuthor", "B-CurrentTitle", "b-current"));
+        currentTrackService.SetCurrentTrack(guildA,
+            TrackTestHelper.CreateTrackWrapper("A-CurrentAuthor", "A-CurrentTitle", "a-current")
+        );
+        currentTrackService.SetCurrentTrack(guildB,
+            TrackTestHelper.CreateTrackWrapper("B-CurrentAuthor", "B-CurrentTitle", "b-current")
+        );
 
-        queueService.Enqueue(guildA, CreateQueueTrack("A-QueueAuthor", "A-QueueTitle", "a-queue"));
-        queueService.Enqueue(guildB, CreateQueueTrack("B-QueueAuthor", "B-QueueTitle", "b-queue"));
+        queueService.Enqueue(guildA,
+            TrackTestHelper.CreateTrackWrapper("A-CurrentAuthor", "A-CurrentTitle", "a-current")
+        );
+        queueService.Enqueue(guildB, TrackTestHelper.CreateTrackWrapper("B-CurrentAuthor", "B-CurrentTitle", "b-current")
+        );
 
         // Act
         var resultA = formatter.FormatCurrentTrackList(guildA);
@@ -96,25 +121,24 @@ public class TrackFormatterServiceIntegrationTests
 
         var formatter = new TrackFormatterService(currentTrackService, queueService);
 
-        var current = CreateTrack("CurrentAuthor", "CurrentTitle", "repeat-current");
+        var current = TrackTestHelper.CreateTrackWrapper("CurrentAuthor", "CurrentTitle", "repeat-current");
 
         currentTrackService.SetCurrentTrack(guildId, current);
-        queueService.Enqueue(guildId, CreateQueueTrack("QueueAuthorA", "QueueTitleA", "repeat-a"));
-        queueService.Enqueue(guildId, CreateQueueTrack("QueueAuthorB", "QueueTitleB", "repeat-b"));
-        
+        queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper("QueueAuthorA", "QueueTitleA", "track-a"));
+        queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper("QueueAuthorB", "QueueTitleB", "track-b"));
+
         queueService.Clone(guildId, current);
-        
+
         queueService.Dequeue(guildId);
         queueService.Dequeue(guildId);
         Assert.False(queueService.HasTracks(guildId));
 
         foreach (var t in queueService.GetRepeatableQueue(guildId))
         {
-            // Avoid persisting raw LavalinkTrackWrapper instances; SaveQueue serializes via ToString().
             var track = t.ToLavalinkTrack();
-            queueService.Enqueue(guildId, CreateQueueTrack(track.Author, track.Title, track.Identifier));
+            queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper(track.Author, track.Title, track.Identifier));
         }
-        
+
         var firstRepeated = queueService.Dequeue(guildId);
         currentTrackService.SetCurrentTrack(guildId, firstRepeated);
 
@@ -126,54 +150,5 @@ public class TrackFormatterServiceIntegrationTests
         Assert.Equal(
             "CurrentAuthor CurrentTitle\nQueueAuthorA QueueTitleA\nQueueAuthorB QueueTitleB\n",
             formatted);
-    }
-
-    private static LavalinkTrack CreateTrack(string author, string title, string id)
-    {
-        return new LavalinkTrack
-        {
-            Author = author,
-            Title = title,
-            Identifier = id,
-            Duration = TimeSpan.FromSeconds(120)
-        };
-    }
-
-    private static ILavaLinkTrack CreateQueueTrack(string author, string title, string id)
-    {
-        return new FakeQueueTrack(author, title, id);
-    }
-
-    private sealed class FakeQueueTrack : ILavaLinkTrack
-    {
-        private readonly string _author;
-        private readonly string _title;
-        private readonly string _id;
-
-        public FakeQueueTrack(string author, string title, string id)
-        {
-            _author = author;
-            _title = title;
-            _id = id;
-        }
-
-        public string Title => _title;
-        public string Author => _author;
-
-        public LavalinkTrack ToLavalinkTrack()
-        {
-            return new LavalinkTrack
-            {
-                Author = _author,
-                Title = _title,
-                Identifier = _id,
-                Duration = TimeSpan.FromSeconds(120)
-            };
-        }
-
-        public override string ToString()
-        { 
-            return _id;
-        }
     }
 }

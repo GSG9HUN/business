@@ -1,4 +1,5 @@
-﻿using DC_bot.Model;
+﻿using System.Text.Json;
+using DC_bot.Model;
 
 namespace DC_bot_tests.UnitTests.Model;
 
@@ -87,8 +88,8 @@ public class SerializedTrackTests
         var originalTrack = new SerializedTrack { Identifier = "test_id_123" };
 
         // Act - Simulate serialization/deserialization
-        var jsonRepresentation = System.Text.Json.JsonSerializer.Serialize(originalTrack);
-        var deserializedTrack = System.Text.Json.JsonSerializer.Deserialize<SerializedTrack>(jsonRepresentation);
+        var jsonRepresentation = JsonSerializer.Serialize(originalTrack);
+        var deserializedTrack = JsonSerializer.Deserialize<SerializedTrack>(jsonRepresentation);
 
         // Assert
         Assert.NotNull(deserializedTrack);
@@ -140,10 +141,10 @@ public class SerializedTrackTests
     {
         // This test verifies that Identifier is an init-only property
         var track = new SerializedTrack { Identifier = "initial" };
-        
+
         // Verify it's set
         Assert.Equal("initial", track.Identifier);
-        
+
         // We cannot set it again since it's init-only
         // This would cause a compile error, so we just verify it was set
     }

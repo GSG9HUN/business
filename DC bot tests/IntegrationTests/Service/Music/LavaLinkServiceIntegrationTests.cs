@@ -1,12 +1,14 @@
-﻿using DC_bot.Exceptions.Music;
+﻿using DC_bot_tests.Helpers;
+using DC_bot.Exceptions.Music;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.MusicServices;
-using DC_bot_tests.Helpers;
+using DC_bot.Wrapper;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
@@ -19,29 +21,30 @@ public class LavaLinkServiceIntegrationTests
 {
     private const ulong GuildId = 555UL;
     private const ulong VoiceChannelId = 777UL;
+    private readonly Mock<IAudioService> _audioServiceMock = new();
+    private readonly CurrentTrackService _currentTrackService;
+
+    private readonly Mock<IDiscordGuild> _guildMock = new();
+    private readonly Mock<ILocalizationService> _localizationMock = new();
+
+    private readonly Mock<ILogger<LavaLinkService>> _loggerMock = new();
+    private readonly Mock<IDiscordMember> _memberMock = new();
+    private readonly Mock<IDiscordMessage> _messageMock = new();
+    private readonly Mock<IPlaybackEventHandlerService> _playbackEventHandlerMock = new();
+    private readonly Mock<IPlayerConnectionService> _playerConnectionMock = new();
+    private readonly Mock<ILavalinkPlayer> _playerMock = new();
+    private readonly Mock<IProgressiveTimerService> _progressiveTimerServiceMock = new();
 
     private readonly MusicQueueService _queueService;
     private readonly RepeatService _repeatService;
-    private readonly CurrentTrackService _currentTrackService;
-
-    private readonly Mock<ILogger<LavaLinkService>> _loggerMock = new();
-    private readonly Mock<IAudioService> _audioServiceMock = new();
     private readonly Mock<IResponseBuilder> _responseBuilderMock = new();
-    private readonly Mock<ILocalizationService> _localizationMock = new();
-    private readonly Mock<ITrackNotificationService> _trackNotificationMock = new();
-    private readonly Mock<IPlayerConnectionService> _playerConnectionMock = new();
-    private readonly Mock<IPlaybackEventHandlerService> _playbackEventHandlerMock = new();
-    private readonly Mock<ITrackPlaybackService> _trackPlaybackMock = new();
-
-    private readonly Mock<IDiscordGuild> _guildMock = new();
-    private readonly Mock<IDiscordChannel> _voiceChannelMock = new();
-    private readonly Mock<IDiscordChannel> _textChannelMock = new();
-    private readonly Mock<IDiscordVoiceState> _voiceStateMock = new();
-    private readonly Mock<IDiscordMember> _memberMock = new();
-    private readonly Mock<IDiscordMessage> _messageMock = new();
-    private readonly Mock<ILavalinkPlayer> _playerMock = new();
 
     private readonly LavaLinkService _service;
+    private readonly Mock<IDiscordChannel> _textChannelMock = new();
+    private readonly Mock<ITrackNotificationService> _trackNotificationMock = new();
+    private readonly Mock<ITrackPlaybackService> _trackPlaybackMock = new();
+    private readonly Mock<IDiscordChannel> _voiceChannelMock = new();
+    private readonly Mock<IDiscordVoiceState> _voiceStateMock = new();
 
     public LavaLinkServiceIntegrationTests()
     {
@@ -75,6 +78,7 @@ public class LavaLinkServiceIntegrationTests
             _trackNotificationMock.Object,
             _playerConnectionMock.Object,
             _playbackEventHandlerMock.Object,
+            _progressiveTimerServiceMock.Object,
             _trackPlaybackMock.Object);
     }
 
@@ -111,8 +115,13 @@ public class LavaLinkServiceIntegrationTests
     public async Task StartPlayingQueue_WithQueuedTrack_PlaysNotifiesAndSetsCurrentTrack()
     {
         _service.Init(GuildId);
-        var queuedTrack = CreateTrack("Artist A", "Title A", "id-a");
-        _queueService.Enqueue(GuildId, new FakeQueueTrack(queuedTrack));
+        var queuedTrack = new LavalinkTrack
+        {
+            Author = "Artist A",
+            Title = "Title A",
+            Identifier = "id-a"
+        };
+        _queueService.Enqueue(GuildId, new LavaLinkTrackWrapper(queuedTrack));
 
         _playerConnectionMock
             .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
@@ -120,9 +129,14 @@ public class LavaLinkServiceIntegrationTests
 
         await _service.StartPlayingQueue(_messageMock.Object, _textChannelMock.Object, _memberMock.Object);
 
-        _playbackEventHandlerMock.Verify(h => h.RegisterPlaybackFinishedHandler(GuildId, _playerMock.Object, _textChannelMock.Object), Times.Once);
-        _playerMock.Verify(p => p.PlayAsync(It.Is<LavalinkTrack>(t => t.Title == "Title A"), It.IsAny<TrackPlayProperties>(), default), Times.Once);
-        _trackNotificationMock.Verify(n => n.NotifyNowPlayingAsync(_textChannelMock.Object, It.Is<LavalinkTrack>(t => t.Title == "Title A")), Times.Once);
+        _playbackEventHandlerMock.Verify(
+            h => h.RegisterPlaybackFinishedHandler(GuildId, _playerMock.Object, _textChannelMock.Object), Times.Once);
+        _playerMock.Verify(
+            p => p.PlayAsync(It.Is<LavalinkTrack>(t => t.Title == "Title A"), It.IsAny<TrackPlayProperties>(), default),
+            Times.Once);
+        _trackNotificationMock.Verify(
+            n => n.NotifyNowPlayingAsync(_textChannelMock.Object, It.Is<ILavaLinkTrack>(t => t.Title == "Title A"),
+                It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()), Times.Once);
 
         var current = _currentTrackService.GetCurrentTrack(GuildId);
         Assert.NotNull(current);
@@ -140,14 +154,22 @@ public class LavaLinkServiceIntegrationTests
 
         await _service.StartPlayingQueue(_messageMock.Object, _textChannelMock.Object, _memberMock.Object);
 
-        _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), default), Times.Never);
-        _trackNotificationMock.Verify(n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<LavalinkTrack>()), Times.Never);
+        _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), default),
+            Times.Never);
+        _trackNotificationMock.Verify(
+            n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
+                It.IsAny<TimeSpan>()), Times.Never);
     }
 
     [Fact]
     public async Task LeaveVoiceChannel_WhenCurrentTrackExists_StopsCleansAndDisconnects()
     {
-        _playerMock.Setup(p => p.CurrentTrack).Returns(CreateTrack("Artist", "Current", "id-current"));
+        _playerMock.Setup(p => p.CurrentTrack).Returns(new LavalinkTrack
+        {
+            Author = "Artist",
+            Title = "Current",
+            Identifier = "id-current"
+        });
 
         _playerConnectionMock
             .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
@@ -158,29 +180,5 @@ public class LavaLinkServiceIntegrationTests
         _playerMock.Verify(p => p.StopAsync(default), Times.Once);
         _playbackEventHandlerMock.Verify(h => h.CleanupGuildAsync(GuildId), Times.Once);
         _playerMock.Verify(p => p.DisconnectAsync(default), Times.Once);
-    }
-
-    private static LavalinkTrack CreateTrack(string author, string title, string identifier)
-    {
-        return new LavalinkTrack
-        {
-            Author = author,
-            Title = title,
-            Identifier = identifier,
-            Duration = TimeSpan.FromSeconds(100)
-        };
-    }
-
-    private sealed class FakeQueueTrack(LavalinkTrack track) : ILavaLinkTrack
-    {
-        public string Title => track.Title;
-        public string Author => track.Author;
-
-        public LavalinkTrack ToLavalinkTrack() => track;
-
-        public override string ToString()
-        {
-            return track.Identifier;
-        }
     }
 }

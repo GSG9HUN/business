@@ -12,4 +12,5 @@ public interface IDiscordMessage
     public IReadOnlyList<DiscordEmbed> Embeds { get; set; }
     Task RespondAsync(string message);
     Task RespondAsync(DiscordEmbed message);
+    Task ModifyAsync(DiscordMessageBuilder builder);
 }

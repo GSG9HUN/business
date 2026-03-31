@@ -1,7 +1,7 @@
 ﻿namespace DC_bot.Exceptions;
 
 /// <summary>
-/// Base exception for all bot-related errors.
+///     Base exception for all bot-related errors.
 /// </summary>
 public abstract class BotException : Exception
 {
@@ -13,4 +13,3 @@ public abstract class BotException : Exception
     {
     }
 }
-

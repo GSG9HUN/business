@@ -1,10 +1,10 @@
-﻿using DC_bot.Constants;
+﻿using DC_bot_tests.TestHelperFiles;
+using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Music.MusicServices;
 using DSharpPlus;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -35,7 +35,8 @@ public class TrackNotificationServiceTests
         var logger = new Mock<ILogger<TrackNotificationService>>();
         var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
-        channel.Setup(x => x.SendMessageAsync(It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("send fail"));
+        channel.Setup(x => x.SendMessageAsync(It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("send fail"));
 
         var service = new TrackNotificationService(localization.Object, logger.Object, client);
 
@@ -74,13 +75,13 @@ public class TrackNotificationServiceTests
         var raised = false;
         service.TrackStarted += (_, _, msg) =>
         {
-            raised = msg.Contains("Now playing:") && msg.Contains("Artist") && msg.Contains("Title");
+            raised = msg.Description.Contains("Artist") && msg.Description.Contains("Title");
             return Task.CompletedTask;
         };
 
-        var track = new LavalinkTrack { Author = "Artist", Title = "Title", Identifier = "id" };
+        var track = TrackTestHelper.CreateTrackWrapper("Artist", "Title");
 
-        await service.NotifyNowPlayingAsync(channel.Object, track);
+        await service.NotifyNowPlayingAsync(channel.Object, track, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120));
 
         Assert.True(raised);
     }

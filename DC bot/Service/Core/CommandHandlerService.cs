@@ -15,18 +15,17 @@ namespace DC_bot.Service.Core;
 
 public class CommandHandlerService
 {
-    internal string? Prefix { get; set; }
     private readonly Dictionary<string, ICommand> _commands;
-    private readonly ILogger<CommandHandlerService> _logger;
-    private readonly ILocalizationService _localizationService;
     private readonly bool _isTestMode;
-    private AsyncEventHandler<DiscordClient, MessageCreateEventArgs>? _messageHandler;
+    private readonly ILocalizationService _localizationService;
+    private readonly ILogger<CommandHandlerService> _logger;
     private bool _isRegistered;
+    private AsyncEventHandler<DiscordClient, MessageCreateEventArgs>? _messageHandler;
 
 
-    public CommandHandlerService(IServiceProvider services, 
+    public CommandHandlerService(IServiceProvider services,
         ILogger<CommandHandlerService> logger,
-        ILocalizationService localizationService, 
+        ILocalizationService localizationService,
         BotSettings botSettings, bool isTestMode = false)
     {
         _logger = logger;
@@ -35,6 +34,8 @@ public class CommandHandlerService
         _isTestMode = isTestMode;
         Prefix = botSettings.Prefix;
     }
+
+    internal string? Prefix { get; set; }
 
     public void RegisterHandler(DiscordClient client)
     {
@@ -121,7 +122,7 @@ public class CommandHandlerService
     {
         if (_messageHandler != null)
         {
-            client.MessageCreated -= _messageHandler; 
+            client.MessageCreated -= _messageHandler;
             _logger.CommandHandlerUnregistered();
             _messageHandler = null;
             _isRegistered = false;

@@ -16,7 +16,8 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1004, Level = LogLevel.Error, Message = "Command execution failed: {CommandName}")]
     public static partial void CommandExecutionFailed(this ILogger logger, Exception exception, string commandName);
 
-    [LoggerMessage(EventId = 1101, Level = LogLevel.Information, Message = "CommandHandler Service is already registered")]
+    [LoggerMessage(EventId = 1101, Level = LogLevel.Information,
+        Message = "CommandHandler Service is already registered")]
     public static partial void CommandHandlerAlreadyRegistered(this ILogger logger);
 
     [LoggerMessage(EventId = 1102, Level = LogLevel.Information, Message = "Registered command handler")]
@@ -25,16 +26,19 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1103, Level = LogLevel.Error, Message = "No prefix provided")]
     public static partial void CommandHandlerNoPrefix(this ILogger logger);
 
-    [LoggerMessage(EventId = 1104, Level = LogLevel.Information, Message = "Unknown command. Use `!help` to see available commands.")]
+    [LoggerMessage(EventId = 1104, Level = LogLevel.Information,
+        Message = "Unknown command. Use `!help` to see available commands.")]
     public static partial void CommandHandlerUnknownCommand(this ILogger logger);
 
     [LoggerMessage(EventId = 1105, Level = LogLevel.Information, Message = "Unregistered command handler")]
     public static partial void CommandHandlerUnregistered(this ILogger logger);
 
-    [LoggerMessage(EventId = 1106, Level = LogLevel.Warning, Message = "Tried to unregister handler, but it was not registered")]
+    [LoggerMessage(EventId = 1106, Level = LogLevel.Warning,
+        Message = "Tried to unregister handler, but it was not registered")]
     public static partial void CommandHandlerUnregisterNotRegistered(this ILogger logger);
 
-    [LoggerMessage(EventId = 1201, Level = LogLevel.Information, Message = "ReactionHandler Service is already registered")]
+    [LoggerMessage(EventId = 1201, Level = LogLevel.Information,
+        Message = "ReactionHandler Service is already registered")]
     public static partial void ReactionHandlerAlreadyRegistered(this ILogger logger);
 
     [LoggerMessage(EventId = 1202, Level = LogLevel.Information, Message = "Registered reaction handler.")]
@@ -43,10 +47,12 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1203, Level = LogLevel.Information, Message = "Unregistered reaction handler")]
     public static partial void ReactionHandlerUnregistered(this ILogger logger);
 
-    [LoggerMessage(EventId = 1204, Level = LogLevel.Warning, Message = "Tried to unregister handlers, but it was not registered")]
+    [LoggerMessage(EventId = 1204, Level = LogLevel.Warning,
+        Message = "Tried to unregister handlers, but it was not registered")]
     public static partial void ReactionHandlerUnregisterNotRegistered(this ILogger logger);
 
-    [LoggerMessage(EventId = 1205, Level = LogLevel.Information, Message = "Reaction control message sent and reactions added.")]
+    [LoggerMessage(EventId = 1205, Level = LogLevel.Information,
+        Message = "Reaction control message sent and reactions added.")]
     public static partial void ReactionControlMessageSent(this ILogger logger);
 
     [LoggerMessage(EventId = 1206, Level = LogLevel.Information, Message = "Reaction added: {Emoji} by {Username}")]
@@ -56,10 +62,13 @@ public static partial class LogExtensions
     public static partial void ReactionRemoved(this ILogger logger, string emoji, string username);
 
     [LoggerMessage(EventId = 1208, Level = LogLevel.Error, Message = "Reaction handler operation failed: {Operation}")]
-    public static partial void ReactionHandlerOperationFailed(this ILogger logger, Exception exception, string operation);
+    public static partial void ReactionHandlerOperationFailed(this ILogger logger, Exception exception,
+        string operation);
 
-    [LoggerMessage(EventId = 1209, Level = LogLevel.Error, Message = "Reaction handler message send failed: {Operation}")]
-    public static partial void ReactionHandlerMessageSendFailed(this ILogger logger, Exception exception, string operation);
+    [LoggerMessage(EventId = 1209, Level = LogLevel.Error,
+        Message = "Reaction handler message send failed: {Operation}")]
+    public static partial void ReactionHandlerMessageSendFailed(this ILogger logger, Exception exception,
+        string operation);
 
     [LoggerMessage(EventId = 1301, Level = LogLevel.Information, Message = "Loading localization for {LanguageCode}")]
     public static partial void LocalizationLoading(this ILogger logger, string languageCode);
@@ -85,7 +94,8 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1404, Level = LogLevel.Information, Message = "User is not in a voice channel.")]
     public static partial void ValidationUserNotInVoiceChannel(this ILogger logger);
 
-    [LoggerMessage(EventId = 1501, Level = LogLevel.Information, Message = "Logger initialized for SingletonDiscordClient.")]
+    [LoggerMessage(EventId = 1501, Level = LogLevel.Information,
+        Message = "Logger initialized for SingletonDiscordClient.")]
     public static partial void DiscordClientLoggerInitialized(this ILogger logger);
 
     [LoggerMessage(EventId = 1502, Level = LogLevel.Information, Message = "Bot is ready!")]
@@ -100,7 +110,8 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1601, Level = LogLevel.Information, Message = "Starting playing a music through URL.")]
     public static partial void PlayCommandStartUrl(this ILogger logger);
 
-    [LoggerMessage(EventId = 1602, Level = LogLevel.Information, Message = "Starting playing a music through search result.")]
+    [LoggerMessage(EventId = 1602, Level = LogLevel.Information,
+        Message = "Starting playing a music through search result.")]
     public static partial void PlayCommandStartQuery(this ILogger logger);
 
     [LoggerMessage(EventId = 1701, Level = LogLevel.Information, Message = "Queue is empty. Playback has stopped.")]
@@ -136,7 +147,8 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 2011, Level = LogLevel.Information, Message = "Now Playing: {Author} - {Title}")]
     public static partial void NowPlaying(this ILogger logger, string author, string title);
 
-    [LoggerMessage(EventId = 2012, Level = LogLevel.Information, Message = "Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle}")]
+    [LoggerMessage(EventId = 2012, Level = LogLevel.Information,
+        Message = "Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle}")]
     public static partial void Repeating(this ILogger logger, string repeatTrackAuthor, string repeatTrackTitle);
 
     [LoggerMessage(EventId = 2013, Level = LogLevel.Error, Message = "Lavalink operation failed: {Operation}")]

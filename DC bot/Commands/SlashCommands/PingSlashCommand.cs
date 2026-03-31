@@ -1,4 +1,3 @@
-using DC_bot.Helper;
 using DSharpPlus.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands;

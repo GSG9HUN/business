@@ -12,10 +12,10 @@ namespace DC_bot_tests.UnitTests.Service.Core;
 public class CommandValidationServiceTests
 {
     private readonly CommandValidationService _commandValidationService = new();
-    private readonly Mock<IUserValidationService> _mockUserValidation = new();
-    private readonly Mock<IResponseBuilder> _mockResponseBuilder = new();
-    private readonly Mock<IDiscordMessage> _mockMessage = new();
     private readonly ILogger _mockLogger = NullLogger.Instance;
+    private readonly Mock<IDiscordMessage> _mockMessage = new();
+    private readonly Mock<IResponseBuilder> _mockResponseBuilder = new();
+    private readonly Mock<IUserValidationService> _mockUserValidation = new();
 
     #region TryValidateUserAsync Tests
 
@@ -40,7 +40,8 @@ public class CommandValidationServiceTests
         Assert.NotNull(result);
         Assert.True(result.IsValid);
         Assert.Equal(mockMember.Object, result.Member);
-        _mockResponseBuilder.Verify(x => x.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _mockResponseBuilder.Verify(x => x.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
@@ -115,7 +116,8 @@ public class CommandValidationServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal("https://youtube.com/watch?v=test", result);
-        _mockResponseBuilder.Verify(x => x.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _mockResponseBuilder.Verify(x => x.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]

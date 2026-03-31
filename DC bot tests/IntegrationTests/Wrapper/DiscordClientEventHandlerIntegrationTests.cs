@@ -28,7 +28,9 @@ public class DiscordClientEventHandlerIntegrationTests
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
                 It.Is<EventId>(e => e.Id == 1504),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Discord client event failed") && v.ToString()!.Contains("OnGuildAvailable")),
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains("Discord client event failed") &&
+                    v.ToString()!.Contains("OnGuildAvailable")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -49,17 +51,19 @@ public class DiscordClientEventHandlerIntegrationTests
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Never);
         serviceProviderMock.Verify(sp => sp.GetService(typeof(IMusicQueueService)), Times.Never);
     }
-    
+
     [Fact]
     public async Task OnGuildAvailable_Call_GetRequiredService_Three_Times()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
+        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
+                            "";
 
         var envPath = Path.Combine(directoryInfo, ".env");
         Env.Load(envPath);
-        
-        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN"); 
-        var botSettings = new BotSettings { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = "!" };
+
+        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        var botSettings = new BotSettings
+            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = "!" };
 
         var discordConfig = new DiscordConfiguration
         {
@@ -78,9 +82,12 @@ public class DiscordClientEventHandlerIntegrationTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService))).Returns(new Mock<ILavaLinkService>().Object);
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILocalizationService))).Returns(new Mock<ILocalizationService>().Object);
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService))).Returns(new Mock<IMusicQueueService>().Object);
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService)))
+            .Returns(new Mock<ILavaLinkService>().Object);
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILocalizationService)))
+            .Returns(new Mock<ILocalizationService>().Object);
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService)))
+            .Returns(new Mock<IMusicQueueService>().Object);
 
         var handler = new DiscordClientEventHandler(loggerMock.Object, serviceProviderMock.Object);
 

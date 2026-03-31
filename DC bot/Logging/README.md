@@ -9,12 +9,14 @@ This folder contains structured logging extensions and configuration.
 **Purpose:** Structured logging methods for application events.
 
 **Format:**
+
 ```csharp
 [LoggerMessage(EventId = 1001, Level = LogLevel.Debug, Message = "...")]
 public static partial void MethodName(this ILogger logger, ...parameters);
 ```
 
 **Usage:**
+
 ```csharp
 logger.CommandInvoked("play");           // EventId 1001
 logger.CommandExecuted("play");          // EventId 1002
@@ -24,6 +26,7 @@ logger.ValidationUserNotInVoiceChannel(); // Validation event
 ```
 
 **Benefits:**
+
 - Type-safe logging
 - Structured parameters
 - Consistent format
@@ -37,6 +40,7 @@ logger.ValidationUserNotInVoiceChannel(); // Validation event
 **Purpose:** Logging scope helpers for context tracking.
 
 **Usage:**
+
 ```csharp
 using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 {
@@ -52,6 +56,7 @@ using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 **Purpose:** Documentation of all event IDs used in logging.
 
 **Format:**
+
 ```
 1001 - CommandInvoked
 1002 - CommandExecuted
@@ -62,6 +67,7 @@ using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 ```
 
 **Benefits:**
+
 - Single source of truth for event IDs
 - Prevents ID collisions
 - Aids debugging and monitoring

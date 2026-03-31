@@ -25,18 +25,13 @@ public class BotServiceIntegrationTests
 
         // Act
         var cts = new CancellationTokenSource(2000);
-        var task = service.StartAsync(isTestEnvironment: true);
+        var task = service.StartAsync(true);
         var completedTask = await Task.WhenAny(task, Task.Delay(2000, cts.Token));
 
         // Assert
         if (task is { IsCompleted: true, IsFaulted: false })
-        {
             Assert.True(completedTask == task, "Task should complete when isTestEnvironment=true");
-        }
-        else if (task.IsFaulted)
-        {
-            Assert.NotNull(task.Exception);
-        }
+        else if (task.IsFaulted) Assert.NotNull(task.Exception);
 
         await cts.CancelAsync();
     }
@@ -59,7 +54,7 @@ public class BotServiceIntegrationTests
 
         // Act & Assert
         await Assert.ThrowsAnyAsync<Exception>(async () =>
-            await service.StartAsync(isTestEnvironment: true));
+            await service.StartAsync(true));
     }
 
     [Fact]
@@ -81,7 +76,7 @@ public class BotServiceIntegrationTests
         // Act
         try
         {
-            await service.StartAsync(isTestEnvironment: true);
+            await service.StartAsync(true);
         }
         catch
         {
@@ -118,7 +113,7 @@ public class BotServiceIntegrationTests
         var service = new BotService(discordClient, mockLogger.Object);
 
         // Act & Assert
-        await Assert.ThrowsAnyAsync<Exception>(async () => 
-            await service.StartAsync(isTestEnvironment: true));
+        await Assert.ThrowsAnyAsync<Exception>(async () =>
+            await service.StartAsync(true));
     }
 }

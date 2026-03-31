@@ -8,4 +8,3 @@ public interface ITrackEndedHandlerService
 {
     Task HandleTrackEndedAsync(ILavalinkPlayer player, TrackEndedEventArgs args, IDiscordChannel textChannel);
 }
-

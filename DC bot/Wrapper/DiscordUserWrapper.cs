@@ -1,4 +1,3 @@
-using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DSharpPlus.Entities;
 
@@ -11,5 +10,8 @@ public class DiscordUserWrapper(DiscordUser discordUser) : IDiscordUser
     public string Username => discordUser.Username;
     public string Mention => discordUser.Mention;
 
-    public DiscordUser ToDiscordUser() => discordUser;
+    public DiscordUser ToDiscordUser()
+    {
+        return discordUser;
+    }
 }
