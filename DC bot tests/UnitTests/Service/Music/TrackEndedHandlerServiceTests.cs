@@ -41,6 +41,25 @@ public class TrackEndedHandlerServiceTests
             _loggerMock.Object);
     }
 
+    #region HandleTrackEndedAsync - Do nothing when guild ID mismatch
+    [Fact]
+    public async Task HandleTrackEndedAsync_GuildIdMismatch_DoesNothing()
+    {
+        // Arrange
+        var args = CreateTrackEndedEventArgs(TrackEndReason.Finished);
+        _playerMock.Setup(p => p.GuildId).Returns(999UL); // Different guild ID
+
+        // Act
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        // Assert - should not call any services since guild ID doesn't match
+        _repeatServiceMock.Verify(r => r.IsRepeating(It.IsAny<ulong>()), Times.Never);
+        _musicQueueServiceMock.Verify(q => q.HasTracks(It.IsAny<ulong>()), Times.Never);
+        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+    }
+
+    #endregion
+
     #region HandleTrackEndedAsync - Play next from queue
 
     [Fact]

@@ -204,6 +204,51 @@ public class PlayerConnectionServiceTests
     #region TryGetAndValidateExistingPlayerAsync Tests
 
     [Fact]
+    public async Task TryJoinAndValidateRetryConnectionAttemptsAsync_ConnectionValidationSucceeds_ReturnsValid()
+    {
+        // Arrange
+        var playerMock = new Mock<ILavalinkPlayer>();
+        _validationServiceMock
+            .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        _validationServiceMock
+            .SetupSequence(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()))
+            .ReturnsAsync(new ConnectionValidationResult(false, string.Empty, null))
+            .ReturnsAsync(new ConnectionValidationResult(true, string.Empty, playerMock.Object));
+
+        // Act
+        var result = await _service.TryJoinAndValidateAsync(_messageMock.Object, _channelMock.Object);
+
+        // Assert
+        Assert.True(result.isValid);
+        Assert.Equal(111UL, result.guildId);
+    }
+
+    [Fact]
+    public async Task TryJoinAndValidateRetryConnectionAttemptsAsync_ConnectionValidationFailsAllAttempts_ReturnsInvalid()
+    {
+        // Arrange
+        var playerMock = new Mock<ILavalinkPlayer>();
+        _validationServiceMock
+            .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        _validationServiceMock
+            .Setup(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()))
+            .ReturnsAsync(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
+
+        // Act
+        var result = await _service.TryJoinAndValidateAsync(_messageMock.Object, _channelMock.Object);
+
+        // Assert
+        Assert.False(result.isValid);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.BotIsNotConnectedError),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task TryGetAndValidateExistingPlayerAsync_NullChannel_ReturnsInvalid()
     {
         // Act

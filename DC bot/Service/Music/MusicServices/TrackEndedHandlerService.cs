@@ -20,6 +20,9 @@ public class TrackEndedHandlerService(
     public async Task HandleTrackEndedAsync(ILavalinkPlayer player, TrackEndedEventArgs args,
         IDiscordChannel textChannel)
     {
+
+        if (player.GuildId != args.Player.GuildId) return;
+
         if (!IsFinishedOrStopped(args.Reason)) return;
 
         var guildId = textChannel.Guild.Id;
