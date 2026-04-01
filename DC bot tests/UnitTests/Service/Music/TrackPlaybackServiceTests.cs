@@ -11,6 +11,7 @@ using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Collections.Immutable;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
@@ -134,7 +135,8 @@ public class TrackPlaybackServiceTests
         var track1 = TrackTestHelper.CreateTrackWrapper("Song1", "Artist1", "id", 100);
         var track2 = TrackTestHelper.CreateTrackWrapper("Song2", "Artist2", "id", 100);
         var searchQuery =
-            new TrackLoadResult(new[] { track1.ToLavalinkTrack(), track2.ToLavalinkTrack() }, new PlaylistInformation("Playlist", null, null));
+            new TrackLoadResult(new[] { track1.ToLavalinkTrack(), track2.ToLavalinkTrack() },
+                new PlaylistInformation("Playlist", null, ImmutableDictionary<string, System.Text.Json.JsonElement>.Empty));
         
         _playerMock.Setup(p => p.CurrentTrack).Returns(track1.ToLavalinkTrack());
 

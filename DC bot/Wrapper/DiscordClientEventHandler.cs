@@ -1,6 +1,7 @@
 ﻿using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -11,6 +12,7 @@ namespace DC_bot.Wrapper;
 
 public class DiscordClientEventHandler(
     ILogger<DiscordClientEventHandler> logger,
+    IGuildDataRepository guildDataRepository,
     IServiceProvider serviceProvider)
 {
     public async Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
@@ -36,6 +38,8 @@ public class DiscordClientEventHandler(
             var localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
             var lavaLinkService = serviceProvider.GetRequiredService<ILavaLinkService>();
             var musicQueueService = serviceProvider.GetRequiredService<IMusicQueueService>();
+
+            await guildDataRepository.EnsureGuildExistsAsync(e.Guild.Id, CancellationToken.None);
 
             localizationService.LoadLanguage(e.Guild.Id);
             lavaLinkService.Init(e.Guild.Id);

@@ -4,6 +4,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service;
 using DC_bot.Service.Core;
@@ -71,10 +72,12 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
         var reactionHandlerService = new ReactionHandler(lavalinkService,
             _loggerReactionHandlerMock.Object, _progressiveTimerServiceMock.Object, _localizationServiceMock.Object);
 
+        var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         _serviceProvider = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
             .AddSingleton<IValidationService>(validationService)
+            .AddSingleton<IGuildDataRepository>(guildDataRepositoryMock.Object)
             .AddSingleton(lavalinkService)
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(

@@ -132,11 +132,12 @@ public class TrackEndedHandlerServiceTests
         // Arrange
         var track = TrackTestHelper.CreateTrackWrapper("Repeat Me");
         var args = CreateTrackEndedEventArgs(TrackEndReason.Finished);
+        ILavaLinkTrack? currentTrack = track;
 
         _repeatServiceMock.Setup(r => r.IsRepeating(GuildId)).Returns(true);
         _currentTrackServiceMock
-            .Setup(c => c.TryGetCurrentTrack(GuildId, out It.Ref<ILavaLinkTrack>.IsAny))
-            .Returns((ulong _, out ILavaLinkTrack t) => { t = track; return true; });
+            .Setup(c => c.TryGetCurrentTrack(GuildId, out currentTrack))
+            .Returns(true);
 
         // Act
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);

@@ -9,8 +9,11 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.IO;
+using DC_bot.Persistence.Db;
+using DC_bot.Persistence.Repositories;
 using DC_bot.Service;
 using DC_bot.Service.Core;
 using DC_bot.Service.Music;
@@ -21,6 +24,7 @@ using DC_bot.Wrapper;
 using DotNetEnv;
 using DSharpPlus;
 using Lavalink4NET.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -78,6 +82,7 @@ internal class Program
         };
 
         var services = ConfigureServices(botSettings, lavaLinkSettings);
+        await ApplyMigrationsIfNeededAsync(services);
         var botService = services.GetRequiredService<BotService>();
 
         RegisterSlashCommands(services);
@@ -86,8 +91,25 @@ internal class Program
         await botService.StartAsync();
     }
 
+    private static async Task ApplyMigrationsIfNeededAsync(ServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<BotDbContext>>();
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+    }
+
     private static ServiceProvider ConfigureServices(BotSettings botSettings, LavalinkSettings lavaLinkSettings)
     {
+        var connectionString =
+            Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")?.Trim().Trim('"') ??
+            "Host=localhost;Port=5432;Database=dc_bot;Username=postgres;Password=postgres";
+
         var services = new ServiceCollection()
             .ConfigureLavalink(options =>
             {
@@ -102,6 +124,10 @@ internal class Program
             })
             .AddLavalink()
             .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
+            .AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(connectionString))
+            .AddSingleton<IGuildDataRepository, GuildDataRepository>()
+            .AddSingleton<IPlaybackStateRepository, PlaybackStateRepository>()
+            .AddSingleton<IQueueRepository, QueueRepository>()
             .AddSingleton(botSettings)
             .AddSingleton<IFileSystem, PhysicalFileSystem>()
             .AddSingleton<DiscordClientEventHandler>()

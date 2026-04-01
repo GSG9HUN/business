@@ -1,6 +1,7 @@
 ﻿using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,6 +15,7 @@ public class DiscordClientEventHandlerTests
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<ILogger<DiscordClientEventHandler>> _loggerMock = new();
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
+    private readonly Mock<IGuildDataRepository> _guildDataRepositoryMock = new();
     private readonly Mock<IServiceProvider> _serviceProviderMock = new();
 
     public DiscordClientEventHandlerTests()
@@ -28,7 +30,8 @@ public class DiscordClientEventHandlerTests
         _serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService)))
             .Returns(_musicQueueServiceMock.Object);
 
-        _eventHandler = new DiscordClientEventHandler(_loggerMock.Object, _serviceProviderMock.Object);
+        _eventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
+            _serviceProviderMock.Object);
     }
 
     #region OnGuildAvailable Tests
@@ -37,7 +40,8 @@ public class DiscordClientEventHandlerTests
     public void Constructor_InitializesWithProperDependencies()
     {
         // Arrange & Act
-        var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _serviceProviderMock.Object);
+        var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
+            _serviceProviderMock.Object);
 
         // Assert - If we got here without exception, initialization succeeded
         Assert.NotNull(testEventHandler);

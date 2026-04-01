@@ -1,4 +1,5 @@
 ﻿using DC_bot.Configuration;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,7 +15,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "valid_test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -31,7 +34,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = expectedToken };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -49,7 +54,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -68,7 +75,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -85,7 +94,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -102,7 +113,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -120,7 +133,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "test_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client = DiscordClientFactory.Create(settings, eventHandler);
@@ -138,7 +153,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = null };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act & Assert
         var exception = Assert.Throws<Exception>(() =>
@@ -154,7 +171,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = string.Empty };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act & Assert
         try
@@ -174,7 +193,9 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "   " };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act & Assert
         try
@@ -195,8 +216,12 @@ public class DiscordClientFactoryTests
         var settings2 = new BotSettings { Token = "token_2" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler1 = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
-        var eventHandler2 = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler1 =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
+        var eventHandler2 =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client1 = DiscordClientFactory.Create(settings1, eventHandler1);
@@ -215,8 +240,12 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = "same_token" };
         var mockLogger = new Mock<ILogger<DiscordClientEventHandler>>();
         var mockServiceProvider = new Mock<IServiceProvider>();
-        var eventHandler1 = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
-        var eventHandler2 = new DiscordClientEventHandler(mockLogger.Object, mockServiceProvider.Object);
+        var eventHandler1 =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
+        var eventHandler2 =
+            new DiscordClientEventHandler(mockLogger.Object, new Mock<IGuildDataRepository>().Object,
+                mockServiceProvider.Object);
 
         // Act
         var client1 = DiscordClientFactory.Create(settings, eventHandler1);

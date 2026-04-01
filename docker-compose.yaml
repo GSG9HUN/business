@@ -1,11 +1,36 @@
 version: "3.9"
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dc-bot-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dc_bot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-dc_bot}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   discord-bot:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: discord-bot
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
+    environment:
+      POSTGRES_CONNECTION_STRING: Host=postgres;Port=5432;Database=${POSTGRES_DB:-dc_bot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
 # Ha a botod folyamatosan fut, nincs szükség extra restart policy-re, de hozzáadhatod:
     restart: unless-stopped
+
+volumes:
+  postgres_data:
