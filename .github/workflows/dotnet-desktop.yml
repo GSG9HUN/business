@@ -1,4 +1,4 @@
-name: .NET Core Desktop
+name: .NET Core DC Bot
 
 on:
   push:
@@ -7,69 +7,44 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-debug:
+  build:
     runs-on: windows-latest
-    env:
-      Solution_Name: '.\DC bot.sln'
-      Test_Project_Path: '.\DC bot tests\DC bot tests.csproj'
-      BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
-      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-      LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
-      LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
-      LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
-      LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
-      
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Install .NET 8.0
-      uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '9.0.x'
 
-    - name: Clean project
+    - name: Clean
       run: |
-        Remove-Item -Recurse -Force bin, obj -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force bin,obj -ErrorAction SilentlyContinue
 
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Restore
+      run: dotnet restore ".\DC bot.sln"
 
-    - name: Build Debug
-      run: dotnet build --configuration Debug --no-restore
+    - name: Build ${{ matrix.configuration }}
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
 
-    - name: Run tests
-      run: dotnet test "${{ env.Test_Project_Path }}" --logger trx --results-directory TestResults
+    - name: Test (Debug only)
+      if: matrix.configuration == 'Debug'
+      env:
+        BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+        LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
+        LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
+        LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
+      run: dotnet test ".\DC bot tests\DC bot tests.csproj" --logger trx --results-directory TestResults
 
-    - name: Upload test results
+    - name: Upload tests
+      if: matrix.configuration == 'Debug'
       uses: actions/upload-artifact@v4
       with:
-        name: Test-Results-Debug
+        name: Test-Results-${{ matrix.configuration }}
         path: TestResults
-
-  build-release:
-    runs-on: windows-latest
-    needs: build-debug  # Csak akkor fut le, ha a build-debug sikeres
-    env:
-      Solution_Name: '.\DC bot.sln'
-      
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install .NET 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Clean project
-      run: |
-        Remove-Item -Recurse -Force bin, obj -ErrorAction SilentlyContinue
-
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build Release
-      run: dotnet build --configuration Release --no-restore

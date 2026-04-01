@@ -6,6 +6,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Core;
 using DC_bot.Service.Presentation;
@@ -48,6 +49,8 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             .Returns("Unknown command. Use `!help` to see available commands.");
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
+        var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
+
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(_localizationServiceMock.Object)
@@ -63,6 +66,7 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             .AddLogging()
             .AddSingleton(botSettings)
             .AddSingleton<IUserValidationService>(userValidationService)
+            .AddSingleton<IGuildDataRepository>(guildDataRepositoryMock.Object)
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(
                 provider.GetRequiredService<BotSettings>(),

@@ -2,6 +2,7 @@
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using DotNetEnv;
 using DSharpPlus;
@@ -18,9 +19,11 @@ public class DiscordClientEventHandlerIntegrationTests
     {
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
         var serviceProviderMock = new Mock<IServiceProvider>();
+        var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        var eventHandler = new DiscordClientEventHandler(loggerMock.Object, serviceProviderMock.Object);
+        var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
+            serviceProviderMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
@@ -41,9 +44,11 @@ public class DiscordClientEventHandlerIntegrationTests
     {
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
         var serviceProviderMock = new Mock<IServiceProvider>();
+        var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        var eventHandler = new DiscordClientEventHandler(loggerMock.Object, serviceProviderMock.Object);
+        var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
+            serviceProviderMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
@@ -80,6 +85,7 @@ public class DiscordClientEventHandlerIntegrationTests
 
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
 
         var serviceProviderMock = new Mock<IServiceProvider>();
         serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService)))
@@ -89,7 +95,8 @@ public class DiscordClientEventHandlerIntegrationTests
         serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService)))
             .Returns(new Mock<IMusicQueueService>().Object);
 
-        var handler = new DiscordClientEventHandler(loggerMock.Object, serviceProviderMock.Object);
+        var handler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
+            serviceProviderMock.Object);
 
         await mockClient.ConnectAsync();
         var guildArgs = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
