@@ -1,4 +1,5 @@
 ﻿using DC_bot.Constants;
+using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
@@ -57,10 +58,19 @@ public class PlayerConnectionService(
                 return (null, channel, guildId, false);
             }
 
-            var validationConnectionResult =
-                await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
+            const int maxAttempts = 5;
+            const int delayMs = 200;
 
-            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
+            ConnectionValidationResult validationConnectionResult = null!;
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                validationConnectionResult = await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
+                if (validationConnectionResult.IsValid) break;
+                await Task.Delay(delayMs).ConfigureAwait(false);
+            } 
+            
+            if (validationConnectionResult is { IsValid: true })
+                return (connection, channel, guildId, true);
 
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
