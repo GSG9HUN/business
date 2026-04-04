@@ -38,10 +38,10 @@ public class LavaLinkService(
         remove => trackNotificationService.TrackStarted -= value;
     }
 
-    public void Init(ulong guildId)
+    public async Task Init(ulong guildId)
     {
         currentTrackService.Init(guildId);
-        repeatService.Init(guildId);
+        await repeatService.InitAsync(guildId);
     }
 
     public async Task ConnectAsync()
@@ -201,7 +201,7 @@ public class LavaLinkService(
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
-        if (connection.CurrentTrack == null && !musicQueueService.HasTracks(channel.Guild.Id))
+        if (connection.CurrentTrack == null && !(await musicQueueService.HasTracks(channel.Guild.Id)))
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
@@ -249,7 +249,7 @@ public class LavaLinkService(
 
         playbackEventHandlerService.RegisterPlaybackFinishedHandler(guildId, connection, textChannel);
 
-        var nextTrack = musicQueueService.Dequeue(guildId);
+        var nextTrack = await musicQueueService.Dequeue(guildId);
         if (nextTrack is null) return;
 
         try

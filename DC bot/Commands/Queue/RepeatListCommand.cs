@@ -33,7 +33,7 @@ public class RepeatListCommand(
 
         var guildId = message.Channel.Guild.Id;
 
-        if (repeatService.IsRepeating(guildId))
+        if (await repeatService.IsRepeatingAsync(guildId))
         {
             await responseBuilder.SendSuccessAsync(message,
                 localizationService.Get(LocalizationKeys.RepeatListCommandTrackAlreadyRepeating));
@@ -41,25 +41,22 @@ public class RepeatListCommand(
             return;
         }
 
-        if (repeatService.IsRepeatingList(guildId))
+        if (await repeatService.IsRepeatingListAsync(guildId))
         {
-            repeatService.SetRepeatingList(guildId, false);
+            await repeatService.SetRepeatingListAsync(guildId, false);
             await responseBuilder.SendSuccessAsync(message,
-                $"{localizationService.Get(LocalizationKeys.RepeatListCommandRepeatingOff)}\n {trackFormatterService.FormatCurrentTrackList(guildId)}");
+                $"{localizationService.Get(LocalizationKeys.RepeatListCommandRepeatingOff)}\n {await trackFormatterService.FormatCurrentTrackListAsync(guildId)}");
             logger.CommandExecuted(Name);
             return;
         }
 
-        repeatService.SetRepeatingList(guildId, true);
-        await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(LocalizationKeys.RepeatListCommandRepeatingOn)}\n {trackFormatterService.FormatCurrentTrackList(guildId)}");
-
+        var queue = await queueService.ViewQueue(guildId);
         var track = currentTrackService.GetCurrentTrack(guildId);
 
-        if (track != null)
-        {
-            queueService.Clone(guildId, track);
-        }
+        await repeatService.SaveRepeatListSnapshotAsync(guildId, track, queue);
+        await repeatService.SetRepeatingListAsync(guildId, true);
+        await responseBuilder.SendSuccessAsync(message,
+            $"{localizationService.Get(LocalizationKeys.RepeatListCommandRepeatingOn)}\n {await trackFormatterService.FormatCurrentTrackListAsync(guildId)}");
 
         logger.CommandExecuted(Name);
     }

@@ -85,7 +85,7 @@ public class RepeatCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(true);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(true);
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
@@ -113,14 +113,14 @@ public class RepeatCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(false);
-        _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(true);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(true);
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _repeatServiceMock.Verify(l => l.SetRepeating(guildId, false), Times.Once);
+        _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, false), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
                 _localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandRepeatingOff)), Times.Once);
@@ -144,8 +144,8 @@ public class RepeatCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(false);
-        _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
         _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormatted(guildId))
             .Returns($"{TestTrackTitle} Test Author");
 
@@ -153,7 +153,7 @@ public class RepeatCommandTests
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _repeatServiceMock.Verify(l => l.SetRepeating(guildId, true), Times.Once);
+        _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, true), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object, It.IsAny<string>()), Times.Once);
     }

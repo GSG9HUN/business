@@ -1,7 +1,9 @@
 ﻿using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Logging;
+using DC_bot.Wrapper;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Payloads.Events;
@@ -15,22 +17,32 @@ public class TrackEndedHandlerService(
     IMusicQueueService musicQueueService,
     ITrackPlaybackService trackPlaybackService,
     ITrackNotificationService trackNotificationService,
+    IQueueRepository queueRepository,
     ILogger<TrackEndedHandlerService> logger) : ITrackEndedHandlerService
 {
     public async Task HandleTrackEndedAsync(ILavalinkPlayer player, TrackEndedEventArgs args,
         IDiscordChannel textChannel)
     {
-
         if (player.GuildId != args.Player.GuildId) return;
+        var guildId = textChannel.Guild.Id;
+        if (currentTrackService.TryGetCurrentTrack(guildId, out var currentTrack) && currentTrack is LavaLinkTrackWrapper wrappedTrack)
+        {
+            if (args.Reason == TrackEndReason.Finished)
+            {
+                await queueRepository.MarkPlayedAsync(wrappedTrack.QueueItemId);
+                logger.LogDebug("Track {Id} marked as Played.", wrappedTrack.QueueItemId);
+            }
+            else
+            {
+                await queueRepository.MarkSkippedAsync(wrappedTrack.QueueItemId);
+                logger.LogDebug("Track {Id} marked as Skipped (Reason: {Reason}).", wrappedTrack.QueueItemId, args.Reason);
+            }
+        }
 
         if (!IsFinishedOrStopped(args.Reason)) return;
 
-        var guildId = textChannel.Guild.Id;
-
-        if (TryRepeatCurrentTrack(guildId, out var repeatTrack))
+        if (await TryRepeatCurrentTrackAsync(guildId) is { } repeatTrack)
         {
-            if (repeatTrack == null) return;
-
             await player.PlayAsync(repeatTrack.ToLavalinkTrack());
             logger.Repeating(repeatTrack.Author, repeatTrack.Title);
             return;
@@ -48,21 +60,19 @@ public class TrackEndedHandlerService(
         return reason is TrackEndReason.Finished or TrackEndReason.Stopped;
     }
 
-    private bool TryRepeatCurrentTrack(ulong guildId, out ILavaLinkTrack? track)
+    private async Task<ILavaLinkTrack?> TryRepeatCurrentTrackAsync(ulong guildId)
     {
-        track = null;
-        if (!repeatService.IsRepeating(guildId)) return false;
+        if (!await repeatService.IsRepeatingAsync(guildId)) return null;
 
-        if (!currentTrackService.TryGetCurrentTrack(guildId, out var current) || current is null) return false;
+        if (!currentTrackService.TryGetCurrentTrack(guildId, out var current) || current is null) return null;
 
-        track = current;
-        return true;
+        return current;
     }
 
     private async Task<bool> TryPlayNextFromQueueAsync(ILavalinkPlayer player, IDiscordChannel textChannel,
         ulong guildId)
     {
-        if (!musicQueueService.HasTracks(guildId)) return false;
+        if (!await musicQueueService.HasTracks(guildId)) return false;
 
         await trackPlaybackService.PlayTrackFromQueueAsync(player, textChannel);
         return true;
@@ -71,11 +81,17 @@ public class TrackEndedHandlerService(
     private async Task<bool> TryRepeatListAndPlayAsync(ILavalinkPlayer player, IDiscordChannel textChannel,
         ulong guildId)
     {
-        if (!repeatService.IsRepeatingList(guildId)) return false;
+        if (!await repeatService.IsRepeatingListAsync(guildId)) return false;
 
-        if (musicQueueService.HasTracks(guildId)) return false;
+        if (await musicQueueService.HasTracks(guildId)) return false;
 
-        foreach (var t in musicQueueService.GetRepeatableQueue(guildId)) musicQueueService.Enqueue(guildId, t);
+        var repeatableQueue = await repeatService.GetRepeatableQueueAsync(guildId);
+        if (repeatableQueue.Count == 0)
+        {
+            return false;
+        }
+
+        await musicQueueService.EnqueueMany(guildId, repeatableQueue);
 
         await trackPlaybackService.PlayTrackFromQueueAsync(player, textChannel);
         return true;

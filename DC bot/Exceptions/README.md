@@ -143,11 +143,11 @@ catch (Exception ex)
 // Music - Queue
 try
 {
-    await File.WriteAllTextAsync(filePath, json);
+    await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);
 }
 catch (Exception ex)
 {
-    throw new QueueOperationException("SaveQueue", guildId, "Failed to save queue to file", ex);
+    throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
 }
 
 // Music - Track Loading

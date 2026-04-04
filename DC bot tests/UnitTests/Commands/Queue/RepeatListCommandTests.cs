@@ -109,7 +109,7 @@ public class RepeatListCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(true);
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(true);
 
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
@@ -143,15 +143,15 @@ public class RepeatListCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(false);
-        _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(true);
-        _trackServiceFormatter.Setup(c => c.FormatCurrentTrackList(guildId)).Returns(TestTrackList);
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(true);
+        _trackServiceFormatter.Setup(c => c.FormatCurrentTrackListAsync(guildId)).ReturnsAsync(TestTrackList);
 
         // Act
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _repeatServiceMock.Verify(l => l.SetRepeatingList(guildId, false), Times.Once);
+        _repeatServiceMock.Verify(l => l.SetRepeatingListAsync(guildId, false), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
                 It.IsAny<string>()), Times.Once);
@@ -181,9 +181,10 @@ public class RepeatListCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _repeatServiceMock.Setup(l => l.IsRepeating(guildId)).Returns(false);
-        _repeatServiceMock.Setup(l => l.IsRepeatingList(guildId)).Returns(false);
-        _trackServiceFormatter.Setup(c => c.FormatCurrentTrackList(guildId)).Returns(TestTrackList);
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
+        _trackServiceFormatter.Setup(c => c.FormatCurrentTrackListAsync(guildId)).ReturnsAsync(TestTrackList);
+        _queueServiceMock.Setup(q => q.ViewQueue(guildId)).ReturnsAsync(new List<ILavaLinkTrack>());
         _currentTrackServiceMock.Setup(c => c.GetCurrentTrack(guildId)).Returns(
             TrackTestHelper.CreateTrackWrapper("Test", "Test Author", "asdasdasdad")
         );
@@ -192,11 +193,11 @@ public class RepeatListCommandTests
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _repeatServiceMock.Verify(l => l.SetRepeatingList(guildId, true), Times.Once);
+        _repeatServiceMock.Verify(l => l.SaveRepeatListSnapshotAsync(guildId, It.IsAny<ILavaLinkTrack>(), It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Once);
+        _repeatServiceMock.Verify(l => l.SetRepeatingListAsync(guildId, true), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
                 It.IsAny<string>()), Times.Once);
-        _queueServiceMock.Verify(q => q.Clone(guildId, It.IsAny<ILavaLinkTrack>()), Times.Once);
     }
 
 

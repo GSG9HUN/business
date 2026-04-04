@@ -128,7 +128,7 @@ public class ViewQueueCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).Returns(new List<ILavaLinkTrack>());
+        _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).ReturnsAsync(new List<ILavaLinkTrack>());
 
         //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
@@ -167,7 +167,7 @@ public class ViewQueueCommandTests
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
         _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>()))
-            .Returns(new List<ILavaLinkTrack> { lavaLinkTrackMock.Object });
+            .ReturnsAsync(new List<ILavaLinkTrack> { lavaLinkTrackMock.Object });
 
         //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
@@ -215,7 +215,7 @@ public class ViewQueueCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).Returns(tracks);
+        _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).ReturnsAsync(tracks);
 
         // Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);

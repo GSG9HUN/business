@@ -22,6 +22,11 @@ LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
 LAVALINK_PASSWORD=your_password
 LAVALINK_PORT=443
 LAVALINK_SECURED=true
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=dc_bot
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
 ```
 
 2. **Build and run**:
@@ -126,8 +131,16 @@ DC bot/
 │   ├── EventIdTable.md
 │   └── README.md
 │
+├── Persistence/                   # EF Core + PostgreSQL persistence layer
+│   ├── Db/                        # BotDbContext and factory
+│   ├── Entities/                  # EF Core entities
+│   ├── Configurations/            # EF model mapping
+│   ├── Repositories/              # Repository implementations
+│   ├── Migrations/                # DB schema migrations
+│   └── README.md
+│
 ├── Model/                         # Data models
-│   ├── SerializedTrack.cs         # Queue persistence model
+│   ├── SerializedTrack.cs         # Lightweight track identity model
 │   └── README.md
 │
 ├── Properties/                    # Assembly metadata
@@ -141,7 +154,7 @@ DC bot/
 │
 ├── guildFiles/                    # Per-guild persistent data
 │   ├── localization/              # Guild language preferences
-│   ├── queues/                    # Guild music queues
+│   ├── queues/                    # Legacy queue files (DB is active path)
 │   └── README.md
 │
 ├── Program.cs                     # Application entry point
@@ -158,7 +171,7 @@ DC bot/
 ### 🎵 Music Playback
 
 - **Multiple sources:** YouTube, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music
-- **Queue management:** Persistent queue storage per guild
+- **Queue management:** Persistent queue storage per guild via PostgreSQL
 - **Repeat modes:** Single track repeat, queue repeat
 - **Playback controls:** Play, pause, resume, skip
 - **Voice channel management:** Auto-join, disconnect, state tracking
@@ -183,7 +196,7 @@ DC bot/
 - **Dependency injection:** Full DI throughout application
 - **Interface-based design:** Testable and flexible
 - **Wrapper pattern:** DSharpPlus abstraction
-- **Repository pattern:** Queue persistence abstraction
+- **Repository pattern:** Database persistence abstraction
 
 ### 📊 Observability
 
@@ -224,6 +237,7 @@ DC bot/
 │ External APIs (Infrastructure Layer)│
 │  ├─ Discord (DSharpPlus)            │
 │  ├─ Lavalink (Audio)                │
+│  ├─ PostgreSQL                      │
 │  └─ File System                     │
 └─────────────────────────────────────┘
 ```
@@ -342,6 +356,11 @@ LAVALINK_PASSWORD=your_lavalink_password
 | `LAVALINK_PORT`     | ❌ No     | `2333`  | Lavalink port        |
 | `LAVALINK_SECURED`  | ❌ No     | `false` | Use HTTPS/WSS        |
 | `LAVALINK_PASSWORD` | ❌ No     | ``      | Lavalink password    |
+| `POSTGRES_HOST`     | ❌ No     | `localhost` | PostgreSQL host |
+| `POSTGRES_PORT`     | ❌ No     | `5432` | PostgreSQL port |
+| `POSTGRES_DB`       | ❌ No     | `dc_bot` | PostgreSQL database |
+| `POSTGRES_USER`     | ❌ No     | `postgres` | PostgreSQL username |
+| `POSTGRES_PASSWORD` | ❌ No     | `postgres` | PostgreSQL password |
 
 ---
 

@@ -49,7 +49,7 @@ public class TrackPlaybackServiceTests
     {
         // Arrange
         var track = TrackTestHelper.CreateTrackWrapper("Song", "Artist", "id", 100);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns(track);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
 
         // Act
         await _service.PlayTrackFromQueueAsync(_playerMock.Object, _textChannelMock.Object);
@@ -70,7 +70,7 @@ public class TrackPlaybackServiceTests
         var searchQuery = new TrackLoadResult(track, null);
 
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns(track);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
 
         // Act
         await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
@@ -93,7 +93,7 @@ public class TrackPlaybackServiceTests
         var searchQuery = new TrackLoadResult(track, null);
 
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns((ILavaLinkTrack?)null);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync((ILavaLinkTrack?)null);
 
         // Act
         await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
@@ -148,7 +148,11 @@ public class TrackPlaybackServiceTests
         await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
 
         // Assert
-        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>()), Times.Exactly(2));
+        _musicQueueServiceMock.Verify(q => q.EnqueueMany(
+                GuildId,
+                It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Count == 2)),
+            Times.Once);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>()), Times.Never);
         _trackNotificationServiceMock.Verify(
             n => n.SendSafeAsync(_textChannelMock.Object, "Playlist added to queue", It.IsAny<string>()),
             Times.Once);
@@ -162,7 +166,7 @@ public class TrackPlaybackServiceTests
         var searchQuery = new TrackLoadResult(track, null);
 
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns(track);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
         _playerMock.Setup(p => p.PlayAsync(track.ToLavalinkTrack(), It.IsAny<TrackPlayProperties>(), default))
             .ThrowsAsync(new InvalidOperationException("play failed"));
 
@@ -187,7 +191,7 @@ public class TrackPlaybackServiceTests
     public async Task TryPlayNextTrackAsync_QueueEmpty_DoesNothing()
     {
         // Arrange
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns((ILavaLinkTrack?)null);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync((ILavaLinkTrack?)null);
 
         // Act
         await _service.TryPlayNextTrackAsync(_playerMock.Object, _textChannelMock.Object, GuildId);
@@ -202,7 +206,7 @@ public class TrackPlaybackServiceTests
     {
         // Arrange
         var track = TrackTestHelper.CreateTrackWrapper("Next", "Artist", "id", 100);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns(track);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
 
         // Act
         await _service.TryPlayNextTrackAsync(_playerMock.Object, _textChannelMock.Object, GuildId);
@@ -219,7 +223,7 @@ public class TrackPlaybackServiceTests
     {
         // Arrange
         var track = TrackTestHelper.CreateTrackWrapper("Next", "Artist", "id", 100);
-        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).Returns(track);
+        _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
         _playerMock.Setup(p => p.PlayAsync(track.ToLavalinkTrack(), It.IsAny<TrackPlayProperties>(), default))
             .ThrowsAsync(new InvalidOperationException("play failed"));
 

@@ -106,9 +106,13 @@ internal class Program
 
     private static ServiceProvider ConfigureServices(BotSettings botSettings, LavalinkSettings lavaLinkSettings)
     {
-        var connectionString =
-            Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING")?.Trim().Trim('"') ??
-            "Host=localhost;Port=5432;Database=dc_bot;Username=postgres;Password=postgres";
+        var hostName = Environment.GetEnvironmentVariable("POSTGRES_HOST")?.Trim().Trim('"') ?? "localhost";
+        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT")?.Trim().Trim('"') ?? "5432";
+        var database = Environment.GetEnvironmentVariable("POSTGRES_DB")?.Trim().Trim('"') ?? "dc_bot";
+        var username = Environment.GetEnvironmentVariable("POSTGRES_USER")?.Trim().Trim('"') ?? "postgres";
+        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")?.Trim().Trim('"') ?? "postgres";
+
+        var connectionString = $"Host={hostName};Port={port};Database={database};Username={username};Password={password}";
 
         var services = new ServiceCollection()
             .ConfigureLavalink(options =>
@@ -128,6 +132,7 @@ internal class Program
             .AddSingleton<IGuildDataRepository, GuildDataRepository>()
             .AddSingleton<IPlaybackStateRepository, PlaybackStateRepository>()
             .AddSingleton<IQueueRepository, QueueRepository>()
+            .AddSingleton<IRepeatListRepository, RepeatListRepository>()
             .AddSingleton(botSettings)
             .AddSingleton<IFileSystem, PhysicalFileSystem>()
             .AddSingleton<DiscordClientEventHandler>()

@@ -1,444 +1,175 @@
-using System.Text.Json;
-using DC_bot_tests.Helpers;
-using DC_bot_tests.TestHelperFiles;
-using DC_bot.Exceptions.Music;
 using DC_bot.Interface;
-using DC_bot.Model;
+using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
-using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
 public class MusicQueueServiceTests
 {
-    private const string QueueRoot = "mem/queues";
-    private readonly InMemoryFileSystem _fileSystem;
-    private readonly string _tempQueueDirectory;
+    private const ulong GuildId = 12345UL;
+    private const string ValidTrackIdentifier = "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=";
+    private readonly Mock<IQueueRepository> _queueRepositoryMock = new();
+    private readonly MusicQueueService _service;
 
     public MusicQueueServiceTests()
     {
-        _fileSystem = new InMemoryFileSystem();
-        _tempQueueDirectory = QueueRoot;
-        _fileSystem.CreateDirectory(_tempQueueDirectory);
-
-        MusicQueueService.QueueDirectory = _tempQueueDirectory;
-    }
-
-    private MusicQueueService CreateService()
-    {
-        return new MusicQueueService(_fileSystem);
+        _service = new MusicQueueService(_queueRepositoryMock.Object, Mock.Of<ILogger<MusicQueueService>>());
     }
 
     [Fact]
-    public void Constructor_CreatesQueueDirectory_WhenNotExists()
+    public async Task HasTracks_WhenRepositoryReturnsItems_ReturnsTrue()
     {
-        // Arrange
-        var tempDir = "mem/queues-temp";
-        MusicQueueService.QueueDirectory = tempDir;
+        _queueRepositoryMock
+            .Setup(repository => repository.AnyQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync(true);
 
-        // Act
-        CreateService();
+        var result = await _service.HasTracks(GuildId);
 
-        // Assert
-        Assert.True(_fileSystem.DirectoryExists(tempDir));
+        Assert.True(result);
     }
 
     [Fact]
-    public void Enqueue_AddsTrackToQueue_AndSavesToFile()
+    public async Task Enqueue_DelegatesToRepository()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
+        var track = CreateTrackMock("track-id-1");
 
-        var mockTrack = new Mock<ILavaLinkTrack>();
-        mockTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "test-track",
-                Identifier = "Test Title",
-                Author = "Test Author"
-            });
+        await _service.Enqueue(GuildId, track.Object);
 
-        mockTrack.Setup(t => t.ToString()).Returns(
-            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=");
-
-        // Act
-        service.Enqueue(guildId, mockTrack.Object);
-
-        // Assert
-        Assert.True(service.HasTracks(guildId));
-
-        var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        Assert.True(_fileSystem.FileExists(filePath));
-
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath));
-        Assert.NotNull(savedTracks);
-        Assert.Single(savedTracks);
-        Assert.Equal(
-            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=",
-            savedTracks[0].Identifier);
+        _queueRepositoryMock.Verify(
+            repository => repository.EnqueueAsync(GuildId, "track-id-1", default),
+            Times.Once);
     }
 
     [Fact]
-    public void Dequeue_RemovesTrackFromQueue_AndUpdatesFile()
+    public async Task EnqueueMany_DelegatesToRepository()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
+        var track1 = CreateTrackMock("track-id-1");
+        var track2 = CreateTrackMock("track-id-2");
 
-        var mockTrack = new Mock<ILavaLinkTrack>();
-        mockTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "test-track",
-                Identifier = "Test Title",
-                Author = "Test Author"
-            });
+        await _service.EnqueueMany(GuildId, [track1.Object, track2.Object]);
 
-        mockTrack.Setup(t => t.ToString()).Returns(
-            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=");
-
-        service.Enqueue(guildId, mockTrack.Object);
-
-        // Act
-        var dequeuedTrack = service.Dequeue(guildId);
-
-        // Assert
-        Assert.NotNull(dequeuedTrack);
-
-        var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        var savedTracks = JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath));
-
-        Assert.Empty(savedTracks!);
+        _queueRepositoryMock.Verify(
+            repository => repository.EnqueueManyAsync(
+                GuildId,
+                It.Is<IReadOnlyList<string>>(ids =>
+                    ids.Count == 2 &&
+                    ids[0] == "track-id-1" &&
+                    ids[1] == "track-id-2"),
+                default),
+            Times.Once);
     }
 
     [Fact]
-    public async Task LoadQueue_LoadsTracksFromFile()
+    public async Task EnqueueMany_WhenEmptyCollection_DoesNotCallRepository()
     {
-        // Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
+        await _service.EnqueueMany(GuildId, []);
 
-        var savedTracks = new List<SerializedTrack>
-        {
-            new()
-            {
-                Identifier =
-                    "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
-            }
-        };
-
-        var filePath = Path.Combine(_tempQueueDirectory, $"{guildId}.json");
-        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(savedTracks));
-
-        // Act
-        await service.LoadQueue(guildId);
-
-        // Assert
-        Assert.True(service.HasTracks(guildId));
-
-        var queue = service.ViewQueue(guildId);
-        Assert.Single(queue);
+        _queueRepositoryMock.Verify(
+            repository => repository.EnqueueManyAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), default),
+            Times.Never);
     }
 
     [Fact]
-    public void Clone_CreatesRepeatableQueueWithCurrentTrackAndExistingTracks()
+    public async Task Dequeue_WhenQueueItemExists_ReturnsTrack()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
-        service.Init(guildId);
+        var record = CreateRecord(ValidTrackIdentifier, 77);
 
-        var currentTrack = new Mock<ILavaLinkTrack>();
-        currentTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "current-track",
-                Identifier = "Current Title",
-                Author = "Current Author"
-            });
+        _queueRepositoryMock
+            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .ReturnsAsync(record);
 
-        var nextTrack = new Mock<ILavaLinkTrack>();
-        nextTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "next-track",
-                Identifier = "Next Title",
-                Author = "Next Author"
-            });
+        var result = await _service.Dequeue(GuildId);
 
-        service.Enqueue(guildId, nextTrack.Object);
-
-        // Act
-        service.Clone(guildId, currentTrack.Object);
-
-        // Assert
-        var repeatableQueue = service.GetRepeatableQueue(guildId).ToList();
-        Assert.Equal(2, repeatableQueue.Count);
-        Assert.Equal("Current Title", repeatableQueue[0].ToLavalinkTrack().Identifier);
-        Assert.Equal("Next Title", repeatableQueue[1].ToLavalinkTrack().Identifier);
-    }
-
-
-    [Fact]
-    public void Init_CreatesEmptyQueues()
-    {
-        // Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
-
-        // Act
-        service.Init(guildId);
-
-        // Assert
-        var queue = service.GetQueue(guildId);
-        var repeatableQueue = service.GetRepeatableQueue(guildId);
-
-        Assert.Empty(queue);
-        Assert.Empty(repeatableQueue);
+        Assert.NotNull(result);
     }
 
     [Fact]
-    public void GetQueue_ReturnsCorrectTracks()
+    public async Task Dequeue_WhenQueueIsEmpty_ReturnsNull()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
+        _queueRepositoryMock
+            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .ReturnsAsync((QueueItemRecord?)null);
 
-        var track1 = new Mock<ILavaLinkTrack>();
-        track1.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "track1",
-                Identifier = "Title 1",
-                Author = "Author 1"
-            });
+        var result = await _service.Dequeue(GuildId);
 
-        var track2 = new Mock<ILavaLinkTrack>();
-        track2.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "track2",
-                Identifier = "Title 2",
-                Author = "Author 2"
-            });
-
-        service.Enqueue(guildId, track1.Object);
-        service.Enqueue(guildId, track2.Object);
-
-        // Act
-        var queue = service.GetQueue(guildId);
-
-        // Assert
-        Assert.Equal(2, queue.Count);
-        Assert.Equal("Title 1", queue.ElementAt(0).ToLavalinkTrack().Identifier);
-        Assert.Equal("Title 2", queue.ElementAt(1).ToLavalinkTrack().Identifier);
+        Assert.Null(result);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), default), Times.Never);
     }
 
     [Fact]
-    public void SetQueue_UpdatesTheQueueCorrectly()
+    public async Task ViewQueue_ReturnsTracksInRepositoryOrder()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([CreateRecord(ValidTrackIdentifier, 1, 0), CreateRecord(ValidTrackIdentifier, 2, 1)]);
 
-        var track1 = new Mock<ILavaLinkTrack>();
-        track1.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "track1",
-                Identifier = "Title 1",
-                Author = "Author 1"
-            });
+        var result = await _service.ViewQueue(GuildId);
 
-        var track2 = new Mock<ILavaLinkTrack>();
-        track2.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "track2",
-                Identifier = "Title 2",
-                Author = "Author 2"
-            });
+        Assert.Equal(2, result.Count);
+    }
 
-        var shuffledQueue = new Queue<ILavaLinkTrack>([track2.Object, track1.Object]);
+    [Fact]
+    public async Task GetQueue_ReturnsQueueInRepositoryOrder()
+    {
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([CreateRecord(ValidTrackIdentifier, 1, 0), CreateRecord(ValidTrackIdentifier, 2, 1)]);
 
-        // Act
-        service.SetQueue(guildId, shuffledQueue);
-
-        // Assert
-        var queue = service.GetQueue(guildId);
+        var queue = await _service.GetQueue(GuildId);
 
         Assert.Equal(2, queue.Count);
-        Assert.Equal("Title 2", queue.ElementAt(0).ToLavalinkTrack().Identifier);
-        Assert.Equal("Title 1", queue.ElementAt(1).ToLavalinkTrack().Identifier);
     }
 
     [Fact]
-    public void GetRepeatableQueue_ReturnsCorrectTracks()
+    public async Task SetQueue_ReordersQueuedItemsUsingTrackIdentifiers()
     {
-        // Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
-        service.Init(guildId);
+        var first = CreateTrackMock("track-id-a");
+        var second = CreateTrackMock("track-id-b");
+        var reorderedQueue = new Queue<ILavaLinkTrack>([second.Object, first.Object]);
 
-        var currentTrack = new Mock<ILavaLinkTrack>();
-        currentTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "current-track",
-                Identifier = "Current Title",
-                Author = "Current Author"
-            });
+        await _service.SetQueue(GuildId, reorderedQueue);
 
-        var nextTrack = new Mock<ILavaLinkTrack>();
-        nextTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "next-track",
-                Identifier = "Next Title",
-                Author = "Next Author"
-            });
-
-        service.Enqueue(guildId, nextTrack.Object);
-
-        // Act
-        service.Clone(guildId, currentTrack.Object);
-
-        // Assert
-        var repeatableQueue = service.GetRepeatableQueue(guildId).ToList();
-
-        Assert.Equal(2, repeatableQueue.Count);
+        _queueRepositoryMock.Verify(
+            repository => repository.ReorderQueuedItemsAsync(
+                GuildId,
+                It.Is<IReadOnlyList<string>>(tracks =>
+                    tracks.Count == 2 &&
+                    tracks[0] == "track-id-b" &&
+                    tracks[1] == "track-id-a"),
+                default),
+            Times.Once);
     }
 
     [Fact]
-    public void Dequeue_ReturnsNullWhenItsEmpty()
+    public async Task ClearQueue_DelegatesMarkAllQueuedAsSkippedToRepository()
     {
-        //Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
-        service.Init(guildId);
+        await _service.ClearQueue(GuildId);
 
-        // Act
-        var track = service.Dequeue(guildId);
-        // Assert
-        Assert.Null(track);
+        _queueRepositoryMock.Verify(
+            repository => repository.MarkAllQueuedAsSkippedAsync(GuildId, default),
+            Times.Once);
     }
 
     [Fact]
-    public async Task LoadQueue_DoesNotAddTracks_WhenSavedTracksIsNull()
+    public void GetRepeatableQueue_ThrowsNotImplementedException()
     {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
-
-        var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize<List<SerializedTrack>?>(null));
-
-        // Act
-        await service.LoadQueue(guildId);
-
-        // Assert
-        Assert.False(service.HasTracks(guildId));
+        Assert.Throws<NotImplementedException>(() => _service.GetRepeatableQueue(GuildId));
     }
 
-    [Fact]
-    public async Task LoadQueue_DoesNotAddTracks_WhenSavedTracksIsEmpty()
+    private static QueueItemRecord CreateRecord(string trackIdentifier, long id = 1, int position = 0)
     {
-        // Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
-
-        var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(new List<SerializedTrack>()));
-
-        // Act
-        await service.LoadQueue(guildId);
-
-        // Assert
-        Assert.False(service.HasTracks(guildId));
+        return new QueueItemRecord(id, GuildId, position, trackIdentifier, 0, DateTimeOffset.UtcNow, null, null);
     }
 
-    [Fact]
-    public async Task LoadQueue_DoesNothing_WhenFileDoesNotExist()
+    private static Mock<ILavaLinkTrack> CreateTrackMock(string identifier)
     {
-        // Arrange
-        var service = CreateService();
-        var guildId = 12345UL;
-
-        // Act
-        await service.LoadQueue(guildId);
-
-        // Assert
-        Assert.False(service.HasTracks(guildId));
-    }
-
-    [Fact]
-    public void Enqueue_WithoutInit_ShouldStillWork()
-    {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
-
-        var mockTrack = new Mock<ILavaLinkTrack>();
-        mockTrack.Setup(t => t.ToLavalinkTrack())
-            .Returns(new LavalinkTrack
-            {
-                Title = "test-track",
-                Identifier = "Test Identifier",
-                Author = "Test Author"
-            });
-
-        mockTrack.Setup(t => t.ToString()).Returns(
-            "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=");
-
-        // Act - Enqueue without calling Init()
-        service.Enqueue(guildId, mockTrack.Object);
-
-        // Assert
-        Assert.True(service.HasTracks(guildId));
-        var queue = service.GetQueue(guildId);
-        Assert.Single(queue);
-    }
-
-    [Fact]
-    public void Clone_WhenRepeatableQueueNotInitialized_ShouldThrow()
-    {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
-
-        var currentTrack = TrackTestHelper.CreateTrackWrapper("Current Author", "current-track", "Current Title");
-
-        // Act & Assert 
-        Assert.Throws<KeyNotFoundException>(() => service.Clone(guildId, currentTrack));
-    }
-
-    [Fact]
-    public void HasTracks_WhenGuildNotRegistered_ShouldReturnFalse()
-    {
-        // Arrange
-        var service = CreateService();
-        const ulong unknownGuildId = 99999UL;
-
-        // Act
-        var hasTracks = service.HasTracks(unknownGuildId);
-
-        // Assert
-        Assert.False(hasTracks);
-    }
-
-    [Fact]
-    public async Task LoadQueue_WithInvalidJson_ShouldThrow()
-    {
-        // Arrange
-        var service = CreateService();
-        const ulong guildId = 12345UL;
-
-        var filePath = Path.Combine(MusicQueueService.QueueDirectory, $"{guildId}.json");
-        _fileSystem.WriteAllText(filePath, "{ invalid json content :::");
-
-        // Act & Assert
-        await Assert.ThrowsAsync<QueueOperationException>(async () => await service.LoadQueue(guildId));
+        var track = new Mock<ILavaLinkTrack>();
+        track.Setup(t => t.ToString()).Returns(identifier);
+        track.SetupGet(t => t.Title).Returns("Title");
+        track.SetupGet(t => t.Author).Returns("Author");
+        return track;
     }
 }

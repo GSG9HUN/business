@@ -30,7 +30,7 @@ public class RepeatCommand(
 
         var guildId = message.Channel.Guild.Id;
 
-        if (repeatService.IsRepeatingList(guildId))
+        if (await repeatService.IsRepeatingListAsync(guildId))
         {
             await responseBuilder.SendSuccessAsync(message,
                 localizationService.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating));
@@ -38,16 +38,16 @@ public class RepeatCommand(
             return;
         }
 
-        if (repeatService.IsRepeating(guildId))
+        if (await repeatService.IsRepeatingAsync(guildId))
         {
-            repeatService.SetRepeating(guildId, false);
+            await repeatService.SetRepeatingAsync(guildId, false);
             await responseBuilder.SendSuccessAsync(message,
                 localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOff));
             logger.CommandExecuted(Name);
             return;
         }
 
-        repeatService.SetRepeating(guildId, true);
+        await repeatService.SetRepeatingAsync(guildId, true);
         await responseBuilder.SendSuccessAsync(message,
             $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {currentTrackService.GetCurrentTrackFormatted(guildId)}");
 

@@ -18,7 +18,7 @@ public interface ILavaLinkService
     Task ConnectAsync();
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
-    void Init(ulong guildId);
+    Task Init(ulong guildId);
     event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);

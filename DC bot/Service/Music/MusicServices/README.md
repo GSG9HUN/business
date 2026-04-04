@@ -25,20 +25,20 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Key Methods:**
 
-- `Init()` - Initialize queue for guild
 - `Enqueue()` - Add track to queue
 - `Dequeue()` - Remove and return next track
 - `ViewQueue()` - View all queued tracks
 - `HasTracks()` - Check if queue has tracks
-- `SaveQueue()` - Persist queue to disk
-- `LoadQueue()` - Restore queue from disk
+- `GetQueue()` - Get queue snapshot
+- `SetQueue()` - Persist reordered queue
+- `ClearQueue()` - Mark queued tracks as skipped
 - `GetRepeatableQueue()` - Get queue for repeat mode
 
 **Persistence:**
 
-- Saves to `guildFiles/queues/{guildId}.json`
-- Uses `IFileSystem` for file operations
-- Serializes/deserializes `SerializedTrack` objects
+- Uses `IQueueRepository` for database-backed queue operations
+- Queue state transitions are persisted (`queued`, `playing`, `played`, `skipped`)
+- Ordering updates are handled transactionally in repository layer
 
 ---
 
@@ -114,6 +114,6 @@ These services split music functionality into focused responsibilities. Each imp
 
 - **Interface/Service/Music/MusicServiceInterface/** - Service contracts
 - **Service/Music/LavaLinkService.cs** - Orchestrates these services
-- **Model/SerializedTrack.cs** - Queue persistence model
-- **Interface/Service/IO/IFileSystem.cs** - File operations
+- **Interface/Service/Persistence/** - Persistence contracts
+- **Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
 

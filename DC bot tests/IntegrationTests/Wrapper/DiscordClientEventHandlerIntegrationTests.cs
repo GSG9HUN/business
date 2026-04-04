@@ -54,11 +54,10 @@ public class DiscordClientEventHandlerIntegrationTests
 
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILavaLinkService)), Times.Never);
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Never);
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(IMusicQueueService)), Times.Never);
     }
 
     [Fact]
-    public async Task OnGuildAvailable_Call_GetRequiredService_Three_Times()
+    public async Task OnGuildAvailable_Call_GetRequiredService_Two_Times()
     {
         var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
                             "";
@@ -105,8 +104,7 @@ public class DiscordClientEventHandlerIntegrationTests
 
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILavaLinkService)), Times.Once);
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Once);
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(IMusicQueueService)), Times.Once);
-
+       
         await mockClient.DisconnectAsync();
     }
 }

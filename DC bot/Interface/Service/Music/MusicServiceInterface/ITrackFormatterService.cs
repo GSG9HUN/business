@@ -3,5 +3,5 @@
 public interface ITrackFormatterService
 {
     string FormatCurrentTrack(ulong guildId);
-    string FormatCurrentTrackList(ulong guildId);
+    Task<string> FormatCurrentTrackListAsync(ulong guildId);
 }

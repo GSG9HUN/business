@@ -32,6 +32,20 @@ Music and playback service interfaces.
 
 ---
 
+### Persistence/
+
+Persistence repository contracts used by services.
+
+**Files:**
+
+- `IGuildDataRepository.cs`
+- `IPlaybackStateRepository.cs`
+- `IQueueRepository.cs`
+- `IRepeatListRepository.cs`
+- `Models/` - contract record models
+
+---
+
 ### Presentation/
 
 Response and presentation interfaces.
@@ -43,5 +57,6 @@ Response and presentation interfaces.
 ## Related Components
 
 - **Service/** - Implements these interfaces
+- **Persistence/** - Implements persistence contracts
 - **Commands/** - Use service interfaces for business logic
 

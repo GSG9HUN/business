@@ -2,20 +2,18 @@ namespace DC_bot.Interface.Service.Music.MusicServiceInterface;
 
 public interface IMusicQueueService
 {
-    public bool HasTracks(ulong guildId);
+    public Task<bool> HasTracks(ulong guildId);
 
-    public void Enqueue(ulong guildId, ILavaLinkTrack track);
-    public ILavaLinkTrack? Dequeue(ulong guildId);
+    public Task Enqueue(ulong guildId, ILavaLinkTrack track);
+    public Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks);
+    public Task<ILavaLinkTrack?> Dequeue(ulong guildId);
 
-    public IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId);
-    public Task LoadQueue(ulong guildId);
+    public Task<IReadOnlyCollection<ILavaLinkTrack>> ViewQueue(ulong guildId);
+    
 
-    public void Clone(ulong guildId, ILavaLinkTrack currentTrack);
+    public Task<Queue<ILavaLinkTrack>> GetQueue(ulong guildId);
 
-    public void Init(ulong guildId);
-
-    public Queue<ILavaLinkTrack> GetQueue(ulong guildId);
-
-    public void SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue);
+    public Task SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue);
     IEnumerable<ILavaLinkTrack> GetRepeatableQueue(ulong guildId);
+    Task ClearQueue(ulong guildId);
 }

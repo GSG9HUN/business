@@ -62,8 +62,7 @@ public class ClearCommandTests
         await _clearCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
-            Times.Never);
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(It.IsAny<ulong>()), Times.Never);
     }
 
     [Fact]
@@ -81,14 +80,15 @@ public class ClearCommandTests
         await _clearCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
-            Times.Never);
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(It.IsAny<ulong>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuteAsync_ValidUser_ShouldClearQueue()
     {
         // Arrange
+        const ulong guildId = 987654321UL;
+
         _commandHelperMock
             .Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
@@ -96,18 +96,15 @@ public class ClearCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
 
-        _guildMock.SetupGet(g => g.Id).Returns(987654321L);
-
+        _guildMock.SetupGet(g => g.Id).Returns(guildId);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-
 
         // Act
         await _clearCommand.ExecuteAsync(_messageMock.Object);
 
         // Assert
-        _musicQueueServiceMock.Verify(m => m.SetQueue(987654321L, It.Is<Queue<ILavaLinkTrack>>(q => q.Count == 0)),
-            Times.Once);
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(guildId), Times.Once);
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Once);
     }

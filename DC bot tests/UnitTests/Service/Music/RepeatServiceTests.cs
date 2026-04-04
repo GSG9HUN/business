@@ -1,64 +1,123 @@
-﻿using DC_bot.Service.Music.MusicServices;
+﻿using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Service.Music.MusicServices;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
 public class RepeatServiceTests
 {
     [Fact]
-    public void Init_DefaultsToFalse()
+    public async Task Init_DefaultsToFalse()
     {
-        var service = new RepeatService();
+        var service = new RepeatService(
+            new InMemoryPlaybackStateRepository(), 
+            new InMemoryRepeatListRepository(),
+            new Mock<ILogger<RepeatService>>().Object
+            );
         const ulong guildId = 10;
 
-        service.Init(guildId);
+        await service.InitAsync(guildId);
 
-        Assert.False(service.IsRepeating(guildId));
-        Assert.False(service.IsRepeatingList(guildId));
+        Assert.False(await service.IsRepeatingAsync(guildId));
+        Assert.False(await service.IsRepeatingListAsync(guildId));
     }
 
     [Fact]
-    public void SetRepeating_AfterInit_UpdatesFlag()
+    public async Task SetRepeating_AfterInit_UpdatesFlag()
     {
-        var service = new RepeatService();
+        var service = new RepeatService(
+            new InMemoryPlaybackStateRepository(), 
+            new InMemoryRepeatListRepository(),
+            new Mock<ILogger<RepeatService>>().Object
+            );
         const ulong guildId = 11;
 
-        service.Init(guildId);
-        service.SetRepeating(guildId, true);
+        await service.InitAsync(guildId);
+        await service.SetRepeatingAsync(guildId, true);
 
-        Assert.True(service.IsRepeating(guildId));
+        Assert.True(await service.IsRepeatingAsync(guildId));
     }
 
     [Fact]
-    public void SetRepeating_WithoutInit_DoesNothing()
+    public async Task SetRepeating_WithoutInit_CreatesAndUpdatesState()
     {
-        var service = new RepeatService();
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
         const ulong guildId = 12;
 
-        service.SetRepeating(guildId, true);
+        await service.SetRepeatingAsync(guildId, true);
 
-        Assert.False(service.IsRepeating(guildId));
+        Assert.True(await service.IsRepeatingAsync(guildId));
     }
 
     [Fact]
-    public void SetRepeatingList_AfterInit_UpdatesFlag()
+    public async Task SetRepeatingList_AfterInit_UpdatesFlag()
     {
-        var service = new RepeatService();
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
         const ulong guildId = 13;
 
-        service.Init(guildId);
-        service.SetRepeatingList(guildId, true);
+        await service.InitAsync(guildId);
+        await service.SetRepeatingListAsync(guildId, true);
 
-        Assert.True(service.IsRepeatingList(guildId));
+        Assert.True(await service.IsRepeatingListAsync(guildId));
     }
 
     [Fact]
-    public void SetRepeatingList_WithoutInit_DoesNothing()
+    public async Task SetRepeatingList_WithoutInit_CreatesAndUpdatesState()
     {
-        var service = new RepeatService();
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
         const ulong guildId = 14;
 
-        service.SetRepeatingList(guildId, true);
+        await service.SetRepeatingListAsync(guildId, true);
 
-        Assert.False(service.IsRepeatingList(guildId));
+        Assert.True(await service.IsRepeatingListAsync(guildId));
+    }
+
+    private sealed class InMemoryPlaybackStateRepository : IPlaybackStateRepository
+    {
+        private readonly Dictionary<ulong, PlaybackStateRecord> _states = [];
+
+        public Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
+        {
+            if (!_states.TryGetValue(guildId, out var state))
+            {
+                state = new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow);
+                _states[guildId] = state;
+            }
+
+            return Task.FromResult(state);
+        }
+
+        public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
+        {
+            _states[guildId] = new PlaybackStateRecord(guildId, isRepeating, isRepeatingList, null, DateTimeOffset.UtcNow);
+            return Task.CompletedTask;
+        }
+
+        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, CancellationToken cancellationToken = default)
+        {
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            _states[guildId] = state with { CurrentTrackIdentifier = trackIdentifier, UpdatedAtUtc = DateTimeOffset.UtcNow };
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class InMemoryRepeatListRepository : IRepeatListRepository
+    {
+        public Task<IReadOnlyList<string>> GetTrackIdentifiersAsync(ulong guildId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
+        }
+
+        public Task ReplaceAsync(ulong guildId, IReadOnlyList<string> trackIdentifiers, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task ClearAsync(ulong guildId, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

@@ -1,323 +1,82 @@
 ﻿# Program.cs - Application Entry Point
 
-This document describes the Discord bot application entry point and initialization flow.
+This file wires up runtime configuration, dependency injection, database migrations, and startup handlers.
 
-## Overview
+## Responsibilities
 
-`Program.cs` is responsible for:
+- load `.env`
+- read required bot and Lavalink settings
+- configure DI container
+- register repository implementations and services
+- apply pending EF Core migrations
+- register handlers and start the bot
 
-- Loading environment variables from `.env` file
-- Configuring application services (Dependency Injection)
-- Registering Discord event handlers
-- Starting the bot
+## Startup Flow
 
-## Entry Point
-
-```csharp
-private static async Task Main()
-{
-    var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-
-    if (!File.Exists(envPath))
-    {
-        Console.WriteLine("Please provide .env file.");
-        return;
-    }
-    
-    Env.Load(envPath);
-    await new Program().RunBotAsync();
-}
-```
-
-**Flow:**
-
-1. Check if `.env` file exists in current directory
-2. Load environment variables from `.env`
-3. Call `RunBotAsync()` to start the bot
-
-**Required File:** `.env` in project root
-
----
+1. `Main()` verifies `.env` exists, then calls `RunBotAsync()`.
+2. `RunBotAsync()` reads environment values using `GetEnv(...)`.
+3. `ConfigureServices(...)` builds the `ServiceProvider`.
+4. `ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
+5. Handlers are registered, then `BotService.StartAsync()` starts the bot.
 
 ## Environment Variables
 
-### Required Variables
+### Required
 
-#### Bot Settings
+- `DISCORD_TOKEN`
+- `LAVALINK_HOSTNAME`
 
-- **DISCORD_TOKEN** - Discord bot token (required)
-  ```
-  DISCORD_TOKEN=your_bot_token_here
-  ```
+### Optional Lavalink
 
-#### Lavalink Settings
+- `LAVALINK_PORT` (default: `2333`)
+- `LAVALINK_SECURED` (default: `false`)
+- `LAVALINK_PASSWORD` (default: empty)
 
-- **LAVALINK_HOSTNAME** - Lavalink server host (required)
-  ```
-  LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
-  ```
+### Optional Bot
 
-### Optional Variables
+- `BOT_PREFIX` (if omitted, downstream command parsing behavior applies)
 
-#### Bot Settings
+### Optional PostgreSQL
 
-- **BOT_PREFIX** - Command prefix (default: `!`)
-  ```
-  BOT_PREFIX=!
-  ```
+- `POSTGRES_HOST` (default: `localhost`)
+- `POSTGRES_PORT` (default: `5432`)
+- `POSTGRES_DB` (default: `dc_bot`)
+- `POSTGRES_USER` (default: `postgres`)
+- `POSTGRES_PASSWORD` (default: `postgres`)
 
-#### Lavalink Settings
-
-- **LAVALINK_PORT** - Lavalink server port (default: `2333`)
-  ```
-  LAVALINK_PORT=443
-  ```
-
-- **LAVALINK_SECURED** - Use HTTPS/WSS (default: `false`)
-  ```
-  LAVALINK_SECURED=true
-  ```
-
-- **LAVALINK_PASSWORD** - Lavalink authentication password (default: empty)
-  ```
-  LAVALINK_PASSWORD=https://dsc.gg/ajidevserver
-  ```
-
-### Example `.env` File
+## Example .env
 
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
-LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
-LAVALINK_PASSWORD=your_password
+
+LAVALINK_HOSTNAME=lavalink.example.com
 LAVALINK_PORT=443
 LAVALINK_SECURED=true
+LAVALINK_PASSWORD=your_password
+
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=dc_bot
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
 ```
 
----
+## Persistence Wiring
 
-## Initialization Flow
+`ConfigureServices(...)` registers:
 
-### 1. Environment Variable Loading
+- `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
+- `IGuildDataRepository -> GuildDataRepository`
+- `IPlaybackStateRepository -> PlaybackStateRepository`
+- `IQueueRepository -> QueueRepository`
+- `IRepeatListRepository -> RepeatListRepository`
 
-```csharp
-static string? GetEnv(string key)
-{
-    var value = Environment.GetEnvironmentVariable(key);
-    return string.IsNullOrWhiteSpace(value) ? null : value.Trim().Trim('"');
-}
+At startup, `ApplyMigrationsIfNeededAsync(...)` executes `MigrateAsync()` when pending migrations exist.
 
-var botSettings = new BotSettings
-{
-    Token = GetEnv("DISCORD_TOKEN"),
-    Prefix = GetEnv("BOT_PREFIX") ?? "!"
-};
+## Slash Commands
 
-var lavaLinkSettings = new LavalinkSettings
-{
-    Hostname = GetEnv("LAVALINK_HOSTNAME"),
-    Port = int.TryParse(GetEnv("LAVALINK_PORT"), out var port) ? port : 2333,
-    Secured = string.Equals(GetEnv("LAVALINK_SECURED"), "true", StringComparison.OrdinalIgnoreCase),
-    Password = GetEnv("LAVALINK_PASSWORD") ?? string.Empty
-};
-```
-
-**Behavior:**
-
-- Strips whitespace and quotes from values
-- Provides sensible defaults
-- Validates required settings
-
-### 2. Service Registration (Dependency Injection)
-
-```csharp
-var services = ConfigureServices(botSettings, lavaLinkSettings);
-```
-
-The `ConfigureServices()` method configures the DI container with:
-
-#### Logging
-
-```csharp
-.AddLogging(builder => { 
-    builder.AddConsole().SetMinimumLevel(LogLevel.Debug); 
-})
-```
-
-- Console logging enabled
-- Minimum level: Debug
-
-#### Lavalink Configuration
-
-```csharp
-.ConfigureLavalink(options =>
-{
-    var httpScheme = lavaLinkSettings.Secured ? "https" : "http";
-    var wsScheme = lavaLinkSettings.Secured ? "wss" : "ws";
-    var baseAddress = new Uri($"{httpScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}");
-    var webSocketUri = new Uri($"{wsScheme}://{lavaLinkSettings.Hostname}:{lavaLinkSettings.Port}/v4/websocket");
-    
-    options.BaseAddress = baseAddress;
-    options.WebSocketUri = webSocketUri;
-    options.Passphrase = lavaLinkSettings.Password;
-})
-.AddLavalink()
-```
-
-**Features:**
-
-- Automatically selects HTTP/HTTPS based on `LAVALINK_SECURED`
-- Automatically selects WS/WSS based on `LAVALINK_SECURED`
-- Configures Lavalink server address and authentication
-
-#### Core Services Registration
-
-| Service                 | Implementation          | Lifetime  |
-|-------------------------|-------------------------|-----------|
-| `IFileSystem`           | `PhysicalFileSystem`    | Singleton |
-| `BotService`            | `BotService`            | Singleton |
-| `DiscordClient`         | `DiscordClient`         | Singleton |
-| `CommandHandlerService` | `CommandHandlerService` | Singleton |
-| `ReactionHandler`       | `ReactionHandler`       | Singleton |
-
-#### Command Registration
-
-All text commands registered as `ICommand`:
-
-- `TagCommand`
-- `JoinCommand`
-- `PingCommand`
-- `HelpCommand`
-- `PlayCommand`
-- `SkipCommand`
-- `ClearCommand`
-- `LeaveCommand`
-- `PauseCommand`
-- `ResumeCommand`
-- `RepeatCommand`
-- `ShuffleCommand`
-- `LanguageCommand`
-- `ViewQueueCommand`
-- `RepeatListCommand`
-
-#### Music Services Registration
-
-| Service                        | Implementation                |
-|--------------------------------|-------------------------------|
-| `ILavaLinkService`             | `LavaLinkService`             |
-| `IMusicQueueService`           | `MusicQueueService`           |
-| `IRepeatService`               | `RepeatService`               |
-| `ICurrentTrackService`         | `CurrentTrackService`         |
-| `ITrackNotificationService`    | `TrackNotificationService`    |
-| `ITrackFormatterService`       | `TrackFormatterService`       |
-| `IPlayerConnectionService`     | `PlayerConnectionService`     |
-| `IPlaybackEventHandlerService` | `PlaybackEventHandlerService` |
-| `ITrackPlaybackService`        | `TrackPlaybackService`        |
-| `ITrackEndedHandlerService`    | `TrackEndedHandlerService`    |
-| `ITrackSearchResolverService`  | `TrackSearchResolverService`  |
-
-#### Validation & Localization Services
-
-| Service                  | Implementation             |
-|--------------------------|----------------------------|
-| `IValidationService`     | `ValidationService`        |
-| `IUserValidationService` | `ValidationService`        |
-| `ILocalizationService`   | `LocalizationService`      |
-| `IResponseBuilder`       | `ResponseBuilder`          |
-| `ICommandHelper`         | `CommandValidationService` |
-
-### 3. Handler Registration
-
-```csharp
-RegisterHandlers(services);
-```
-
-**Handlers Registered:**
-
-```csharp
-commandHandler.RegisterHandler(discordClient);  // Message handling
-reactionHandler.RegisterHandler(discordClient);  // Reaction handling
-```
-
-**Features:**
-
-- `CommandHandlerService` - Routes Discord messages to registered commands
-- `ReactionHandler` - Handles music control reactions
-
-### 4. Bot Startup
-
-```csharp
-var botService = services.GetRequiredService<BotService>();
-await botService.StartAsync();
-```
-
-**Flow:**
-
-1. Retrieve `BotService` from DI container
-2. Call `StartAsync()` to:
-    - Connect Discord client
-    - Run bot indefinitely
-
----
-
-## Service Dependency Graph
-
-```
-Program.cs
-    ↓
-Configure Services (DI Container)
-    ↓
-├─ Logging Configuration
-├─ Lavalink Configuration
-├─ Core Services
-│  ├─ DiscordClient
-│  ├─ BotService
-│  ├─ CommandHandlerService
-│  └─ ReactionHandler
-├─ Command Registration (all text commands)
-├─ Music Services
-│  ├─ LavaLinkService
-│  ├─ MusicQueueService
-│  └─ Specialized music services
-└─ Validation & Localization
-    ├─ ValidationService
-    ├─ LocalizationService
-    └─ ResponseBuilder
-    ↓
-Register Handlers
-    ├─ CommandHandlerService.RegisterHandler()
-    └─ ReactionHandler.RegisterHandler()
-    ↓
-BotService.StartAsync()
-    ↓
-Running Bot
-```
-
----
-
-## Slash Commands (Currently Disabled)
-
-Slash commands registration is present but commented out:
-
-```csharp
-/*
-var slashCommandsConfig = discordClient.UseSlashCommands(new SlashCommandsConfiguration
-{
-    Services = services
-});
-slashCommandsConfig.RefreshCommands();
-slashCommandsConfig.RegisterCommands<TagSlashCommand>();
-slashCommandsConfig.RegisterCommands<PingSlashCommand>();
-slashCommandsConfig.RegisterCommands<HelpSlashCommand>();
-slashCommandsConfig.RegisterCommands<PlaySlashCommand>();
-*/
-```
-
-**To Enable:**
-
-1. Uncomment the code
-2. Discord bot must have `applications.commands` scope
-3. Slash commands will be registered on bot startup
+Slash command registration code is currently present but commented out in `RegisterSlashCommands(...)`.
 
 ---
 

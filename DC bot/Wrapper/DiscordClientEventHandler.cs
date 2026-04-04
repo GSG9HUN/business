@@ -37,15 +37,15 @@ public class DiscordClientEventHandler(
 
             var localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
             var lavaLinkService = serviceProvider.GetRequiredService<ILavaLinkService>();
-            var musicQueueService = serviceProvider.GetRequiredService<IMusicQueueService>();
 
             await guildDataRepository.EnsureGuildExistsAsync(e.Guild.Id, CancellationToken.None);
 
             localizationService.LoadLanguage(e.Guild.Id);
-            lavaLinkService.Init(e.Guild.Id);
-            musicQueueService.Init(e.Guild.Id);
+        
+           
+            await lavaLinkService.Init(e.Guild.Id);
 
-            await musicQueueService.LoadQueue(e.Guild.Id);
+            
         }
         catch (Exception exception)
         {

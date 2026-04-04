@@ -9,5 +9,6 @@ public class GuildDataEntity
 
 	public GuildPlaybackStateEntity? PlaybackState { get; set; }
 	public ICollection<GuildQueueItemEntity> QueueItems { get; set; } = new List<GuildQueueItemEntity>();
+	public ICollection<GuildRepeatListItemEntity> RepeatListItems { get; set; } = new List<GuildRepeatListItemEntity>();
 	public ICollection<GuildPremiumAuditEntity> PremiumAuditEntries { get; set; } = new List<GuildPremiumAuditEntity>();
 }

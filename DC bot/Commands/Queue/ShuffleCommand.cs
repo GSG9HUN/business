@@ -28,7 +28,7 @@ public class ShuffleCommand(
         if (validationResult is null) return;
 
         var guildId = message.Channel.Guild.Id;
-        var queue = musicQueueService.GetQueue(guildId);
+        var queue = await musicQueueService.GetQueue(guildId);
 
         if (queue.Count is 0 or < 2)
         {
@@ -38,7 +38,7 @@ public class ShuffleCommand(
 
         var shuffledQueue = ShuffleQueue(queue);
 
-        musicQueueService.SetQueue(guildId, shuffledQueue);
+        await musicQueueService.SetQueue(guildId, shuffledQueue);
 
         await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.CommandExecuted(Name);

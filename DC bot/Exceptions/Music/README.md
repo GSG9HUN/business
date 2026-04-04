@@ -35,27 +35,27 @@ catch (Exception ex)
 
 **When Thrown:**
 
-### 1. Save Queue Failure
+### 1. Queue Reorder Persist Failure
 
 ```csharp
-// In MusicQueueService.SaveQueue()
+// In MusicQueueService.SetQueue()
 catch (Exception ex)
 {
-    throw new QueueOperationException("SaveQueue", guildId, "Failed to save queue to file", ex);
+    throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
 }
 ```
 
-### 2. Load Queue Failure
+### 2. Queue Read Failure
 
 ```csharp
-// In MusicQueueService.LoadQueue()
+// In MusicQueueService.ViewQueue()
 catch (Exception ex)
 {
-    throw new QueueOperationException("LoadQueue", guildId, "Failed to load queue from file", ex);
+    throw new QueueOperationException("ViewQueue", guildId, "Failed to read persisted queue", ex);
 }
 ```
 
-**Usage:** Thrown when saving or loading queue persistence files fails.
+**Usage:** Thrown when queue persistence operations fail.
 
 ---
 
@@ -114,7 +114,7 @@ if (loadResult.Tracks.Count == 0)
 
 ### MusicQueueService.cs
 
-- `QueueOperationException` - Queue file save/load failures
+- `QueueOperationException` - Queue persistence operation failures
 
 ## Handling
 
@@ -141,5 +141,5 @@ catch (LavalinkOperationException ex)
 
 - `Service/Music/LavaLinkService.cs` - Throws LavalinkOperationException and TrackLoadException
 - `Service/Music/MusicServices/MusicQueueService.cs` - Throws QueueOperationException
-- `guildFiles/queues/*.json` - Queue persistence files
+- `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
 

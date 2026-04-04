@@ -8,6 +8,7 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
     public DbSet<GuildDataEntity> GuildData => Set<GuildDataEntity>();
     public DbSet<GuildPlaybackStateEntity> GuildPlaybackStates => Set<GuildPlaybackStateEntity>();
     public DbSet<GuildQueueItemEntity> GuildQueueItems => Set<GuildQueueItemEntity>();
+    public DbSet<GuildRepeatListItemEntity> GuildRepeatListItems => Set<GuildRepeatListItemEntity>();
     public DbSet<GuildPremiumAuditEntity> GuildPremiumAudits => Set<GuildPremiumAuditEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -15,6 +16,7 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new Configurations.GuildDataConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.GuildPlaybackStateConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.GuildQueueItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.GuildRepeatListItemConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.GuildPremiumAuditConfiguration());
         base.OnModelCreating(modelBuilder);
     }
