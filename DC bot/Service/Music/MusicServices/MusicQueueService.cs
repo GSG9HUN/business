@@ -44,32 +44,32 @@ public class MusicQueueService(IQueueRepository queueRepository, ILogger<MusicQu
 
     public async Task<ILavaLinkTrack?> Dequeue(ulong guildId)
     {
-        var queueItemRecord = await queueRepository.ClaimNextQueuedItemAsync(guildId);
-        if (queueItemRecord == null)
+        while (true)
         {
-            _logger.LogDebug("Dequeue requested for guild {GuildId}, but queue is empty.", guildId);
-            return null;
-        }
+            var queueItemRecord = await queueRepository.ClaimNextQueuedItemAsync(guildId);
+            if (queueItemRecord == null)
+            {
+                _logger.LogDebug("Dequeue requested for guild {GuildId}, but queue is empty.", guildId);
+                return null;
+            }
 
-        LavalinkTrack track;
-        try
-        {
-            track = LavalinkTrack.Parse(queueItemRecord.TrackIdentifier, null);
-            var wrappedTrack = new LavaLinkTrackWrapper(track) 
-            { 
-                QueueItemId = queueItemRecord.Id 
-            };
-            _logger.LogInformation("Track dequeued for guild {GuildId}: {Title}", guildId, track.Title);
-            return wrappedTrack;
-        }
-        catch (Exception ex)
-        {
-            await queueRepository.MarkSkippedAsync(queueItemRecord.Id);
-        
-            _logger.LogWarning(ex, "Failed to parse track for guild {GuildId}. Item {Id} marked as skipped.", 
-                guildId, queueItemRecord.Id);
-            
-            return null;
+            try
+            {
+                var track = LavalinkTrack.Parse(queueItemRecord.TrackIdentifier, null);
+                var wrappedTrack = new LavaLinkTrackWrapper(track)
+                {
+                    QueueItemId = queueItemRecord.Id
+                };
+                _logger.LogInformation("Track dequeued for guild {GuildId}: {Title}", guildId, track.Title);
+                return wrappedTrack;
+            }
+            catch (Exception ex)
+            {
+                await queueRepository.MarkSkippedAsync(queueItemRecord.Id);
+
+                _logger.LogWarning(ex, "Failed to parse track for guild {GuildId}. Item {Id} marked as skipped. Trying next item.",
+                    guildId, queueItemRecord.Id);
+            }
         }
     }
 
