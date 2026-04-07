@@ -1,70 +1,43 @@
-﻿using DC_bot_tests.TestHelperFiles;
+using DC_bot.Interface;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Service.Music.MusicServices;
+using Moq;
 
 namespace DC_bot_tests.IntegrationTests.Service.Music;
 
 public class TrackFormatterServiceIntegrationTests
 {
     [Fact]
-    public void FormatCurrentTrackList_WhenQueueChanges_ReflectsLatestState()
+    public async Task FormatCurrentTrackList_WhenQueueChanges_ReflectsLatestState()
     {
-        // Arrange
         const ulong guildId = 1001;
         var currentTrackService = new CurrentTrackService();
         currentTrackService.Init(guildId);
 
-        var queueService = new MusicQueueService();
-        queueService.Init(guildId);
+        var queueServiceMock = new Mock<IMusicQueueService>();
+        var formatter = new TrackFormatterService(currentTrackService, queueServiceMock.Object);
 
-        var formatter = new TrackFormatterService(currentTrackService, queueService);
+        var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
+        currentTrackService.SetCurrentTrack(guildId, currentTrack.Object);
 
-        var current = TrackTestHelper.CreateTrackWrapper(
-            "Noize Generation",
-            "Sugababes - Round Round (Noize Generation Remix)",
-            "4g7MsUvOZN4",
-            100D
-        );
-        
-        currentTrackService.SetCurrentTrack(guildId, current);
+        var trackA = CreateTrackMock("QueueAuthorA", "QueueTitleA");
+        var trackB = CreateTrackMock("QueueAuthorB", "QueueTitleB");
 
-        queueService.Enqueue(guildId,
-            TrackTestHelper.CreateTrackWrapper(
-                "Noize Generation",
-                "Sugababes - Round Round (Noize Generation Remix)",
-                "4g7MsUvOZN4"
-                )
-            );
+        queueServiceMock
+            .SetupSequence(q => q.ViewQueue(guildId))
+            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { trackA.Object, trackB.Object })
+            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { trackB.Object });
 
-        queueService.Enqueue(guildId,
-            TrackTestHelper.CreateTrackWrapper(
-                "Noize Generation",
-                "Sugababes - Round Round (Noize Generation Remix)",
-                "4g7MsUvOZN4"
-            )
-        );
+        var beforeDequeue = await formatter.FormatCurrentTrackListAsync(guildId);
+        var afterDequeue = await formatter.FormatCurrentTrackListAsync(guildId);
 
-        // Act
-        var beforeDequeue = formatter.FormatCurrentTrackList(guildId);
-        var dequeued = queueService.Dequeue(guildId);
-        var afterDequeue = formatter.FormatCurrentTrackList(guildId);
-
-        // Assert
-        Assert.NotNull(dequeued);
-        Assert.Equal("QueueTitleA", dequeued.Title);
-
-        Assert.Equal(
-            "CurrentAuthor CurrentTitle\nQueueAuthorA QueueTitleA\nQueueAuthorB QueueTitleB\n",
-            beforeDequeue);
-
-        Assert.Equal(
-            "CurrentAuthor CurrentTitle\nQueueAuthorB QueueTitleB\n",
-            afterDequeue);
+        Assert.Equal("CurrentAuthor CurrentTitle\nQueueAuthorA QueueTitleA\nQueueAuthorB QueueTitleB\n", beforeDequeue);
+        Assert.Equal("CurrentAuthor CurrentTitle\nQueueAuthorB QueueTitleB\n", afterDequeue);
     }
 
     [Fact]
-    public void FormatCurrentTrackList_MultiGuildState_DoesNotLeakBetweenGuilds()
+    public async Task FormatCurrentTrackList_MultiGuildState_DoesNotLeakBetweenGuilds()
     {
-        // Arrange
         const ulong guildA = 2001;
         const ulong guildB = 2002;
 
@@ -72,30 +45,27 @@ public class TrackFormatterServiceIntegrationTests
         currentTrackService.Init(guildA);
         currentTrackService.Init(guildB);
 
-        var queueService = new MusicQueueService();
-        queueService.Init(guildA);
-        queueService.Init(guildB);
+        var queueServiceMock = new Mock<IMusicQueueService>();
+        var formatter = new TrackFormatterService(currentTrackService, queueServiceMock.Object);
 
-        var formatter = new TrackFormatterService(currentTrackService, queueService);
+        var aCurrentTrack = CreateTrackMock("A-CurrentAuthor", "A-CurrentTitle");
+        var bCurrentTrack = CreateTrackMock("B-CurrentAuthor", "B-CurrentTitle");
+        var aQueueTrack = CreateTrackMock("A-QueueAuthor", "A-QueueTitle");
+        var bQueueTrack = CreateTrackMock("B-QueueAuthor", "B-QueueTitle");
 
-        currentTrackService.SetCurrentTrack(guildA,
-            TrackTestHelper.CreateTrackWrapper("A-CurrentAuthor", "A-CurrentTitle", "a-current")
-        );
-        currentTrackService.SetCurrentTrack(guildB,
-            TrackTestHelper.CreateTrackWrapper("B-CurrentAuthor", "B-CurrentTitle", "b-current")
-        );
+        currentTrackService.SetCurrentTrack(guildA, aCurrentTrack.Object);
+        currentTrackService.SetCurrentTrack(guildB, bCurrentTrack.Object);
 
-        queueService.Enqueue(guildA,
-            TrackTestHelper.CreateTrackWrapper("A-CurrentAuthor", "A-CurrentTitle", "a-current")
-        );
-        queueService.Enqueue(guildB, TrackTestHelper.CreateTrackWrapper("B-CurrentAuthor", "B-CurrentTitle", "b-current")
-        );
+        queueServiceMock
+            .Setup(q => q.ViewQueue(guildA))
+            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { aQueueTrack.Object });
+        queueServiceMock
+            .Setup(q => q.ViewQueue(guildB))
+            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { bQueueTrack.Object });
 
-        // Act
-        var resultA = formatter.FormatCurrentTrackList(guildA);
-        var resultB = formatter.FormatCurrentTrackList(guildB);
+        var resultA = await formatter.FormatCurrentTrackListAsync(guildA);
+        var resultB = await formatter.FormatCurrentTrackListAsync(guildB);
 
-        // Assert
         Assert.Contains("A-CurrentAuthor A-CurrentTitle", resultA);
         Assert.Contains("A-QueueAuthor A-QueueTitle", resultA);
         Assert.DoesNotContain("B-CurrentAuthor", resultA);
@@ -107,48 +77,11 @@ public class TrackFormatterServiceIntegrationTests
         Assert.DoesNotContain("A-QueueAuthor", resultB);
     }
 
-    [Fact]
-    public void CloneRepeatableQueue_PreservesOrder_ForRepeatListFlow()
+    private static Mock<ILavaLinkTrack> CreateTrackMock(string author, string title)
     {
-        // Arrange
-        const ulong guildId = 3001;
-
-        var currentTrackService = new CurrentTrackService();
-        currentTrackService.Init(guildId);
-
-        var queueService = new MusicQueueService();
-        queueService.Init(guildId);
-
-        var formatter = new TrackFormatterService(currentTrackService, queueService);
-
-        var current = TrackTestHelper.CreateTrackWrapper("CurrentAuthor", "CurrentTitle", "repeat-current");
-
-        currentTrackService.SetCurrentTrack(guildId, current);
-        queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper("QueueAuthorA", "QueueTitleA", "track-a"));
-        queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper("QueueAuthorB", "QueueTitleB", "track-b"));
-
-        queueService.Clone(guildId, current);
-
-        queueService.Dequeue(guildId);
-        queueService.Dequeue(guildId);
-        Assert.False(queueService.HasTracks(guildId));
-
-        foreach (var t in queueService.GetRepeatableQueue(guildId))
-        {
-            var track = t.ToLavalinkTrack();
-            queueService.Enqueue(guildId, TrackTestHelper.CreateTrackWrapper(track.Author, track.Title, track.Identifier));
-        }
-
-        var firstRepeated = queueService.Dequeue(guildId);
-        currentTrackService.SetCurrentTrack(guildId, firstRepeated);
-
-        // Act
-        var formatted = formatter.FormatCurrentTrackList(guildId);
-
-        // Assert
-        Assert.Equal("CurrentTitle", firstRepeated!.Title);
-        Assert.Equal(
-            "CurrentAuthor CurrentTitle\nQueueAuthorA QueueTitleA\nQueueAuthorB QueueTitleB\n",
-            formatted);
+        var mock = new Mock<ILavaLinkTrack>();
+        mock.SetupGet(t => t.Author).Returns(author);
+        mock.SetupGet(t => t.Title).Returns(title);
+        return mock;
     }
 }

@@ -1,6 +1,8 @@
 ﻿# Guild Queue Files
 
-This folder stores serialized queue data per guild.
+Legacy queue storage location.
+
+Active queue persistence is database-backed via `IQueueRepository` and `QueueRepository`.
 
 ## Contents
 
@@ -8,6 +10,6 @@ This folder stores serialized queue data per guild.
 
 ## Notes
 
-- Queue snapshots are used to restore playback context.
-- Keep serialization format stable to avoid migration issues.
+- Existing files may remain from older versions.
+- New queue state is persisted to PostgreSQL.
 

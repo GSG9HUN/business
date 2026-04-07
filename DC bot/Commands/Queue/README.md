@@ -118,24 +118,16 @@ for (var i = trackList.Count - 1; i > 0; i--)
 
 Queue state is persisted to:
 
-- **Location:** `guildFiles/queues/{guildId}.json`
-- **Format:** JSON array of `SerializedTrack` objects
-
-**SerializedTrack Structure:**
-
-```json
-{
-  "title": "Track Title",
-  "author": "Artist Name",
-  "uri": "https://youtube.com/...",
-  "duration": "PT3M45S"
-}
-```
+- **Storage:** PostgreSQL via EF Core repositories
+- **Contract:** `IQueueRepository`
+- **Implementation:** `Persistence/Repositories/QueueRepository.cs`
+- **State model:** queued/playing/played/skipped queue item lifecycle
 
 ## Related Components
 
 - `Service/Music/MusicServices/MusicQueueService.cs` - Queue state management
 - `Service/Music/MusicServices/RepeatService.cs` - Repeat mode logic
 - `Interface/Service/Music/MusicServiceInterface/IMusicQueueService.cs` - Queue contract
-- `Model/SerializedTrack.cs` - Queue persistence model
+- `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
+- `Persistence/Repositories/QueueRepository.cs` - Queue persistence implementation
 

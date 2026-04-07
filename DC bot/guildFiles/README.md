@@ -1,6 +1,8 @@
 ﻿# guildFiles
 
-This folder stores per-guild persisted data.
+This folder stores filesystem-based per-guild data.
+
+Queue persistence is now database-backed and no longer stored here by the active queue repository implementation.
 
 ## Structure
 
@@ -9,7 +11,7 @@ guildFiles/
 ├── localization/
 │   └── {guildId}.json        # Guild language preference
 └── queues/
-    └── {guildId}.json        # Guild music queue
+  └── legacy files          # Legacy queue snapshots (not active DB path)
 ```
 
 ## Subfolders
@@ -42,33 +44,12 @@ localizationService.LoadLanguage(guildId);
 
 ### queues/
 
-**Purpose:** Persist music queue per guild.
+**Purpose:** Legacy queue persistence location.
 
-**Format:**
+**Status:**
 
-```json
-[
-  {
-    "title": "Track Title",
-    "author": "Artist Name",
-    "uri": "https://...",
-    "duration": "PT3M45S"
-  },
-  ...
-]
-```
-
-**File:** `{guildId}.json`
-
-**Usage:**
-
-```csharp
-// Save queue
-musicQueueService.SaveQueue(guildId);
-
-// Load queue
-musicQueueService.LoadQueue(guildId);
-```
+- Current queue persistence uses PostgreSQL via `IQueueRepository`.
+- Existing files in this folder can be treated as historical/legacy artifacts.
 
 ---
 
@@ -84,7 +65,7 @@ musicQueueService.LoadQueue(guildId);
 ## Related Components
 
 - **Service/LocalizationService.cs** - Language preference management
-- **Service/Music/MusicServices/MusicQueueService.cs** - Queue persistence
-- **Interface/Service/IO/IFileSystem.cs** - File operations
-- **Model/SerializedTrack.cs** - Queue data model
+- **Interface/Service/IO/IFileSystem.cs** - Filesystem operations
+- **Interface/Service/Persistence/IQueueRepository.cs** - Active queue persistence contract
+- **Persistence/README.md** - Database persistence overview
 

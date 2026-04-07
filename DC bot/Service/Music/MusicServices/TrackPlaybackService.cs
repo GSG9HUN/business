@@ -20,14 +20,21 @@ public class TrackPlaybackService(
     public async Task PlayTheFoundMusicAsync(TrackLoadResult searchQuery, ILavalinkPlayer connection,
         IDiscordChannel textChannel)
     {
-        var musicTrack = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
+        var musicTracks = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
         var guildId = textChannel.Guild.Id;
 
-        musicTrack.ForEach(track => musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(track)));
+        if (searchQuery.IsPlaylist)
+        {
+            await musicQueueService.EnqueueMany(guildId, musicTracks.Select(track => new LavaLinkTrackWrapper(track)).ToList());
+        }
+        else
+        {
+            await musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTracks[0]));
+        }
 
         if (connection.CurrentTrack == null)
         {
-            var nextTrack = musicQueueService.Dequeue(guildId);
+            var nextTrack = await musicQueueService.Dequeue(guildId);
 
             if (nextTrack == null) return;
 
@@ -49,7 +56,7 @@ public class TrackPlaybackService(
             return;
         }
 
-        if (musicTrack.Count > 1)
+        if (musicTracks.Count > 1)
         {
             await trackNotificationService.SendSafeAsync(textChannel,
                 localizationService.Get(LocalizationKeys.PlayCommandListAddedQueue),
@@ -58,7 +65,7 @@ public class TrackPlaybackService(
             return;
         }
 
-        var track = musicTrack.First();
+        var track = musicTracks.First();
         await trackNotificationService.SendSafeAsync(textChannel,
             $"{localizationService.Get(LocalizationKeys.PlayCommandMusicAddedQueue)} {track.Author} - {track.Title}",
             "PlayTheFoundMusicAsync.AddedToQueue");
@@ -73,7 +80,7 @@ public class TrackPlaybackService(
 
     public async Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId)
     {
-        var nextTrack = musicQueueService.Dequeue(guildId);
+        var nextTrack = await musicQueueService.Dequeue(guildId);
         if (nextTrack is null) return;
 
         try

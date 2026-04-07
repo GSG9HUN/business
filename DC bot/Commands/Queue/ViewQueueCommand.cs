@@ -28,7 +28,7 @@ public class ViewQueueCommand(
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
         if (validationResult is null) return;
 
-        var queue = musicQueueService.ViewQueue(message.Channel.Guild.Id);
+        var queue = await musicQueueService.ViewQueue(message.Channel.Guild.Id);
 
         if (queue.Count == 0)
         {

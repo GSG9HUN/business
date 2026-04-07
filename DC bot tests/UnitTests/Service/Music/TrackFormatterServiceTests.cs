@@ -24,7 +24,7 @@ public class TrackFormatterServiceTests
     }
 
     [Fact]
-    public void FormatCurrentTrackList_WithCurrentAndQueue_ReturnsCombinedLines()
+    public async Task FormatCurrentTrackList_WithCurrentAndQueue_ReturnsCombinedLines()
     {
         var current = new Mock<ICurrentTrackService>();
         var queue = new Mock<IMusicQueueService>();
@@ -40,17 +40,17 @@ public class TrackFormatterServiceTests
         t2.SetupGet(x => x.Author).Returns("Q2A");
         t2.SetupGet(x => x.Title).Returns("Q2T");
 
-        queue.Setup(x => x.ViewQueue(guildId)).Returns(new[] { t1.Object, t2.Object });
+        queue.Setup(x => x.ViewQueue(guildId)).ReturnsAsync(new[] { t1.Object, t2.Object });
 
         var service = new TrackFormatterService(current.Object, queue.Object);
 
-        var result = service.FormatCurrentTrackList(guildId);
+        var result = await service.FormatCurrentTrackListAsync(guildId);
 
         Assert.Equal("CurA CurT\nQ1A Q1T\nQ2A Q2T\n", result);
     }
 
     [Fact]
-    public void FormatCurrentTrackList_WithoutCurrentTrack_ReturnsQueueOnly()
+    public async Task FormatCurrentTrackList_WithoutCurrentTrack_ReturnsQueueOnly()
     {
         var current = new Mock<ICurrentTrackService>();
         var queue = new Mock<IMusicQueueService>();
@@ -61,11 +61,11 @@ public class TrackFormatterServiceTests
         var t1 = new Mock<ILavaLinkTrack>();
         t1.SetupGet(x => x.Author).Returns("Q1A");
         t1.SetupGet(x => x.Title).Returns("Q1T");
-        queue.Setup(x => x.ViewQueue(guildId)).Returns(new[] { t1.Object });
+        queue.Setup(x => x.ViewQueue(guildId)).ReturnsAsync(new[] { t1.Object });
 
         var service = new TrackFormatterService(current.Object, queue.Object);
 
-        var result = service.FormatCurrentTrackList(guildId);
+        var result = await service.FormatCurrentTrackListAsync(guildId);
 
         Assert.Equal("Q1A Q1T\n", result);
     }

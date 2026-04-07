@@ -28,7 +28,7 @@ public class ClearCommand(
         if (validationResult is null) return;
 
         var guildId = message.Channel.Guild.Id;
-        musicQueueService.SetQueue(guildId, new Queue<ILavaLinkTrack>());
+        await musicQueueService.ClearQueue(guildId);
 
         await responseBuilder.SendSuccessAsync(message,
             $"{localizationService.Get(LocalizationKeys.ClearCommandResponse)}\n");

@@ -2,9 +2,11 @@
 
 public interface IRepeatService
 {
-    public void Init(ulong guildId);
-    public bool IsRepeating(ulong guildId);
-    public void SetRepeating(ulong guildId, bool value);
-    public bool IsRepeatingList(ulong guildId);
-    public void SetRepeatingList(ulong guildId, bool value);
+    Task InitAsync(ulong guildId);
+    Task<bool> IsRepeatingAsync(ulong guildId);
+    Task SetRepeatingAsync(ulong guildId, bool value);
+    Task<bool> IsRepeatingListAsync(ulong guildId);
+    Task SetRepeatingListAsync(ulong guildId, bool value);
+    Task SaveRepeatListSnapshotAsync(ulong guildId, ILavaLinkTrack? currentTrack, IReadOnlyCollection<ILavaLinkTrack> queuedTracks);
+    Task<IReadOnlyCollection<ILavaLinkTrack>> GetRepeatableQueueAsync(ulong guildId);
 }

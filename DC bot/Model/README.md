@@ -1,53 +1,30 @@
 ﻿# Model
 
-This folder contains data model classes.
+This folder contains lightweight domain model classes used by the application.
 
 ## Files
 
 ### SerializedTrack.cs
 
-**Purpose:** Persist music tracks to disk.
+**Purpose:** Minimal track identity model.
 
 **Definition:**
 
 ```csharp
 public class SerializedTrack
 {
-    public string Title { get; set; }
-    public string Author { get; set; }
-    public string Uri { get; set; }
-    public string Duration { get; set; }  // ISO 8601 format
+    public string Identifier { get; init; } = string.Empty;
 }
 ```
 
-**Usage:**
+**Notes:**
 
-```csharp
-// In MusicQueueService
-var serialized = new SerializedTrack
-{
-    Title = track.Title,
-    Author = track.Author,
-    Uri = track.Uri.ToString(),
-    Duration = track.Duration.ToString()
-};
-
-// Serialize to JSON
-var json = JsonSerializer.Serialize(serialized);
-await fileSystem.WriteAllText(filePath, json);
-```
-
-**Persistence:**
-
-- Stored in `guildFiles/queues/{guildId}.json`
-- Allows queue restoration on bot restart
-- Contains only essential track information
-
----
+- The queue persistence path is now database-based through repositories.
+- This type is intentionally minimal and stores only the Lavalink track identifier.
 
 ## Related Components
 
-- **Service/Music/MusicServices/MusicQueueService.cs** - Uses for persistence
-- **guildFiles/queues/** - Storage location
-- **Interface/Service/IO/IFileSystem.cs** - File operations
+- `Service/Music/MusicServices/MusicQueueService.cs`
+- `Interface/Service/Persistence/README.md`
+- `Persistence/README.md`
 

@@ -1,11 +1,6 @@
-﻿using System.Text.Json;
-using DC_bot.Exceptions.Music;
-using DC_bot.Interface;
-using DC_bot.Interface.Service.IO;
+﻿using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
-using DC_bot.IO;
-using DC_bot.Logging;
-using DC_bot.Model;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
@@ -13,130 +8,161 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service.Music.MusicServices;
 
-public class MusicQueueService : IMusicQueueService
+public class MusicQueueService(IQueueRepository queueRepository, ILogger<MusicQueueService>? logger = null) : IMusicQueueService
 {
-    internal static string QueueDirectory = Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/queues");
-    private readonly IFileSystem _fileSystem;
-    private readonly ILogger<MusicQueueService> _logger;
-    private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _queues = new();
-    private readonly Dictionary<ulong, Queue<ILavaLinkTrack>> _repeatableQueue = new();
+    private const int MaxQueueSize = 100;
+    private readonly ILogger<MusicQueueService> _logger = logger ?? NullLogger<MusicQueueService>.Instance;
 
-    public MusicQueueService(IFileSystem? fileSystem = null, ILogger<MusicQueueService>? logger = null)
+    public async Task<bool> HasTracks(ulong guildId)
     {
-        _fileSystem = fileSystem ?? new PhysicalFileSystem();
-        _logger = logger ?? NullLogger<MusicQueueService>.Instance;
-        if (!_fileSystem.DirectoryExists(QueueDirectory))
-            _fileSystem.CreateDirectory(QueueDirectory);
+        var tracks = await queueRepository.AnyQueuedItemsAsync(guildId);
+        _logger.LogDebug("Queue state queried for guild {GuildId}. Queued track count: {TrackCount}", guildId, tracks);
+        return tracks;
     }
 
-    public bool HasTracks(ulong guildId)
+    public async Task Enqueue(ulong guildId, ILavaLinkTrack track)
     {
-        return _queues.ContainsKey(guildId) && _queues[guildId].Count > 0;
+        await queueRepository.EnqueueAsync(guildId, track.ToString());
+        _logger.LogInformation("Track enqueued for guild {GuildId}: {Author} - {Title}", guildId, track.Author, track.Title);
     }
 
-    public void Init(ulong guildId)
+    public async Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks)
     {
-        _queues.TryAdd(guildId, new Queue<ILavaLinkTrack>());
-        _repeatableQueue.TryAdd(guildId, new Queue<ILavaLinkTrack>());
-    }
-
-    public void Enqueue(ulong guildId, ILavaLinkTrack track)
-    {
-        if (!_queues.ContainsKey(guildId))
-            _queues[guildId] = new Queue<ILavaLinkTrack>();
-
-        _queues[guildId].Enqueue(track);
-        SaveQueue(guildId);
-    }
-
-    public ILavaLinkTrack? Dequeue(ulong guildId)
-    {
-        if (!HasTracks(guildId)) return null;
-
-        var track = _queues[guildId].Dequeue();
-        SaveQueue(guildId);
-        return track;
-    }
-
-    public IReadOnlyCollection<ILavaLinkTrack> ViewQueue(ulong guildId)
-    {
-        return _queues.TryGetValue(guildId, out var queue) ? queue : new List<ILavaLinkTrack>();
-    }
-
-    public Task LoadQueue(ulong guildId)
-    {
-        var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
-
-        if (!_fileSystem.FileExists(filePath)) return Task.CompletedTask;
-        var options = new JsonSerializerOptions
+        ArgumentNullException.ThrowIfNull(tracks);
+        if (tracks.Count == 0)
         {
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true
-        };
-
-        try
-        {
-            var savedTracks =
-                JsonSerializer.Deserialize<List<SerializedTrack>>(_fileSystem.ReadAllText(filePath), options);
-
-            _queues[guildId] = new Queue<ILavaLinkTrack>();
-
-            if (savedTracks == null || savedTracks.Count == 0) return Task.CompletedTask;
-
-            var trackIdentifierList = savedTracks.Select(track => track.Identifier).ToList();
-            foreach (var track in trackIdentifierList.Select(trackIdentifier =>
-                         LavalinkTrack.Parse(trackIdentifier, null)))
-                _queues[guildId].Enqueue(new LavaLinkTrackWrapper(track));
-
-            return Task.CompletedTask;
+            return;
         }
-        catch (Exception ex)
+
+        var trackIdentifiers = tracks
+            .Select(track => track.ToString())
+            .ToList();
+
+        await queueRepository.EnqueueManyAsync(guildId, trackIdentifiers);
+        _logger.LogInformation("{TrackCount} tracks enqueued for guild {GuildId} in bulk.", trackIdentifiers.Count, guildId);
+    }
+
+    public async Task<ILavaLinkTrack?> Dequeue(ulong guildId)
+    {
+        while (true)
         {
-            _logger.MusicQueueLoadFailed(ex, filePath);
-            throw new QueueOperationException("LoadQueue", guildId, "Failed to load queue from file", ex);
+            var queueItemRecord = await queueRepository.ClaimNextQueuedItemAsync(guildId);
+            if (queueItemRecord == null)
+            {
+                _logger.LogDebug("Dequeue requested for guild {GuildId}, but queue is empty.", guildId);
+                return null;
+            }
+
+            try
+            {
+                var track = LavalinkTrack.Parse(queueItemRecord.TrackIdentifier, null);
+                var wrappedTrack = new LavaLinkTrackWrapper(track)
+                {
+                    QueueItemId = queueItemRecord.Id
+                };
+                _logger.LogInformation("Track dequeued for guild {GuildId}: {Title}", guildId, track.Title);
+                return wrappedTrack;
+            }
+            catch (Exception ex)
+            {
+                await queueRepository.MarkSkippedAsync(queueItemRecord.Id);
+
+                _logger.LogWarning(ex, "Failed to parse track for guild {GuildId}. Item {Id} marked as skipped. Trying next item.",
+                    guildId, queueItemRecord.Id);
+            }
         }
     }
 
-    public void Clone(ulong guildId, ILavaLinkTrack currentTrack)
+    public async Task<IReadOnlyCollection<ILavaLinkTrack>> ViewQueue(ulong guildId)
     {
-        _repeatableQueue[guildId].Clear();
-        _repeatableQueue[guildId].Enqueue(currentTrack);
-        foreach (var track in _queues[guildId]) _repeatableQueue[guildId].Enqueue(track);
+        var tracks = await queueRepository.GetQueuedItemsAsync(guildId);
+        var lavaLinkTracks = new List<ILavaLinkTrack>(tracks.Count);
+        foreach (var track in tracks)
+        {
+            try
+            {
+                var lavaLinkTrack = LavalinkTrack.Parse(track.TrackIdentifier, null);
+                lavaLinkTracks.Add(new LavaLinkTrackWrapper(lavaLinkTrack));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Skipping unparsable track identifier in ViewQueue for guild {GuildId}. QueueItemId: {QueueItemId}",
+                    guildId,
+                    track.Id);
+                await queueRepository.MarkSkippedAsync(track.Id);
+            }
+        }
+
+        _logger.LogDebug("Queue view loaded for guild {GuildId}. Track count: {TrackCount}", guildId, lavaLinkTracks.Count);
+        return lavaLinkTracks;
+    }
+    
+    public async Task<Queue<ILavaLinkTrack>> GetQueue(ulong guildId)
+    {
+        var queue = await queueRepository.GetQueuedItemsAsync(guildId);
+        var trackQueue = new Queue<ILavaLinkTrack>(queue.Count);
+        foreach (var queueItem in queue)
+        {
+            try
+            {
+                var track = LavalinkTrack.Parse(queueItem.TrackIdentifier, null);
+                trackQueue.Enqueue(new LavaLinkTrackWrapper(track));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Skipping unparsable track identifier in GetQueue for guild {GuildId}. QueueItemId: {QueueItemId}",
+                    guildId,
+                    queueItem.Id);
+                await queueRepository.MarkSkippedAsync(queueItem.Id);
+            }
+        }
+
+        _logger.LogDebug("Queue snapshot created for guild {GuildId}. Track count: {TrackCount}", guildId, trackQueue.Count);
+        return trackQueue;
     }
 
-    public Queue<ILavaLinkTrack> GetQueue(ulong guildId)
+    public async Task SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
     {
-        return _queues[guildId];
-    }
-
-    public void SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
-    {
-        _queues[guildId] = shuffledQueue;
+        _logger.LogInformation("Queue reorder requested for guild {GuildId}. Incoming track count: {TrackCount}", guildId,
+            shuffledQueue.Count);
+        await SaveQueue(guildId, shuffledQueue);
     }
 
     public IEnumerable<ILavaLinkTrack> GetRepeatableQueue(ulong guildId)
     {
-        return _repeatableQueue[guildId];
+        throw new NotImplementedException();
     }
 
-    private void SaveQueue(ulong guildId)
+
+    public async Task ClearQueue(ulong guildId)
     {
-        var filePath = Path.Combine(QueueDirectory, $"{guildId}.json");
+        _logger.LogInformation("Queue clear requested for guild {GuildId}.", guildId);
 
-        if (!_queues.TryGetValue(guildId, out var queue)) return;
+        
+        await queueRepository.MarkAllQueuedAsSkippedAsync(guildId);
 
-        var tracks = queue
-            .Select(track => new SerializedTrack { Identifier = track.ToString() })
+        _logger.LogInformation("Queue clear completed for guild {GuildId}.", guildId);
+    }
+
+    private async Task SaveQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
+    {
+        if (shuffledQueue.Count > MaxQueueSize)
+        {
+            _logger.LogWarning("Queue reorder rejected for guild {GuildId}. Requested count {RequestedCount} exceeds max {MaxQueueSize}.",
+                guildId,
+                shuffledQueue.Count,
+                MaxQueueSize);
+            throw new InvalidOperationException($"Queue cannot contain more than {MaxQueueSize} tracks.");
+        }
+
+        var reorderedTrackIdentifiers = shuffledQueue
+            .Select(track => track.ToString())
             .ToList();
 
-        try
-        {
-            _fileSystem.WriteAllText(filePath, JsonSerializer.Serialize(tracks));
-        }
-        catch (Exception ex)
-        {
-            _logger.MusicQueueSaveFailed(ex, filePath);
-            throw new QueueOperationException("SaveQueue", guildId, "Failed to save queue to file", ex);
-        }
+        await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);
+        _logger.LogInformation("Queue reorder persisted for guild {GuildId}. Track count: {TrackCount}", guildId,
+            reorderedTrackIdentifiers.Count);
     }
 }

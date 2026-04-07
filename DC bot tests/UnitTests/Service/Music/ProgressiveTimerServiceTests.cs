@@ -33,11 +33,17 @@ public class ProgressiveTimerServiceTests
         var guildId = 123UL;
         var messageMock = new Mock<IDiscordMessage>();
         var playerMock = new Mock<ILavalinkPlayer>();
-        var trackMock = new Mock<LavalinkTrack>();
+        var track = new LavalinkTrack
+        {
+            Author = "Test Artist",
+            Title = "Test Title",
+            Identifier = "test-id",
+            Duration = TimeSpan.FromSeconds(180)
+        };
 
         playerMock.Setup(p => p.GuildId).Returns(guildId);
-        playerMock.Setup(p => p.CurrentTrack).Returns(trackMock.Object);
-        trackMock.Setup(t => t.Duration).Returns(TimeSpan.FromSeconds(10));
+        playerMock.Setup(p => p.CurrentTrack).Returns(track);
+        // Position is null by default in mock, which the timer handles with TimeSpan.Zero
 
         _audioServiceMock.Setup(a => a.Players.Players).Returns(new[] { playerMock.Object });
         messageMock.Setup(m => m.Content).Returns("test");
@@ -45,10 +51,17 @@ public class ProgressiveTimerServiceTests
 
         // Act
         await _timerService.StartAsync(messageMock.Object, guildId);
+        
+        // Wait for the timer to execute at least once
+        await Task.Delay(100);
+        
         _timerService.Stop(guildId);
 
-        // Assert
-        Assert.True(true);
+        // Give the cancellation a moment to propagate
+        await Task.Delay(50);
+
+        // Assert - ModifyAsync should have been called to update the progress
+        messageMock.Verify(m => m.ModifyAsync(It.IsAny<DiscordMessageBuilder>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -57,11 +70,10 @@ public class ProgressiveTimerServiceTests
         // Arrange
         var guildId = 999UL;
 
-        // Act
-        _timerService.Stop(guildId);
-
-        // Assert
-        Assert.True(true);
+        // Act & Assert - Should not throw any exception
+        var exception = Record.Exception(() => _timerService.Stop(guildId));
+        
+        Assert.Null(exception);
     }
 
     [Fact]

@@ -11,14 +11,16 @@ public class TrackFormatterService(
         return currentTrackService.GetCurrentTrackFormatted(guildId);
     }
 
-    public string FormatCurrentTrackList(ulong guildId)
+    public async Task<string> FormatCurrentTrackListAsync(ulong guildId)
     {
         var track = currentTrackService.GetCurrentTrack(guildId);
         var current = track != null
             ? $"{track.Author} {track.Title}\n"
             : string.Empty;
 
-        return musicQueueService.ViewQueue(guildId)
+        var queue = await musicQueueService.ViewQueue(guildId);
+
+        return queue
             .Aggregate(current, (acc, t) => acc + $"{t.Author} {t.Title}\n");
     }
 }

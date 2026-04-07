@@ -74,7 +74,7 @@ public class ShuffleCommandTests
 
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
-            .Returns(new Queue<ILavaLinkTrack>());
+            .ReturnsAsync(new Queue<ILavaLinkTrack>());
 
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
             .Returns(ShuffleCommandErrorValue);
@@ -109,7 +109,7 @@ public class ShuffleCommandTests
 
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
-            .Returns(originalQueue);
+            .ReturnsAsync(originalQueue);
 
         _commandHelperMock.Setup(c => c.TryValidateUserAsync(It.IsAny<IUserValidationService>(),
                 It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
@@ -158,7 +158,7 @@ public class ShuffleCommandTests
 
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
-            .Returns(singleTrackQueue);
+            .ReturnsAsync(singleTrackQueue);
 
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
             .Returns(ShuffleCommandNotEnoughTracksValue);
