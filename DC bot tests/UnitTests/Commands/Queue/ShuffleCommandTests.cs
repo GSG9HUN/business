@@ -192,4 +192,47 @@ public class ShuffleCommandTests
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Never);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_QueueWithIdenticalTrackReferences_UsesRetryPathAndKeepsSequenceEqual()
+    {
+        // Arrange
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+        _channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
+        _guildMock.Setup(g => g.Id).Returns(123456789UL);
+
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
+
+        var sameTrack = Mock.Of<ILavaLinkTrack>();
+        var originalQueue = new Queue<ILavaLinkTrack>(new[] { sameTrack, sameTrack, sameTrack, sameTrack });
+
+        _musicQueueServiceMock
+            .Setup(m => m.GetQueue(It.IsAny<ulong>()))
+            .ReturnsAsync(originalQueue);
+
+        // With identical references in each slot, any Fisher-Yates permutation stays SequenceEqual,
+        // so the loop can only exit by incrementing attempts until maxAttempts.
+        _musicQueueServiceMock
+            .Setup(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _shuffleCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+        _musicQueueServiceMock.Verify(m => m.SetQueue(
+                It.IsAny<ulong>(),
+                It.Is<Queue<ILavaLinkTrack>>(q => q.SequenceEqual(originalQueue))),
+            Times.Once);
+
+        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, ShuffleCommandName),
+            Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+            Times.Never);
+    }
 }

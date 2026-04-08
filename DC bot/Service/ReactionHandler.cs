@@ -20,7 +20,7 @@ public class ReactionHandler(
     ILavaLinkService lavaLinkService,
     ILogger<ReactionHandler> logger,
     IProgressiveTimerService progressTimerService,
-    ILocalizationService localizationService)
+    ILocalizationService localizationService, bool isTestMode = false)
 {
     private bool _isRegistered;
     private AsyncEventHandler<DiscordClient, MessageReactionAddEventArgs>? _messageReactionAdded;
@@ -84,38 +84,22 @@ public class ReactionHandler(
 
     private async Task OnReactionAdded(DiscordClient sender, MessageReactionAddEventArgs args)
     {
+        if (args.User.IsBot && !isTestMode) return;
+
+        var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
+        logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
+        await ExecuteOnReactionAddedAsync(args.Emoji.Name, discordMessageWrapper, member);
+    }
+
+    internal async Task ExecuteOnReactionAddedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
+    {
         try
         {
-            if (args.User.IsBot) return;
-
-            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
-
-            logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
-
-            switch (args.Emoji.Name)
-            {
-                case "⏸️": // Pause emoji
-                    await lavaLinkService.PauseAsync(discordMessageWrapper, member);
-                    break;
-
-                case "▶️": // Resume emoji
-                    await lavaLinkService.ResumeAsync(discordMessageWrapper, member);
-                    break;
-
-                case "⏭️": // Skip emoji
-                    await lavaLinkService.SkipAsync(discordMessageWrapper, member);
-                    break;
-
-                case "🔁": // Repeat emoji
-                    //lavaLinkService.IsRepeating[guildId] = true;
-                    await args.Message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOn));
-                    break;
-            }
+            await HandleReactionAddedAsync(emojiName, message, member);
         }
         catch (BotException botEx)
         {
             logger.ReactionHandlerOperationFailed(botEx, "OnReactionAdded");
-            // Custom bot exceptions are already logged, optionally notify user
         }
         catch (Exception ex)
         {
@@ -125,42 +109,73 @@ public class ReactionHandler(
 
     private async Task OnReactionRemoved(DiscordClient sender, MessageReactionRemoveEventArgs args)
     {
+        if (args.User.IsBot && !isTestMode)
+        {
+            return;
+        }
+
+        var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
+        logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
+        await ExecuteOnReactionRemovedAsync(args.Emoji.Name, discordMessageWrapper, member);
+    }
+
+    internal async Task ExecuteOnReactionRemovedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
+    {
         try
         {
-            if (args.User.IsBot) return;
-
-            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
-
-            logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
-
-            switch (args.Emoji.Name)
-            {
-                case "⏸️": // Pause emoji
-                    await lavaLinkService.ResumeAsync(discordMessageWrapper, member);
-                    break;
-
-                case "▶️": // Resume emoji
-                    await lavaLinkService.PauseAsync(discordMessageWrapper, member);
-                    break;
-
-                case "⏭️": // Skip emoji
-                    await lavaLinkService.SkipAsync(discordMessageWrapper, member);
-                    break;
-
-                case "🔁": // Repeat emoji
-                    //lavaLinkService.IsRepeating[guildId] = false;
-                    await args.Message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOff));
-                    break;
-            }
+            await HandleReactionRemovedAsync(emojiName, message, member);
         }
         catch (BotException botEx)
         {
             logger.ReactionHandlerOperationFailed(botEx, "OnReactionRemoved");
-            // Custom bot exceptions are already logged, optionally notify user
         }
         catch (Exception ex)
         {
             logger.ReactionHandlerOperationFailed(ex, "OnReactionRemoved");
+        }
+    }
+
+    internal async Task HandleReactionAddedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
+    {
+        switch (emojiName)
+        {
+            case "⏸️": // Pause emoji
+                await lavaLinkService.PauseAsync(message, member);
+                break;
+
+            case "▶️": // Resume emoji
+                await lavaLinkService.ResumeAsync(message, member);
+                break;
+
+            case "⏭️": // Skip emoji
+                await lavaLinkService.SkipAsync(message, member);
+                break;
+
+            case "🔁": // Repeat emoji
+                await message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOn));
+                break;
+        }
+    }
+
+    internal async Task HandleReactionRemovedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
+    {
+        switch (emojiName)
+        {
+            case "⏸️": // Pause emoji
+                await lavaLinkService.ResumeAsync(message, member);
+                break;
+
+            case "▶️": // Resume emoji
+                await lavaLinkService.PauseAsync(message, member);
+                break;
+
+            case "⏭️": // Skip emoji
+                await lavaLinkService.SkipAsync(message, member);
+                break;
+
+            case "🔁": // Repeat emoji
+                await message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOff));
+                break;
         }
     }
 

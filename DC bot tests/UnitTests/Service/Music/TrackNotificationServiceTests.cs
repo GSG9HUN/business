@@ -1,6 +1,7 @@
 ﻿using DC_bot_tests.TestHelperFiles;
 using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
+using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Music.MusicServices;
@@ -84,5 +85,46 @@ public class TrackNotificationServiceTests
         await service.NotifyNowPlayingAsync(channel.Object, track, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120));
 
         Assert.True(raised);
+    }
+
+    [Fact]
+    public void BuildNowPlayingEmbed_WithArtwork_SetsThumbnail()
+    {
+        var localization = new Mock<ILocalizationService>();
+        var logger = new Mock<ILogger<TrackNotificationService>>();
+        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
+        localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
+
+        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var track = new Mock<ILavaLinkTrack>();
+        track.SetupGet(t => t.Author).Returns("Artist");
+        track.SetupGet(t => t.Title).Returns("Title");
+        track.SetupGet(t => t.ArtworkUri).Returns(new Uri("https://example.com/art.jpg"));
+
+        var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120));
+
+        Assert.NotNull(embed.Thumbnail);
+        Assert.Contains("Artist", embed.Description);
+        Assert.Contains("Title", embed.Description);
+    }
+
+    [Fact]
+    public void BuildNowPlayingEmbed_WithoutArtwork_DoesNotSetThumbnail()
+    {
+        var localization = new Mock<ILocalizationService>();
+        var logger = new Mock<ILogger<TrackNotificationService>>();
+        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
+        localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
+
+        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var track = new Mock<ILavaLinkTrack>();
+        track.SetupGet(t => t.Author).Returns("Artist");
+        track.SetupGet(t => t.Title).Returns("Title");
+        track.SetupGet(t => t.ArtworkUri).Returns((Uri?)null);
+
+        var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(100));
+
+        Assert.Null(embed.Thumbnail);
+        Assert.Contains("00:00 / 01:40", embed.Description);
     }
 }

@@ -4,6 +4,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Presentation;
+using DC_bot.Logging;
 using DC_bot.Service.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -158,5 +159,197 @@ public class TagCommandTests
     {
         Assert.Equal(TagCommandName, _tagCommand.Name);
         Assert.Equal(TagCommandDescriptionValue, _tagCommand.Description);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_User_Provided_Username_CaseInsensitive()
+    {
+        // Arrange
+        var discordMemberMock = new Mock<IDiscordMember>();
+        discordMemberMock.SetupGet(dm => dm.Id).Returns(123456789UL);
+        discordMemberMock.SetupGet(dm => dm.Username).Returns("TestUser");
+        discordMemberMock.SetupGet(dm => dm.Mention).Returns("TestUser");
+
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ReturnsAsync(new List<IDiscordMember> { discordMemberMock.Object });
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TESTUSER");
+
+        // Act
+        await _tagCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_User_Provided_Username_WithWhitespace()
+    {
+        // Arrange
+        var discordMemberMock = new Mock<IDiscordMember>();
+        discordMemberMock.SetupGet(dm => dm.Id).Returns(123456789UL);
+        discordMemberMock.SetupGet(dm => dm.Username).Returns("TestUser");
+        discordMemberMock.SetupGet(dm => dm.Mention).Returns("TestUser");
+
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ReturnsAsync(new List<IDiscordMember> { discordMemberMock.Object });
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag   TestUser   ");
+
+        // Act
+        await _tagCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_User_Provided_Username_NotFound_EmptyMemberList()
+    {
+        // Arrange
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ReturnsAsync(new List<IDiscordMember>());
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag test");
+
+        // Act
+        await _tagCommand.ExecuteAsync(_messageMock.Object);
+ 
+        // Assert
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(_messageMock.Object,
+                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, "test")}"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_TryGetArgumentAsync_Throws_ShouldPropagate()
+    {
+        // Arrange
+        var commandHelperMock = new Mock<ICommandHelper>();
+        commandHelperMock
+            .Setup(h => h.TryGetArgumentAsync(
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("Helper failed"));
+
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+
+        var userValidationService = new ValidationService(new Mock<ILogger<ValidationService>>().Object);
+        var tagCommand = new TagCommand(userValidationService, new Mock<ILogger<TagCommand>>().Object,
+            _responseBuilderMock.Object, _localizationServiceMock.Object, commandHelperMock.Object);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => tagCommand.ExecuteAsync(_messageMock.Object));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_User_Provided_Username_NullGuild()
+    {
+        // Arrange
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _channelMock.SetupGet(c => c.Guild).Returns((IDiscordGuild)null!);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NullReferenceException>(() => _tagCommand.ExecuteAsync(_messageMock.Object));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_User_Provided_Username_NullMembers()
+    {
+        // Arrange
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ReturnsAsync((List<IDiscordMember>)null!);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _tagCommand.ExecuteAsync(_messageMock.Object));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_GetAllMembersAsync_Throws_ShouldPropagate()
+    {
+        // Arrange
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ThrowsAsync(new InvalidOperationException("Guild unavailable"));
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _tagCommand.ExecuteAsync(_messageMock.Object));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Logs_CommandInvoked_And_CommandExecuted()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<TagCommand>>();
+        var discordMemberMock = new Mock<IDiscordMember>();
+        discordMemberMock.SetupGet(dm => dm.Id).Returns(123456789UL);
+        discordMemberMock.SetupGet(dm => dm.Username).Returns("TestUser");
+        discordMemberMock.SetupGet(dm => dm.Mention).Returns("TestUser");
+        
+        loggerMock.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _guildMock.Setup(g => g.GetAllMembersAsync())
+            .ReturnsAsync(new List<IDiscordMember> { discordMemberMock.Object });
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag TestUser");
+
+        var userValidationService = new ValidationService(new Mock<ILogger<ValidationService>>().Object);
+        var tagCommand = new TagCommand(userValidationService, loggerMock.Object, _responseBuilderMock.Object,
+            _localizationServiceMock.Object, _commandHelperMock.Object);
+
+        // Act
+        await tagCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert
+
+        loggerMock.Verify(l => l.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Debug),
+                It.Is<EventId>(e => e.Id == 1001),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Command invoked: tag")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+        
+        loggerMock.Verify(l => l.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Debug),
+                It.Is<EventId>(e => e.Id == 1002),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Command executed: tag")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }

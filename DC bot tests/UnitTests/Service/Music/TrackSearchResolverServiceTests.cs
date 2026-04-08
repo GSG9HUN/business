@@ -119,6 +119,18 @@ public class TrackSearchResolverServiceTests
         Assert.Equal(TrackSearchMode.YandexMusic, result2);
     }
 
+    [Fact]
+    public void ResolveSearchMode_BandcampPrefix_ReturnsBandcampMode()
+    {
+        // Act
+        var result1 = _resolverService.ResolveSearchMode("bandcamp:test");
+        var result2 = _resolverService.ResolveSearchMode("bcsearch:test");
+
+        // Assert
+        Assert.Equal(TrackSearchMode.Bandcamp, result1);
+        Assert.Equal(TrackSearchMode.Bandcamp, result2);
+    }
+
     #endregion
 
     #region URL Resolution Tests
@@ -203,6 +215,16 @@ public class TrackSearchResolverServiceTests
         // Assert
         Assert.Equal(TrackSearchMode.YandexMusic, result1);
         Assert.Equal(TrackSearchMode.YandexMusic, result2);
+    }
+
+    [Fact]
+    public void ResolveSearchMode_BandcampUrl_ReturnsBandcampMode()
+    {
+        // Act
+        var result = _resolverService.ResolveSearchMode("https://bandcamp.com/track/test");
+
+        // Assert
+        Assert.Equal(TrackSearchMode.Bandcamp, result);
     }
 
     #endregion
