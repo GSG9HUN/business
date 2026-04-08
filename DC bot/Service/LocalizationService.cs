@@ -10,10 +10,10 @@ namespace DC_bot.Service;
 
 public class LocalizationService : ILocalizationService
 {
-    internal static string LocalizationDirectory =
+    private static readonly string LocalizationDirectory =
         Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/localization");
 
-    internal static string TranslationDirectory =
+    private static readonly string TranslationDirectory =
         Path.Combine(Directory.GetCurrentDirectory(), "localization");
 
     private readonly IFileSystem _fileSystem;

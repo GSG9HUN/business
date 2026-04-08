@@ -146,8 +146,8 @@ public class RepeatCommandTests
 
         _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
         _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
-        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormatted(guildId))
-            .Returns($"{TestTrackTitle} Test Author");
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormattedAsync(guildId, default))
+            .ReturnsAsync($"{TestTrackTitle} Test Author");
 
         // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);

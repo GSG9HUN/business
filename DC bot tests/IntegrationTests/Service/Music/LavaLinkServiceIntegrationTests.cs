@@ -1,4 +1,4 @@
-﻿﻿using DC_bot.Exceptions.Music;
+﻿using DC_bot.Exceptions.Music;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -9,7 +9,6 @@ using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.MusicServices;
-using DC_bot.Wrapper;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
@@ -52,15 +51,20 @@ public class LavaLinkServiceIntegrationTests
 
     public LavaLinkServiceIntegrationTests()
     {
+        var inMemoryPlaybackStateRepository = new InMemoryPlaybackStateRepository();
+        var inMemoryRepeatListRepository = new InMemoryRepeatListRepository();
+        var repeatServiceLoggerMock = new Mock<ILogger<RepeatService>>();
+        var currentTrackServiceLoggerMock = new Mock<ILogger<CurrentTrackService>>();
+        
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         _queueService = new MusicQueueService(_inMemoryQueueRepository);
         _repeatService = new RepeatService(
-            new InMemoryPlaybackStateRepository(), 
-            new InMemoryRepeatListRepository(),
-            new Mock<ILogger<RepeatService>>().Object
-            );
-        _currentTrackService = new CurrentTrackService();
+            inMemoryPlaybackStateRepository,
+            inMemoryRepeatListRepository,
+            repeatServiceLoggerMock.Object);
+        
+        _currentTrackService = new CurrentTrackService(inMemoryPlaybackStateRepository, currentTrackServiceLoggerMock.Object);
 
         _guildMock.Setup(g => g.Id).Returns(GuildId);
         _voiceChannelMock.Setup(c => c.Id).Returns(VoiceChannelId);
@@ -95,7 +99,7 @@ public class LavaLinkServiceIntegrationTests
     {
         await _service.Init(GuildId);
 
-        Assert.Null(_currentTrackService.GetCurrentTrack(GuildId));
+        Assert.Null(await _currentTrackService.GetCurrentTrackAsync(GuildId));
         Assert.False(await _repeatService.IsRepeatingAsync(GuildId));
         Assert.False(await _repeatService.IsRepeatingListAsync(GuildId));
     }
@@ -140,7 +144,7 @@ public class LavaLinkServiceIntegrationTests
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, It.IsAny<ILavaLinkTrack>(),
                 It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()), Times.Once);
 
-        var current = _currentTrackService.GetCurrentTrack(GuildId);
+        var current = await _currentTrackService.GetCurrentTrackAsync(GuildId);
         Assert.NotNull(current);
     }
 

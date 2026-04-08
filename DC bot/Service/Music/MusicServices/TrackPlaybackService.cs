@@ -52,7 +52,7 @@ public class TrackPlaybackService(
                 return;
             }
 
-            currentTrackService.SetCurrentTrack(guildId, nextTrack);
+            await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
             return;
         }
 
@@ -88,6 +88,7 @@ public class TrackPlaybackService(
             await player.PlayAsync(nextTrack.ToLavalinkTrack());
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
                 nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
+            await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
         }
         catch (Exception ex)
         {

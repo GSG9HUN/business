@@ -1,41 +1,48 @@
 ﻿using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
+using DC_bot.Wrapper;
+using Lavalink4NET.Tracks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service.Music.MusicServices;
 
-public class CurrentTrackService : ICurrentTrackService
+public class CurrentTrackService(
+    IPlaybackStateRepository playbackStateRepository,
+    ILogger<CurrentTrackService>? logger = null) : ICurrentTrackService
 {
-    private readonly Dictionary<ulong, ILavaLinkTrack?> _currentTrack = new();
+    private readonly ILogger<CurrentTrackService> _logger = logger ?? NullLogger<CurrentTrackService>.Instance;
 
-    public void Init(ulong guildId)
+    public async Task<ILavaLinkTrack?> GetCurrentTrackAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
-        _currentTrack.TryAdd(guildId, null);
+        var state = await playbackStateRepository.GetOrCreateAsync(guildId, cancellationToken);
+        if (state.CurrentTrackIdentifier is null)
+            return null;
+
+        try
+        {
+            var track = LavalinkTrack.Parse(state.CurrentTrackIdentifier, null);
+            return new LavaLinkTrackWrapper(track);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse current track identifier for guild {GuildId}.", guildId);
+            return null;
+        }
     }
 
-    public ILavaLinkTrack? GetCurrentTrack(ulong guildId)
+    public async Task SetCurrentTrackAsync(ulong guildId, ILavaLinkTrack? track, CancellationToken cancellationToken = default)
     {
-        return _currentTrack.GetValueOrDefault(guildId);
+        var identifier = track?.ToString();
+        await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, cancellationToken);
     }
 
-    public void SetCurrentTrack(ulong guildId, ILavaLinkTrack? track)
+    public async Task<string> GetCurrentTrackFormattedAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
-        if (_currentTrack.ContainsKey(guildId)) _currentTrack[guildId] = track;
-    }
-
-    public string GetCurrentTrackFormatted(ulong guildId)
-    {
-        return _currentTrack.TryGetValue(guildId, out var track) && track != null
+        var track = await GetCurrentTrackAsync(guildId, cancellationToken);
+        return track is not null
             ? $"{track.Author} {track.Title}"
             : string.Empty;
-    }
-
-    public bool TryGetCurrentTrack(ulong guildId, out ILavaLinkTrack? track)
-    {
-        track = null;
-        if (!_currentTrack.TryGetValue(guildId, out var current) || current is null)
-            return false;
-
-        track = current;
-        return true;
     }
 }

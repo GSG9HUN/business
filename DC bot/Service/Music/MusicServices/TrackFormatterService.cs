@@ -8,12 +8,12 @@ public class TrackFormatterService(
 {
     public string FormatCurrentTrack(ulong guildId)
     {
-        return currentTrackService.GetCurrentTrackFormatted(guildId);
+        return currentTrackService.GetCurrentTrackFormattedAsync(guildId).GetAwaiter().GetResult();
     }
 
     public async Task<string> FormatCurrentTrackListAsync(ulong guildId)
     {
-        var track = currentTrackService.GetCurrentTrack(guildId);
+        var track = await currentTrackService.GetCurrentTrackAsync(guildId);
         var current = track != null
             ? $"{track.Author} {track.Title}\n"
             : string.Empty;

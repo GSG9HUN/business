@@ -51,7 +51,7 @@ public class RepeatListCommand(
         }
 
         var queue = await queueService.ViewQueue(guildId);
-        var track = currentTrackService.GetCurrentTrack(guildId);
+        var track = await currentTrackService.GetCurrentTrackAsync(guildId);
 
         await repeatService.SaveRepeatListSnapshotAsync(guildId, track, queue);
         await repeatService.SetRepeatingListAsync(guildId, true);

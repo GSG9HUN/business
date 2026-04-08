@@ -49,7 +49,7 @@ public class RepeatCommand(
 
         await repeatService.SetRepeatingAsync(guildId, true);
         await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {currentTrackService.GetCurrentTrackFormatted(guildId)}");
+            $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {await currentTrackService.GetCurrentTrackFormattedAsync(guildId)}");
 
         logger.CommandExecuted(Name);
     }

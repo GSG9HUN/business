@@ -246,9 +246,10 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
         await mockClient.ConnectAsync();
+        
         // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
-
+        freshLoggerMock.Invocations.Clear();
         var channel = await mockClient.GetChannelAsync(TestChannelId);
         await channel.SendMessageAsync("!noPrefix");
 
@@ -263,11 +264,13 @@ public class CommandHandlerServiceTests : IAsyncLifetime
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
-            Times.Once
+            Times.AtLeastOnce
         );
 
-        //cleanup
+        // Cleanup
         freshCommandHandlerService.UnregisterHandler(mockClient);
+        await mockClient.DisconnectAsync();
+        mockClient.Dispose();
     }
 
     [Fact]

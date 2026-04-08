@@ -2,9 +2,7 @@
 
 public interface ICurrentTrackService
 {
-    void Init(ulong guildId);
-    ILavaLinkTrack? GetCurrentTrack(ulong guildId);
-    void SetCurrentTrack(ulong guildId, ILavaLinkTrack? track);
-    string GetCurrentTrackFormatted(ulong guildId);
-    bool TryGetCurrentTrack(ulong guildId, out ILavaLinkTrack? track);
+    Task<ILavaLinkTrack?> GetCurrentTrackAsync(ulong guildId, CancellationToken cancellationToken = default);
+    Task SetCurrentTrackAsync(ulong guildId, ILavaLinkTrack? track, CancellationToken cancellationToken = default);
+    Task<string> GetCurrentTrackFormattedAsync(ulong guildId, CancellationToken cancellationToken = default);
 }
