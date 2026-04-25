@@ -126,7 +126,7 @@ public class LavaLinkServiceIntegrationTests
     [Fact]
     public async Task StartPlayingQueue_WithQueuedTrack_PlaysNotifiesAndSetsCurrentTrack()
     {
-        _service.Init(GuildId);
+        await _service.Init(GuildId);
         await _inMemoryQueueRepository.EnqueueAsync(GuildId, ValidTrackIdentifier);
 
         _playerConnectionMock
@@ -151,7 +151,7 @@ public class LavaLinkServiceIntegrationTests
     [Fact]
     public async Task StartPlayingQueue_WhenQueueEmpty_DoesNotPlay()
     {
-        _service.Init(GuildId);
+        await _service.Init(GuildId);
 
         _playerConnectionMock
             .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
@@ -348,18 +348,31 @@ public class LavaLinkServiceIntegrationTests
 
         public Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
-            if (!_states.TryGetValue(guildId, out var state))
-            {
-                state = new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow);
-                _states[guildId] = state;
-            }
-
-            return Task.FromResult(state);
+            if (_states.TryGetValue(guildId, out var state)) 
+                return Task.FromResult(state);
+            
+            var newState = new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null, 
+                DateTimeOffset.UtcNow);
+            
+            _states[guildId] = newState;
+            return Task.FromResult(newState);
         }
 
         public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
         {
-            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null,
+                DateTimeOffset.UtcNow));
+
             _states[guildId] = state with
             {
                 IsRepeating = isRepeating,
@@ -370,12 +383,21 @@ public class LavaLinkServiceIntegrationTests
             return Task.CompletedTask;
         }
 
-        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, CancellationToken cancellationToken = default)
+        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, long? queueItemId, CancellationToken cancellationToken = default)
         {
-            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null,
+                DateTimeOffset.UtcNow));
+    
             _states[guildId] = state with
             {
                 CurrentTrackIdentifier = trackIdentifier,
+                QueueItemId = queueItemId, 
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
 
