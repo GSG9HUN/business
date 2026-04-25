@@ -17,7 +17,13 @@ public class TrackFormatterServiceIntegrationTests
         var repoMock = new Mock<IPlaybackStateRepository>();
         var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
         repoMock.Setup(r => r.GetOrCreateAsync(guildId, default))
-            .ReturnsAsync(new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            .ReturnsAsync(new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null, 
+                DateTimeOffset.UtcNow));
 
         var currentTrackServiceMock = new Mock<ICurrentTrackService>();
         currentTrackServiceMock

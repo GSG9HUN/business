@@ -8,7 +8,7 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 public class CurrentTrackServiceTests
 {
     private static PlaybackStateRecord CreateState(ulong guildId, string? trackIdentifier = null)
-        => new(guildId, false, false, trackIdentifier, DateTimeOffset.UtcNow);
+        => new(guildId, false, false, trackIdentifier, null, DateTimeOffset.UtcNow);
 
     [Fact]
     public async Task GetCurrentTrackAsync_WhenNoTrackStored_ReturnsNull()
@@ -48,8 +48,13 @@ public class CurrentTrackServiceTests
 
         await service.SetCurrentTrackAsync(guildId, null);
 
-        repo.Verify(r => r.SetCurrentTrackAsync(guildId, null, default), Times.Once);
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId, 
+            null, 
+            null, 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
+    
 
     [Fact]
     public async Task SetCurrentTrackAsync_WithTrack_StoresIdentifier()
@@ -63,7 +68,11 @@ public class CurrentTrackServiceTests
 
         await service.SetCurrentTrackAsync(guildId, trackMock.Object);
 
-        repo.Verify(r => r.SetCurrentTrackAsync(guildId, "some-identifier", default), Times.Once);
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId, 
+            "some-identifier", 
+            null, 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
