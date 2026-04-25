@@ -35,7 +35,14 @@ public class CurrentTrackService(
     public async Task SetCurrentTrackAsync(ulong guildId, ILavaLinkTrack? track, CancellationToken cancellationToken = default)
     {
         var identifier = track?.ToString();
-        await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, cancellationToken);
+    
+        long? queueItemId = null;
+        if (track is LavaLinkTrackWrapper wrapper)
+        {
+            queueItemId = wrapper.QueueItemId;
+        }
+        
+        await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, queueItemId, cancellationToken);
     }
 
     public async Task<string> GetCurrentTrackFormattedAsync(ulong guildId, CancellationToken cancellationToken = default)

@@ -13,7 +13,8 @@ public interface IPlaybackStateRepository
         CancellationToken cancellationToken = default);
 
     Task SetCurrentTrackAsync(
-        ulong guildId,
-        string? trackIdentifier,
+        ulong guildId, 
+        string? trackIdentifier, 
+        long? queueItemId, 
         CancellationToken cancellationToken = default);
 }
