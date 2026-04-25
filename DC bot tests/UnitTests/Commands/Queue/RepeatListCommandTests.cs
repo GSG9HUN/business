@@ -185,7 +185,7 @@ public class RepeatListCommandTests
         _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
         _trackServiceFormatter.Setup(c => c.FormatCurrentTrackListAsync(guildId)).ReturnsAsync(TestTrackList);
         _queueServiceMock.Setup(q => q.ViewQueue(guildId)).ReturnsAsync(new List<ILavaLinkTrack>());
-        _currentTrackServiceMock.Setup(c => c.GetCurrentTrack(guildId)).Returns(
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackAsync(guildId, default)).ReturnsAsync(
             TrackTestHelper.CreateTrackWrapper("Test", "Test Author", "asdasdasdad")
         );
 

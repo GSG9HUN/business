@@ -161,7 +161,8 @@ public class RepeatServiceTests
         {
             if (!_states.TryGetValue(guildId, out var state))
             {
-                state = new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow);
+                state = new PlaybackStateRecord(guildId, false, false, null, null, DateTimeOffset.UtcNow);
+                _states[guildId] = state;
                 _states[guildId] = state;
             }
 
@@ -170,13 +171,13 @@ public class RepeatServiceTests
 
         public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
         {
-            _states[guildId] = new PlaybackStateRecord(guildId, isRepeating, isRepeatingList, null, DateTimeOffset.UtcNow);
+            _states[guildId] = new PlaybackStateRecord(guildId, isRepeating, isRepeatingList, null, null, DateTimeOffset.UtcNow);
             return Task.CompletedTask;
         }
 
-        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, CancellationToken cancellationToken = default)
+        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, long? queueItemId, CancellationToken cancellationToken = default)
         {
-            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, null, DateTimeOffset.UtcNow));
             _states[guildId] = state with { CurrentTrackIdentifier = trackIdentifier, UpdatedAtUtc = DateTimeOffset.UtcNow };
             return Task.CompletedTask;
         }

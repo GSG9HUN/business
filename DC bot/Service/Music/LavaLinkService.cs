@@ -40,7 +40,6 @@ public class LavaLinkService(
 
     public async Task Init(ulong guildId)
     {
-        currentTrackService.Init(guildId);
         await repeatService.InitAsync(guildId);
     }
 
@@ -265,6 +264,6 @@ public class LavaLinkService(
             return;
         }
 
-        currentTrackService.SetCurrentTrack(guildId, nextTrack);
+        await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
     }
 }

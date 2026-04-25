@@ -1,4 +1,4 @@
-﻿﻿using DC_bot.Exceptions.Music;
+﻿using DC_bot.Exceptions.Music;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -9,7 +9,6 @@ using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.MusicServices;
-using DC_bot.Wrapper;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
@@ -52,15 +51,20 @@ public class LavaLinkServiceIntegrationTests
 
     public LavaLinkServiceIntegrationTests()
     {
+        var inMemoryPlaybackStateRepository = new InMemoryPlaybackStateRepository();
+        var inMemoryRepeatListRepository = new InMemoryRepeatListRepository();
+        var repeatServiceLoggerMock = new Mock<ILogger<RepeatService>>();
+        var currentTrackServiceLoggerMock = new Mock<ILogger<CurrentTrackService>>();
+        
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         _queueService = new MusicQueueService(_inMemoryQueueRepository);
         _repeatService = new RepeatService(
-            new InMemoryPlaybackStateRepository(), 
-            new InMemoryRepeatListRepository(),
-            new Mock<ILogger<RepeatService>>().Object
-            );
-        _currentTrackService = new CurrentTrackService();
+            inMemoryPlaybackStateRepository,
+            inMemoryRepeatListRepository,
+            repeatServiceLoggerMock.Object);
+        
+        _currentTrackService = new CurrentTrackService(inMemoryPlaybackStateRepository, currentTrackServiceLoggerMock.Object);
 
         _guildMock.Setup(g => g.Id).Returns(GuildId);
         _voiceChannelMock.Setup(c => c.Id).Returns(VoiceChannelId);
@@ -95,7 +99,7 @@ public class LavaLinkServiceIntegrationTests
     {
         await _service.Init(GuildId);
 
-        Assert.Null(_currentTrackService.GetCurrentTrack(GuildId));
+        Assert.Null(await _currentTrackService.GetCurrentTrackAsync(GuildId));
         Assert.False(await _repeatService.IsRepeatingAsync(GuildId));
         Assert.False(await _repeatService.IsRepeatingListAsync(GuildId));
     }
@@ -122,7 +126,7 @@ public class LavaLinkServiceIntegrationTests
     [Fact]
     public async Task StartPlayingQueue_WithQueuedTrack_PlaysNotifiesAndSetsCurrentTrack()
     {
-        _service.Init(GuildId);
+        await _service.Init(GuildId);
         await _inMemoryQueueRepository.EnqueueAsync(GuildId, ValidTrackIdentifier);
 
         _playerConnectionMock
@@ -140,14 +144,14 @@ public class LavaLinkServiceIntegrationTests
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, It.IsAny<ILavaLinkTrack>(),
                 It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()), Times.Once);
 
-        var current = _currentTrackService.GetCurrentTrack(GuildId);
+        var current = await _currentTrackService.GetCurrentTrackAsync(GuildId);
         Assert.NotNull(current);
     }
 
     [Fact]
     public async Task StartPlayingQueue_WhenQueueEmpty_DoesNotPlay()
     {
-        _service.Init(GuildId);
+        await _service.Init(GuildId);
 
         _playerConnectionMock
             .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
@@ -344,18 +348,31 @@ public class LavaLinkServiceIntegrationTests
 
         public Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
-            if (!_states.TryGetValue(guildId, out var state))
-            {
-                state = new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow);
-                _states[guildId] = state;
-            }
-
-            return Task.FromResult(state);
+            if (_states.TryGetValue(guildId, out var state)) 
+                return Task.FromResult(state);
+            
+            var newState = new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null, 
+                DateTimeOffset.UtcNow);
+            
+            _states[guildId] = newState;
+            return Task.FromResult(newState);
         }
 
         public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
         {
-            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null,
+                DateTimeOffset.UtcNow));
+
             _states[guildId] = state with
             {
                 IsRepeating = isRepeating,
@@ -366,12 +383,21 @@ public class LavaLinkServiceIntegrationTests
             return Task.CompletedTask;
         }
 
-        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, CancellationToken cancellationToken = default)
+        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, long? queueItemId, CancellationToken cancellationToken = default)
         {
-            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, DateTimeOffset.UtcNow));
+            
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null,
+                DateTimeOffset.UtcNow));
+    
             _states[guildId] = state with
             {
                 CurrentTrackIdentifier = trackIdentifier,
+                QueueItemId = queueItemId, 
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
 

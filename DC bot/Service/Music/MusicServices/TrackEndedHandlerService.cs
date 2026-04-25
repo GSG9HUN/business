@@ -25,7 +25,8 @@ public class TrackEndedHandlerService(
     {
         if (player.GuildId != args.Player.GuildId) return;
         var guildId = textChannel.Guild.Id;
-        if (currentTrackService.TryGetCurrentTrack(guildId, out var currentTrack) && currentTrack is LavaLinkTrackWrapper wrappedTrack)
+        var currentTrack = await currentTrackService.GetCurrentTrackAsync(guildId);
+        if (currentTrack is LavaLinkTrackWrapper wrappedTrack)
         {
             if (args.Reason == TrackEndReason.Finished)
             {
@@ -64,9 +65,7 @@ public class TrackEndedHandlerService(
     {
         if (!await repeatService.IsRepeatingAsync(guildId)) return null;
 
-        if (!currentTrackService.TryGetCurrentTrack(guildId, out var current) || current is null) return null;
-
-        return current;
+        return await currentTrackService.GetCurrentTrackAsync(guildId);
     }
 
     private async Task<bool> TryPlayNextFromQueueAsync(ILavalinkPlayer player, IDiscordChannel textChannel,

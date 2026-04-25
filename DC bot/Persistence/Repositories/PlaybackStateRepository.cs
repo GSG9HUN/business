@@ -40,6 +40,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
             state.IsRepeating,
             state.IsRepeatingList,
             state.CurrentTrackIdentifier,
+            state.QueueItemId,
             state.UpdatedAtUtc);
     }
 
@@ -77,10 +78,12 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+    
 
     public async Task SetCurrentTrackAsync(
         ulong guildId,
         string? trackIdentifier,
+        long? queueItemId,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -99,6 +102,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 IsRepeating = false,
                 IsRepeatingList = false,
                 CurrentTrackIdentifier = trackIdentifier,
+                QueueItemId = queueItemId,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
             dbContext.GuildPlaybackStates.Add(state);
@@ -106,12 +110,12 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         else
         {
             state.CurrentTrackIdentifier = trackIdentifier;
+            state.QueueItemId = queueItemId;
             state.UpdatedAtUtc = DateTimeOffset.UtcNow;
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-
     private static async Task EnsureGuildDataExistsAsync(
         BotDbContext dbContext,
         long guildId,

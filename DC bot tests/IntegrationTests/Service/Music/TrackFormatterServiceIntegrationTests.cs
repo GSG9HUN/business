@@ -1,5 +1,7 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
 using Moq;
 
@@ -11,14 +13,25 @@ public class TrackFormatterServiceIntegrationTests
     public async Task FormatCurrentTrackList_WhenQueueChanges_ReflectsLatestState()
     {
         const ulong guildId = 1001;
-        var currentTrackService = new CurrentTrackService();
-        currentTrackService.Init(guildId);
+
+        var repoMock = new Mock<IPlaybackStateRepository>();
+        var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
+        repoMock.Setup(r => r.GetOrCreateAsync(guildId, default))
+            .ReturnsAsync(new PlaybackStateRecord(
+                guildId, 
+                false, 
+                false, 
+                null, 
+                null, 
+                DateTimeOffset.UtcNow));
+
+        var currentTrackServiceMock = new Mock<ICurrentTrackService>();
+        currentTrackServiceMock
+            .Setup(s => s.GetCurrentTrackAsync(guildId, default))
+            .ReturnsAsync(currentTrack.Object);
 
         var queueServiceMock = new Mock<IMusicQueueService>();
-        var formatter = new TrackFormatterService(currentTrackService, queueServiceMock.Object);
-
-        var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
-        currentTrackService.SetCurrentTrack(guildId, currentTrack.Object);
+        var formatter = new TrackFormatterService(currentTrackServiceMock.Object, queueServiceMock.Object);
 
         var trackA = CreateTrackMock("QueueAuthorA", "QueueTitleA");
         var trackB = CreateTrackMock("QueueAuthorB", "QueueTitleB");
@@ -41,20 +54,21 @@ public class TrackFormatterServiceIntegrationTests
         const ulong guildA = 2001;
         const ulong guildB = 2002;
 
-        var currentTrackService = new CurrentTrackService();
-        currentTrackService.Init(guildA);
-        currentTrackService.Init(guildB);
-
-        var queueServiceMock = new Mock<IMusicQueueService>();
-        var formatter = new TrackFormatterService(currentTrackService, queueServiceMock.Object);
-
         var aCurrentTrack = CreateTrackMock("A-CurrentAuthor", "A-CurrentTitle");
         var bCurrentTrack = CreateTrackMock("B-CurrentAuthor", "B-CurrentTitle");
         var aQueueTrack = CreateTrackMock("A-QueueAuthor", "A-QueueTitle");
         var bQueueTrack = CreateTrackMock("B-QueueAuthor", "B-QueueTitle");
 
-        currentTrackService.SetCurrentTrack(guildA, aCurrentTrack.Object);
-        currentTrackService.SetCurrentTrack(guildB, bCurrentTrack.Object);
+        var currentTrackServiceMock = new Mock<ICurrentTrackService>();
+        currentTrackServiceMock
+            .Setup(s => s.GetCurrentTrackAsync(guildA, default))
+            .ReturnsAsync(aCurrentTrack.Object);
+        currentTrackServiceMock
+            .Setup(s => s.GetCurrentTrackAsync(guildB, default))
+            .ReturnsAsync(bCurrentTrack.Object);
+
+        var queueServiceMock = new Mock<IMusicQueueService>();
+        var formatter = new TrackFormatterService(currentTrackServiceMock.Object, queueServiceMock.Object);
 
         queueServiceMock
             .Setup(q => q.ViewQueue(guildA))

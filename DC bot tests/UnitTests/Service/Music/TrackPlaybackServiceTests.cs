@@ -82,7 +82,7 @@ public class TrackPlaybackServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, track, It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()),
             Times.Once);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrack(GuildId, track), Times.Once);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(GuildId, track, default), Times.Once);
     }
 
     [Fact]

@@ -9,16 +9,16 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 public class TrackFormatterServiceTests
 {
     [Fact]
-    public void FormatCurrentTrack_DelegatesToCurrentTrackService()
+    public async Task FormatCurrentTrack_DelegatesToCurrentTrackService()
     {
         var current = new Mock<ICurrentTrackService>();
         var queue = new Mock<IMusicQueueService>();
         const ulong guildId = 21;
-        current.Setup(x => x.GetCurrentTrackFormatted(guildId)).Returns("A T");
+        current.Setup(x => x.GetCurrentTrackFormattedAsync(guildId, default)).ReturnsAsync("A T");
 
         var service = new TrackFormatterService(current.Object, queue.Object);
 
-        var result = service.FormatCurrentTrack(guildId);
+        var result = await service.FormatCurrentTrackAsync(guildId);
 
         Assert.Equal("A T", result);
     }
@@ -30,8 +30,8 @@ public class TrackFormatterServiceTests
         var queue = new Mock<IMusicQueueService>();
         const ulong guildId = 22;
 
-        current.Setup(x => x.GetCurrentTrack(guildId))
-            .Returns(TrackTestHelper.CreateTrackWrapper("CurA", "CurT", "id0"));
+        current.Setup(x => x.GetCurrentTrackAsync(guildId, default))
+            .ReturnsAsync(TrackTestHelper.CreateTrackWrapper("CurA", "CurT", "id0"));
 
         var t1 = new Mock<ILavaLinkTrack>();
         t1.SetupGet(x => x.Author).Returns("Q1A");
@@ -56,7 +56,7 @@ public class TrackFormatterServiceTests
         var queue = new Mock<IMusicQueueService>();
         const ulong guildId = 23;
 
-        current.Setup(x => x.GetCurrentTrack(guildId)).Returns((ILavaLinkTrack?)null);
+        current.Setup(x => x.GetCurrentTrackAsync(guildId, default)).ReturnsAsync((ILavaLinkTrack?)null);
 
         var t1 = new Mock<ILavaLinkTrack>();
         t1.SetupGet(x => x.Author).Returns("Q1A");

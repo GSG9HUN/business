@@ -1,86 +1,91 @@
-﻿using DC_bot_tests.TestHelperFiles;
+﻿using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
+using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
 public class CurrentTrackServiceTests
 {
+    private static PlaybackStateRecord CreateState(ulong guildId, string? trackIdentifier = null)
+        => new(guildId, false, false, trackIdentifier, null, DateTimeOffset.UtcNow);
+
     [Fact]
-    public void Init_ThenGetCurrentTrack_ReturnsNull()
+    public async Task GetCurrentTrackAsync_WhenNoTrackStored_ReturnsNull()
     {
-        var service = new CurrentTrackService();
         const ulong guildId = 1;
+        var repo = new Mock<IPlaybackStateRepository>();
+        repo.Setup(r => r.GetOrCreateAsync(guildId, default)).ReturnsAsync(CreateState(guildId));
 
-        service.Init(guildId);
+        var service = new CurrentTrackService(repo.Object);
 
-        Assert.Null(service.GetCurrentTrack(guildId));
+        var result = await service.GetCurrentTrackAsync(guildId);
+
+        Assert.Null(result);
     }
 
     [Fact]
-    public void SetCurrentTrack_WithoutInit_DoesNothing()
+    public async Task GetCurrentTrackAsync_WhenInvalidIdentifierStored_ReturnsNull()
     {
-        var service = new CurrentTrackService();
         const ulong guildId = 2;
-        var track = TrackTestHelper.CreateTrackWrapper("A", "T");
+        var repo = new Mock<IPlaybackStateRepository>();
+        repo.Setup(r => r.GetOrCreateAsync(guildId, default)).ReturnsAsync(CreateState(guildId, "bad-identifier"));
 
-        service.SetCurrentTrack(guildId, track);
+        var service = new CurrentTrackService(repo.Object);
 
-        Assert.Null(service.GetCurrentTrack(guildId));
+        var result = await service.GetCurrentTrackAsync(guildId);
+
+        Assert.Null(result);
     }
 
     [Fact]
-    public void SetCurrentTrack_AfterInit_StoresTrack()
+    public async Task SetCurrentTrackAsync_WithNull_StoresNullIdentifier()
     {
-        var service = new CurrentTrackService();
         const ulong guildId = 3;
-        var track = TrackTestHelper.CreateTrackWrapper("Author", "Title");
+        var repo = new Mock<IPlaybackStateRepository>();
 
-        service.Init(guildId);
-        service.SetCurrentTrack(guildId, track);
+        var service = new CurrentTrackService(repo.Object);
 
-        Assert.Equal(track, service.GetCurrentTrack(guildId));
+        await service.SetCurrentTrackAsync(guildId, null);
+
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId, 
+            null, 
+            null, 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
+    
 
     [Fact]
-    public void GetCurrentTrackFormatted_WithTrack_ReturnsAuthorAndTitle()
+    public async Task SetCurrentTrackAsync_WithTrack_StoresIdentifier()
     {
-        var service = new CurrentTrackService();
         const ulong guildId = 4;
-        var track = TrackTestHelper.CreateTrackWrapper("Rick", "Never Gonna");
+        var repo = new Mock<IPlaybackStateRepository>();
+        var trackMock = new Mock<DC_bot.Interface.ILavaLinkTrack>();
+        trackMock.Setup(t => t.ToString()).Returns("some-identifier");
 
-        service.Init(guildId);
-        service.SetCurrentTrack(guildId, track);
+        var service = new CurrentTrackService(repo.Object);
 
-        Assert.Equal("Rick Never Gonna", service.GetCurrentTrackFormatted(guildId));
+        await service.SetCurrentTrackAsync(guildId, trackMock.Object);
+
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId, 
+            "some-identifier", 
+            null, 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public void TryGetCurrentTrack_WithTrack_ReturnsTrueAndTrack()
+    public async Task GetCurrentTrackFormattedAsync_WhenNoTrack_ReturnsEmpty()
     {
-        var service = new CurrentTrackService();
-        const ulong guildId = 6;
-        var track = TrackTestHelper.CreateTrackWrapper("A", "T");
+        const ulong guildId = 5;
+        var repo = new Mock<IPlaybackStateRepository>();
+        repo.Setup(r => r.GetOrCreateAsync(guildId, default)).ReturnsAsync(CreateState(guildId));
 
-        service.Init(guildId);
-        service.SetCurrentTrack(guildId, track);
+        var service = new CurrentTrackService(repo.Object);
 
-        var ok = service.TryGetCurrentTrack(guildId, out var actual);
+        var result = await service.GetCurrentTrackFormattedAsync(guildId);
 
-        Assert.True(ok);
-        Assert.Equal(track, actual);
-    }
-
-    [Fact]
-    public void TryGetCurrentTrack_WithoutTrack_ReturnsFalse()
-    {
-        var service = new CurrentTrackService();
-        const ulong guildId = 7;
-
-        service.Init(guildId);
-
-        var ok = service.TryGetCurrentTrack(guildId, out var actual);
-
-        Assert.False(ok);
-        Assert.Null(actual);
+        Assert.Equal(string.Empty, result);
     }
 }

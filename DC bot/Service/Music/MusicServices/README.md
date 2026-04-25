@@ -13,7 +13,19 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Implements:** `ICurrentTrackService`
 
-**Purpose:** Track current playing track state per guild.
+**Purpose:** Track current playing track state per guild — persisted to the database via `IPlaybackStateRepository`.
+
+**Key Methods:**
+
+- `GetCurrentTrackAsync()` - Load and parse the current track from DB for a guild
+- `SetCurrentTrackAsync()` - Persist the current track identifier to DB (or clear it with `null`)
+- `GetCurrentTrackFormattedAsync()` - Return `"Author Title"` string, or empty if no track is set
+
+**Persistence:**
+
+- Uses `IPlaybackStateRepository` (`guild_playback_state.current_track_identifier`)
+- Track is stored as a Lavalink track identifier string and reconstructed via `LavalinkTrack.Parse`
+- Invalid/unparsable identifiers are silently handled (logged as warning, returns `null`)
 
 ---
 
@@ -116,4 +128,3 @@ These services split music functionality into focused responsibilities. Each imp
 - **Service/Music/LavaLinkService.cs** - Orchestrates these services
 - **Interface/Service/Persistence/** - Persistence contracts
 - **Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
-
