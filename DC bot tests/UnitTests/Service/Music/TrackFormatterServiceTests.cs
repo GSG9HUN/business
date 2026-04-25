@@ -9,7 +9,7 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 public class TrackFormatterServiceTests
 {
     [Fact]
-    public void FormatCurrentTrack_DelegatesToCurrentTrackService()
+    public async Task FormatCurrentTrack_DelegatesToCurrentTrackService()
     {
         var current = new Mock<ICurrentTrackService>();
         var queue = new Mock<IMusicQueueService>();
@@ -18,7 +18,7 @@ public class TrackFormatterServiceTests
 
         var service = new TrackFormatterService(current.Object, queue.Object);
 
-        var result = service.FormatCurrentTrack(guildId);
+        var result = await service.FormatCurrentTrackAsync(guildId);
 
         Assert.Equal("A T", result);
     }
