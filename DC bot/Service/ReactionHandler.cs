@@ -86,9 +86,16 @@ public class ReactionHandler(
     {
         if (args.User.IsBot && !isTestMode) return;
 
-        var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
-        logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
-        await ExecuteOnReactionAddedAsync(args.Emoji.Name, discordMessageWrapper, member);
+        try 
+        {
+            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
+            logger.ReactionAdded(args.Emoji.GetDiscordName(), args.User.Username);
+            await ExecuteOnReactionAddedAsync(args.Emoji.Name, discordMessageWrapper, member);
+        }
+        catch (Exception ex)
+        {
+            logger.ReactionHandlerOperationFailed(ex, "OnReactionAdded (Context Build)");
+        }
     }
 
     internal async Task ExecuteOnReactionAddedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
@@ -109,14 +116,18 @@ public class ReactionHandler(
 
     private async Task OnReactionRemoved(DiscordClient sender, MessageReactionRemoveEventArgs args)
     {
-        if (args.User.IsBot && !isTestMode)
-        {
-            return;
-        }
+        if (args.User.IsBot && !isTestMode) return;
 
-        var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
-        logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
-        await ExecuteOnReactionRemovedAsync(args.Emoji.Name, discordMessageWrapper, member);
+        try
+        {
+            var (member, discordMessageWrapper, _) = await BuildContextAsync(args.Message, args.User, args.Channel);
+            logger.ReactionRemoved(args.Emoji.GetDiscordName(), args.User.Username);
+            await ExecuteOnReactionRemovedAsync(args.Emoji.Name, discordMessageWrapper, member);
+        }
+        catch (Exception ex)
+        {
+            logger.ReactionHandlerOperationFailed(ex, "OnReactionRemoved (Context Build)");
+        }
     }
 
     internal async Task ExecuteOnReactionRemovedAsync(string emojiName, IDiscordMessage message, IDiscordMember member)
