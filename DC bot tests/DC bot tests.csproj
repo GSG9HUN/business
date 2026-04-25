@@ -28,7 +28,7 @@
         <PackageReference Include="Lavalink4NET.Lyrics" Version="4.2.0" />
         <PackageReference Include="Lavalink4NET.Protocol" Version="4.2.0" />
         <PackageReference Include="Lavalink4NET.Rest" Version="4.2.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
