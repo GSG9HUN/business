@@ -18,12 +18,12 @@ These services split music functionality into focused responsibilities. Each imp
 **Key Methods:**
 
 - `GetCurrentTrackAsync()` - Load and parse the current track from DB for a guild
-- `SetCurrentTrackAsync()` - Persist the current track identifier to DB (or clear it with `null`)
+- `SetCurrentTrackAsync()` - Persist the current track identifier and its `QueueItemId` to DB (or clear both with `null`). If the passed `ILavaLinkTrack` is a `LavaLinkTrackWrapper`, the `QueueItemId` is extracted from it automatically.
 - `GetCurrentTrackFormattedAsync()` - Return `"Author Title"` string, or empty if no track is set
 
 **Persistence:**
 
-- Uses `IPlaybackStateRepository` (`guild_playback_state.current_track_identifier`)
+- Uses `IPlaybackStateRepository` (`guild_playback_state.current_track_identifier`, `guild_playback_state.queue_item_id`)
 - Track is stored as a Lavalink track identifier string and reconstructed via `LavalinkTrack.Parse`
 - Invalid/unparsable identifiers are silently handled (logged as warning, returns `null`)
 
@@ -38,7 +38,7 @@ These services split music functionality into focused responsibilities. Each imp
 **Key Methods:**
 
 - `Enqueue()` - Add track to queue
-- `Dequeue()` - Remove and return next track
+- `Dequeue()` - Atomically claim and return the next track via `ClaimNextQueuedItemAsync`; the returned `LavaLinkTrackWrapper` has `QueueItemId` set to the DB row ID
 - `ViewQueue()` - View all queued tracks
 - `HasTracks()` - Check if queue has tracks
 - `GetQueue()` - Get queue snapshot
@@ -51,6 +51,7 @@ These services split music functionality into focused responsibilities. Each imp
 - Uses `IQueueRepository` for database-backed queue operations
 - Queue state transitions are persisted (`queued`, `playing`, `played`, `skipped`)
 - Ordering updates are handled transactionally in repository layer
+- `QueueItemId` on the dequeued `LavaLinkTrackWrapper` is later used by `TrackEndedHandlerService` to mark the item as played or skipped
 
 ---
 

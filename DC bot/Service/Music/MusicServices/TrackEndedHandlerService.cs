@@ -26,17 +26,18 @@ public class TrackEndedHandlerService(
         if (player.GuildId != args.Player.GuildId) return;
         var guildId = textChannel.Guild.Id;
         var currentTrack = await currentTrackService.GetCurrentTrackAsync(guildId);
-        if (currentTrack is LavaLinkTrackWrapper wrappedTrack)
+        if (currentTrack is LavaLinkTrackWrapper { QueueItemId: not null } wrappedTrack)
         {
+            var queueItemId = wrappedTrack.QueueItemId.Value;
             if (args.Reason == TrackEndReason.Finished)
             {
-                await queueRepository.MarkPlayedAsync(wrappedTrack.QueueItemId);
-                logger.LogDebug("Track {Id} marked as Played.", wrappedTrack.QueueItemId);
+                await queueRepository.MarkPlayedAsync(queueItemId);
+                logger.LogDebug("Track {Id} marked as Played.", queueItemId);
             }
             else
             {
-                await queueRepository.MarkSkippedAsync(wrappedTrack.QueueItemId);
-                logger.LogDebug("Track {Id} marked as Skipped (Reason: {Reason}).", wrappedTrack.QueueItemId, args.Reason);
+                await queueRepository.MarkSkippedAsync(queueItemId);
+                logger.LogDebug("Track {Id} marked as Skipped (Reason: {Reason}).", queueItemId, args.Reason);
             }
         }
 

@@ -5,7 +5,7 @@ This folder contains EF Core entity classes mapped to PostgreSQL tables.
 ## Entities
 
 - `GuildDataEntity` - guild-level premium state and root navigation
-- `GuildPlaybackStateEntity` - repeat flags and current track identifier
+- `GuildPlaybackStateEntity` - repeat flags, current track identifier, and current queue item ID (`QueueItemId`)
 - `GuildQueueItemEntity` - queue entries with state and timestamps
 - `GuildRepeatListItemEntity` - repeat-list entries and ordering
 - `GuildPremiumAuditEntity` - premium status change history
