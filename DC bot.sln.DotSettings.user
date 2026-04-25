@@ -61,8 +61,9 @@
   &lt;Assembly Path="C:\Users\olahs\.nuget\packages\lavalink4net\4.0.27\lib\net8.0\Lavalink4NET.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\olahs\.nuget\packages\lavalink4net.dsharpplus\4.0.27\lib\net8.0\Lavalink4NET.DSharpPlus.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Users\GSG9_Came2Carry\.dotnet\sdk\9.0.100\MSBuild.dll</s:String>
-	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/DotNetCliExePath/@EntryValue">C:\Users\GSG9_Came2Carry\.dotnet\dotnet.exe</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Program Files\JetBrains\JetBrains Rider 2025.3.2\tools\MSBuild\Current\Bin\amd64\MSBuild.exe</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/DotNetCliExePath/@EntryValue">C:\Program Files\dotnet\dotnet.exe</s:String>
+	<s:Int64 x:Key="/Default/Environment/Hierarchy/Build/BuildTool/MsbuildVersion/@EntryValue">1179648</s:Int64>
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=47322899_002D7842_002D47A9_002DABA8_002D4B647D6DBF61/@EntryIndexedValue">4DABCCF5-8FEF-424F-9D30-DBE64E5D8D2C</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=NUnit3x/@EntryIndexedValue">db4927dd-2e12-48a7-9a84-2b7e3e31b9c8</s:String>
