@@ -132,7 +132,7 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
 
     [Theory]
     [MemberData(nameof(SupportedReactions))]
-    public async Task OnReactionAdded_WhenBotAddsReaction_DoesNotCallLavaLinkOperations(string emojiName)
+    public async Task OnReactionAdded_InTestMode_CallsExpectedLavaLinkOperation(string emojiName)
     {
         EnsureConfigured();
         var client = _discordClient!;
@@ -155,7 +155,7 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
 
     [Theory]
     [MemberData(nameof(SupportedReactions))]
-    public async Task OnReactionRemoved_WhenBotRemovesReaction_DoesNotCallLavaLinkOperations(string emojiName)
+    public async Task OnReactionRemoved_InTestMode_CallsExpectedLavaLinkOperation(string emojiName)
     {
         EnsureConfigured();
         var client = _discordClient!;
