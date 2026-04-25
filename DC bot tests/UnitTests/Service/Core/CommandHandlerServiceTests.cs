@@ -1,9 +1,11 @@
-﻿using DC_bot.Configuration;
+﻿using System.Reflection;
+using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Core;
+using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -21,6 +23,7 @@ public class CommandHandlerServiceTests
     public CommandHandlerServiceTests()
     {
         _mockLogger = new Mock<ILogger<CommandHandlerService>>();
+        _mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _mockLocalization = new Mock<ILocalizationService>();
         var mockCommand = new Mock<ICommand>();
 
@@ -193,12 +196,13 @@ public class CommandHandlerServiceTests
     [InlineData("!pause", "!", "pause")]
     [InlineData("$skip song", "$", "skip")]
     [InlineData("!help command", "!", "help")]
+    [InlineData("!   ping", "!", "ping")]
     public void TryGetCommandName_ValidCommands_ExtractsCorrectly(string content, string prefix, string expected)
     {
-        Assert.StartsWith(prefix, content);
-        var remainder = content.Substring(prefix.Length).TrimStart();
-        var splitIndex = remainder.IndexOf(' ');
-        var commandName = splitIndex >= 0 ? remainder[..splitIndex] : remainder;
+        // Act
+        var commandName = InvokeTryGetCommandName(content, prefix);
+
+        // Assert
         Assert.Equal(expected, commandName);
     }
 
@@ -208,15 +212,11 @@ public class CommandHandlerServiceTests
     [InlineData("$", "$")]
     public void TryGetCommandName_EmptyCommand_ReturnsNull(string content, string prefix)
     {
-        if (content.Length <= prefix.Length)
-        {
-            Assert.True(true); // Should return null
-        }
-        else
-        {
-            var remainder = content.Substring(prefix.Length).TrimStart();
-            Assert.Empty(remainder); // Should be empty
-        }
+        // Act
+        var commandName = InvokeTryGetCommandName(content, prefix);
+
+        // Assert
+        Assert.Null(commandName);
     }
 
     #endregion
@@ -247,4 +247,156 @@ public class CommandHandlerServiceTests
     }
 
     #endregion
+
+    #region HandleCommandAsync Tests
+
+    [Fact]
+    public async Task HandleCommandAsync_NoPrefix_LogsAndReturnsEarly()
+    {
+        // Arrange
+        _commandHandlerService.Prefix = null;
+
+        // Act
+        await InvokeHandleCommandAsync(_commandHandlerService, null, null);
+
+        // Assert
+        _mockLogger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Error),
+                It.Is<EventId>(e => e.Id == 1103),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No prefix provided")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleCommandAsync_NullArgs_LogsCommandExecutionFailed()
+    {
+        // Arrange
+        _commandHandlerService.Prefix = "!";
+
+        // Act
+        await InvokeHandleCommandAsync(_commandHandlerService, null, null);
+
+        // Assert
+        _mockLogger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Error),
+                It.Is<EventId>(e => e.Id == 1004),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("message_created")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void UnregisterHandler_WithNullMessageHandler_LogsWarning()
+    {
+        // Arrange
+        var discordConfig = new DiscordConfiguration
+        {
+            Token = "test-token",
+            Intents = DiscordIntents.AllUnprivileged
+        };
+
+        using var client = new DiscordClient(discordConfig);
+
+        // Act - Unregister without registering first
+        _commandHandlerService.UnregisterHandler(client);
+
+        // Assert
+        _mockLogger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Warning),
+                It.Is<EventId>(e => e.Id == 1106),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("not registered")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void RegisterHandler_WithTestMode_RegistersSuccessfully()
+    {
+        // Arrange
+        var discordConfig = new DiscordConfiguration
+        {
+            Token = "test-token",
+            Intents = DiscordIntents.AllUnprivileged
+        };
+
+        using var client = new DiscordClient(discordConfig);
+
+        // Act
+        _commandHandlerService.RegisterHandler(client);
+
+        // Assert
+        _mockLogger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Information),
+                It.Is<EventId>(e => e.Id == 1102),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Registered command handler")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
+        _commandHandlerService.UnregisterHandler(client);
+    }
+
+    [Fact]
+    public void RegisterHandler_CalledTwice_LogsAlreadyRegisteredSecondTime()
+    {
+        // Arrange
+        var discordConfig = new DiscordConfiguration
+        {
+            Token = "test-token",
+            Intents = DiscordIntents.AllUnprivileged
+        };
+
+        using var client = new DiscordClient(discordConfig);
+
+        // Act
+        _mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        _commandHandlerService.RegisterHandler(client);
+        _mockLogger.Invocations.Clear();
+        _commandHandlerService.RegisterHandler(client);
+
+        // Assert - Second call should log already registered
+        _mockLogger.Verify(
+            x => x.Log(
+                It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("already registered")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ),
+            Times.AtLeastOnce);
+
+        _commandHandlerService.UnregisterHandler(client);
+    }
+
+    #endregion
+
+    private static string? InvokeTryGetCommandName(string content, string prefix)
+    {
+        var method = typeof(CommandHandlerService).GetMethod("TryGetCommandName",
+            BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(method);
+
+        return (string?)method!.Invoke(null, [content, prefix]);
+    }
+
+    private static async Task InvokeHandleCommandAsync(CommandHandlerService service, object? sender, object? args)
+    {
+        var method = typeof(CommandHandlerService).GetMethod("HandleCommandAsync",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.NotNull(method);
+
+        var task = (Task?)method!.Invoke(service, [sender, args]);
+        Assert.NotNull(task);
+        await task!;
+    }
 }

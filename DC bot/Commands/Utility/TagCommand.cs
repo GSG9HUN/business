@@ -27,8 +27,10 @@ public class TagCommand(
         var username = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         if (username is null) return;
 
+        username = username.Trim();
+        
         var allMembers = await message.Channel.Guild.GetAllMembersAsync();
-        var msg = allMembers.FirstOrDefault(x => x.Username.Contains(username));
+        var msg = allMembers.FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.OrdinalIgnoreCase));
 
         if (msg == null)
         {

@@ -1,4 +1,4 @@
-﻿using DC_bot.Constants;
+﻿﻿using DC_bot.Constants;
 using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -116,12 +116,13 @@ public class PlayerConnectionService(
                 return (null, channel, guildId, false);
             }
 
-            if (validationPlayerResult.Player is not LavalinkPlayer connection)
+            if (validationPlayerResult.Player is null)
             {
                 await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
                 return (null, channel, guildId, false);
             }
 
+            var connection = validationPlayerResult.Player;
             var validationConnectionResult =
                 await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 

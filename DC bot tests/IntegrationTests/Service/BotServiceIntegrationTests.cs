@@ -1,4 +1,4 @@
-﻿using DC_bot.Service;
+﻿﻿using DC_bot.Service;
 using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -115,5 +115,34 @@ public class BotServiceIntegrationTests
         // Act & Assert
         await Assert.ThrowsAnyAsync<Exception>(async () =>
             await service.StartAsync(true));
+    }
+
+    [Fact]
+    public async Task StartAsync_WithInvalidToken_AndNonTestMode_ThrowsAndLogsLavalinkOperationFailed()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger<BotService>>();
+        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
+        var discordClient = new DiscordClient(new DiscordConfiguration
+        {
+            Token = "invalid-token",
+            Intents = DiscordIntents.AllUnprivileged
+        });
+
+        var service = new BotService(discordClient, mockLogger.Object);
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<Exception>(() => service.StartAsync(false));
+
+        mockLogger.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Error),
+                It.Is<EventId>(e => e.Id == 2013),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ),
+            Times.AtLeastOnce);
     }
 }

@@ -32,6 +32,18 @@ public class MusicQueueServiceTests
     }
 
     [Fact]
+    public async Task HasTracks_WhenRepositoryReturnsNoItems_ReturnsFalse()
+    {
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([]);
+
+        var result = await _service.HasTracks(GuildId);
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public async Task Enqueue_DelegatesToRepository()
     {
         var track = CreateTrackMock("track-id-1");
@@ -154,9 +166,80 @@ public class MusicQueueServiceTests
     }
 
     [Fact]
+    public async Task ClearQueue_WhenQueueIsEmpty_DoesNotMarkAnythingSkipped()
+    {
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([]);
+
+        await _service.ClearQueue(GuildId);
+
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), default), Times.Never);
+    }
+
+    [Fact]
     public void GetRepeatableQueue_ThrowsNotImplementedException()
     {
         Assert.Throws<NotImplementedException>(() => _service.GetRepeatableQueue(GuildId));
+    }
+
+    [Fact]
+    public async Task Dequeue_WhenTrackIdentifierParseFails_MarksSkippedAndContinues()
+    {
+        _queueRepositoryMock
+            .SetupSequence(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .ReturnsAsync(CreateRecord("not-a-valid-track", 99))
+            .ReturnsAsync((QueueItemRecord?)null);
+
+        var result = await _service.Dequeue(GuildId);
+
+        Assert.Null(result);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(99, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task ViewQueue_WhenTrackIdentifierParseFails_SkipsItemAndMarksSkipped()
+    {
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([CreateRecord("bad-identifier", 1, 0)]);
+
+        var result = await _service.ViewQueue(GuildId);
+
+        Assert.Empty(result);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetQueue_WhenTrackIdentifierParseFails_SkipsItemAndMarksSkipped()
+    {
+        _queueRepositoryMock
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .ReturnsAsync([CreateRecord("bad-identifier", 1, 0)]);
+
+        var result = await _service.GetQueue(GuildId);
+
+        Assert.Empty(result);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetQueue_WhenQueueExceedsMaxSize_ThrowsInvalidOperationException()
+    {
+        var tracks = Enumerable.Range(0, 101)
+            .Select(i =>
+            {
+                var t = CreateTrackMock($"track-{i}");
+                return t.Object;
+            })
+            .ToList();
+
+        var tooLargeQueue = new Queue<ILavaLinkTrack>(tracks);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SetQueue(GuildId, tooLargeQueue));
+        _queueRepositoryMock.Verify(
+            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), default),
+            Times.Never);
     }
 
     private static QueueItemRecord CreateRecord(string trackIdentifier, long id = 1, int position = 0)

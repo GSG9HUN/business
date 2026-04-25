@@ -1,4 +1,5 @@
-﻿using DC_bot.Interface.Service.Persistence;
+﻿using DC_bot.Interface;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
 using Microsoft.Extensions.Logging;
@@ -72,6 +73,84 @@ public class RepeatServiceTests
         await service.SetRepeatingListAsync(guildId, true);
 
         Assert.True(await service.IsRepeatingListAsync(guildId));
+    }
+
+    [Fact]
+    public async Task SetRepeatingList_WhenDisabled_ClearsStoredRepeatList()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        var service = new RepeatService(
+            playbackStateRepository, 
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+        const ulong guildId = 15;
+
+        await service.SetRepeatingListAsync(guildId, false);
+
+        repeatListRepositoryMock.Verify(r => r.ClearAsync(guildId, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveRepeatListSnapshot_WithCurrentTrack_PersistsCurrentThenQueue()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        var service = new RepeatService(
+            playbackStateRepository, 
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+        const ulong guildId = 16;
+
+        var current = new Mock<ILavaLinkTrack>();
+        current.Setup(t => t.ToString()).Returns("current-id");
+
+        var queued1 = new Mock<ILavaLinkTrack>();
+        queued1.Setup(t => t.ToString()).Returns("q1");
+        var queued2 = new Mock<ILavaLinkTrack>();
+        queued2.Setup(t => t.ToString()).Returns("q2");
+
+        await service.SaveRepeatListSnapshotAsync(guildId, current.Object, new[] { queued1.Object, queued2.Object });
+
+        repeatListRepositoryMock.Verify(r => r.ReplaceAsync(
+                guildId,
+                It.Is<IReadOnlyList<string>>(ids => ids.Count == 3 && ids[0] == "current-id" && ids[1] == "q1" && ids[2] == "q2"),
+                default),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveRepeatListSnapshot_WhenQueuedTracksNull_ThrowsArgumentNullException()
+    {
+        var service = new RepeatService(
+            new InMemoryPlaybackStateRepository(), 
+            new InMemoryRepeatListRepository(),
+            new Mock<ILogger<RepeatService>>().Object);
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            service.SaveRepeatListSnapshotAsync(17UL, null, null!));
+    }
+
+    [Fact]
+    public async Task GetRepeatableQueueAsync_WhenStoredIdsExist_ReturnsParsedTracks()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        repeatListRepositoryMock
+            .Setup(r => r.GetTrackIdentifiersAsync(18UL, default))
+            .ReturnsAsync(new[]
+            {
+                "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
+            });
+
+        var service = new RepeatService(
+            playbackStateRepository,
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+
+        var queue = await service.GetRepeatableQueueAsync(18UL);
+
+        Assert.Single(queue);
     }
 
     private sealed class InMemoryPlaybackStateRepository : IPlaybackStateRepository

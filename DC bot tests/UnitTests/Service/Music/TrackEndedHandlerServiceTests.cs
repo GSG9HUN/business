@@ -190,6 +190,7 @@ public class TrackEndedHandlerServiceTests
         // Assert - should return early from TryRepeatCurrentTrack (track is null), then fall through to notify empty
         _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), default),
             Times.Never);
+        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(_textChannelMock.Object), Times.Once);
     }
 
     #endregion
@@ -244,6 +245,51 @@ public class TrackEndedHandlerServiceTests
 
         // Assert - should not requeue because HasTracks returned true inside TryRepeatListAndPlayAsync
         _repeatServiceMock.Verify(q => q.GetRepeatableQueueAsync(It.IsAny<ulong>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleTrackEndedAsync_RepeatOn_TryGetReturnsTrueButCurrentIsNull_FallsThrough()
+    {
+        // Arrange
+        ILavaLinkTrack? nullTrack = null;
+        var args = CreateTrackEndedEventArgs(TrackEndReason.Finished);
+
+        _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(true);
+        _currentTrackServiceMock
+            .Setup(c => c.TryGetCurrentTrack(GuildId, out nullTrack))
+            .Returns(true);
+        _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(r => r.IsRepeatingListAsync(GuildId)).ReturnsAsync(false);
+
+        // Act
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        // Assert
+        _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), default), Times.Never);
+        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(_textChannelMock.Object), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleTrackEndedAsync_RepeatListEnabled_ButSnapshotEmpty_NotifiesQueueEmpty()
+    {
+        // Arrange
+        var args = CreateTrackEndedEventArgs(TrackEndReason.Finished);
+
+        _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(r => r.IsRepeatingListAsync(GuildId)).ReturnsAsync(true);
+        _musicQueueServiceMock.SetupSequence(q => q.HasTracks(GuildId))
+            .ReturnsAsync(false)
+            .ReturnsAsync(false);
+        _repeatServiceMock.Setup(r => r.GetRepeatableQueueAsync(GuildId))
+            .ReturnsAsync(Array.Empty<ILavaLinkTrack>());
+
+        // Act
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        // Assert
+        _musicQueueServiceMock.Verify(q => q.Enqueue(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>()), Times.Never);
+        _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(It.IsAny<ILavalinkPlayer>(), It.IsAny<IDiscordChannel>()), Times.Never);
+        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(_textChannelMock.Object), Times.Once);
     }
 
     #endregion

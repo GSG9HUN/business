@@ -330,4 +330,51 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         freshCommandHandlerService.UnregisterHandler(mockClient);
         mockClient.Dispose();
     }
+
+    [Fact]
+    public async Task HandleCommandAsync_WhenAuthorIsBot_AndIsTestModeFalse_IgnoresCommand()
+    {
+        // Arrange
+        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
+        var envPath = Path.Combine(directoryInfo, ".env");
+        Env.Load(envPath);
+
+        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        if (string.IsNullOrWhiteSpace(envToken))
+            return; // Live integration requires token
+
+        var botSettings = new BotSettings { Token = envToken, Prefix = BotPrefix };
+        var loggerMock = new Mock<ILogger<CommandHandlerService>>();
+        loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
+        var userValidationService = new ValidationService(_validationLoggerMock.Object, false);
+        var services = new ServiceCollection()
+            .AddLogging()
+            .AddSingleton(botSettings)
+            .AddSingleton(_localizationServiceMock.Object)
+            .AddSingleton<IUserValidationService>(userValidationService)
+            .AddSingleton<IResponseBuilder, ResponseBuilder>()
+            .AddSingleton<ICommand, PingCommand>()
+            .BuildServiceProvider();
+
+        var nonTestHandler = new CommandHandlerService(
+            services,
+            loggerMock.Object,
+            _localizationServiceMock.Object,
+            botSettings,
+            false);
+
+        nonTestHandler.RegisterHandler(_discordClient);
+
+        var channel = await _discordClient.GetChannelAsync(TestChannelId);
+        var marker = $"integration-ignore-bot-{Guid.NewGuid():N}";
+        await channel.SendMessageAsync($"!ping {marker}");
+
+        await Task.Delay(1200);
+
+        var recentMessages = await channel.GetMessagesAsync(10);
+        Assert.DoesNotContain(recentMessages, m => m.Content.Contains("Pong", StringComparison.OrdinalIgnoreCase));
+
+        nonTestHandler.UnregisterHandler(_discordClient);
+    }
 }

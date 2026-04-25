@@ -23,7 +23,14 @@ public class ProgressiveTimerService(
     public Task StartAsync(IDiscordMessage message, ulong guildId)
     {
         var player = audioService.Players.Players.First(x => x.GuildId == guildId);
-        var track = new LavaLinkTrackWrapper(player.CurrentTrack);
+        var currentTrack = player.CurrentTrack;
+        
+        if (currentTrack is null)
+        {
+            Stop(guildId);
+            return Task.CompletedTask;
+        }
+        var track = new LavaLinkTrackWrapper(currentTrack);
 
         var cts = new CancellationTokenSource();
         _timers[guildId] = cts;

@@ -182,6 +182,24 @@ public class PlayerConnectionServiceTests
     }
 
     [Fact]
+    public async Task TryJoinAndValidateAsync_JoinThrowsHttpRequestExceptionWithout400_ReturnsInvalid()
+    {
+        // Arrange
+        _playerManagerMock
+            .Setup(p => p.JoinAsync(111UL, 222UL, It.IsAny<PlayerFactory<LavalinkPlayer, LavalinkPlayerOptions>>(),
+                It.IsAny<IOptions<LavalinkPlayerOptions>>(), default))
+            .Throws(new HttpRequestException("500 Internal Server Error"));
+
+        // Act
+        var result = await _service.TryJoinAndValidateAsync(_messageMock.Object, _channelMock.Object);
+
+        // Assert
+        Assert.False(result.isValid);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+    }
+
+    [Fact]
     public async Task TryJoinAndValidateAsync_JoinThrowsGenericException_ReturnsInvalid()
     {
         // Arrange
@@ -197,6 +215,28 @@ public class PlayerConnectionServiceTests
         Assert.False(result.isValid);
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryJoinAndValidateAsync_ConnectionValidationFailsAllAttempts_ValidatesFiveTimes()
+    {
+        // Arrange
+        SetupJoinAsyncWithInterface();
+
+        var playerMock = new Mock<ILavalinkPlayer>();
+        _validationServiceMock
+            .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        _validationServiceMock
+            .Setup(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()))
+            .ReturnsAsync(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
+
+        // Act
+        await _service.TryJoinAndValidateAsync(_messageMock.Object, _channelMock.Object);
+
+        // Assert
+        _validationServiceMock.Verify(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()), Times.Exactly(5));
     }
 
     #endregion
@@ -280,13 +320,12 @@ public class PlayerConnectionServiceTests
     }
 
     [Fact]
-    public async Task TryGetAndValidateExistingPlayerAsync_PlayerNotLavalinkPlayer_ReturnsInvalid()
+    public async Task TryGetAndValidateExistingPlayerAsync_PlayerIsNull_ReturnsInvalid()
     {
         // Arrange
-        var genericPlayerMock = new Mock<ILavalinkPlayer>();
         _validationServiceMock
             .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
-            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, genericPlayerMock.Object));
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, null));
 
         // Act
         var result = await _service.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _channelMock.Object);
@@ -315,15 +354,44 @@ public class PlayerConnectionServiceTests
 
         // Assert
         Assert.False(result.isValid);
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.BotIsNotConnectedError), Times.Once);
     }
 
     [Fact]
-    public async Task TryGetAndValidateExistingPlayerAsync_Exception_ReturnsInvalid()
+    public async Task TryGetAndValidateExistingPlayerAsync_ConnectionValidationSucceeds_ReturnsValid()
     {
         // Arrange
+        var playerMock = new Mock<ILavalinkPlayer>();
         _validationServiceMock
             .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
-            .ThrowsAsync(new InvalidOperationException("unexpected"));
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        _validationServiceMock
+            .Setup(v => v.ValidateConnectionAsync(playerMock.Object))
+            .ReturnsAsync(new ConnectionValidationResult(true, string.Empty, playerMock.Object));
+
+        // Act
+        var result = await _service.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _channelMock.Object);
+
+        // Assert
+        Assert.True(result.isValid);
+        Assert.Equal(111UL, result.guildId);
+        Assert.Equal(playerMock.Object, result.connection);
+    }
+
+    [Fact]
+    public async Task TryGetAndValidateExistingPlayerAsync_ValidateConnectionThrows_ReturnsInvalid()
+    {
+        // Arrange
+        var playerMock = new Mock<ILavalinkPlayer>();
+        _validationServiceMock
+            .Setup(v => v.ValidatePlayerAsync(_audioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        _validationServiceMock
+            .Setup(v => v.ValidateConnectionAsync(playerMock.Object))
+            .ThrowsAsync(new InvalidOperationException("connection-check-failed"));
 
         // Act
         var result = await _service.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _channelMock.Object);
@@ -336,3 +404,4 @@ public class PlayerConnectionServiceTests
 
     #endregion
 }
+
