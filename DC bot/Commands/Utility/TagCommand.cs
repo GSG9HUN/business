@@ -30,7 +30,7 @@ public class TagCommand(
         username = username.Trim();
         
         var allMembers = await message.Channel.Guild.GetAllMembersAsync();
-        var msg = allMembers.FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.CurrentCultureIgnoreCase));
+        var msg = allMembers.FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.OrdinalIgnoreCase));
 
         if (msg == null)
         {
