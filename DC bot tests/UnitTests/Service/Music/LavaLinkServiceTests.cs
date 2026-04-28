@@ -626,7 +626,7 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrack(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>()), Times.Never);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(), default), Times.Never);
     }
 
     [Fact]
@@ -650,7 +650,7 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrack(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>()), Times.Never);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(), default), Times.Never);
     }
 
     [Fact]
@@ -676,7 +676,7 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrack(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>()), Times.Never);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(), default), Times.Never);
     }
 
     [Fact]
@@ -701,7 +701,7 @@ public class LavaLinkServiceTests
             Times.Once);
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, nextTrack, TimeSpan.Zero, nextTrack.Duration), Times.Once);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrack(GuildId, nextTrack), Times.Once);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(GuildId, nextTrack, default), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
     }

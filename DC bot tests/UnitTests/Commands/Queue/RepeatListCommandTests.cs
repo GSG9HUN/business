@@ -202,6 +202,44 @@ public class RepeatListCommandTests
 
 
     [Fact]
+    public async Task ExecuteAsync_NoRepeat_CurrentTrackIsNull_ShouldEnableRepeatWithQueueOnly()
+    {
+        // Arrange
+        const ulong guildId = 123456789UL;
+
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(_discordVoiceStateMock.Object);
+        _discordVoiceStateMock.SetupGet(vs => vs.Channel).Returns(_channelMock.Object);
+        _guildMock.SetupGet(g => g.Id).Returns(guildId);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
+
+        _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
+        _trackServiceFormatter.Setup(c => c.FormatCurrentTrackListAsync(guildId)).ReturnsAsync(TestTrackList);
+        _queueServiceMock.Setup(q => q.ViewQueue(guildId)).ReturnsAsync(new List<ILavaLinkTrack> { TrackTestHelper.CreateTrackWrapper() });
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackAsync(guildId, default)).ReturnsAsync((ILavaLinkTrack?)null);
+
+        // Act
+        await _repeatListCommand.ExecuteAsync(_messageMock.Object);
+
+        // Assert - snapshot saved with null currentTrack but queue items
+        _repeatServiceMock.Verify(l => l.SaveRepeatListSnapshotAsync(
+            guildId,
+            null,
+            It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Once);
+        _repeatServiceMock.Verify(l => l.SetRepeatingListAsync(guildId, true), Times.Once);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_UserIsABot_ShouldDoNothing()
     {
         //Arrange
