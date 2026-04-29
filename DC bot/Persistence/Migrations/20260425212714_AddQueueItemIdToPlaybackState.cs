@@ -10,19 +10,19 @@ namespace DC_bot.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "QueueItemId",
+            migrationBuilder.AddColumn<int>(
+                name: "queue_item_id",
                 table: "guild_playback_state",
-                newName: "queue_item_id");
+                type: "integer",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            migrationBuilder.DropColumn(
                 name: "queue_item_id",
-                table: "guild_playback_state",
-                newName: "QueueItemId");
+                table: "guild_playback_state");
         }
     }
 }
