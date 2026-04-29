@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
 WORKDIR /app
 
-USER app
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG configuration=Release
 WORKDIR /src
@@ -18,4 +17,5 @@ RUN dotnet publish "DC bot.csproj" -c $configuration -o /app/publish /p:UseAppHo
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+USER app
 ENTRYPOINT ["dotnet", "MelodiasMario.dll"]
