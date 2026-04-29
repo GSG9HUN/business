@@ -29,6 +29,9 @@ public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPla
         builder.Property(entity => entity.CurrentTrackIdentifier)
             .HasColumnName("current_track_identifier");
 
+        builder.Property(entity => entity.QueueItemId)
+            .HasColumnName("queue_item_id");
+
         builder.Property(entity => entity.UpdatedAtUtc)
             .HasColumnName("updated_at_utc")
             .HasDefaultValueSql("now()")

@@ -3,6 +3,7 @@ using System;
 using DC_bot.Persistence.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DC_bot.Persistence.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    partial class BotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425193122_AddPlaybackStateQueueItemId")]
+    partial class AddPlaybackStateQueueItemId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,8 +75,7 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("is_repeating_list");
 
                     b.Property<long?>("QueueItemId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("queue_item_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()

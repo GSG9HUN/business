@@ -5,7 +5,7 @@ namespace DC_bot_tests.TestHelperFiles;
 
 public static class TrackTestHelper
 {
-    public static LavaLinkTrackWrapper CreateTrackWrapper(string author = "Song", string title = "Artist", string identifier = "id", double durationSeconds = 100)
+    public static LavaLinkTrackWrapper CreateTrackWrapper(string author = "Song", string title = "Artist", string identifier = "id", double durationSeconds = 100, long? queueItemId = null)
     {
         return new LavaLinkTrackWrapper(new LavalinkTrack
         {
@@ -13,7 +13,10 @@ public static class TrackTestHelper
             Title = title,
             Identifier = identifier,
             Duration = TimeSpan.FromSeconds(durationSeconds)
-        });
+        })
+        {
+            QueueItemId = queueItemId
+        };
     }
 }
 
