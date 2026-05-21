@@ -18,15 +18,23 @@ robust error handling, and comprehensive documentation.
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
-LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
-LAVALINK_PASSWORD=your_password
-LAVALINK_PORT=443
-LAVALINK_SECURED=true
-POSTGRES_HOST=localhost
+
+LAVALINK_HOSTNAME=lavalink
+LAVALINK_PASSWORD=CHANGE_ME
+LAVALINK_PORT=2333
+LAVALINK_SECURED=false
+
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_DB=dc_bot
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=CHANGE_ME
+
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+APPLE_MUSIC_API_TOKEN=
+DEEZER_ARL=
+YANDEX_MUSIC_ACCESS_TOKEN=
 ```
 
 2. **Build and run**:
@@ -103,12 +111,14 @@ DC bot/
 │   │   ├── LavaLinkService.cs
 │   │   ├── TrackSearchResolverService.cs
 │   │   ├── MusicServices/         # Granular music services
+│   │   ├── ProgressiveTimer/      # Now-playing message timer updates
 │   │   └── README.md
 │   ├── Presentation/              # ResponseBuilder
 │   └── README.md
 │
 ├── Wrapper/                       # Discord API wrappers (DSharpPlus abstraction)
-│   ├── DiscordMessage/UserWrapper.cs
+│   ├── DiscordMessageWrapper.cs
+│   ├── DiscordUserWrapper.cs
 │   ├── DiscordChannelWrapper.cs
 │   ├── DiscordClientFactory.cs
 │   ├── DiscordClientEventHandler.cs
@@ -154,7 +164,6 @@ DC bot/
 │
 ├── guildFiles/                    # Per-guild persistent data
 │   ├── localization/              # Guild language preferences
-│   ├── queues/                    # Legacy queue files (DB is active path)
 │   └── README.md
 │
 ├── Program.cs                     # Application entry point
@@ -170,7 +179,7 @@ DC bot/
 
 ### 🎵 Music Playback
 
-- **Multiple sources:** YouTube, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music
+- **Multiple sources:** YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music, Bandcamp
 - **Queue management:** Persistent queue storage per guild via PostgreSQL
 - **Repeat modes:** Single track repeat, queue repeat
 - **Playback controls:** Play, pause, resume, skip
@@ -338,12 +347,26 @@ DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
 
 # Lavalink Settings (Required)
-LAVALINK_HOSTNAME=lavalinkv4.serenetia.com
+LAVALINK_HOSTNAME=lavalink
 
 # Lavalink Settings (Optional)
-LAVALINK_PORT=443
-LAVALINK_SECURED=true
+LAVALINK_PORT=2333
+LAVALINK_SECURED=false
 LAVALINK_PASSWORD=your_lavalink_password
+
+# PostgreSQL Settings (Optional)
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=dc_bot
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_postgres_password
+
+# Lavalink Provider Settings (Optional)
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+APPLE_MUSIC_API_TOKEN=
+DEEZER_ARL=
+YANDEX_MUSIC_ACCESS_TOKEN=
 ```
 
 ### Environment Variables
@@ -361,12 +384,19 @@ LAVALINK_PASSWORD=your_lavalink_password
 | `POSTGRES_DB`       | ❌ No     | `dc_bot` | PostgreSQL database |
 | `POSTGRES_USER`     | ❌ No     | `postgres` | PostgreSQL username |
 | `POSTGRES_PASSWORD` | ❌ No     | `postgres` | PostgreSQL password |
+| `SPOTIFY_CLIENT_ID` | ❌ No     | `` | Spotify client ID for Lavalink lavasrc |
+| `SPOTIFY_CLIENT_SECRET` | ❌ No | `` | Spotify client secret for Lavalink lavasrc |
+| `APPLE_MUSIC_API_TOKEN` | ❌ No | `` | Apple Music media API token for Lavalink lavasrc |
+| `DEEZER_ARL` | ❌ No | `` | Deezer ARL cookie for Lavalink lavasrc |
+| `YANDEX_MUSIC_ACCESS_TOKEN` | ❌ No | `` | Yandex Music access token for Lavalink lavasrc |
 
 ---
 
 ## Service Registration & Dependency Injection
 
-### Total Services Registered: 43
+### Runtime Registrations
+
+`Program.cs` currently registers 43 singleton entries, plus the EF Core `BotDbContext` factory and Lavalink client configuration.
 
 #### Logging Configuration
 
@@ -381,13 +411,22 @@ LAVALINK_PASSWORD=your_lavalink_password
 - Server address configuration
 - Authentication setup
 
-#### Core Services (5 services)
+#### Core Services
 
 - `DiscordClient` - Discord connection
+- `DiscordClientEventHandler` - Startup event handling
 - `BotService` - Bot lifecycle
 - `CommandHandlerService` - Message routing
 - `ReactionHandler` - Reaction handling
 - `IFileSystem` - File operations
+
+#### Persistence Registrations
+
+- `BotDbContext` factory - EF Core/PostgreSQL context creation
+- `IGuildDataRepository` - Guild language settings
+- `IPlaybackStateRepository` - Current playback state
+- `IQueueRepository` - Queue entries
+- `IRepeatListRepository` - Repeat-list entries
 
 #### All 15 Text Commands
 
@@ -395,7 +434,7 @@ LAVALINK_PASSWORD=your_lavalink_password
 - 5 Queue commands (viewList, shuffle, repeat, repeatList, clear)
 - 4 Utility commands (help, ping, language, tag)
 
-#### All 11 Music Services
+#### All 12 Music Services
 
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management
@@ -408,6 +447,7 @@ LAVALINK_PASSWORD=your_lavalink_password
 - `TrackPlaybackService` - Playback control
 - `TrackEndedHandlerService` - Track end events
 - `TrackSearchResolverService` - URL/query resolution
+- `ProgressiveTimerService` - Now-playing message timer updates
 
 #### Validation & Localization (5 services)
 
@@ -700,9 +740,11 @@ DC bot tests/
 ## Version Information
 
 - **.NET:** 9.0
-- **DSharpPlus:** 4.4+
-- **Lavalink4NET:** 4.0+
-- **Last Updated:** 2026-04-26
+- **DSharpPlus:** 5.0.0
+- **Lavalink4NET:** 4.2.0
+- **EF Core:** 9.0.10
+- **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
+- **Last Updated:** 2026-05-21
 
 ---
 

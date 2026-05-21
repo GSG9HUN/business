@@ -37,9 +37,9 @@ Main entry service: `LavaLinkService.cs`
 
 Message/embed response construction and sending.
 
-### Persistence/
+### Persistence
 
-Reserved for service-level persistence orchestration. Persistence contracts and implementations are currently in:
+There is no `Service/Persistence/` folder in the current source tree. Persistence contracts and implementations are currently in:
 
 - `../Interface/Service/Persistence/`
 - `../Persistence/`

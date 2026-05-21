@@ -25,7 +25,7 @@ catch (Exception ex)
 ### 2. Track Notification Send Failure
 
 ```csharp
-// In TrackNotificationService.SafeSendAsync()
+// In TrackNotificationService.SendSafeAsync()
 catch (Exception ex)
 {
     throw new MessageSendException(operation, "Failed to send Discord message", ex);
@@ -51,7 +51,7 @@ Services catch this exception to log message send failures:
 ```csharp
 try
 {
-    await trackNotificationService.SendNowPlayingAsync(track);
+    await trackNotificationService.NotifyNowPlayingAsync(textChannel, track, position, duration);
 }
 catch (MessageSendException ex)
 {

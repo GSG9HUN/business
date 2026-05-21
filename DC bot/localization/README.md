@@ -63,8 +63,8 @@ var message = localizationService.Get("play_command_music_playing", trackTitle);
 1. Create new JSON file (e.g., `es.json` for Spanish)
 2. Copy all keys from `eng.json`
 3. Translate values
-4. Update localization service to load new language
-5. Update configuration to support language selection
+4. Save the matching language code through `!language <code>` (the code must match the JSON file name without `.json`)
+5. Add validation in `LanguageCommand` if you want to restrict allowed language codes
 
 ---
 

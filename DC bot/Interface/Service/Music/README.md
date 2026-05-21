@@ -17,8 +17,8 @@ public interface ILavaLinkService
     Task ConnectAsync();
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
-    void Init(ulong guildId);
-    event Func<IDiscordChannel, DiscordClient, string, Task> TrackStarted;
+    Task Init(ulong guildId);
+    event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
 }
@@ -48,6 +48,10 @@ public interface ILavaLinkService
 
 **Purpose:** Resolve URLs and search queries.
 
+**Method:**
+
+- `ResolveSearchMode(string input)` - Determine the Lavalink `TrackSearchMode` from URL host, explicit prefix, or default search option
+
 **Implementation:** `Service/Music/TrackSearchResolverService.cs`
 
 ---
@@ -67,6 +71,14 @@ Contains granular music service interfaces:
 - `ITrackPlaybackService.cs`
 
 **Implementations:** `Service/Music/MusicServices/*.cs`
+
+---
+
+### ProgressiveTimerInterface/
+
+Contains `IProgressiveTimerService`, which starts/stops per-guild timer updates for the now-playing message.
+
+**Implementation:** `Service/Music/ProgressiveTimer/ProgressiveTimerService.cs`
 
 ---
 

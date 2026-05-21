@@ -35,6 +35,7 @@ public static class DiscordMessageWrapperFactory
             message.Embeds.ToList(), 
             message.RespondAsync,
             message.RespondAsync, 
+            builder => message.ModifyAsync(builder),
             logger
         );
     }
@@ -77,5 +78,5 @@ await command.ExecuteAsync(wrappedMessage);
 - **Wrapper/DiscordUserWrapper.cs** - Created internally by factory
 - **Wrapper/DiscordChannelWrapper.cs** - Created internally by factory
 - **Interface/Discord/IDiscordMessage.cs** - Interface returned by factory
-- **Service/CommandHandlerService.cs** - Uses factory to create wrappers
+- **Service/Core/CommandHandlerService.cs** - Uses factory to create wrappers
 
