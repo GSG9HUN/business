@@ -245,27 +245,6 @@ public class TrackEndedHandlerServiceTests
         _repeatServiceMock.Verify(q => q.GetRepeatableQueueAsync(It.IsAny<ulong>()), Times.Never);
     }
 
-    [Fact]
-    public async Task HandleTrackEndedAsync_RepeatOn_TryGetReturnsTrueButCurrentIsNull_FallsThrough()
-    {
-        // Arrange
-        ILavaLinkTrack? nullTrack = null;
-        var args = CreateTrackEndedEventArgs(TrackEndReason.Finished);
-
-        _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(true);
-        _currentTrackServiceMock
-            .Setup(c => c.TryGetCurrentTrack(GuildId, out nullTrack))
-            .Returns(true);
-        _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(false);
-        _repeatServiceMock.Setup(r => r.IsRepeatingListAsync(GuildId)).ReturnsAsync(false);
-
-        // Act
-        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
-
-        // Assert
-        _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), default), Times.Never);
-        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(_textChannelMock.Object), Times.Once);
-    }
 
     [Fact]
     public async Task HandleTrackEndedAsync_RepeatListEnabled_ButSnapshotEmpty_NotifiesQueueEmpty()

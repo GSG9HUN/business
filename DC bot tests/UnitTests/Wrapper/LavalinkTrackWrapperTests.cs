@@ -76,5 +76,20 @@ public class LavalinkTrackWrapperTests
 
         Assert.Equal(track.ToString(), wrapper.ToString());
     }
-}
 
+    [Fact]
+    public void QueueItemId_DefaultIsNull()
+    {
+        var wrapper = new LavaLinkTrackWrapper(BuildTrack());
+
+        Assert.Null(wrapper.QueueItemId);
+    }
+
+    [Fact]
+    public void QueueItemId_WhenSetViaInit_ReturnsValue()
+    {
+        var wrapper = new LavaLinkTrackWrapper(BuildTrack()) { QueueItemId = 42L };
+
+        Assert.Equal(42L, wrapper.QueueItemId);
+    }
+}

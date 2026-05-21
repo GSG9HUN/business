@@ -183,6 +183,84 @@ public class RepeatServiceTests
         }
     }
 
+    [Fact]
+    public async Task GetRepeatableQueueAsync_WhenSomeIdentifiersInvalid_SkipsInvalidAndReturnsValid()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        repeatListRepositoryMock
+            .Setup(r => r.GetTrackIdentifiersAsync(19UL, default))
+            .ReturnsAsync(new[]
+            {
+                "bad-identifier",
+                "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
+            });
+
+        var service = new RepeatService(
+            playbackStateRepository,
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+
+        var result = await service.GetRepeatableQueueAsync(19UL);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task GetRepeatableQueueAsync_WhenAllIdentifiersInvalid_ReturnsEmpty()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        repeatListRepositoryMock
+            .Setup(r => r.GetTrackIdentifiersAsync(20UL, default))
+            .ReturnsAsync(new[] { "bad-1", "bad-2" });
+
+        var service = new RepeatService(
+            playbackStateRepository,
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+
+        var result = await service.GetRepeatableQueueAsync(20UL);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task SaveRepeatListSnapshot_WithNullCurrentTrack_PersistsOnlyQueue()
+    {
+        var playbackStateRepository = new InMemoryPlaybackStateRepository();
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        var service = new RepeatService(
+            playbackStateRepository,
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+
+        var queued1 = new Mock<ILavaLinkTrack>();
+        queued1.Setup(t => t.ToString()).Returns("q1");
+
+        await service.SaveRepeatListSnapshotAsync(21UL, null, new[] { queued1.Object });
+
+        repeatListRepositoryMock.Verify(r => r.ReplaceAsync(
+                21UL,
+                It.Is<IReadOnlyList<string>>(ids => ids.Count == 1 && ids[0] == "q1"),
+                default),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SetRepeatingList_WhenEnabled_DoesNotClearRepeatList()
+    {
+        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
+        var service = new RepeatService(
+            new InMemoryPlaybackStateRepository(),
+            repeatListRepositoryMock.Object,
+            new Mock<ILogger<RepeatService>>().Object);
+
+        await service.SetRepeatingListAsync(22UL, true);
+
+        repeatListRepositoryMock.Verify(r => r.ClearAsync(It.IsAny<ulong>(), default), Times.Never);
+    }
+
     private sealed class InMemoryRepeatListRepository : IRepeatListRepository
     {
         public Task<IReadOnlyList<string>> GetTrackIdentifiersAsync(ulong guildId, CancellationToken cancellationToken = default)

@@ -647,13 +647,13 @@ DC bot tests/
 
 ### Queue not persisting
 
-**Cause:** File system permissions or `guildFiles/` directory missing
+**Cause:** PostgreSQL connection issue or pending migrations
 
 **Solution:**
 
-- Ensure bot has write permissions
-- Directory is auto-created if missing
-- Check disk space
+- Ensure PostgreSQL is running and `.env` database settings are correct
+- Check that all EF Core migrations have been applied (bot applies them automatically on startup)
+- Check logs for database errors
 
 ---
 
@@ -702,7 +702,7 @@ DC bot tests/
 - **.NET:** 9.0
 - **DSharpPlus:** 4.4+
 - **Lavalink4NET:** 4.0+
-- **Last Updated:** 2026-03-05
+- **Last Updated:** 2026-04-26
 
 ---
 

@@ -22,7 +22,7 @@ Responsibilities:
 
 - get/create playback state per guild
 - update repeat flags
-- update current track identifier
+- update current track identifier and linked queue item ID (`queueItemId`)
 
 ### QueueRepository.cs
 
@@ -34,6 +34,7 @@ Responsibilities:
 - reorder queue items transactionally
 - update queue item state (`queued`, `playing`, `played`, `skipped`)
 - enforce max queued items per guild
+- atomically claim the next queued item (`ClaimNextQueuedItemAsync`): marks it as `playing` and returns it in a single operation
 
 ### RepeatListRepository.cs
 

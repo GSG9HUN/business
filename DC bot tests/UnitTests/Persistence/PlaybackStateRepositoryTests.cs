@@ -81,10 +81,11 @@ public class PlaybackStateRepositoryTests
         var factory = CreateFactory();
         var repo = new PlaybackStateRepository(factory);
 
-        await repo.SetCurrentTrackAsync(600ul, "track-abc");
+        await repo.SetCurrentTrackAsync(600ul, "track-abc", 1);
 
         var result = await repo.GetOrCreateAsync(600ul);
         Assert.Equal("track-abc", result.CurrentTrackIdentifier);
+        Assert.Equal(1, result.QueueItemId);
     }
 
     [Fact]
@@ -94,11 +95,12 @@ public class PlaybackStateRepositoryTests
         var repo = new PlaybackStateRepository(factory);
 
         await repo.GetOrCreateAsync(700ul);
-        await repo.SetCurrentTrackAsync(700ul, "track-first");
-        await repo.SetCurrentTrackAsync(700ul, "track-second");
+        await repo.SetCurrentTrackAsync(700ul, "track-first", 1);
+        await repo.SetCurrentTrackAsync(700ul, "track-second", 2);
 
         var result = await repo.GetOrCreateAsync(700ul);
         Assert.Equal("track-second", result.CurrentTrackIdentifier);
+        Assert.Equal(2, result.QueueItemId);
     }
 
     [Fact]
@@ -107,11 +109,12 @@ public class PlaybackStateRepositoryTests
         var factory = CreateFactory();
         var repo = new PlaybackStateRepository(factory);
 
-        await repo.SetCurrentTrackAsync(800ul, "track-abc");
-        await repo.SetCurrentTrackAsync(800ul, null);
+        await repo.SetCurrentTrackAsync(800ul, "track-abc", 1,default);
+        await repo.SetCurrentTrackAsync(800ul, null, null,default);
 
         var result = await repo.GetOrCreateAsync(800ul);
         Assert.Null(result.CurrentTrackIdentifier);
+        Assert.Null(result.QueueItemId);
     }
 }
 

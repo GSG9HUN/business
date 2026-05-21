@@ -23,7 +23,10 @@ public class CurrentTrackService(
         try
         {
             var track = LavalinkTrack.Parse(state.CurrentTrackIdentifier, null);
-            return new LavaLinkTrackWrapper(track);
+            return new LavaLinkTrackWrapper(track)
+            {
+                QueueItemId = state.QueueItemId
+            };
         }
         catch (Exception ex)
         {

@@ -88,4 +88,57 @@ public class CurrentTrackServiceTests
 
         Assert.Equal(string.Empty, result);
     }
+
+    [Fact]
+    public async Task SetCurrentTrackAsync_WithLavaLinkTrackWrapper_PassesQueueItemIdToRepository()
+    {
+        const ulong guildId = 6;
+        var repo = new Mock<IPlaybackStateRepository>();
+        var wrapper = DC_bot_tests.TestHelperFiles.TrackTestHelper.CreateTrackWrapper(queueItemId: 99L);
+
+        var service = new CurrentTrackService(repo.Object);
+
+        await service.SetCurrentTrackAsync(guildId, wrapper);
+
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId,
+            It.IsAny<string>(),
+            99L,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCurrentTrackAsync_WithLavaLinkTrackWrapperWithNullQueueItemId_PassesNullQueueItemIdToRepository()
+    {
+        const ulong guildId = 7;
+        var repo = new Mock<IPlaybackStateRepository>();
+        var wrapper = DC_bot_tests.TestHelperFiles.TrackTestHelper.CreateTrackWrapper(); // QueueItemId = null
+
+        var service = new CurrentTrackService(repo.Object);
+
+        await service.SetCurrentTrackAsync(guildId, wrapper);
+
+        repo.Verify(r => r.SetCurrentTrackAsync(
+            guildId,
+            It.IsAny<string>(),
+            null,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCurrentTrackAsync_WhenQueueItemIdStoredInState_RestoredInWrapper()
+    {
+        const ulong guildId = 8;
+        var repo = new Mock<IPlaybackStateRepository>();
+        const string validIdentifier = "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=";
+        repo.Setup(r => r.GetOrCreateAsync(guildId, default))
+            .ReturnsAsync(new DC_bot.Interface.Service.Persistence.Models.PlaybackStateRecord(guildId, false, false, validIdentifier, 42L, DateTimeOffset.UtcNow));
+
+        var service = new CurrentTrackService(repo.Object);
+
+        var result = await service.GetCurrentTrackAsync(guildId);
+
+        var wrapper = Assert.IsType<DC_bot.Wrapper.LavaLinkTrackWrapper>(result);
+        Assert.Equal(42L, wrapper.QueueItemId);
+    }
 }

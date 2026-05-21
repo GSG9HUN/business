@@ -120,6 +120,10 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 - `Title` - Track title
 - `Author` - Track artist
+- `Duration` - Track duration
+- `ArtworkUri` - Artwork image URI (nullable)
+- `StartPosition` - Optional playback start position
+- `QueueItemId` - DB queue item ID linked to this track (set when dequeued from `IQueueRepository`; used by `TrackEndedHandlerService` to mark the item as played/skipped)
 
 **Methods:**
 
