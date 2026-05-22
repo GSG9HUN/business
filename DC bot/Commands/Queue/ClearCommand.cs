@@ -31,7 +31,7 @@ public class ClearCommand(
         await musicQueueService.ClearQueue(guildId);
 
         await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(LocalizationKeys.ClearCommandResponse)}\n");
+            $"{localizationService.Get(guildId, LocalizationKeys.ClearCommandResponse)}\n");
         logger.CommandExecuted(Name);
     }
 }

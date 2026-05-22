@@ -43,11 +43,17 @@ public class RepeatCommandTests
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating))
             .Returns(RepeatCommandListAlreadyRepeatingValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatCommandListAlreadyRepeating))
+            .Returns(RepeatCommandListAlreadyRepeatingValue);
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandRepeatingOn))
             .Returns(RepeatCommandRepeatingOnValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatCommandRepeatingOn))
+            .Returns(RepeatCommandRepeatingOnValue);
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatCommandRepeatingOff))
+            .Returns(RepeatCommandRepeatingOffValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatCommandRepeatingOff))
             .Returns(RepeatCommandRepeatingOffValue);
 
         _repeatServiceMock = new Mock<IRepeatService>();

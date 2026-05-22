@@ -54,6 +54,9 @@ public class LavaLinkServiceTests
         _messageMock.SetupGet(m => m.Channel).Returns(_textChannelMock.Object);
         _voiceStateMock.SetupGet(v => v.Channel).Returns(_voiceChannelMock.Object);
         _memberMock.SetupGet(m => m.VoiceState).Returns(_voiceStateMock.Object);
+        _localizationServiceMock
+            .Setup(l => l.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((ulong _, string key, object[] args) => _localizationServiceMock.Object.Get(key, args));
 
         _service = new LavaLinkService(
             _musicQueueServiceMock.Object,

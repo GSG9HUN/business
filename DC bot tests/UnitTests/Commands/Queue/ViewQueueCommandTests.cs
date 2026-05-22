@@ -47,8 +47,12 @@ public class ViewQueueCommandTests
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ViewListCommandEmbedTitle))
             .Returns(ViewListEmbedTitleValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ViewListCommandEmbedTitle))
+            .Returns(ViewListEmbedTitleValue);
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ViewListCommandResponse, 1))
+            .Returns(ViewListFooterValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ViewListCommandResponse, 1))
             .Returns(ViewListFooterValue);
 
         _messageMock = new Mock<IDiscordMessage>();

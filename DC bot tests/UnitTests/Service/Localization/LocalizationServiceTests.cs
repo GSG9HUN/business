@@ -48,8 +48,8 @@ public class LocalizationServiceTests
         service.SaveLanguage(guildId, languageCode);
         service.LoadLanguage(guildId);
 
-        var result1 = service.Get("play_command");
-        var result2 = service.Get("pause_command");
+        var result1 = service.Get(guildId, "play_command");
+        var result2 = service.Get(guildId, "pause_command");
 
         // Assert
         Assert.Equal("Play Command", result1);
@@ -121,7 +121,7 @@ public class LocalizationServiceTests
 
         // Act
         service.LoadLanguage(123456);
-        var result = service.Get(key);
+        var result = service.Get(123456, key);
 
         // Assert
         Assert.Equal(expectedValue, result);
@@ -152,7 +152,7 @@ public class LocalizationServiceTests
         service.LoadLanguage(123456);
 
         // Act
-        var result = service.Get(key);
+        var result = service.Get(123456, key);
 
         // Assert
         Assert.Equal(key, result);
@@ -188,7 +188,7 @@ public class LocalizationServiceTests
         service.LoadLanguage(123456);
 
         // Act
-        var result = service.Get(key, trackTitle, artist);
+        var result = service.Get(123456, key, trackTitle, artist);
 
         // Assert
         Assert.Equal(expectedResult, result);
@@ -227,9 +227,54 @@ public class LocalizationServiceTests
         // Act & Assert
         foreach (var kvp in keys)
         {
-            var result = service.Get(kvp.Key);
+            var result = service.Get(123456, kvp.Key);
             Assert.Equal(kvp.Value, result);
         }
+    }
+
+    [Fact]
+    public void Get_WithMultipleLoadedGuilds_ReturnsEachGuildsOwnLanguage()
+    {
+        // Arrange
+        const ulong hungarianGuildId = 111;
+        const ulong englishGuildId = 222;
+        const string key = "greeting";
+
+        _mockFileSystem.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains($"{hungarianGuildId}.json"))))
+            .Returns(true);
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.Contains($"{englishGuildId}.json"))))
+            .Returns(true);
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("hu.json"))))
+            .Returns(true);
+        _mockFileSystem
+            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Returns(true);
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.Contains($"{hungarianGuildId}.json"))))
+            .Returns("\"hu\"");
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.Contains($"{englishGuildId}.json"))))
+            .Returns("\"eng\"");
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("hu.json"))))
+            .Returns($"{{\"{key}\":\"Szia\"}}");
+        _mockFileSystem
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Returns($"{{\"{key}\":\"Hello\"}}");
+
+        var service = new LocalizationService(NullLogger<LocalizationService>.Instance, _mockFileSystem.Object);
+
+        // Act
+        service.LoadLanguage(hungarianGuildId);
+        service.LoadLanguage(englishGuildId);
+
+        // Assert
+        Assert.Equal("Szia", service.Get(hungarianGuildId, key));
+        Assert.Equal("Hello", service.Get(englishGuildId, key));
     }
 
     #endregion
@@ -262,7 +307,7 @@ public class LocalizationServiceTests
         service.LoadLanguage(guildId);
 
         // Assert
-        var result = service.Get("test_key");
+        var result = service.Get(guildId, "test_key");
         Assert.Equal("Hungarian Value", result);
     }
 
@@ -293,7 +338,7 @@ public class LocalizationServiceTests
         service.LoadLanguage(guildId);
 
         // Assert
-        var result = service.Get("test_key");
+        var result = service.Get(guildId, "test_key");
         Assert.Equal("English Value", result);
     }
 

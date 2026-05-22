@@ -28,7 +28,8 @@ public class ViewQueueCommand(
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
         if (validationResult is null) return;
 
-        var queue = await musicQueueService.ViewQueue(message.Channel.Guild.Id);
+        var guildId = message.Channel.Guild.Id;
+        var queue = await musicQueueService.ViewQueue(guildId);
 
         if (queue.Count == 0)
         {
@@ -38,7 +39,7 @@ public class ViewQueueCommand(
         }
 
         var embed = new DiscordEmbedBuilder()
-            .WithTitle(localizationService.Get(LocalizationKeys.ViewListCommandEmbedTitle))
+            .WithTitle(localizationService.Get(guildId, LocalizationKeys.ViewListCommandEmbedTitle))
             .WithColor(DiscordColor.Azure);
 
         foreach (var track in queue.Take(10))
@@ -48,7 +49,7 @@ public class ViewQueueCommand(
 
         if (queue.Count > 10)
         {
-            embed.WithFooter($"{localizationService.Get(LocalizationKeys.ViewListCommandResponse, queue.Count - 10)}");
+            embed.WithFooter($"{localizationService.Get(guildId, LocalizationKeys.ViewListCommandResponse, queue.Count - 10)}");
         }
 
         await message.RespondAsync(embed);

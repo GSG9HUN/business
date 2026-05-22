@@ -93,7 +93,7 @@ public class LavaLinkService(
         if (loadResult.Track is null || loadResult.IsFailed)
         {
             await trackNotificationService.SendSafeAsync(textChannel,
-                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {url}",
+                $"{localizationService.Get(guildId, LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {url}",
                 "PlayAsyncUrl.NotFound");
             logger.FailedToFindMusicWithUrl(url.ToString());
             throw new TrackLoadException(url.ToString(), "Track not found or load failed");
@@ -129,7 +129,7 @@ public class LavaLinkService(
         if (loadResult.Track is null || loadResult.IsFailed)
         {
             await trackNotificationService.SendSafeAsync(textChannel,
-                $"{localizationService.Get(LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {query}",
+                $"{localizationService.Get(guildId, LocalizationKeys.PlayCommandFailedToFindMusicUrlError)} {query}",
                 "PlayAsyncQuery.NotFound");
             logger.FailedToFindMusicWithQuery(query);
             throw new TrackLoadException(query, "Track not found or load failed");
@@ -140,14 +140,14 @@ public class LavaLinkService(
 
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, channel, _, isValid) =
+        var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
         {
             await trackNotificationService.SendSafeAsync(channel,
-                localizationService.Get(LocalizationKeys.PauseCommandError), "PauseAsync.NoTrack");
+                localizationService.Get(guildId, LocalizationKeys.PauseCommandError), "PauseAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPlaying();
             return;
         }
@@ -156,7 +156,7 @@ public class LavaLinkService(
         {
             await connection.PauseAsync();
             logger.LogInformation(
-                "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.PauseCommandResponse),
+                "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
         }
         catch (Exception ex)
@@ -168,14 +168,14 @@ public class LavaLinkService(
 
     public async Task ResumeAsync(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, channel, _, isValid) =
+        var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
         if (!isValid || connection == null || channel == null) return;
 
         if (connection.CurrentTrack == null)
         {
             await trackNotificationService.SendSafeAsync(channel,
-                localizationService.Get(LocalizationKeys.ResumeCommandError), "ResumeAsync.NoTrack");
+                localizationService.Get(guildId, LocalizationKeys.ResumeCommandError), "ResumeAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPaused();
             return;
         }
@@ -184,7 +184,7 @@ public class LavaLinkService(
         {
             await connection.ResumeAsync();
             logger.LogInformation(
-                "{Get} {CurrentTrackTitle}", localizationService.Get(LocalizationKeys.ResumeCommandResponse),
+                "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
         }
         catch (Exception ex)
@@ -203,7 +203,7 @@ public class LavaLinkService(
         if (connection.CurrentTrack == null && !(await musicQueueService.HasTracks(channel.Guild.Id)))
         {
             await trackNotificationService.SendSafeAsync(channel,
-                localizationService.Get(LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
+                localizationService.Get(guildId, LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
             return;
         }
 

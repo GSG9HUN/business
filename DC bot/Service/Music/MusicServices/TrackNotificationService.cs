@@ -21,14 +21,15 @@ public class TrackNotificationService(
     public async Task NotifyNowPlayingAsync(IDiscordChannel textChannel, ILavaLinkTrack track, TimeSpan position,
         TimeSpan duration)
     {
-        var embed = BuildNowPlayingEmbed(track, position, duration);
+        var embed = BuildNowPlayingEmbed(textChannel.Guild.Id, track, position, duration);
         await TrackStarted.Invoke(textChannel, discordClient, embed);
         logger.NowPlaying(track.Author, track.Title);
     }
 
     public async Task NotifyQueueEmptyAsync(IDiscordChannel textChannel)
     {
-        await SendSafeAsync(textChannel, localizationService.Get(LocalizationKeys.SkipCommandQueueIsEmpty),
+        await SendSafeAsync(textChannel,
+            localizationService.Get(textChannel.Guild.Id, LocalizationKeys.SkipCommandQueueIsEmpty),
             "NotifyQueueEmptyAsync");
         logger.QueueIsEmpty();
     }
@@ -48,12 +49,20 @@ public class TrackNotificationService(
 
     public DiscordEmbed BuildNowPlayingEmbed(ILavaLinkTrack track, TimeSpan position, TimeSpan duration)
     {
+        return BuildNowPlayingEmbed(null, track, position, duration);
+    }
+
+    private DiscordEmbed BuildNowPlayingEmbed(ulong? guildId, ILavaLinkTrack track, TimeSpan position, TimeSpan duration)
+    {
         var posStr = $"{(int)position.TotalMinutes:D2}:{position.Seconds:D2}";
         var durStr = $"{(int)duration.TotalMinutes:D2}:{duration.Seconds:D2}";
         var bar = BuildProgressBar(position, duration);
+        var title = guildId.HasValue
+            ? localizationService.Get(guildId.Value, LocalizationKeys.PlayCommandMusicPlaying)
+            : localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying);
 
         var builder = new DiscordEmbedBuilder()
-            .WithTitle(localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying))
+            .WithTitle(title)
             .WithDescription($"**{track.Author} - {track.Title}**\n\n{bar}\n`{posStr} / {durStr}`")
             .WithColor(DiscordColor.Blurple);
 

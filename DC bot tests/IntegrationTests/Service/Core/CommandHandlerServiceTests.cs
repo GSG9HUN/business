@@ -47,6 +47,8 @@ public class CommandHandlerServiceTests : IAsyncLifetime
 
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
+        _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.UnknownCommandError))
+            .Returns("Unknown command. Use `!help` to see available commands.");
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();

@@ -49,11 +49,18 @@ public class RepeatListCommandTests
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatListCommandRepeatingOn))
             .Returns(RepeatListRepeatingOnValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatListCommandRepeatingOn))
+            .Returns(RepeatListRepeatingOnValue);
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatListCommandRepeatingOff))
             .Returns(RepeatListRepeatingOffValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatListCommandRepeatingOff))
+            .Returns(RepeatListRepeatingOffValue);
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.RepeatListCommandTrackAlreadyRepeating))
+            .Returns(RepeatListTrackAlreadyRepeatingValue);
+        _localizationServiceMock
+            .Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatListCommandTrackAlreadyRepeating))
             .Returns(RepeatListTrackAlreadyRepeatingValue);
 
         _localizationServiceMock.Setup(g => g.Get(ValidationErrorKeys.UserNotInVoiceChannel))
