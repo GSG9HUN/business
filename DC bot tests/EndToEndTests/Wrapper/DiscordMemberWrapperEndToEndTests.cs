@@ -1,28 +1,27 @@
-﻿using DC_bot.Wrapper;
-using DotNetEnv;
+using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Wrapper;
+namespace DC_bot_tests.EndToEndTests.Wrapper;
 
-[Collection("Integration Tests")]
-public class DiscordMemberWrapperIntegrationTests : IAsyncLifetime
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class DiscordMemberWrapperEndToEndTests : IAsyncLifetime
 {
     private readonly DiscordClient? _discordClient;
     private readonly bool _isConfigured;
-    private readonly ulong _guildId = 1309813939563003966;
+    private readonly ulong _guildId;
 
-    public DiscordMemberWrapperIntegrationTests()
+    public DiscordMemberWrapperEndToEndTests()
     {
-        var directoryInfo =
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
+        var hasGuild = EndToEndTestConfiguration.TryGetDiscordGuildId(out var guildId);
 
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        _guildId = guildId;
 
-        if (!string.IsNullOrWhiteSpace(token))
+        if (hasToken && hasGuild)
         {
             _isConfigured = true;
             _discordClient = new DiscordClient(new DiscordConfiguration
@@ -48,43 +47,39 @@ public class DiscordMemberWrapperIntegrationTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         if (_discordClient != null)
+        {
             await _discordClient.DisconnectAsync();
+        }
     }
 
-    private async Task<DiscordMember?> GetFirstMemberAsync()
+    private async Task<DiscordMember> GetFirstMemberAsync()
     {
-        if (_discordClient == null || !_isConfigured) return null;
+        EnsureConfigured();
 
-        if (!_discordClient.Guilds.TryGetValue(_guildId, out var guild))
-            return null;
+        if (!_discordClient!.Guilds.TryGetValue(_guildId, out var guild))
+        {
+            throw SkipException.ForSkip($"E2E test guild '{_guildId}' was not available.");
+        }
 
         var members = await guild.GetAllMembersAsync();
-        return members.FirstOrDefault();
+        return members.FirstOrDefault()
+               ?? throw SkipException.ForSkip($"E2E test guild '{_guildId}' has no members.");
     }
 
     [Fact]
     public async Task IsBot_ReturnsCorrectValue()
     {
-        if (!_isConfigured)
-        {
-            return;
-        }
-
         var discordMember = await GetFirstMemberAsync();
-        Assert.NotNull(discordMember);
 
         var wrapper = new DiscordMemberWrapper(discordMember);
-        
+
         Assert.Equal(discordMember.IsBot, wrapper.IsBot);
     }
 
     [Fact]
     public async Task Username_ReturnsCorrectValue()
     {
-        if (!_isConfigured) return;
-
         var discordMember = await GetFirstMemberAsync();
-        Assert.NotNull(discordMember);
 
         var wrapper = new DiscordMemberWrapper(discordMember);
 
@@ -95,10 +90,7 @@ public class DiscordMemberWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Mention_ReturnsCorrectValue()
     {
-        if (!_isConfigured) return;
-
         var discordMember = await GetFirstMemberAsync();
-        Assert.NotNull(discordMember);
 
         var wrapper = new DiscordMemberWrapper(discordMember);
 
@@ -109,26 +101,28 @@ public class DiscordMemberWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task VoiceState_ReturnsDiscordVoiceStateWrapper()
     {
-        if (!_isConfigured) return;
-
         var discordMember = await GetFirstMemberAsync();
-        Assert.NotNull(discordMember);
 
         var wrapper = new DiscordMemberWrapper(discordMember);
-        
+
         Assert.IsType<DiscordVoiceStateWrapper>(wrapper.VoiceState);
     }
 
     [Fact]
     public async Task VoiceState_WhenMemberNotInVoiceChannel_ChannelIsNull()
     {
-        if (!_isConfigured) return;
-
         var discordMember = await GetFirstMemberAsync();
-        Assert.NotNull(discordMember);
-        
-        var wrapper = new DiscordMemberWrapper(discordMember); 
+
+        var wrapper = new DiscordMemberWrapper(discordMember);
         Assert.Null(wrapper.VoiceState.Channel);
+    }
+
+    private void EnsureConfigured()
+    {
+        if (!_isConfigured || _discordClient == null)
+        {
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndGuildMessage());
+        }
     }
 }
 

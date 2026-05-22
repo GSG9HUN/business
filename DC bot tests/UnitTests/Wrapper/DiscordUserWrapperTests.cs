@@ -1,9 +1,8 @@
-﻿using DC_bot.Wrapper;
-using DSharpPlus.Entities;
-using Moq;
+using DC_bot.Wrapper;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordUserWrapperTests
 {
     [Fact]
@@ -39,7 +38,7 @@ public class DiscordUserWrapperTests
     {
         var user = DiscordEntityFactory.CreateUser(id: 42ul);
         var wrapper = new DiscordUserWrapper(user);
-        
+
         Assert.NotNull(wrapper.Mention);
     }
 

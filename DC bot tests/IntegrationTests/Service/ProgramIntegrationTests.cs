@@ -1,9 +1,20 @@
-﻿using System.Reflection;
+using System.Reflection;
 using DC_bot;
 using DC_bot.Configuration;
+using DC_bot.Interface;
+using DC_bot.Interface.Core;
+using DC_bot.Interface.Service.IO;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Persistence.Db;
 using DC_bot.Service;
 using DC_bot.Service.Core;
+using DC_bot_tests.IntegrationTests.Persistence;
+using DSharpPlus;
 using DC_bot.Wrapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace DC_bot_tests.IntegrationTests.Service;
 
 [Collection("Integration Tests")]
+[Trait("Category", "Integration")]
 public class ProgramIntegrationTests
 {
     private sealed class EnvScope : IDisposable
@@ -173,6 +185,74 @@ public class ProgramIntegrationTests
     }
 
     [Fact]
+    public async Task ConfigureServices_WithPostgreSqlEnvironment_ResolvesFullStartupGraph()
+    {
+        var database = await PostgreSqlTestDatabase.TryCreateAsync();
+        if (database is null) return;
+        await using var _ = database;
+        using var env = new EnvScope(database.CreateProgramEnvironment().ToDictionary());
+
+        var configureMethod = typeof(Program).GetMethod("ConfigureServices", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(configureMethod);
+
+        var botSettings = new BotSettings { Token = "token", Prefix = "!" };
+        var lavaSettings = new LavalinkSettings
+        {
+            Hostname = "localhost",
+            Port = 2333,
+            Secured = false,
+            Password = "pass"
+        };
+
+        var provider = (ServiceProvider)configureMethod.Invoke(null, [botSettings, lavaSettings])!;
+
+        try
+        {
+            Assert.NotNull(provider.GetRequiredService<DiscordClient>());
+            Assert.NotNull(provider.GetRequiredService<BotService>());
+            Assert.NotNull(provider.GetRequiredService<CommandHandlerService>());
+            Assert.NotNull(provider.GetRequiredService<ReactionHandler>());
+            Assert.NotNull(provider.GetRequiredService<DiscordClientEventHandler>());
+            Assert.NotNull(provider.GetRequiredService<IFileSystem>());
+            Assert.NotNull(provider.GetRequiredService<ILocalizationService>());
+            Assert.NotNull(provider.GetRequiredService<IResponseBuilder>());
+            Assert.NotNull(provider.GetRequiredService<ICommandHelper>());
+            Assert.NotNull(provider.GetRequiredService<IUserValidationService>());
+            Assert.NotNull(provider.GetRequiredService<IValidationService>());
+            Assert.NotNull(provider.GetRequiredService<ILavaLinkService>());
+            Assert.NotNull(provider.GetRequiredService<IMusicQueueService>());
+            Assert.NotNull(provider.GetRequiredService<IRepeatService>());
+            Assert.NotNull(provider.GetRequiredService<ICurrentTrackService>());
+            Assert.NotNull(provider.GetRequiredService<ITrackNotificationService>());
+            Assert.NotNull(provider.GetRequiredService<ITrackFormatterService>());
+            Assert.NotNull(provider.GetRequiredService<IPlayerConnectionService>());
+            Assert.NotNull(provider.GetRequiredService<IPlaybackEventHandlerService>());
+            Assert.NotNull(provider.GetRequiredService<ITrackPlaybackService>());
+            Assert.NotNull(provider.GetRequiredService<ITrackEndedHandlerService>());
+            Assert.NotNull(provider.GetRequiredService<IProgressiveTimerService>());
+            Assert.NotNull(provider.GetRequiredService<ITrackSearchResolverService>());
+            Assert.NotNull(provider.GetRequiredService<IGuildDataRepository>());
+            Assert.NotNull(provider.GetRequiredService<IPlaybackStateRepository>());
+            Assert.NotNull(provider.GetRequiredService<IQueueRepository>());
+            Assert.NotNull(provider.GetRequiredService<IRepeatListRepository>());
+
+            var commandNames = provider.GetServices<ICommand>().Select(command => command.Name).ToArray();
+            Assert.Contains("ping", commandNames);
+            Assert.Contains("help", commandNames);
+            Assert.Contains("play", commandNames);
+            Assert.Contains("repeatList", commandNames);
+
+            var factory = provider.GetRequiredService<IDbContextFactory<BotDbContext>>();
+            await using var dbContext = await factory.CreateDbContextAsync();
+            Assert.True(await dbContext.Database.CanConnectAsync());
+        }
+        finally
+        {
+            await provider.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task ApplyMigrationsIfNeededAsync_WithInMemoryFactory_ThrowsInvalidOperationException()
     {
         var services = new ServiceCollection()
@@ -187,5 +267,30 @@ public class ProgramIntegrationTests
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await task);
 
         await services.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task ApplyMigrationsIfNeededAsync_WithPostgreSql_AppliesPendingMigrations()
+    {
+        var database = await PostgreSqlTestDatabase.TryCreateAsync();
+        if (database is null) return;
+        await using var _ = database;
+        await using var services = database.CreateServiceProvider();
+
+        var factory = services.GetRequiredService<IDbContextFactory<BotDbContext>>();
+        await using (var beforeContext = await factory.CreateDbContextAsync())
+        {
+            Assert.NotEmpty(await beforeContext.Database.GetPendingMigrationsAsync());
+        }
+
+        var applyMethod = typeof(Program).GetMethod("ApplyMigrationsIfNeededAsync", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(applyMethod);
+
+        var task = (Task)applyMethod.Invoke(null, [services])!;
+        await task;
+
+        await using var afterContext = await factory.CreateDbContextAsync();
+        Assert.Empty(await afterContext.Database.GetPendingMigrationsAsync());
+        Assert.Equal(0, await afterContext.GuildData.CountAsync());
     }
 }

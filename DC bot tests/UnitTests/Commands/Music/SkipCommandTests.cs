@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
 
+[Trait("Category", "Unit")]
 public class SkipCommandTests
 {
     private const string SkipCommandName = "skip";
@@ -53,7 +54,6 @@ public class SkipCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        //Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(true);
         _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
@@ -65,10 +65,8 @@ public class SkipCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
 
         _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Never);
@@ -77,7 +75,6 @@ public class SkipCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotIn_VoiceChannel()
     {
-        //Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
@@ -90,10 +87,8 @@ public class SkipCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
             Times.Never);
@@ -104,7 +99,6 @@ public class SkipCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIn_VoiceChannel()
     {
-        //Arrange
         var mockDiscordVoiceState = new Mock<IDiscordVoiceState>();
         mockDiscordVoiceState.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -120,10 +114,8 @@ public class SkipCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        //Act
         await _skipCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Once);
     }

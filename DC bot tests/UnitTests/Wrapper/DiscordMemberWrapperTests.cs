@@ -1,7 +1,8 @@
-﻿using DC_bot.Wrapper;
+using DC_bot.Wrapper;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordMemberWrapperTests
 {
     [Fact]

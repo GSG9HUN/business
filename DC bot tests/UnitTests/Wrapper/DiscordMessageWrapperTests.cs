@@ -1,4 +1,4 @@
-﻿using DC_bot.Interface.Discord;
+using DC_bot.Interface.Discord;
 using DC_bot.Wrapper;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
@@ -6,6 +6,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordMessageWrapperTests
 {
     private static DiscordMessageWrapper CreateWrapper(

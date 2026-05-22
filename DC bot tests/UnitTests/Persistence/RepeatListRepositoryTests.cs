@@ -1,7 +1,8 @@
-﻿using DC_bot.Persistence.Repositories;
+using DC_bot.Persistence.Repositories;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 
+[Trait("Category", "Unit")]
 public class RepeatListRepositoryTests
 {
     private static InMemoryDbContextFactory CreateFactory() =>
@@ -103,9 +104,9 @@ public class RepeatListRepositoryTests
     {
         var repo = new RepeatListRepository(CreateFactory());
 
-        var ex = await Record.ExceptionAsync(() => repo.ClearAsync(8ul));
+        await repo.ClearAsync(8ul);
 
-        Assert.Null(ex);
+        Assert.Empty(await repo.GetTrackIdentifiersAsync(8ul));
     }
 }
 

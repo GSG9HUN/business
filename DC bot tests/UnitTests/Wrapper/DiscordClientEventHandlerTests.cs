@@ -1,4 +1,4 @@
-﻿using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
@@ -8,6 +8,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordClientEventHandlerTests
 {
     private readonly DiscordClientEventHandler _eventHandler;
@@ -22,7 +23,6 @@ public class DiscordClientEventHandlerTests
     {
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        // Setup service provider to return mocked services
         _serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService)))
             .Returns(_lavaLinkServiceMock.Object);
         _serviceProviderMock.Setup(sp => sp.GetService(typeof(ILocalizationService)))
@@ -39,11 +39,9 @@ public class DiscordClientEventHandlerTests
     [Fact]
     public void Constructor_InitializesWithProperDependencies()
     {
-        // Arrange & Act
         var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
             _serviceProviderMock.Object);
 
-        // Assert - If we got here without exception, initialization succeeded
         Assert.NotNull(testEventHandler);
     }
 
@@ -54,13 +52,10 @@ public class DiscordClientEventHandlerTests
     [Fact]
     public async Task OnClientReady_LogsBotIsReady()
     {
-        // Arrange
         _lavaLinkServiceMock.Setup(l => l.ConnectAsync()).Returns(Task.CompletedTask);
 
-        // Act
         await _eventHandler.OnClientReady(null!, null!);
 
-        // Assert - Logs "Bot is ready!" with EventId 1502
         _loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -76,27 +71,21 @@ public class DiscordClientEventHandlerTests
     [Fact]
     public async Task OnClientReady_ConnectsToLavalink()
     {
-        // Arrange
         _lavaLinkServiceMock.Setup(l => l.ConnectAsync()).Returns(Task.CompletedTask);
 
-        // Act
         await _eventHandler.OnClientReady(null!, null!);
 
-        // Assert - Verifies ConnectAsync was called
         _lavaLinkServiceMock.Verify(l => l.ConnectAsync(), Times.Once);
     }
 
     [Fact]
     public async Task OnClientReady_WhenLavaLinkConnectThrows_LogsError()
     {
-        // Arrange
         var exception = new InvalidOperationException("Lavalink connection failed");
         _lavaLinkServiceMock.Setup(l => l.ConnectAsync()).ThrowsAsync(exception);
 
-        // Act
         await _eventHandler.OnClientReady(null!, null!);
 
-        // Assert - Logs error with EventId 1504
         _loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),

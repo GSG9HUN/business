@@ -1,23 +1,25 @@
-﻿using DC_bot.Helper.Factory;
+using DC_bot.Helper.Factory;
 using DC_bot.Interface.Discord;
-using DotNetEnv;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Xunit.Sdk;
-namespace DC_bot_tests.IntegrationTests.Wrapper;
-[Collection("Integration Tests")]
-public class DiscordMessageWrapperFactoryIntegrationTests : IAsyncLifetime
+
+namespace DC_bot_tests.EndToEndTests.Wrapper;
+
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class DiscordMessageWrapperFactoryEndToEndTests : IAsyncLifetime
 {
-    private const ulong TestChannelId = 1339151008307351572;
+    private readonly ulong _testChannelId;
     private readonly DiscordClient? _discordClient;
     private readonly bool _isConfigured;
-    public DiscordMessageWrapperFactoryIntegrationTests()
+    public DiscordMessageWrapperFactoryEndToEndTests()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        if (!string.IsNullOrWhiteSpace(token))
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
+        var hasChannel = EndToEndTestConfiguration.TryGetDiscordChannelId(out var testChannelId);
+        _testChannelId = testChannelId;
+
+        if (hasToken && hasChannel)
         {
             _isConfigured = true;
             _discordClient = new DiscordClient(new DiscordConfiguration
@@ -48,14 +50,14 @@ public class DiscordMessageWrapperFactoryIntegrationTests : IAsyncLifetime
     private void EnsureConfigured()
     {
         if (!_isConfigured || _discordClient == null)
-            throw SkipException.ForSkip("Integration test requires DISCORD_TOKEN in .env.");
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndChannelMessage());
     }
     [Fact]
     public async Task Create_WithRealDiscordObjects_MapsCoreProperties()
     {
         EnsureConfigured();
         var client = _discordClient!;
-        var channel = await client.GetChannelAsync(TestChannelId);
+        var channel = await client.GetChannelAsync(_testChannelId);
         var marker = $"factory-map-{Guid.NewGuid():N}";
         var message = await channel.SendMessageAsync(marker);
         IDiscordMessage wrapped = DiscordMessageWrapperFactory.Create(message, channel, client.CurrentUser);
@@ -70,7 +72,7 @@ public class DiscordMessageWrapperFactoryIntegrationTests : IAsyncLifetime
     {
         EnsureConfigured();
         var client = _discordClient!;
-        var channel = await client.GetChannelAsync(TestChannelId);
+        var channel = await client.GetChannelAsync(_testChannelId);
         var original = $"factory-original-{Guid.NewGuid():N}";
         var responseMarker = $"factory-response-{Guid.NewGuid():N}";
         var modified = $"factory-modified-{Guid.NewGuid():N}";
