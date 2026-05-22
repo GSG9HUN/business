@@ -3,6 +3,7 @@
   "help_command_response": "Available commands:",
   "language_command_description": "Change the bot language.",
   "language_command_usage": "Please provide language.",
+  "language_command_invalid_language": "Invalid language code. Allowed languages: eng, hu.",
   "language_command_response": "The language changed successfully.",
   "pause_command_description": "Pause the current music.",
   "pause_command_error": "There is no track currently playing.",

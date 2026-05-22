@@ -3,6 +3,7 @@
   "help_command_response": "Elérhető parancsok:",
   "language_command_description": "Megváltoztatja a bot nyelvét.",
   "language_command_usage": "Adj meg egy nyelvet.",
+  "language_command_invalid_language": "Ervenytelen nyelvkod. Engedelyezett nyelvek: eng, hu.",
   "language_command_response": "A nyelv sikeresen megváltozott.",
   "pause_command_description": "Szünetelteti a jelenlegi zenét.",
   "pause_command_error": "Jelenleg nincs lejátszott szám.",
