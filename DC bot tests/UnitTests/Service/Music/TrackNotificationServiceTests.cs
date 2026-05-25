@@ -105,8 +105,13 @@ public class TrackNotificationServiceTests
         var logger = new Mock<ILogger<TrackNotificationService>>();
         var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
+        var guild = new Mock<IDiscordGuild>();
 
         localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing: ");
+        localization.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.PlayCommandMusicPlaying))
+            .Returns("Now playing: ");
+        guild.SetupGet(x => x.Id).Returns(123UL);
+        channel.SetupGet(x => x.Guild).Returns(guild.Object);
 
         var service = new TrackNotificationService(localization.Object, logger.Object, client);
         var track = TrackTestHelper.CreateTrackWrapper("Artist", "Title");

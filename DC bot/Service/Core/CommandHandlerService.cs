@@ -85,7 +85,9 @@ public class CommandHandlerService
             else
             {
                 await message.Channel.SendMessageAsync(
-                    _localizationService.Get(args.Guild.Id, LocalizationKeys.UnknownCommandError));
+                    guildId == 0
+                        ? _localizationService.Get(LocalizationKeys.UnknownCommandError)
+                        : _localizationService.Get(guildId, LocalizationKeys.UnknownCommandError));
                 _logger.CommandHandlerUnknownCommand();
             }
         }

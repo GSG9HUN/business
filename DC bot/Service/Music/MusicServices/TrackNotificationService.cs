@@ -55,9 +55,11 @@ public class TrackNotificationService(
 
     private DiscordEmbed BuildNowPlayingEmbed(ulong? guildId, ILavaLinkTrack track, TimeSpan position, TimeSpan duration)
     {
-        var posStr = $"{(int)position.TotalMinutes:D2}:{position.Seconds:D2}";
-        var durStr = $"{(int)duration.TotalMinutes:D2}:{duration.Seconds:D2}";
-        var bar = BuildProgressBar(position, duration);
+        var safeDuration = duration > TimeSpan.Zero ? duration : TimeSpan.Zero;
+        var safePosition = ClampPosition(position, safeDuration);
+        var posStr = FormatTimestamp(safePosition);
+        var durStr = FormatTimestamp(safeDuration);
+        var bar = BuildProgressBar(safePosition, safeDuration);
         var title = guildId.HasValue
             ? localizationService.Get(guildId.Value, LocalizationKeys.PlayCommandMusicPlaying)
             : localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying);

@@ -283,7 +283,7 @@ public class LocalizationServiceTests
 
         service.LoadLanguage(guildId);
 
-        var result = service.Get("test_key");
+        var result = service.Get(guildId, "test_key");
         Assert.Equal("Hungarian Value", result);
     }
 
