@@ -25,6 +25,7 @@ public interface IDiscordMessage
     IReadOnlyList<DiscordEmbed> Embeds { get; set; }
     Task RespondAsync(string message);
     Task RespondAsync(DiscordEmbed message);
+    Task ModifyAsync(DiscordMessageBuilder builder);
 }
 ```
 
@@ -39,8 +40,9 @@ public interface IDiscordChannel
 {
     ulong Id { get; }
     string Name { get; }
-    Task SendMessageAsync(string message);
     IDiscordGuild Guild { get; }
+    Task SendMessageAsync(string message);
+    Task SendMessageAsync(DiscordEmbed embed);
     DiscordChannel ToDiscordChannel();
 }
 ```
@@ -55,8 +57,10 @@ public interface IDiscordChannel
 public interface IDiscordUser
 {
     ulong Id { get; }
-    string Username { get; }
     bool IsBot { get; }
+    string Username { get; }
+    string Mention { get; }
+    DiscordUser ToDiscordUser();
 }
 ```
 
@@ -67,10 +71,14 @@ public interface IDiscordUser
 ### IDiscordMember.cs
 
 ```csharp
-public interface IDiscordMember : IDiscordUser
+public interface IDiscordMember
 {
-    IDiscordGuild Guild { get; }
+    ulong Id { get; }
+    bool IsBot { get; }
+    string Username { get; }
+    string Mention { get; }
     IDiscordVoiceState? VoiceState { get; }
+    DiscordMember ToDiscordMember();
 }
 ```
 
@@ -85,6 +93,9 @@ public interface IDiscordGuild
 {
     ulong Id { get; }
     string Name { get; }
+    Task<IDiscordMember> GetMemberAsync(ulong id);
+    DiscordGuild ToDiscordGuild();
+    Task<IReadOnlyCollection<IDiscordMember>> GetAllMembersAsync();
 }
 ```
 
@@ -98,6 +109,7 @@ public interface IDiscordGuild
 public interface IDiscordVoiceState
 {
     IDiscordChannel? Channel { get; }
+    DiscordVoiceState ToDiscordVoiceState();
 }
 ```
 

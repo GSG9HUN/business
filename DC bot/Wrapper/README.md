@@ -31,6 +31,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Methods:**
 
 - `RespondAsync()` - Send text or embed response
+- `ModifyAsync()` - Modify the wrapped Discord message
 
 ---
 
@@ -64,6 +65,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 - `Id` - User ID
 - `Username` - User name
 - `IsBot` - Whether user is a bot
+- `Mention` - Discord mention string
 
 ---
 
@@ -77,8 +79,8 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 - `Id` - Member ID
 - `Username` - Member name
+- `Mention` - Discord mention string
 - `IsBot` - Whether member is a bot
-- `Guild` - Parent guild
 - `VoiceState` - Voice channel state (nullable)
 
 ---
@@ -137,16 +139,12 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 **Methods:**
 
-- `RegisterHandler()` - Register event listeners
-- `OnMessageCreated()` - Handle message events
-- `OnGuildMemberUpdated()` - Handle member updates
-- `OnVoiceStateUpdated()` - Handle voice state changes
+- `OnClientReady()` - Connect Lavalink when Discord is ready
+- `OnGuildAvailable()` - Ensure guild row exists, load localization, and initialize Lavalink guild state
 
 **Features:**
 
-- Routes messages to command handler
-- Routes reactions to reaction handler
-- Tracks voice state changes
+- Handles Discord client startup and guild availability lifecycle hooks
 
 ---
 
@@ -156,13 +154,13 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 **Methods:**
 
-- `CreateClient()` - Create configured Discord client
+- `Create()` - Create configured Discord client
 
 **Configuration:**
 
 - Sets intents (privileged and unprivileged)
-- Configures caching
-- Enables message content
+- Enables auto reconnect
+- Registers `Ready` and `GuildAvailable` handlers
 
 ---
 

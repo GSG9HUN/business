@@ -9,5 +9,6 @@ This folder stores per-guild localization settings.
 ## Notes
 
 - These files persist each guild's selected language.
-- Corrupted files should be handled gracefully with fallback to default language.
+- Missing files fall back to the default language (`eng`).
+- Corrupted files currently raise `LocalizationException`; fix or delete the file to restore default loading.
 

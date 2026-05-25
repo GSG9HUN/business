@@ -39,12 +39,11 @@ var content = fileSystem.ReadAllText(path);
 **Used By:**
 
 - `Service/LocalizationService.cs` - Language file operations
-- `Service/Music/MusicServices/MusicQueueService.cs` - Queue file operations
+- Tests can substitute `InMemoryFileSystem` for file-backed localization scenarios
 
 ## Related Components
 
 - **Interface/Service/IO/IFileSystem.cs** - Interface contract
 - **Service/LocalizationService.cs** - Uses for language files
-- **Service/Music/MusicServices/MusicQueueService.cs** - Uses for queue files
 - **DC bot tests/Helpers/InMemoryFileSystem.cs** - Test implementation
 

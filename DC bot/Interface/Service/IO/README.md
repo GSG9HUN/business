@@ -32,7 +32,7 @@ public interface IFileSystem
 **Used By:**
 
 - `Service/LocalizationService.cs` - Read/write language files
-- `Service/Music/MusicServices/MusicQueueService.cs` - Read/write queue files
+- Tests can provide `InMemoryFileSystem` for localization scenarios
 
 **Benefits:**
 

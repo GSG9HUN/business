@@ -1,0 +1,77 @@
+server:
+  port: 2333
+  address: 0.0.0.0
+  http2:
+    enabled: false
+
+plugins:
+  lavasrc:
+    providers:
+      - "ytsearch:%QUERY%"
+    sources:
+      spotify: true
+      applemusic: false
+      deezer: false
+      yandexmusic: false
+      youtube: true
+      ytdlp: false
+    spotify:
+      clientId: "${SPOTIFY_CLIENT_ID:}"
+      clientSecret: "${SPOTIFY_CLIENT_SECRET:}"
+      countryCode: "HU"
+    applemusic:
+      mediaAPIToken: "${APPLE_MUSIC_API_TOKEN:}"
+    deezer:
+      arl: "${DEEZER_ARL:}"
+    yandexMusic:
+      accessToken: "${YANDEX_MUSIC_ACCESS_TOKEN:}"
+
+  lavalyrics:
+    sources:
+      - spotify
+      - youtube
+
+lavalink:
+  pluginsDir: ./plugins
+
+  plugins:
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.0"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+    - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+    - dependency: "com.github.topi314.lavalyrics:lavalyrics-plugin:1.1.0"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+  server:
+    password: "${LAVALINK_SERVER_PASSWORD:nagyon_eros_jelszo}"
+
+    sources:
+      youtube: false
+      bandcamp: true
+      soundcloud: true
+      twitch: true
+      vimeo: true
+      nico: true
+      http: true
+      local: false
+
+    filters:
+      volume: true
+      equalizer: true
+      karaoke: true
+      timescale: true
+      tremolo: true
+      vibrato: true
+      distortion: true
+      rotation: true
+      channelMix: true
+      lowPass: true

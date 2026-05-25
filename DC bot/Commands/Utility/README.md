@@ -31,13 +31,12 @@ var response = commands.Aggregate(string.Empty,
 
 **Command:** `!ping`
 
-**Description:** Check bot latency and response time.
+**Description:** Reply with `Pong!`.
 
 **Behavior:**
 
 1. Validates user is not a bot
-2. Calculates bot's WebSocket ping
-3. Sends response with latency information
+2. Sends the configured ping response
 
 ---
 
@@ -50,7 +49,7 @@ var response = commands.Aggregate(string.Empty,
 **Usage:**
 
 ```
-!language en
+!language eng
 !language hu
 ```
 
@@ -58,35 +57,35 @@ var response = commands.Aggregate(string.Empty,
 
 1. Validates user
 2. Extracts language code from command arguments
-3. Calls `ILocalizationService.SetLanguage(guildId, languageCode)`
+3. Calls `ILocalizationService.SaveLanguage(guildId, languageCode)`
 4. Saves language preference to `guildFiles/localization/`
 
 **Supported Languages:**
 
-- `en` - English
+- `eng` - English
 - `hu` - Hungarian
+
+**Current limitation:** `LanguageCommand` saves the provided code directly. Invalid codes are not validated before `LocalizationService` tries to load the matching JSON file.
 
 ---
 
 ### TagCommand.cs
 
-**Command:** `!tag <action> [name] [content]`
+**Command:** `!tag <username>`
 
-**Description:** Manage custom text tags for the guild.
+**Description:** Mention a guild member by username.
 
 **Usage:**
 
 ```
-!tag create welcome Welcome to our server!
-!tag get welcome
-!tag delete welcome
+!tag Mario
 ```
 
 **Behavior:**
 
-- Create/update tags for guild-specific content
-- Retrieve stored tag content
-- Delete existing tags
+- Looks up the provided username in the current guild
+- Sends a localized mention response when the member exists
+- Sends a localized error response when the member cannot be found
 
 ---
 
@@ -120,5 +119,5 @@ public async Task ExecuteAsync(IDiscordMessage message)
 
 - `Service/LocalizationService.cs` - Language management
 - `guildFiles/localization/` - Stored language preferences
-- `Constants/LocalizationKeys.cs` - Localization key constants
+- `Constants/AppConstants.cs` - Localization key constants
 
