@@ -44,22 +44,38 @@ This file wires up runtime configuration, dependency injection, database migrati
 - `POSTGRES_USER` (default: `postgres`)
 - `POSTGRES_PASSWORD` (default: `postgres`)
 
+### Optional Lavalink provider settings
+
+These are consumed by `lavalink-server/application.yaml` through Docker Compose, not directly by `Program.cs`:
+
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `APPLE_MUSIC_API_TOKEN`
+- `DEEZER_ARL`
+- `YANDEX_MUSIC_ACCESS_TOKEN`
+
 ## Example .env
 
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
 
-LAVALINK_HOSTNAME=lavalink.example.com
-LAVALINK_PORT=443
-LAVALINK_SECURED=true
+LAVALINK_HOSTNAME=lavalink
+LAVALINK_PORT=2333
+LAVALINK_SECURED=false
 LAVALINK_PASSWORD=your_password
 
-POSTGRES_HOST=localhost
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_DB=dc_bot
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=your_postgres_password
+
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+APPLE_MUSIC_API_TOKEN=
+DEEZER_ARL=
+YANDEX_MUSIC_ACCESS_TOKEN=
 ```
 
 ## Persistence Wiring

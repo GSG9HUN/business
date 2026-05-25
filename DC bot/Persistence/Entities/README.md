@@ -8,13 +8,14 @@ This folder contains EF Core entity classes mapped to PostgreSQL tables.
 - `GuildPlaybackStateEntity` - repeat flags, current track identifier, and current queue item ID (`QueueItemId`)
 - `GuildQueueItemEntity` - queue entries with state and timestamps
 - `GuildRepeatListItemEntity` - repeat-list entries and ordering
-- `GuildPremiumAuditEntity` - premium status change history
+- `GuildPremiumAuditEntity` - premium status change history table entity
 
 ## Mapping Notes
 
 - Primary guild identifier is stored as `long` (`GuildId`).
 - Queue item state values are numeric (`short`) and interpreted by repository logic.
 - Navigation properties are configured in `Persistence/Configurations/`.
+- `GuildPremiumAuditEntity` is part of the EF model; active repository code currently updates premium state through `GuildDataRepository`.
 
 ## Related
 

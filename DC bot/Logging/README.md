@@ -1,6 +1,6 @@
 ﻿# Logging
 
-This folder contains structured logging extensions and configuration.
+This folder contains structured logging extensions, event ID documentation, and logging scope helpers.
 
 ## Files
 
@@ -42,7 +42,7 @@ logger.ValidationUserNotInVoiceChannel(); // Validation event
 **Usage:**
 
 ```csharp
-using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
+using (logger.BeginCommandScope("play", userId, channelId, guildId))
 {
     // Logs in this scope automatically include GuildId and UserId
     logger.CommandInvoked("play");
@@ -53,7 +53,7 @@ using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 
 ### EventIdTable.md
 
-**Purpose:** Documentation of all event IDs used in logging.
+**Purpose:** Documentation of all `LoggerMessage` event IDs declared in `LogExtensions.cs`.
 
 **Format:**
 
@@ -68,7 +68,7 @@ using (logger.BeginScope(new { GuildId = guildId, UserId = userId }))
 
 **Benefits:**
 
-- Single source of truth for event IDs
+- Event ID reference for `LogExtensions.cs`
 - Prevents ID collisions
 - Aids debugging and monitoring
 

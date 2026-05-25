@@ -55,6 +55,7 @@ This folder contains music playback and queue management services.
 - `applemusic:` or `amsearch:` → Apple Music
 - `deezer:` or `dzsearch:` → Deezer
 - `yandexmusic:` or `ymsearch:` → Yandex Music
+- `bandcamp:` or `bcsearch:` → Bandcamp
 
 **Default Search Mode:**
 
@@ -82,6 +83,12 @@ Granular music component services.
 - `TrackPlaybackService.cs`
 
 Each service implements a corresponding interface from `Interface/Service/Music/MusicServiceInterface/`.
+
+---
+
+### ProgressiveTimer/
+
+Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
 
 ---
 

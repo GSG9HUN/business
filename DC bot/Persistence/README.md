@@ -6,7 +6,8 @@ This folder contains database persistence implementation based on EF Core and Po
 
 The persistence layer stores guild-related runtime state:
 
-- premium status and premium audit history
+- premium status
+- premium audit table/entity schema
 - playback state (repeat flags, current track)
 - queue items and queue ordering
 - repeat-list track identifiers
@@ -26,6 +27,7 @@ All persistence operations are exposed through interfaces in `Interface/Service/
 - Discord IDs are represented as `ulong` in domain/service contracts and converted to `long` for database columns.
 - `Program.cs` applies pending migrations automatically at startup.
 - PostgreSQL connection settings are read from environment variables.
+- `GuildPremiumAuditEntity` is mapped in the EF model, but there is currently no dedicated audit repository.
 
 ## Related Components
 
