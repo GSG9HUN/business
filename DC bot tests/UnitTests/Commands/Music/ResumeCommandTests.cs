@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
 
+[Trait("Category", "Unit")]
 public class ResumeCommandTests
 {
     private const string ResumeCommandName = "resume";
@@ -59,7 +60,6 @@ public class ResumeCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        //Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(true);
         _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
@@ -71,10 +71,8 @@ public class ResumeCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
 
         _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Never);
@@ -95,10 +93,8 @@ public class ResumeCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
             Times.Never);
@@ -109,7 +105,6 @@ public class ResumeCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIn_VoiceChannel()
     {
-        //Arrange
         var mockDiscordVoiceState = new Mock<IDiscordVoiceState>();
         mockDiscordVoiceState.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -125,10 +120,8 @@ public class ResumeCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        //Act
         await _resumeCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(l => l.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Once);
     }

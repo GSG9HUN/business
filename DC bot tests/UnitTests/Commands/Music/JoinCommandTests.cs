@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
-
+[Trait("Category", "Unit")]
 public class JoinCommandTests
 {
     private const string JoinCommandName = "join";
@@ -57,7 +57,6 @@ public class JoinCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        // Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(true);
         _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
@@ -71,10 +70,8 @@ public class JoinCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(
             l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
                 It.IsAny<IDiscordMember>()),
@@ -84,7 +81,6 @@ public class JoinCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotIn_VoiceChannel()
     {
-        // Arrange
         _discordUserMock.Setup(du => du.Id).Returns(1564123L);
         _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
@@ -99,10 +95,8 @@ public class JoinCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(
             l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
                 It.IsAny<IDiscordMember>()),
@@ -112,7 +106,6 @@ public class JoinCommandTests
     [Fact]
     public async Task JoinCommand_Should_Execute_As_Expected()
     {
-        // Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -130,10 +123,8 @@ public class JoinCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        // Act
         await _joinCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(
             l => l.StartPlayingQueue(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel>(),
                 It.IsAny<IDiscordMember>()),

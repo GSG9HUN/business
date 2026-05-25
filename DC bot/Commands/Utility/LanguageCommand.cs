@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Exceptions.Localization;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -28,12 +29,17 @@ public class LanguageCommand(
         var language = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         if (language is null) return;
 
-        //var language = args[1].Trim();
-        // TODO: Érvénytelen nyelv lekezelése nincs megvalósítva. Ha a felhasználó pl. "huen", "hu eng" vagy "asder"
-        //       értéket ad meg, a bot azt hibátlanul menti és megpróbálja betölteni, ami FileNotFoundException-t dob.
-        //       Szükséges lenne egy engedélyezett nyelvkódok listáját ellenőrizni (pl. ["eng", "hu"]) és hiba esetén
-        //       hibaüzenetet küldeni a felhasználónak.
-        localizationService.SaveLanguage(message.Channel.Guild.Id, language);
+        try
+        {
+            localizationService.SaveLanguage(message.Channel.Guild.Id, language);
+        }
+        catch (LocalizationException ex)
+        {
+            logger.CommandExecutionFailed(ex, Name);
+            await responseBuilder.SendCommandErrorResponse(message, Name);
+            return;
+        }
+
         await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.CommandExecuted(Name);
     }

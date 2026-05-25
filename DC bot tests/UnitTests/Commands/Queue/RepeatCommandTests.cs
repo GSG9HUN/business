@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Queue;
 
+[Trait("Category", "Unit")]
 public class RepeatCommandTests
 {
     private const string RepeatCommandName = "repeat";
@@ -57,7 +58,6 @@ public class RepeatCommandTests
         _guildMock = new Mock<IDiscordGuild>();
         _discordUserMock = new Mock<IDiscordUser>();
         _discordMemberMock = new Mock<IDiscordMember>();
-        new Mock<IDiscordVoiceState>();
         _responseBuilderMock = new Mock<IResponseBuilder>();
         _commandHelperMock = new Mock<ICommandHelper>();
 
@@ -70,7 +70,6 @@ public class RepeatCommandTests
     [Fact]
     public async Task ExecuteAsync_ListIsAlreadyRepeating_ShouldSendMessage()
     {
-        // Arrange
         const ulong guildId = 123456789UL;
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
@@ -87,10 +86,8 @@ public class RepeatCommandTests
 
         _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(true);
 
-        // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
             _localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating)));
     }
@@ -98,7 +95,6 @@ public class RepeatCommandTests
     [Fact]
     public async Task ExecuteAsync_TrackIsRepeating_ShouldTurnOffRepeat()
     {
-        // Arrange
         const ulong guildId = 123456789UL;
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
@@ -116,10 +112,8 @@ public class RepeatCommandTests
         _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
         _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(true);
 
-        // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, false), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
@@ -129,7 +123,6 @@ public class RepeatCommandTests
     [Fact]
     public async Task ExecuteAsync_NoRepeat_ShouldEnableRepeat()
     {
-        // Arrange
         const ulong guildId = 123456789UL;
 
         _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
@@ -146,13 +139,11 @@ public class RepeatCommandTests
 
         _repeatServiceMock.Setup(l => l.IsRepeatingListAsync(guildId)).ReturnsAsync(false);
         _repeatServiceMock.Setup(l => l.IsRepeatingAsync(guildId)).ReturnsAsync(false);
-        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormattedAsync(guildId, default))
+        _currentTrackServiceMock.Setup(c => c.GetCurrentTrackFormattedAsync(guildId, CancellationToken.None))
             .ReturnsAsync($"{TestTrackTitle} Test Author");
 
-        // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, true), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object, It.IsAny<string>()), Times.Once);
@@ -161,7 +152,6 @@ public class RepeatCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsABot_ShouldDoNothing()
     {
-        //Arrange
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
 
         _commandHelperMock
@@ -171,10 +161,8 @@ public class RepeatCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
     }
@@ -182,7 +170,6 @@ public class RepeatCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsNotInVoiceChannel()
     {
-        //Arrange
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
@@ -197,10 +184,8 @@ public class RepeatCommandTests
                 return null;
             });
 
-        // Act
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r =>
             r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel), Times.Once);
     }

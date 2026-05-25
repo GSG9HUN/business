@@ -1,8 +1,9 @@
-﻿using DC_bot.Wrapper;
+using DC_bot.Wrapper;
 using Lavalink4NET.Tracks;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class LavalinkTrackWrapperTests
 {
     private static LavalinkTrack BuildTrack(

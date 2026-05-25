@@ -3,6 +3,7 @@ using DC_bot.Constants;
 using DC_bot.Exceptions;
 using DC_bot.Helper.Factory;
 using DC_bot.Interface;
+using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Logging;
 using DSharpPlus;
@@ -70,7 +71,8 @@ public class CommandHandlerService
             var commandName = TryGetCommandName(message.Content, Prefix);
             if (string.IsNullOrWhiteSpace(commandName)) return;
 
-            using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, args.Guild.Id);
+            var guildId = TryGetGuildId(args);
+            using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, guildId);
 
             if (_commands.TryGetValue(commandName, out var command))
             {
@@ -78,24 +80,7 @@ public class CommandHandlerService
 
                 var discordMessageWrapper = DiscordMessageWrapperFactory.Create(args.Message, args.Channel, args.Author);
 
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await command.ExecuteAsync(discordMessageWrapper);
-                        _logger.CommandExecuted(commandName);
-                    }
-                    catch (BotException botEx)
-                    {
-                        _logger.CommandExecutionFailed(botEx, commandName);
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.CommandExecutionFailed(ex, commandName);
-                        throw;
-                    }
-                });
+                await ExecuteCommandAsync(commandName, command, discordMessageWrapper);
             }
             else
             {
@@ -109,6 +94,23 @@ public class CommandHandlerService
         }
     }
 
+    private async Task ExecuteCommandAsync(string commandName, ICommand command, IDiscordMessage message)
+    {
+        try
+        {
+            await command.ExecuteAsync(message);
+            _logger.CommandExecuted(commandName);
+        }
+        catch (BotException botEx)
+        {
+            _logger.CommandExecutionFailed(botEx, commandName);
+        }
+        catch (Exception ex)
+        {
+            _logger.CommandExecutionFailed(ex, commandName);
+        }
+    }
+
     private static string? TryGetCommandName(string content, string prefix)
     {
         if (content.Length <= prefix.Length) return null;
@@ -116,6 +118,18 @@ public class CommandHandlerService
         if (remainder.Length == 0) return null;
         var splitIndex = remainder.IndexOf(' ');
         return splitIndex >= 0 ? remainder[..splitIndex] : remainder;
+    }
+
+    private static ulong TryGetGuildId(MessageCreateEventArgs args)
+    {
+        try
+        {
+            return args.Guild?.Id ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     internal void UnregisterHandler(DiscordClient client)

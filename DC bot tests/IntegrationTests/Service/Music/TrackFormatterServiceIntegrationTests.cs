@@ -6,7 +6,7 @@ using DC_bot.Service.Music.MusicServices;
 using Moq;
 
 namespace DC_bot_tests.IntegrationTests.Service.Music;
-
+[Trait("Category", "Integration")]
 public class TrackFormatterServiceIntegrationTests
 {
     [Fact]
@@ -18,11 +18,11 @@ public class TrackFormatterServiceIntegrationTests
         var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
         repoMock.Setup(r => r.GetOrCreateAsync(guildId, default))
             .ReturnsAsync(new PlaybackStateRecord(
-                guildId, 
-                false, 
-                false, 
-                null, 
-                null, 
+                guildId,
+                false,
+                false,
+                null,
+                null,
                 DateTimeOffset.UtcNow));
 
         var currentTrackServiceMock = new Mock<ICurrentTrackService>();

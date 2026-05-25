@@ -16,6 +16,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
 
+[Trait("Category", "Unit")]
 public class PlayCommandTests
 {
     private const string PlayCommandName = "play";
@@ -99,17 +100,14 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        //Arrange
         _commandHelperMock.Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
                 It.IsAny<IResponseBuilder>(),
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
 
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
@@ -124,7 +122,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotIn_VoiceChannel()
     {
-        //Arrange
         var validationResult = new UserValidationResult(true, string.Empty, _discordMemberMock.Object);
         _commandHelperMock.Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
@@ -141,10 +138,8 @@ public class PlayCommandTests
 
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_voice_channel"),
             Times.Once);
         _lavaLinkServiceMock.Verify(
@@ -160,7 +155,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserVoiceStateExists_ButChannelIsNull()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns((IDiscordChannel?)null);
 
@@ -180,10 +174,8 @@ public class PlayCommandTests
 
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_voice_channel"),
             Times.Once);
         _lavaLinkServiceMock.Verify(
@@ -199,7 +191,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotProvided_URL_Or_Title()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -212,10 +203,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentNoArgs);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, PlayCommandName), Times.Once);
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
@@ -230,7 +219,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Youtube_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -243,10 +231,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTube);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YouTube),
@@ -259,7 +245,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_SoundCloud_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -272,10 +257,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSoundCloud);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.SoundCloud),
@@ -288,7 +271,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Spotify_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -301,10 +283,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSpotify);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.Spotify),
@@ -317,7 +297,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_AppleMusic_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -330,10 +309,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentAppleMusic);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.AppleMusic),
@@ -346,7 +323,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Deezer_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -359,10 +335,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentDeezer);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.Deezer),
@@ -375,7 +349,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_YandexMusic_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -388,10 +361,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYandex);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YandexMusic),
@@ -404,7 +375,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_YoutubeMusic_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -417,10 +387,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeMusic);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YouTubeMusic),
@@ -433,7 +401,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedTitle_ShouldCall_PlayAsyncQuery_With_Youtube_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -446,10 +413,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSearch);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YouTube),
@@ -470,7 +435,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedSpotifySearch_ShouldCall_PlayAsyncQuery_With_Spotify_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -483,10 +447,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSpotifySearch);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.Spotify),
@@ -500,7 +462,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedSoundCloudSearch_ShouldCall_PlayAsyncQuery_With_SoundCloud_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -513,10 +474,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSoundCloudSearch);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.SoundCloud),
@@ -530,7 +489,6 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedYouTubeSearch_ShouldCall_PlayAsyncQuery_With_YouTube_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -543,10 +501,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeSearch);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YouTube),
@@ -561,7 +517,6 @@ public class PlayCommandTests
     public async Task
         ExecuteAsync_UserProvidedYouTubeMusicSearch_ShouldCall_PlayAsyncQuery_With_YouTubeMusic_Search_Mode()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -574,10 +529,8 @@ public class PlayCommandTests
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeMusicSearch);
 
-        //Act
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
                 TrackSearchMode.YouTubeMusic),

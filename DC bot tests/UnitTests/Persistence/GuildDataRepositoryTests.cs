@@ -1,7 +1,8 @@
-﻿using DC_bot.Persistence.Repositories;
+using DC_bot.Persistence.Repositories;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 
+[Trait("Category", "Unit")]
 public class GuildDataRepositoryTests
 {
     private static InMemoryDbContextFactory CreateFactory() =>

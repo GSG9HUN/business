@@ -1,0 +1,248 @@
+name: .NET E2E DC Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: xUnit filter to run
+        required: false
+        default: Category=E2E
+  schedule:
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: discord-e2e
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "true"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Validate E2E secrets
+      shell: bash
+      env:
+        BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        DISCORD_TEST_GUILD_ID: ${{ secrets.DISCORD_TEST_GUILD_ID }}
+        DISCORD_TEST_CHANNEL_ID: ${{ secrets.DISCORD_TEST_CHANNEL_ID }}
+        LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+        LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
+        LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
+        LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      run: |
+        required=(
+          BOT_PREFIX
+          DISCORD_TOKEN
+          DISCORD_TEST_GUILD_ID
+          DISCORD_TEST_CHANNEL_ID
+          LAVALINK_HOSTNAME
+          LAVALINK_PASSWORD
+          LAVALINK_PORT
+          LAVALINK_SECURED
+          POSTGRES_HOST
+          POSTGRES_PORT
+          POSTGRES_DB
+          POSTGRES_USER
+          POSTGRES_PASSWORD
+        )
+
+        missing=()
+        for name in "${required[@]}"; do
+          if [ -z "${!name}" ]; then
+            missing+=("$name")
+          fi
+        done
+
+        if [ "${#missing[@]}" -gt 0 ]; then
+          printf 'Missing required E2E secrets: %s\n' "${missing[*]}"
+          exit 1
+        fi
+
+        for name in DISCORD_TEST_GUILD_ID DISCORD_TEST_CHANNEL_ID LAVALINK_PORT POSTGRES_PORT; do
+          if ! [[ "${!name}" =~ ^[0-9]+$ ]]; then
+            echo "$name must be an unsigned integer."
+            exit 1
+          fi
+        done
+
+        if [ "$LAVALINK_HOSTNAME" != "lavalink" ]; then
+          echo "LAVALINK_HOSTNAME must be 'lavalink' because the E2E tests run inside the Docker network."
+          exit 1
+        fi
+
+        if [ "$LAVALINK_PORT" != "2333" ]; then
+          echo "LAVALINK_PORT must be '2333' because lavalink/application.yaml binds server.port to 2333."
+          exit 1
+        fi
+
+        if [ "$LAVALINK_SECURED" != "false" ]; then
+          echo "LAVALINK_SECURED must be 'false' because the CI Lavalink container exposes HTTP."
+          exit 1
+        fi
+
+        if [ "$POSTGRES_HOST" != "postgres" ]; then
+          echo "POSTGRES_HOST must be 'postgres' because the E2E tests run inside the Docker network."
+          exit 1
+        fi
+
+        if [ "$POSTGRES_PORT" != "5432" ]; then
+          echo "POSTGRES_PORT must be '5432' for the postgres container."
+          exit 1
+        fi
+
+    - name: Create E2E network
+      run: docker network create dc-bot-e2e
+
+    - name: Start PostgreSQL
+      shell: bash
+      env:
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      run: |
+        docker run -d \
+          --name postgres \
+          --network dc-bot-e2e \
+          -e POSTGRES_DB="$POSTGRES_DB" \
+          -e POSTGRES_USER="$POSTGRES_USER" \
+          -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+          postgres:16-alpine
+
+    - name: Start Lavalink
+      shell: bash
+      env:
+        LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        APPLE_MUSIC_API_TOKEN: ${{ secrets.APPLE_MUSIC_API_TOKEN }}
+        DEEZER_ARL: ${{ secrets.DEEZER_ARL }}
+        YANDEX_MUSIC_ACCESS_TOKEN: ${{ secrets.YANDEX_MUSIC_ACCESS_TOKEN }}
+      run: |
+        docker run -d \
+          --name lavalink \
+          --network dc-bot-e2e \
+          -e LAVALINK_SERVER_PASSWORD="$LAVALINK_PASSWORD" \
+          -e SPOTIFY_CLIENT_ID="$SPOTIFY_CLIENT_ID" \
+          -e SPOTIFY_CLIENT_SECRET="$SPOTIFY_CLIENT_SECRET" \
+          -e APPLE_MUSIC_API_TOKEN="$APPLE_MUSIC_API_TOKEN" \
+          -e DEEZER_ARL="$DEEZER_ARL" \
+          -e YANDEX_MUSIC_ACCESS_TOKEN="$YANDEX_MUSIC_ACCESS_TOKEN" \
+          -v "$PWD/lavalink/application.yaml:/opt/Lavalink/application.yml:ro" \
+          ghcr.io/lavalink-devs/lavalink:4-alpine
+
+    - name: Wait for PostgreSQL
+      shell: bash
+      env:
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      run: |
+        for attempt in {1..24}; do
+          if docker exec postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; then
+            echo "PostgreSQL is ready."
+            exit 0
+          fi
+
+          echo "Waiting for PostgreSQL (${attempt}/24)..."
+          sleep 5
+        done
+
+        docker logs postgres
+        exit 1
+
+    - name: Wait for Lavalink
+      shell: bash
+      env:
+        LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+        LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
+      run: |
+        for attempt in {1..36}; do
+          if docker run --rm --network dc-bot-e2e curlimages/curl:8.10.1 \
+            -fsS "http://${LAVALINK_HOSTNAME}:${LAVALINK_PORT}/version"; then
+            echo "Lavalink is ready."
+            exit 0
+          fi
+
+          echo "Waiting for Lavalink (${attempt}/36)..."
+          sleep 5
+        done
+
+        docker logs lavalink
+        exit 1
+
+    - name: Run E2E tests
+      shell: bash
+      env:
+        TEST_FILTER: ${{ github.event.inputs.test_filter || 'Category=E2E' }}
+        BOT_PREFIX: ${{ secrets.BOT_PREFIX }}
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        DISCORD_TEST_GUILD_ID: ${{ secrets.DISCORD_TEST_GUILD_ID }}
+        DISCORD_TEST_CHANNEL_ID: ${{ secrets.DISCORD_TEST_CHANNEL_ID }}
+        LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+        LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
+        LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
+        LAVALINK_SECURED: ${{ secrets.LAVALINK_SECURED }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+        POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      run: |
+        docker run --rm \
+          --network dc-bot-e2e \
+          -v "$PWD:/workspace" \
+          -w /workspace \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT \
+          -e DOTNET_NOLOGO \
+          -e BOT_PREFIX \
+          -e DISCORD_TOKEN \
+          -e DISCORD_TEST_GUILD_ID \
+          -e DISCORD_TEST_CHANNEL_ID \
+          -e LAVALINK_HOSTNAME \
+          -e LAVALINK_PASSWORD \
+          -e LAVALINK_PORT \
+          -e LAVALINK_SECURED \
+          -e POSTGRES_HOST \
+          -e POSTGRES_PORT \
+          -e POSTGRES_DB \
+          -e POSTGRES_USER \
+          -e POSTGRES_PASSWORD \
+          mcr.microsoft.com/dotnet/sdk:9.0 \
+          bash -lc "dotnet restore './DC bot.sln' && dotnet build './DC bot.sln' --configuration Debug --no-restore && dotnet test './DC bot tests/DC bot tests.csproj' --configuration Debug --no-build --filter '$TEST_FILTER' --logger trx --results-directory TestResults"
+
+    - name: Upload E2E test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: E2E-Test-Results
+        path: TestResults
+        if-no-files-found: ignore
+
+    - name: Dump service logs
+      if: always()
+      run: |
+        docker logs postgres || true
+        docker logs lavalink || true
+
+    - name: Stop E2E services
+      if: always()
+      run: |
+        docker rm -f postgres lavalink || true
+        docker network rm dc-bot-e2e || true

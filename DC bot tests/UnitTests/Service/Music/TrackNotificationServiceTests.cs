@@ -1,4 +1,4 @@
-﻿using DC_bot_tests.TestHelperFiles;
+using DC_bot_tests.TestHelperFiles;
 using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
 using DC_bot.Interface;
@@ -11,6 +11,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
+[Trait("Category", "Unit")]
 public class TrackNotificationServiceTests
 {
     [Fact]
@@ -88,6 +89,22 @@ public class TrackNotificationServiceTests
     }
 
     [Fact]
+    public async Task NotifyNowPlayingAsync_WithoutTrackStartedSubscribers_DoesNotThrow()
+    {
+        var localization = new Mock<ILocalizationService>();
+        var logger = new Mock<ILogger<TrackNotificationService>>();
+        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
+        var channel = new Mock<IDiscordChannel>();
+
+        localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing: ");
+
+        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var track = TrackTestHelper.CreateTrackWrapper("Artist", "Title");
+
+        await service.NotifyNowPlayingAsync(channel.Object, track, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120));
+    }
+
+    [Fact]
     public void BuildNowPlayingEmbed_WithArtwork_SetsThumbnail()
     {
         var localization = new Mock<ILocalizationService>();
@@ -126,5 +143,43 @@ public class TrackNotificationServiceTests
 
         Assert.Null(embed.Thumbnail);
         Assert.Contains("00:00 / 01:40", embed.Description);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-10)]
+    public void BuildNowPlayingEmbed_WithNonPositiveDuration_ClampsToZeroDuration(int durationSeconds)
+    {
+        var localization = new Mock<ILocalizationService>();
+        var logger = new Mock<ILogger<TrackNotificationService>>();
+        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
+        localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
+
+        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var track = new Mock<ILavaLinkTrack>();
+        track.SetupGet(t => t.Author).Returns("Artist");
+        track.SetupGet(t => t.Title).Returns("Title");
+
+        var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(durationSeconds));
+
+        Assert.Contains("00:00 / 00:00", embed.Description);
+    }
+
+    [Fact]
+    public void BuildNowPlayingEmbed_WhenPositionExceedsDuration_ClampsPositionToDuration()
+    {
+        var localization = new Mock<ILocalizationService>();
+        var logger = new Mock<ILogger<TrackNotificationService>>();
+        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
+        localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
+
+        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var track = new Mock<ILavaLinkTrack>();
+        track.SetupGet(t => t.Author).Returns("Artist");
+        track.SetupGet(t => t.Title).Returns("Title");
+
+        var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2));
+
+        Assert.Contains("02:00 / 02:00", embed.Description);
     }
 }

@@ -9,11 +9,9 @@ public interface IMusicQueueService
     public Task<ILavaLinkTrack?> Dequeue(ulong guildId);
 
     public Task<IReadOnlyCollection<ILavaLinkTrack>> ViewQueue(ulong guildId);
-    
 
     public Task<Queue<ILavaLinkTrack>> GetQueue(ulong guildId);
 
     public Task SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue);
-    IEnumerable<ILavaLinkTrack> GetRepeatableQueue(ulong guildId);
     Task ClearQueue(ulong guildId);
 }

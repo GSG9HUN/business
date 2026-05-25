@@ -11,50 +11,57 @@ using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Core;
 using DC_bot.Service.Presentation;
 using DC_bot.Wrapper;
-using DotNetEnv;
 using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Service.Core;
+namespace DC_bot_tests.EndToEndTests.Service.Core;
 
-[Collection("Integration Tests")]
-public class CommandHandlerServiceTests : IAsyncLifetime
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
 {
     private const string BotPrefix = "!";
-    private const ulong TestChannelId = 1339151008307351572;
     private readonly CommandHandlerService _commandHandlerService;
     private readonly Mock<ILogger<CommandHandlerService>> _commandServiceLoggerMock = new();
     private readonly DiscordClient _discordClient;
+    private readonly bool _isConfigured;
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
     private readonly ServiceProvider _serviceProvider;
+    private readonly ulong _testChannelId;
     private readonly Mock<ILogger<ValidationService>> _validationLoggerMock = new();
 
-    public CommandHandlerServiceTests()
+    public CommandHandlerServiceEndToEndTests()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
-                            "";
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var envToken);
+        var hasChannel = EndToEndTestConfiguration.TryGetDiscordChannelId(out var testChannelId);
+        _testChannelId = testChannelId;
+        _isConfigured = hasToken && hasChannel;
 
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
-
-        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         var botSettings = new BotSettings
-            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
+        { Token = hasToken ? envToken : "fake-test-token", Prefix = BotPrefix };
 
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.PingCommandDescription))
+            .Returns("Replies with Pong.");
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.HelpCommandDescription))
+            .Returns("Lists the available commands.");
+        _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns("Available commands:");
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
 
         var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton(_localizationServiceMock.Object)
+            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
             .AddSingleton<ICommand, PingCommand>()
+            .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<IUserValidationService>(userValidationService)
             .BuildServiceProvider();
@@ -71,10 +78,10 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(
                 provider.GetRequiredService<BotSettings>(),
                 provider.GetRequiredService<DiscordClientEventHandler>()))
-            .AddSingleton(_lavaLinkServiceMock.Object)
-            .AddSingleton(_musicQueueServiceMock.Object)
-            .AddSingleton(_localizationServiceMock.Object)
-            .AddSingleton(_commandHandlerService)
+            .AddSingleton<ILavaLinkService>(_lavaLinkServiceMock.Object)
+            .AddSingleton<IMusicQueueService>(_musicQueueServiceMock.Object)
+            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
+            .AddSingleton<CommandHandlerService>(_commandHandlerService)
             .BuildServiceProvider();
 
         _discordClient = _serviceProvider.GetRequiredService<DiscordClient>();
@@ -82,14 +89,20 @@ public class CommandHandlerServiceTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        if (!_isConfigured) return;
+
         await _discordClient.ConnectAsync();
         await Task.Delay(3000);
     }
 
     public async Task DisposeAsync()
     {
-        _commandHandlerService.UnregisterHandler(_discordClient);
-        await _discordClient.DisconnectAsync();
+        if (_isConfigured)
+        {
+            _commandHandlerService.UnregisterHandler(_discordClient);
+            await _discordClient.DisconnectAsync();
+        }
+
         await _serviceProvider.DisposeAsync();
         _discordClient.Dispose();
     }
@@ -100,25 +113,21 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         var freshLoggerMock = new Mock<ILogger<CommandHandlerService>>();
 
         freshLoggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
-                            "";
 
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
-
-        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var envToken);
         var botSettings = new BotSettings
-            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = BotPrefix };
+        { Token = hasToken ? envToken : "fake-test-token", Prefix = BotPrefix };
 
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
-            .AddSingleton(_localizationServiceMock.Object)
+            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
             .AddSingleton<IUserValidationService>(userValidationService)
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ICommand, PingCommand>()
+            .AddSingleton<ICommand, HelpCommand>()
             .BuildServiceProvider();
 
         var freshCommandHandlerService = new CommandHandlerService(
@@ -142,10 +151,8 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
 
-        // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
 
-        // Assert
         freshLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -172,11 +179,9 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
 
-        // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshCommandHandlerService.UnregisterHandler(mockClient);
 
-        // Assert
         freshLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -194,9 +199,10 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     [Fact]
     public async Task HandleCommandAsync_Should_Respond_To_Test_Message()
     {
+        EnsureConfigured();
         _commandHandlerService.RegisterHandler(_discordClient);
 
-        var channel = await _discordClient.GetChannelAsync(TestChannelId);
+        var channel = await _discordClient.GetChannelAsync(_testChannelId);
         var testMessage = await channel.SendMessageAsync("!ping");
 
         Assert.NotNull(testMessage);
@@ -215,9 +221,10 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     [Fact]
     public async Task HandleCommandAsync_Responds_To_Unknown_Command()
     {
+        EnsureConfigured();
         _commandHandlerService.RegisterHandler(_discordClient);
 
-        var channel = await _discordClient.GetChannelAsync(TestChannelId);
+        var channel = await _discordClient.GetChannelAsync(_testChannelId);
         var testMessage = await channel.SendMessageAsync("!unknowncommand");
 
         Assert.NotNull(testMessage);
@@ -234,8 +241,63 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task HandleCommandAsync_Should_Respond_To_Help_Message()
+    {
+        EnsureConfigured();
+        _commandHandlerService.RegisterHandler(_discordClient);
+
+        try
+        {
+            var channel = await _discordClient.GetChannelAsync(_testChannelId);
+            var testMessage = await channel.SendMessageAsync("!help");
+
+            await Task.Delay(1000);
+
+            var messages = await channel.GetMessagesAsync(5);
+            var response = messages
+                .Where(message => message.Id > testMessage.Id)
+                .FirstOrDefault(message => message.Content.Contains("Available commands:", StringComparison.OrdinalIgnoreCase));
+
+            Assert.NotNull(response);
+            Assert.Contains("ping", response.Content, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("help", response.Content, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            _commandHandlerService.UnregisterHandler(_discordClient);
+        }
+    }
+
+    [Fact]
+    public async Task HandleCommandAsync_WhenMessageHasNoPrefix_DoesNotRespond()
+    {
+        EnsureConfigured();
+        _commandHandlerService.RegisterHandler(_discordClient);
+
+        try
+        {
+            var channel = await _discordClient.GetChannelAsync(_testChannelId);
+            var marker = $"e2e-no-prefix-{Guid.NewGuid():N}";
+            var markerMessage = await channel.SendMessageAsync(marker);
+
+            await Task.Delay(1200);
+
+            var recentMessages = await channel.GetMessagesAsync(10);
+            Assert.DoesNotContain(recentMessages.Where(message => message.Id > markerMessage.Id),
+                message => message.Content.Contains("Pong", StringComparison.OrdinalIgnoreCase) ||
+                           message.Content.Contains("Unknown command", StringComparison.OrdinalIgnoreCase) ||
+                           message.Content.Contains("Available commands", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _commandHandlerService.UnregisterHandler(_discordClient);
+        }
+    }
+
+    [Fact]
     public async Task HandleCommandAsync_Should_Log_No_Prefix_Provided()
     {
+        EnsureConfigured();
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
         freshCommandHandlerService.Prefix = null;
 
@@ -246,16 +308,14 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
         await mockClient.ConnectAsync();
-        
-        // Act
+
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshLoggerMock.Invocations.Clear();
-        var channel = await mockClient.GetChannelAsync(TestChannelId);
+        var channel = await mockClient.GetChannelAsync(_testChannelId);
         await channel.SendMessageAsync("!noPrefix");
 
         await Task.Delay(3000);
 
-        // Assert
         freshLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -267,7 +327,6 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             Times.AtLeastOnce
         );
 
-        // Cleanup
         freshCommandHandlerService.UnregisterHandler(mockClient);
         await mockClient.DisconnectAsync();
         mockClient.Dispose();
@@ -284,10 +343,8 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
 
-        // Act
         freshCommandHandlerService.UnregisterHandler(mockClient);
 
-        // Assert
         freshLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Warning),
@@ -314,11 +371,9 @@ public class CommandHandlerServiceTests : IAsyncLifetime
         };
         var mockClient = new DiscordClient(discordConfig);
 
-        // Act
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshCommandHandlerService.RegisterHandler(mockClient);
 
-        // Assert
         freshLoggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -337,24 +392,18 @@ public class CommandHandlerServiceTests : IAsyncLifetime
     [Fact]
     public async Task HandleCommandAsync_WhenAuthorIsBot_AndIsTestModeFalse_IgnoresCommand()
     {
-        // Arrange
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
-
-        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        if (string.IsNullOrWhiteSpace(envToken))
-            return; // Live integration requires token
+        EnsureConfigured();
+        EndToEndTestConfiguration.TryGetDiscordToken(out var envToken);
 
         var botSettings = new BotSettings { Token = envToken, Prefix = BotPrefix };
         var loggerMock = new Mock<ILogger<CommandHandlerService>>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        var userValidationService = new ValidationService(_validationLoggerMock.Object, false);
+        var userValidationService = new ValidationService(_validationLoggerMock.Object);
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
-            .AddSingleton(_localizationServiceMock.Object)
+            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
             .AddSingleton<IUserValidationService>(userValidationService)
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ICommand, PingCommand>()
@@ -364,20 +413,26 @@ public class CommandHandlerServiceTests : IAsyncLifetime
             services,
             loggerMock.Object,
             _localizationServiceMock.Object,
-            botSettings,
-            false);
+            botSettings);
 
         nonTestHandler.RegisterHandler(_discordClient);
 
-        var channel = await _discordClient.GetChannelAsync(TestChannelId);
-        var marker = $"integration-ignore-bot-{Guid.NewGuid():N}";
-        await channel.SendMessageAsync($"!ping {marker}");
+        var channel = await _discordClient.GetChannelAsync(_testChannelId);
+        var marker = $"e2e-ignore-bot-{Guid.NewGuid():N}";
+        var markerMessage = await channel.SendMessageAsync($"!ping {marker}");
 
         await Task.Delay(1200);
 
         var recentMessages = await channel.GetMessagesAsync(10);
-        Assert.DoesNotContain(recentMessages, m => m.Content.Contains("Pong", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(recentMessages.Where(m => m.Id > markerMessage.Id),
+            m => m.Content.Contains("Pong", StringComparison.OrdinalIgnoreCase));
 
         nonTestHandler.UnregisterHandler(_discordClient);
+    }
+
+    private void EnsureConfigured()
+    {
+        if (!_isConfigured)
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndChannelMessage());
     }
 }

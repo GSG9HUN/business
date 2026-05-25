@@ -1,7 +1,8 @@
-﻿using DC_bot.Wrapper;
+using DC_bot.Wrapper;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordVoiceStateWrapperTests
 {
 
@@ -24,7 +25,7 @@ public class DiscordVoiceStateWrapperTests
     public void ToDiscordVoiceState_WhenVoiceStateIsNull_ThrowsInvalidOperationException()
     {
         var wrapper = new DiscordVoiceStateWrapper(null);
-        Assert.Throws<InvalidOperationException>(() => wrapper.ToDiscordVoiceState());
+        Assert.Throws<InvalidOperationException>(wrapper.ToDiscordVoiceState);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using DC_bot.Commands.Utility;
 using DC_bot.Constants;
+using DC_bot.Exceptions.Localization;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -10,6 +11,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Utility;
 
+[Trait("Category", "Unit")]
 public class LanguageCommandTests
 {
     private const string LanguageCommandName = "language";
@@ -19,7 +21,6 @@ public class LanguageCommandTests
     private const string LanguageCodeHu = "hu";
     private const ulong TestGuildId = 123456UL;
     private const ulong TestUserId = 111112UL;
-    private readonly Mock<ICommandHelper> _commandHelperMock;
     private readonly Mock<IDiscordGuild> _guildMock;
     private readonly LanguageCommand _languageCommand;
     private readonly Mock<ILocalizationService> _localizationServiceMock;
@@ -41,9 +42,9 @@ public class LanguageCommandTests
         _messageMock = new Mock<IDiscordMessage>();
         _guildMock = new Mock<IDiscordGuild>();
         _responseBuilderMock = new Mock<IResponseBuilder>();
-        _commandHelperMock = new Mock<ICommandHelper>();
+        var commandHelperMock = new Mock<ICommandHelper>();
 
-        _commandHelperMock
+        commandHelperMock
             .Setup(h => h.TryGetArgumentAsync(
                 It.IsAny<IDiscordMessage>(),
                 It.IsAny<IResponseBuilder>(),
@@ -62,13 +63,12 @@ public class LanguageCommandTests
         var userValidationService = new ValidationService(validationLoggerMock.Object);
 
         _languageCommand = new LanguageCommand(loggerMock.Object, userValidationService, _responseBuilderMock.Object,
-            _localizationServiceMock.Object, _commandHelperMock.Object);
+            _localizationServiceMock.Object, commandHelperMock.Object);
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_Return_UsageMessage_When_No_Language_Provided()
     {
-        // Arrange
         var userMock = new Mock<IDiscordUser>();
 
         userMock.Setup(u => u.IsBot).Returns(false);
@@ -76,34 +76,51 @@ public class LanguageCommandTests
 
         _messageMock.Setup(m => m.Content).Returns(LanguageCommandContentNoArgs);
         _messageMock.Setup(m => m.Author).Returns(userMock.Object);
-        // Act
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, LanguageCommandName), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_SaveLanguage_And_Send_Response_When_Language_Is_Provided()
     {
-        // Arrange
         var userMock = new Mock<IDiscordUser>();
 
         userMock.Setup(u => u.IsBot).Returns(false);
         userMock.Setup(u => u.Id).Returns(TestUserId);
 
-        _messageMock.Setup(m => m.Content).Returns(LanguageCommandContentNoArgs);
         _messageMock.Setup(m => m.Author).Returns(userMock.Object);
         _messageMock.Setup(m => m.Content).Returns(LanguageCommandContentHu);
         _guildMock.Setup(g => g.Id).Returns(TestGuildId);
 
-        // Act
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _localizationServiceMock.Verify(l => l.SaveLanguage(TestGuildId, LanguageCodeHu), Times.Once);
         _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, LanguageCommandName),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenLanguageIsInvalid_ShouldSendCommandError()
+    {
+        var userMock = new Mock<IDiscordUser>();
+
+        userMock.Setup(u => u.IsBot).Returns(false);
+        userMock.Setup(u => u.Id).Returns(TestUserId);
+
+        _messageMock.Setup(m => m.Content).Returns("!language invalid");
+        _messageMock.Setup(m => m.Author).Returns(userMock.Object);
+        _guildMock.Setup(g => g.Id).Returns(TestGuildId);
+        _localizationServiceMock
+            .Setup(l => l.SaveLanguage(TestGuildId, "invalid"))
+            .Throws(new LocalizationException("invalid", "Translation file not found"));
+
+        await _languageCommand.ExecuteAsync(_messageMock.Object);
+
+        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, LanguageCommandName),
+            Times.Once);
+        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
@@ -116,7 +133,6 @@ public class LanguageCommandTests
     [Fact]
     public async Task ExecuteAsync_Should_DoNothing_WhenUserIsBot()
     {
-        // Arrange
         var userMock = new Mock<IDiscordUser>();
         userMock.Setup(u => u.IsBot).Returns(true);
         userMock.Setup(u => u.Id).Returns(999999);
@@ -124,17 +140,12 @@ public class LanguageCommandTests
         _messageMock.Setup(m => m.Content).Returns(LanguageCommandContentHu);
         _messageMock.Setup(m => m.Author).Returns(userMock.Object);
 
-        // Act
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _localizationServiceMock.Verify(l => l.SaveLanguage(It.IsAny<ulong>(), It.IsAny<string>()), Times.Never);
         _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
         _responseBuilderMock.Verify(r => r.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
     }
-
-    // TODO: ExecuteAsync_Should_Error_WhenInvalidLanguageProvided: érvénytelen nyelvkód (pl. "huen", "asder") ->
-    //     hibaüzenet küldése (jelenleg ez az eset nincs lekezelve a kódban sem, implementálni kell először)
 }
