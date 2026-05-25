@@ -43,6 +43,8 @@ public class HelpCommandTests
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandResponse))
             .Returns(HelpCommandResponseValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
+            .Returns(HelpCommandResponseValue);
 
         _messageMock = new Mock<IDiscordMessage>();
         _discordUserMock = new Mock<IDiscordUser>();
@@ -101,6 +103,8 @@ public class HelpCommandTests
             .Returns(HelpCommandDescriptionValue);
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns(HelpCommandResponseValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
             .Returns(HelpCommandResponseValue);
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);

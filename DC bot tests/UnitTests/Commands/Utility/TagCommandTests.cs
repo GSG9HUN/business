@@ -42,8 +42,13 @@ public class TagCommandTests
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.TagCommandResponse, TestUserName))
             .Returns(TagCommandResponseValue);
+        _localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.TagCommandResponse, TestUserName))
+            .Returns(TagCommandResponseValue);
 
         _localizationServiceMock.Setup(g => g.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower))
+            .Returns(TagCommandUserNotFoundValue);
+        _localizationServiceMock
+            .Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.TagCommandUserNotExistError, TestUserLower))
             .Returns(TagCommandUserNotFoundValue);
 
         var logger = new Mock<ILogger<TagCommand>>();

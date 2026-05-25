@@ -11,8 +11,12 @@ public static class TrackTestHelper
         {
             Author = author,
             Title = title,
+            Duration = TimeSpan.FromSeconds(durationSeconds),
             Identifier = identifier,
-            Duration = TimeSpan.FromSeconds(durationSeconds)
+            IsLiveStream = false,
+            IsSeekable = true,
+            SourceName = "youtube",
+            Uri = new Uri("https://example.com/track")
         })
         {
             QueueItemId = queueItemId

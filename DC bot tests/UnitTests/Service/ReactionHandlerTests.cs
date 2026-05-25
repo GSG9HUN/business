@@ -262,11 +262,20 @@ public class ReactionHandlerTests
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
+        var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
         var memberMock = new Mock<IDiscordMember>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
+        messageMock.SetupGet(m => m.Channel).Returns(channelMock.Object);
         lavaLinkServiceMock.Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .Returns(Task.CompletedTask);
         lavaLinkServiceMock.Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
@@ -303,11 +312,20 @@ public class ReactionHandlerTests
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
+        var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
         var memberMock = new Mock<IDiscordMember>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
+        messageMock.SetupGet(m => m.Channel).Returns(channelMock.Object);
         lavaLinkServiceMock.Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .Returns(Task.CompletedTask);
         lavaLinkServiceMock.Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
@@ -491,9 +509,14 @@ public class ReactionHandlerTests
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns("test");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
 
         var sendException = new InvalidOperationException("Discord API failure");
         channelMock.Setup(x => x.ToDiscordChannel()).Throws(sendException);

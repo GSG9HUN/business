@@ -34,12 +34,24 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
     {
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.MusicControl)).Returns(_controlMarker);
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.MusicControl))
+            .Returns(_controlMarker);
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.PauseReaction)).Returns("Pause");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.PauseReaction)).Returns("Pause");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ResumeReaction)).Returns("Resume");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ResumeReaction))
+            .Returns("Resume");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.SkipReaction)).Returns("Skip");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.SkipReaction)).Returns("Skip");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.RepeatReaction)).Returns("Repeat");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatReaction))
+            .Returns("Repeat");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
 
         _reactionHandler = new ReactionHandler(
             _lavaLinkServiceMock.Object,

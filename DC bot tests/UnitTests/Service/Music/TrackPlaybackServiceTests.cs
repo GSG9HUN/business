@@ -34,6 +34,9 @@ public class TrackPlaybackServiceTests
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _guildMock.Setup(g => g.Id).Returns(GuildId);
         _textChannelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
+        _localizationServiceMock
+            .Setup(l => l.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((ulong _, string key, object[] args) => _localizationServiceMock.Object.Get(key, args));
 
         _service = new TrackPlaybackService(
             _musicQueueServiceMock.Object,

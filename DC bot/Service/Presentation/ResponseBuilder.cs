@@ -16,12 +16,12 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
     {
         if (string.IsNullOrEmpty(errorKey)) return;
 
-        await SafeRespondAsync(message, localization.Get(errorKey), "SendValidationErrorAsync");
+        await SafeRespondAsync(message, GetForMessage(message, errorKey), "SendValidationErrorAsync");
     }
 
     public async Task SendUsageAsync(IDiscordMessage message, string commandName)
     {
-        await SafeRespondAsync(message, localization.Get($"{commandName}_command_usage"), "SendUsageAsync");
+        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_usage"), "SendUsageAsync");
     }
 
     public async Task SendSuccessAsync(IDiscordMessage message, string text)
@@ -31,13 +31,20 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
 
     public async Task SendCommandResponseAsync(IDiscordMessage message, string commandName)
     {
-        await SafeRespondAsync(message, localization.Get($"{commandName}_command_response"),
+        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_response"),
             "SendCommandResponseAsync");
     }
 
     public async Task SendCommandErrorResponse(IDiscordMessage message, string commandName)
     {
-        await SafeRespondAsync(message, localization.Get($"{commandName}_command_error"), "SendCommandErrorResponse");
+        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_error"),
+            "SendCommandErrorResponse");
+    }
+
+    private string GetForMessage(IDiscordMessage message, string key, params object[] args)
+    {
+        var guildId = message.Channel?.Guild?.Id;
+        return guildId.HasValue ? localization.Get(guildId.Value, key, args) : localization.Get(key, args);
     }
 
     private async Task SafeRespondAsync(IDiscordMessage message, string text, string operation)

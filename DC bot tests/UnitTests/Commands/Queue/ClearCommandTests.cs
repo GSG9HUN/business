@@ -34,6 +34,8 @@ public class ClearCommandTests
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ClearCommandDescription))
             .Returns(ClearCommandDescriptionValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ClearCommandResponse))
+            .Returns("Cleared.");
 
         _messageMock = new Mock<IDiscordMessage>();
         _guildMock = new Mock<IDiscordGuild>();

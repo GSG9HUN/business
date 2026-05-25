@@ -33,7 +33,7 @@ public class RepeatCommand(
         if (await repeatService.IsRepeatingListAsync(guildId))
         {
             await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating));
+                localizationService.Get(guildId, LocalizationKeys.RepeatCommandListAlreadyRepeating));
             logger.CommandExecuted(Name);
             return;
         }
@@ -42,14 +42,14 @@ public class RepeatCommand(
         {
             await repeatService.SetRepeatingAsync(guildId, false);
             await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOff));
+                localizationService.Get(guildId, LocalizationKeys.RepeatCommandRepeatingOff));
             logger.CommandExecuted(Name);
             return;
         }
 
         await repeatService.SetRepeatingAsync(guildId, true);
         await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(LocalizationKeys.RepeatCommandRepeatingOn)} {await currentTrackService.GetCurrentTrackFormattedAsync(guildId)}");
+            $"{localizationService.Get(guildId, LocalizationKeys.RepeatCommandRepeatingOn)} {await currentTrackService.GetCurrentTrackFormattedAsync(guildId)}");
 
         logger.CommandExecuted(Name);
     }
