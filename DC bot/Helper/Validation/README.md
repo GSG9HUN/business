@@ -130,7 +130,7 @@ var voiceChannel = result.Member?.VoiceState?.Channel;
 
 - User is not a bot
 - User is in a voice channel
-- User is in the same voice channel as bot (if bot is connected)
+- Bot users are ignored unless test mode is enabled
 
 **Used By:**
 

@@ -1,6 +1,6 @@
 ﻿# Event ID Reference Table
 
-This table documents all `LoggerMessage` EventIDs used throughout the application with their corresponding log levels
+This table documents all `LoggerMessage` EventIDs declared in `LogExtensions.cs` with their corresponding log levels
 and messages.
 
 ## Command Events (1000-1099)
@@ -38,8 +38,10 @@ and messages.
 |    1205 | Information | `ReactionControlMessageSent`             | Reaction control message sent and reactions added.      |
 |    1206 | Information | `ReactionAdded`                          | Reaction added: {Emoji} by {Username}                   |
 |    1207 | Information | `ReactionRemoved`                        | Reaction removed: {Emoji} by {Username}                 |
+|    1208 | Error       | `ReactionHandlerOperationFailed`         | Reaction handler operation failed: {Operation}          |
+|    1209 | Error       | `ReactionHandlerMessageSendFailed`       | Reaction handler message send failed: {Operation}       |
 
-**Usage:** Track emoji reaction events and control message lifecycle.
+**Usage:** Track emoji reaction events, control message lifecycle, and reaction handler failures.
 
 ## Localization Events (1300-1399)
 
@@ -67,7 +69,7 @@ and messages.
 
 | EventID | Level       | Method                           | Message                                        |
 |--------:|-------------|----------------------------------|------------------------------------------------|
-|    1501 | Information | `DiscordClientLoggerInitialized` | Logger initialized for SingletonDiscordClient. |
+|    1501 | Information | `DiscordClientLoggerInitialized` | Discord client logger initialized.             |
 |    1502 | Information | `DiscordClientReady`             | Bot is ready!                                  |
 |    1503 | Information | `DiscordClientGuildAvailable`    | Guild available: {GuildName}                   |
 |    1504 | Error       | `DiscordClientEventFailed`       | Discord client event failed: {EventName}       |
@@ -117,7 +119,8 @@ and messages.
 |    2101 | Error | `MusicQueueSaveFailed` | Queue save failed: {FilePath} |
 |    2102 | Error | `MusicQueueLoadFailed` | Queue load failed: {FilePath} |
 
-**Usage:** Monitor queue persistence operations.
+**Usage:** Legacy queue-file persistence extension methods. The active queue implementation is PostgreSQL-backed and
+does not currently call these methods.
 
 ## Response Events (3000-3099)
 
@@ -146,21 +149,10 @@ and messages.
 
 ## Filtering by Event ID
 
-### In appsettings.json
+### Current Program.cs setup
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "DC_bot": "Debug"
-    },
-    "EventFilter": {
-      "2000": "true",  // Only Lavalink events
-      "1000": "true"   // Only command events
-    }
-  }
-}
+```csharp
+.AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
 ```
 
 ### In Code
@@ -190,7 +182,7 @@ var errors = logs.Where(l => l.Level == LogLevel.Error);
 
 **Queue issues:**
 
-- Check EventID 2101, 2102 (Queue Save/Load Failed) - Persistence error
+- Check EventID 2101, 2102 only for legacy queue-file save/load failures
 - Check EventID 1701 (QueueIsEmpty) - Queue status
 
 ### Performance Analysis

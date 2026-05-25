@@ -9,6 +9,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Core;
 
+[Trait("Category", "Unit")]
 public class ValidationServiceTests
 {
     private readonly Mock<ILocalizationService> _localizationServiceMock;
@@ -24,7 +25,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidatePlayerAsync_PlayerIsNull_ReturnsFalseAndErrorKey()
     {
-        // Arrange
         var audioServiceMock = new Mock<IAudioService>();
         ulong guildId = 12345;
 
@@ -34,10 +34,8 @@ public class ValidationServiceTests
         _localizationServiceMock.Setup(l => l.Get(ValidationErrorKeys.LavalinkError))
             .Returns("Lavalink is not connected.");
 
-        // Act
         var result = await _validationService.ValidatePlayerAsync(audioServiceMock.Object, guildId);
 
-        // Assert
         Assert.False(result.IsValid);
         Assert.Null(result.Player);
         Assert.Equal(ValidationErrorKeys.LavalinkError, result.ErrorKey);
@@ -46,7 +44,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidatePlayerAsync_PlayerExists_ReturnsTrue()
     {
-        // Arrange
         var audioServiceMock = new Mock<IAudioService>();
         ulong guildId = 12345;
 
@@ -54,10 +51,8 @@ public class ValidationServiceTests
         audioServiceMock.Setup(a => a.Players.GetPlayerAsync(guildId, default))
             .ReturnsAsync(mockPlayer.Object);
 
-        // Act
         var result = await _validationService.ValidatePlayerAsync(audioServiceMock.Object, guildId);
 
-        // Assert
         Assert.True(result.IsValid);
         Assert.NotNull(result.Player);
     }
@@ -65,7 +60,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateConnectionAsync_ConnectionIsNull_ReturnsFalseAndErrorKey()
     {
-        // Arrange
         var lavalinkPlayer = new Mock<ILavalinkPlayer>();
         var playerConnectionState = new PlayerConnectionState
         {
@@ -74,10 +68,8 @@ public class ValidationServiceTests
 
         lavalinkPlayer.SetupGet(l => l.ConnectionState).Returns(playerConnectionState);
 
-        // Act
         var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
 
-        // Assert
         Assert.False(result.IsValid);
         Assert.Null(result.Connection);
         Assert.Equal(ValidationErrorKeys.BotIsNotConnectedError, result.ErrorKey);
@@ -86,7 +78,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateConnectionAsync_ConnectionIsExists_ReturnsTrue()
     {
-        // Arrange
         var textChannelMock = new Mock<IDiscordChannel>();
         var lavalinkPlayer = new Mock<ILavalinkPlayer>();
         var playerConnectionState = new PlayerConnectionState
@@ -102,10 +93,8 @@ public class ValidationServiceTests
         _localizationServiceMock.Setup(l => l.Get(ValidationErrorKeys.BotIsNotConnectedError))
             .Returns("Bot is not connected to a voice channel.");
 
-        // Act
         var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
 
-        // Assert
         Assert.True(result.IsValid);
         Assert.NotNull(result.Connection);
         textChannelMock.Verify(t => t.SendMessageAsync("Bot is not connected to a voice channel."), Times.Never);
@@ -114,17 +103,14 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateUserAsync_UserIsBot_ShouldReturnInvalidWithoutErrorKey()
     {
-        // Arrange
         var messageMock = new Mock<IDiscordMessage>();
         var authorMock = new Mock<IDiscordUser>();
 
         authorMock.SetupGet(a => a.IsBot).Returns(true);
         messageMock.SetupGet(m => m.Author).Returns(authorMock.Object);
 
-        // Act
         var result = await _validationService.ValidateUserAsync(messageMock.Object);
 
-        // Assert
         Assert.False(result.IsValid);
         Assert.Empty(result.ErrorKey);
     }
@@ -132,7 +118,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateUserAsync_UserNotInVoiceChannel_ShouldReturnInvalidWithErrorKey()
     {
-        // Arrange
         var messageMock = new Mock<IDiscordMessage>();
         var authorMock = new Mock<IDiscordUser>();
         var guildMock = new Mock<IDiscordGuild>();
@@ -147,10 +132,8 @@ public class ValidationServiceTests
         memberMock.SetupGet(m => m.VoiceState).Returns(voiceState.Object);
         guildMock.Setup(g => g.GetMemberAsync(12345)).ReturnsAsync(memberMock.Object);
 
-        // Act
         var result = await _validationService.ValidateUserAsync(messageMock.Object);
 
-        // Assert
         Assert.False(result.IsValid);
         Assert.Equal(ValidationErrorKeys.UserNotInVoiceChannel, result.ErrorKey);
     }
@@ -158,7 +141,6 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateUserAsync_UserInVoiceChannel_ShouldReturnValid()
     {
-        // Arrange
         var messageMock = new Mock<IDiscordMessage>();
         var authorMock = new Mock<IDiscordUser>();
         var guildMock = new Mock<IDiscordGuild>();
@@ -174,10 +156,8 @@ public class ValidationServiceTests
         voiceStateMock.SetupGet(vs => vs.Channel).Returns(channelMock.Object);
         discordMemberMock.Setup(d => d.VoiceState).Returns(voiceStateMock.Object);
 
-        // Act
         var result = await _validationService.ValidateUserAsync(messageMock.Object);
 
-        // Assert
         Assert.True(result.IsValid);
         Assert.NotNull(result.Member);
         Assert.Equal(discordMemberMock.Object, result.Member);
@@ -186,34 +166,28 @@ public class ValidationServiceTests
     [Fact]
     public void IsBotUser_BotMessage_ShouldReturnTrue()
     {
-        // Arrange
         var messageMock = new Mock<IDiscordMessage>();
         var authorMock = new Mock<IDiscordUser>();
 
         authorMock.SetupGet(a => a.IsBot).Returns(true);
         messageMock.SetupGet(m => m.Author).Returns(authorMock.Object);
 
-        // Act
         var result = _validationService.IsBotUser(messageMock.Object);
 
-        // Assert
         Assert.True(result);
     }
 
     [Fact]
     public void IsBotUser_HumanMessage_ShouldReturnFalse()
     {
-        // Arrange
         var messageMock = new Mock<IDiscordMessage>();
         var authorMock = new Mock<IDiscordUser>();
 
         authorMock.SetupGet(a => a.IsBot).Returns(false);
         messageMock.SetupGet(m => m.Author).Returns(authorMock.Object);
 
-        // Act
         var result = _validationService.IsBotUser(messageMock.Object);
 
-        // Assert
         Assert.False(result);
     }
 }

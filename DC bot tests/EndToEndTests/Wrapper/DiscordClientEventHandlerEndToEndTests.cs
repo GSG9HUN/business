@@ -1,18 +1,20 @@
-﻿using DC_bot.Configuration;
+using DC_bot.Configuration;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
-using DotNetEnv;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Wrapper;
+namespace DC_bot_tests.EndToEndTests.Wrapper;
 
-public class DiscordClientEventHandlerIntegrationTests
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class DiscordClientEventHandlerEndToEndTests
 {
     [Fact]
     public async Task OnGuildAvailable_WithNullArgs_LogsError()
@@ -59,15 +61,12 @@ public class DiscordClientEventHandlerIntegrationTests
     [Fact]
     public async Task OnGuildAvailable_Call_GetRequiredService_Two_Times()
     {
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ??
-                            "";
+        if (!EndToEndTestConfiguration.TryGetDiscordToken(out var envToken))
+        {
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenMessage());
+        }
 
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
-
-        var envToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        var botSettings = new BotSettings
-            { Token = string.IsNullOrWhiteSpace(envToken) ? "fake-test-token" : envToken, Prefix = "!" };
+        var botSettings = new BotSettings { Token = envToken, Prefix = "!" };
 
         var discordConfig = new DiscordConfiguration
         {
@@ -104,7 +103,7 @@ public class DiscordClientEventHandlerIntegrationTests
 
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILavaLinkService)), Times.Once);
         serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Once);
-       
+
         await mockClient.DisconnectAsync();
     }
 }

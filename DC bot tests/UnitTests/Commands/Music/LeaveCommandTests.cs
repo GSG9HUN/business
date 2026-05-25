@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
 
+[Trait("Category", "Unit")]
 public class LeaveCommandTests
 {
     private const string LeaveCommandName = "leave";
@@ -53,7 +54,6 @@ public class LeaveCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotInVoiceChannel_ShouldSendError()
     {
-        // Arrange
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
@@ -70,10 +70,8 @@ public class LeaveCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
@@ -83,7 +81,6 @@ public class LeaveCommandTests
     [Fact]
     public async Task ExecuteAsync_BotNotConnected_ShouldSendError()
     {
-        // Arrange
         var voiceChannel = new Mock<IDiscordVoiceState>();
         voiceChannel.SetupGet(v => v.Channel).Returns((IDiscordChannel?)null);
 
@@ -103,10 +100,8 @@ public class LeaveCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
         _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
@@ -116,7 +111,6 @@ public class LeaveCommandTests
     [Fact]
     public async Task ExecuteAsync_SuccessfulLeave_ShouldCallLeaveVoiceChannel()
     {
-        // Arrange
         var voiceChannel = new Mock<IDiscordVoiceState>();
         var voiceChannelMock = new Mock<IDiscordChannel>();
         voiceChannel.SetupGet(v => v.Channel).Returns(voiceChannelMock.Object);
@@ -137,10 +131,8 @@ public class LeaveCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(_messageMock.Object, _discordMemberMock.Object),
             Times.Once);
     }
@@ -148,7 +140,6 @@ public class LeaveCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        // Arrange
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
 
@@ -164,10 +155,8 @@ public class LeaveCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _leaveCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(l => l.LeaveVoiceChannel(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Never);
     }
@@ -175,7 +164,6 @@ public class LeaveCommandTests
     [Fact]
     public void Command_Name_And_Description_ShouldReturnCorrectValue()
     {
-        // Assert
         Assert.Equal(LeaveCommandName, _leaveCommand.Name);
         Assert.Equal(LeaveCommandDescriptionValue, _leaveCommand.Description);
     }

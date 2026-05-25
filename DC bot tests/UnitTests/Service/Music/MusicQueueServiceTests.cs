@@ -7,6 +7,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
+[Trait("Category", "Unit")]
 public class MusicQueueServiceTests
 {
     private const ulong GuildId = 12345UL;
@@ -23,7 +24,7 @@ public class MusicQueueServiceTests
     public async Task HasTracks_WhenRepositoryReturnsItems_ReturnsTrue()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.AnyQueuedItemsAsync(GuildId, default))
+            .Setup(repository => repository.AnyQueuedItemsAsync(GuildId, CancellationToken.None))
             .ReturnsAsync(true);
 
         var result = await _service.HasTracks(GuildId);
@@ -35,7 +36,7 @@ public class MusicQueueServiceTests
     public async Task HasTracks_WhenRepositoryReturnsNoItems_ReturnsFalse()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
             .ReturnsAsync([]);
 
         var result = await _service.HasTracks(GuildId);
@@ -51,7 +52,7 @@ public class MusicQueueServiceTests
         await _service.Enqueue(GuildId, track.Object);
 
         _queueRepositoryMock.Verify(
-            repository => repository.EnqueueAsync(GuildId, "track-id-1", default),
+            repository => repository.EnqueueAsync(GuildId, "track-id-1", CancellationToken.None),
             Times.Once);
     }
 
@@ -70,7 +71,7 @@ public class MusicQueueServiceTests
                     ids.Count == 2 &&
                     ids[0] == "track-id-1" &&
                     ids[1] == "track-id-2"),
-                default),
+                CancellationToken.None),
             Times.Once);
     }
 
@@ -80,7 +81,7 @@ public class MusicQueueServiceTests
         await _service.EnqueueMany(GuildId, []);
 
         _queueRepositoryMock.Verify(
-            repository => repository.EnqueueManyAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), default),
+            repository => repository.EnqueueManyAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
             Times.Never);
     }
 
@@ -90,7 +91,7 @@ public class MusicQueueServiceTests
         var record = CreateRecord(ValidTrackIdentifier, 77);
 
         _queueRepositoryMock
-            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, CancellationToken.None))
             .ReturnsAsync(record);
 
         var result = await _service.Dequeue(GuildId);
@@ -102,21 +103,21 @@ public class MusicQueueServiceTests
     public async Task Dequeue_WhenQueueIsEmpty_ReturnsNull()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, CancellationToken.None))
             .ReturnsAsync((QueueItemRecord?)null);
 
         var result = await _service.Dequeue(GuildId);
 
         Assert.Null(result);
-        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), default), Times.Never);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), CancellationToken.None), Times.Never);
     }
 
     [Fact]
     public async Task ViewQueue_ReturnsTracksInRepositoryOrder()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
-            .ReturnsAsync([CreateRecord(ValidTrackIdentifier, 1, 0), CreateRecord(ValidTrackIdentifier, 2, 1)]);
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync([CreateRecord(ValidTrackIdentifier), CreateRecord(ValidTrackIdentifier, 2, 1)]);
 
         var result = await _service.ViewQueue(GuildId);
 
@@ -127,8 +128,8 @@ public class MusicQueueServiceTests
     public async Task GetQueue_ReturnsQueueInRepositoryOrder()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
-            .ReturnsAsync([CreateRecord(ValidTrackIdentifier, 1, 0), CreateRecord(ValidTrackIdentifier, 2, 1)]);
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync([CreateRecord(ValidTrackIdentifier), CreateRecord(ValidTrackIdentifier, 2, 1)]);
 
         var queue = await _service.GetQueue(GuildId);
 
@@ -151,7 +152,7 @@ public class MusicQueueServiceTests
                     tracks.Count == 2 &&
                     tracks[0] == "track-id-b" &&
                     tracks[1] == "track-id-a"),
-                default),
+                CancellationToken.None),
             Times.Once);
     }
 
@@ -161,7 +162,7 @@ public class MusicQueueServiceTests
         await _service.ClearQueue(GuildId);
 
         _queueRepositoryMock.Verify(
-            repository => repository.MarkAllQueuedAsSkippedAsync(GuildId, default),
+            repository => repository.MarkAllQueuedAsSkippedAsync(GuildId, CancellationToken.None),
             Times.Once);
     }
 
@@ -169,58 +170,52 @@ public class MusicQueueServiceTests
     public async Task ClearQueue_WhenQueueIsEmpty_DoesNotMarkAnythingSkipped()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
             .ReturnsAsync([]);
 
         await _service.ClearQueue(GuildId);
 
-        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), default), Times.Never);
-    }
-
-    [Fact]
-    public void GetRepeatableQueue_ThrowsNotImplementedException()
-    {
-        Assert.Throws<NotImplementedException>(() => _service.GetRepeatableQueue(GuildId));
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(It.IsAny<long>(), CancellationToken.None), Times.Never);
     }
 
     [Fact]
     public async Task Dequeue_WhenTrackIdentifierParseFails_MarksSkippedAndContinues()
     {
         _queueRepositoryMock
-            .SetupSequence(repository => repository.ClaimNextQueuedItemAsync(GuildId, default))
+            .SetupSequence(repository => repository.ClaimNextQueuedItemAsync(GuildId, CancellationToken.None))
             .ReturnsAsync(CreateRecord("not-a-valid-track", 99))
             .ReturnsAsync((QueueItemRecord?)null);
 
         var result = await _service.Dequeue(GuildId);
 
         Assert.Null(result);
-        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(99, default), Times.Once);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(99, CancellationToken.None), Times.Once);
     }
 
     [Fact]
     public async Task ViewQueue_WhenTrackIdentifierParseFails_SkipsItemAndMarksSkipped()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
-            .ReturnsAsync([CreateRecord("bad-identifier", 1, 0)]);
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync([CreateRecord("bad-identifier")]);
 
         var result = await _service.ViewQueue(GuildId);
 
         Assert.Empty(result);
-        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, default), Times.Once);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, CancellationToken.None), Times.Once);
     }
 
     [Fact]
     public async Task GetQueue_WhenTrackIdentifierParseFails_SkipsItemAndMarksSkipped()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, default))
-            .ReturnsAsync([CreateRecord("bad-identifier", 1, 0)]);
+            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync([CreateRecord("bad-identifier")]);
 
         var result = await _service.GetQueue(GuildId);
 
         Assert.Empty(result);
-        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, default), Times.Once);
+        _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -238,7 +233,7 @@ public class MusicQueueServiceTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SetQueue(GuildId, tooLargeQueue));
         _queueRepositoryMock.Verify(
-            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), default),
+            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
             Times.Never);
     }
 

@@ -1,7 +1,8 @@
-﻿using DC_bot.Persistence.Repositories;
+using DC_bot.Persistence.Repositories;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 
+[Trait("Category", "Unit")]
 public class PlaybackStateRepositoryTests
 {
     private static InMemoryDbContextFactory CreateFactory() =>
@@ -109,8 +110,8 @@ public class PlaybackStateRepositoryTests
         var factory = CreateFactory();
         var repo = new PlaybackStateRepository(factory);
 
-        await repo.SetCurrentTrackAsync(800ul, "track-abc", 1,default);
-        await repo.SetCurrentTrackAsync(800ul, null, null,default);
+        await repo.SetCurrentTrackAsync(800ul, "track-abc", 1);
+        await repo.SetCurrentTrackAsync(800ul, null, null);
 
         var result = await repo.GetOrCreateAsync(800ul);
         Assert.Null(result.CurrentTrackIdentifier);

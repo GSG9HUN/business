@@ -1,29 +1,28 @@
-﻿using DC_bot.Interface.Discord;
+using DC_bot.Interface.Discord;
 using DC_bot.Wrapper;
-using DotNetEnv;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Wrapper;
+namespace DC_bot_tests.EndToEndTests.Wrapper;
 
-[Collection("Integration Tests")]
-public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
 {
     private readonly DiscordClient? _discordClient;
     private readonly bool _isConfigured;
-    private readonly ulong _guildId = 1309813939563003966;
+    private readonly ulong _guildId;
 
-    public DiscordGuildWrapperIntegrationTests()
+    public DiscordGuildWrapperEndToEndTests()
     {
-        var directoryInfo =
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
+        var hasGuild = EndToEndTestConfiguration.TryGetDiscordGuildId(out var guildId);
 
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        _guildId = guildId;
 
-        if (!string.IsNullOrWhiteSpace(token))
+        if (hasToken && hasGuild)
         {
             _isConfigured = true;
             _discordClient = new DiscordClient(new DiscordConfiguration
@@ -49,17 +48,18 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         if (_discordClient != null)
+        {
             await _discordClient.DisconnectAsync();
+        }
     }
 
     private DiscordGuild? GetGuild() =>
         _discordClient?.Guilds.GetValueOrDefault(_guildId);
 
     [Fact]
-    public async Task Id_ReturnsCorrectGuildId()
+    public void Id_ReturnsCorrectGuildId()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -70,10 +70,9 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Name_ReturnsNonEmptyGuildName()
+    public void Name_ReturnsNonEmptyGuildName()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -85,10 +84,9 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ToDiscordGuild_ReturnsSameInstance()
+    public void ToDiscordGuild_ReturnsSameInstance()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -101,7 +99,7 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetAllMembersAsync_ReturnsNonEmptyCollection()
     {
-        if (!_isConfigured) return;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -116,7 +114,7 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetAllMembersAsync_AllMembersImplementIDiscordMember()
     {
-        if (!_isConfigured) return;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -130,7 +128,7 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetMemberAsync_WithValidId_ReturnsCorrectMember()
     {
-        if (!_isConfigured) return;
+        EnsureConfigured();
 
         var guild = GetGuild();
         Assert.NotNull(guild);
@@ -143,6 +141,14 @@ public class DiscordGuildWrapperIntegrationTests : IAsyncLifetime
 
         Assert.IsType<DiscordMemberWrapper>(fetchedMember);
         Assert.Equal(firstMember.Id, fetchedMember.Id);
+    }
+
+    private void EnsureConfigured()
+    {
+        if (!_isConfigured || _discordClient == null)
+        {
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndGuildMessage());
+        }
     }
 }
 

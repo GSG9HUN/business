@@ -4,6 +4,7 @@
   "language_command_description": "Megváltoztatja a bot nyelvét.",
   "language_command_usage": "Adj meg egy nyelvet.",
   "language_command_response": "A nyelv sikeresen megváltozott.",
+  "language_command_error": "Nem támogatott nyelv.",
   "pause_command_description": "Szünetelteti a jelenlegi zenét.",
   "pause_command_error": "Jelenleg nincs lejátszott szám.",
   "pause_command_response": "Szüneteltetve:",

@@ -16,7 +16,8 @@ public class TrackNotificationService(
     ILogger<TrackNotificationService> logger,
     DiscordClient discordClient) : ITrackNotificationService
 {
-    public event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted = null!;
+    public event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted =
+        (_, _, _) => Task.CompletedTask;
 
     public async Task NotifyNowPlayingAsync(IDiscordChannel textChannel, ILavaLinkTrack track, TimeSpan position,
         TimeSpan duration)
@@ -72,9 +73,24 @@ public class TrackNotificationService(
             .Build();
     }
 
+    private static TimeSpan ClampPosition(TimeSpan position, TimeSpan duration)
+    {
+        if (position <= TimeSpan.Zero || duration == TimeSpan.Zero) return TimeSpan.Zero;
+        return position > duration ? duration : position;
+    }
+
+    private static string FormatTimestamp(TimeSpan value)
+    {
+        return $"{(int)value.TotalMinutes:D2}:{value.Seconds:D2}";
+    }
+
     private string BuildProgressBar(TimeSpan pos, TimeSpan dur, int size = 20)
     {
+        if (dur <= TimeSpan.Zero) return string.Concat("🔘", new string('▬', size));
+
         var filled = (int)(size * pos.TotalMilliseconds / dur.TotalMilliseconds);
+        filled = Math.Clamp(filled, 0, size);
+
         return string.Concat(
             new string('▬', filled),
             "🔘",

@@ -10,8 +10,6 @@ Queue persistence is now database-backed and no longer stored here by the active
 guildFiles/
 ├── localization/
 │   └── {guildId}.json        # Guild language preference
-└── queues/
-  └── legacy files          # Legacy queue snapshots (not active DB path)
 ```
 
 ## Subfolders
@@ -23,9 +21,7 @@ guildFiles/
 **Format:**
 
 ```json
-{
-  "language": "en"
-}
+"eng"
 ```
 
 **File:** `{guildId}.json`
@@ -42,14 +38,15 @@ localizationService.LoadLanguage(guildId);
 
 ---
 
-### queues/
+### queues/ (legacy only)
 
 **Purpose:** Legacy queue persistence location.
 
 **Status:**
 
 - Current queue persistence uses PostgreSQL via `IQueueRepository`.
-- Existing files in this folder can be treated as historical/legacy artifacts.
+- The active source tree does not require this folder.
+- If a `queues/` folder exists in an older checkout, its files can be treated as historical/legacy artifacts.
 
 ---
 
@@ -58,7 +55,7 @@ localizationService.LoadLanguage(guildId);
 - **Created automatically** - Directories created on first write
 - **Per-guild isolation** - Each guild has separate files
 - **Runtime managed** - Don't edit manually while bot runs
-- **Corruption handling** - Invalid JSON falls back to defaults
+- **Corruption handling** - Missing files fall back to defaults; invalid JSON raises `LocalizationException`
 
 ---
 

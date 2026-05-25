@@ -6,7 +6,7 @@ This folder contains everything you need to run a Lavalink server, including con
 
 ## 1. Required Files
 
-- **Lavalink.jar**: Download the latest Lavalink (v4.x) JAR from https://github.com/lavalink-devs/Lavalink/releases
+- **Lavalink.jar**: Required only for manual, non-Docker usage. Download a compatible Lavalink v4 JAR from https://github.com/lavalink-devs/Lavalink/releases
 - **application.yaml**: This configuration file controls the server, sources, plugins, passwords, and API keys.
 
 ## 2. Starting the Server
@@ -19,6 +19,12 @@ This folder contains everything you need to run a Lavalink server, including con
 java -jar Lavalink.jar
 ```
 
+For the normal repository workflow, use Docker Compose from the repository root:
+
+```sh
+docker compose up --build
+```
+
 ## 3. Main application.yaml Parameters
 
 ### Required:
@@ -29,15 +35,24 @@ java -jar Lavalink.jar
 - **lavasrc**: Multi-source search/playback (Spotify, Apple Music, Deezer, Yandex Music, etc.)
 - **lavasearch**: Smart search, YouTube/ytmusic support
 - **lavalyrics**: Lyrics search
+- **youtube-plugin**: YouTube source support. The current config disables Lavalink's built-in YouTube source and uses the plugin path.
 
 ### API Keys & Secrets:
 - **Spotify**: `clientId`, `clientSecret` (from Spotify Developer Dashboard)
 - **Apple Music**: `mediaAPIToken` (from Apple Developer account)
-- **Deezer**: `masterDecryptionKey` or `arl` cookie
+- **Deezer**: `arl` cookie
 - **Yandex Music**: `accessToken` (optional but recommended)
 
+In this repository these are provided through environment variables:
+
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `APPLE_MUSIC_API_TOKEN`
+- `DEEZER_ARL`
+- `YANDEX_MUSIC_ACCESS_TOKEN`
+
 ### Source Enabling:
-In `application.yaml`, under the `sources` section, you can enable which providers are available for bot commands (e.g., spotify, applemusic, deezer, yandexmusic, youtube, etc.).
+In `application.yaml`, provider availability is configured under `plugins.lavasrc.sources` for lavasrc providers and `lavalink.server.sources` for Lavalink's built-in sources.
 
 ### Audio Filters:
 The following filters are supported if your bot can use them:
@@ -47,9 +62,16 @@ The following filters are supported if your bot can use them:
 
 - **Password**: In your bot (e.g., `LavalinkSettings.cs`), use the same password as in application.yaml.
 - **Port**: Set the server port in your bot (default: 2333).
-- **Source Prefixes**: For search commands, you can use the following prefixes (if enabled):
-  - `ytsearch:`, `ytmsearch:`, `scsearch:`, `spsearch:`, `amsearch:`, `dzsearch:`, `ymsearch:`, etc.
-- **API Keys**: For Spotify, Apple Music, Deezer, Yandex Music features, you must provide your own keys/tokens in application.yaml.
+- **Source Prefixes**: For search commands, the bot resolver supports:
+  - `youtube:` / `ytsearch:`
+  - `youtubemusic:` / `ytmsearch:`
+  - `soundcloud:` / `scsearch:`
+  - `spotify:` / `sptfy:`
+  - `applemusic:` / `amsearch:`
+  - `deezer:` / `dzsearch:`
+  - `yandexmusic:` / `ymsearch:`
+  - `bandcamp:` / `bcsearch:`
+- **API Keys**: For Spotify, Apple Music, Deezer, and Yandex Music features, provide your own keys/tokens through the environment variables consumed by `application.yaml`.
 
 ## 5. Example application.yaml Snippet
 
@@ -58,26 +80,31 @@ server:
   port: 2333
 lavalink:
   plugins:
-    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.4.0"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.0"
       repository: "https://maven.lavalink.dev/releases"
-    - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.5.1"
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
       repository: "https://maven.lavalink.dev/releases"
-    - dependency: "com.github.topi314.lavalyrics:lavalyrics-plugin:1.0.1"
+    - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
+      repository: "https://maven.lavalink.dev/releases"
+    - dependency: "com.github.topi314.lavalyrics:lavalyrics-plugin:1.1.0"
       repository: "https://maven.lavalink.dev/releases"
   server:
-    password: "your_strong_password"
+    password: "${LAVALINK_SERVER_PASSWORD:nagyon_eros_jelszo}"
   sources:
-    youtube: true
+    youtube: false
+    soundcloud: true
+    bandcamp: true
+    http: true
     spotify: true
-    applemusic: true
-    deezer: true
-    yandexmusic: true
+    applemusic: false
+    deezer: false
+    yandexmusic: false
     # ...
   filters:
     volume: true
     equalizer: true
     # ...
-  # API keys, see above
+  # API keys/environment variables, see above
 ```
 
 ## 6. Troubleshooting & Tips
@@ -85,6 +112,7 @@ lavalink:
 - If your bot cannot connect, check the password, port, and whether the Lavalink server is running.
 - For plugin errors, check the server logs (`logs/` folder).
 - Without API keys, related services will not work.
+- In Docker Compose, the bot reaches Lavalink at `lavalink:2333`.
 
 ---
 

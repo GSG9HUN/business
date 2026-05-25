@@ -80,7 +80,7 @@ User validation:
 
 - User is not a bot
 - User is in a voice channel
-- User is in same voice channel as bot (if bot connected)
+- Bot users are ignored unless test mode is enabled
 
 Player validation:
 

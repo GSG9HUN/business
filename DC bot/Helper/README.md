@@ -83,7 +83,7 @@ var member = result.Member;
 
 - User is not a bot
 - User is in a voice channel
-- User is in the same voice channel as bot (if bot connected)
+- Bot users are ignored unless test mode is enabled
 
 ---
 

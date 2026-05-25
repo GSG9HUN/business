@@ -130,17 +130,10 @@ public class MusicQueueService(IQueueRepository queueRepository, ILogger<MusicQu
         await SaveQueue(guildId, shuffledQueue);
     }
 
-    public IEnumerable<ILavaLinkTrack> GetRepeatableQueue(ulong guildId)
-    {
-        throw new NotImplementedException();
-    }
-
-
     public async Task ClearQueue(ulong guildId)
     {
         _logger.LogInformation("Queue clear requested for guild {GuildId}.", guildId);
 
-        
         await queueRepository.MarkAllQueuedAsSkippedAsync(guildId);
 
         _logger.LogInformation("Queue clear completed for guild {GuildId}.", guildId);

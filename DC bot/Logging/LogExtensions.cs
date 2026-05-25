@@ -95,7 +95,7 @@ public static partial class LogExtensions
     public static partial void ValidationUserNotInVoiceChannel(this ILogger logger);
 
     [LoggerMessage(EventId = 1501, Level = LogLevel.Information,
-        Message = "Logger initialized for SingletonDiscordClient.")]
+        Message = "Discord client logger initialized.")]
     public static partial void DiscordClientLoggerInitialized(this ILogger logger);
 
     [LoggerMessage(EventId = 1502, Level = LogLevel.Information, Message = "Bot is ready!")]

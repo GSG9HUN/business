@@ -11,12 +11,14 @@ Slash commands are Discord's interaction system that provides:
 - Ephemeral (private) responses
 - Better discoverability
 
+Current status: these classes are source stubs only. Runtime registration is commented out in `Program.cs`, and most command bodies are commented/no-op until slash command support is re-enabled and completed.
+
 ## Available Slash Commands
 
-- `PlaySlashCommand.cs` - `/play` - Play music
-- `PingSlashCommand.cs` - `/ping` - Check bot latency
-- `HelpSlashCommand.cs` - `/help` - Interactive help
-- `TagSlashCommand.cs` - `/tag` - Manage custom tags
+- `PlaySlashCommand.cs` - `/play` - source exists, playback logic is commented out
+- `PingSlashCommand.cs` - `/ping` - source exists, response logic is commented out
+- `HelpSlashCommand.cs` - `/help` - source exists, response logic is commented out
+- `TagSlashCommand.cs` - `/tag` - source exists, member lookup/response logic is commented out
 
 ## Slash Command vs Text Command
 
@@ -62,7 +64,7 @@ public async Task Play(
 
 ## Registration
 
-Slash commands are registered when the bot starts up via DSharpPlus discovery.
+Slash command registration is currently disabled. `Program.cs` contains the registration block in `RegisterSlashCommands(...)`, but it is commented out, so these commands are not active at runtime.
 
 ## Related Components
 
