@@ -10,8 +10,12 @@ public class DiscordGuildWrapper(DiscordGuild discordGuild) : IDiscordGuild
 
     public async Task<IDiscordMember> GetMemberAsync(ulong id)
     {
-        var discordMember = await discordGuild.GetMemberAsync(id);
-        return new DiscordMemberWrapper(discordMember);
+        var discordMember = discordGuild.Members.TryGetValue(id, out var cachedMember)
+            ? cachedMember
+            : await discordGuild.GetMemberAsync(id);
+
+        discordGuild.VoiceStates.TryGetValue(id, out var voiceState);
+        return new DiscordMemberWrapper(discordMember, voiceState);
     }
 
     public DiscordGuild ToDiscordGuild()
