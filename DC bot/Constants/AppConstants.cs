@@ -18,6 +18,7 @@ public static class LocalizationKeys
 
     // Language Command
     public const string LanguageCommandDescription = "language_command_description";
+    public const string LanguageCommandInvalidLanguage = "language_command_invalid_language";
 
     // Leave Command
     public const string LeaveCommandDescription = "leave_command_description";

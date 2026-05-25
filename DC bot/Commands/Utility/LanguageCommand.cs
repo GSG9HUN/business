@@ -17,6 +17,12 @@ public class LanguageCommand(
     ILocalizationService localizationService,
     ICommandHelper commandHelper) : ICommand
 {
+    private static readonly HashSet<string> AllowedLanguageCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "eng",
+        "hu"
+    };
+
     public string Name => "language";
     public string Description => localizationService.Get(LocalizationKeys.LanguageCommandDescription);
 
@@ -27,7 +33,15 @@ public class LanguageCommand(
         if (userValidation.IsBotUser(message)) return;
 
         var language = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
+        
         if (language is null) return;
+
+        language = language.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(language) || !AllowedLanguageCodes.Contains(language))
+        {
+            await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.LanguageCommandInvalidLanguage);
+            return;
+        }
 
         try
         {
