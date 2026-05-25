@@ -1,4 +1,4 @@
-﻿using DC_bot.Interface.Discord;
+using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET;
@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
 
+[Trait("Category", "Unit")]
 public class PlaybackEventHandlerServiceTests
 {
     [Fact]

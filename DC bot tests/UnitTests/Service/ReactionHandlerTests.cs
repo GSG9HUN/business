@@ -1,4 +1,5 @@
-﻿using DC_bot.Constants;
+using DC_bot.Constants;
+using DC_bot.Exceptions.Messaging;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -12,12 +13,12 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Service;
 
+[Trait("Category", "Unit")]
 public class ReactionHandlerTests
 {
     [Fact]
     public void RegisterHandler_WithDiscordClient_SubscribesToEvents()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -40,10 +41,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act
         reactionHandler.RegisterHandler(discordClient);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -61,7 +60,6 @@ public class ReactionHandlerTests
     [Fact]
     public void RegisterHandler_ThenUnregister_UnsubscribesFromEvents()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -84,11 +82,9 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act
         reactionHandler.RegisterHandler(discordClient);
         reactionHandler.UnregisterHandler(discordClient);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -104,7 +100,6 @@ public class ReactionHandlerTests
     [Fact]
     public void RegisterHandler_CalledTwice_LogsAlreadyRegisteredSecondTime()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -127,11 +122,9 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act
         reactionHandler.RegisterHandler(discordClient);
         reactionHandler.RegisterHandler(discordClient);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -149,7 +142,6 @@ public class ReactionHandlerTests
     [Fact]
     public void UnregisterHandler_WithoutPreviousRegister_LogsWarning()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -172,10 +164,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act
         reactionHandler.UnregisterHandler(discordClient);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Warning),
@@ -192,7 +182,6 @@ public class ReactionHandlerTests
     [Fact]
     public void RegisterUnregisterCycle_MaintainsConsistentState()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -215,7 +204,6 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act & Assert
         reactionHandler.RegisterHandler(discordClient);
         loggerMock.Invocations.Clear();
 
@@ -274,11 +262,20 @@ public class ReactionHandlerTests
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
+        var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
         var memberMock = new Mock<IDiscordMember>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
+        messageMock.SetupGet(m => m.Channel).Returns(channelMock.Object);
         lavaLinkServiceMock.Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .Returns(Task.CompletedTask);
         lavaLinkServiceMock.Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
@@ -315,11 +312,20 @@ public class ReactionHandlerTests
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
+        var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
         var memberMock = new Mock<IDiscordMember>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
         localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
+        messageMock.SetupGet(m => m.Channel).Returns(channelMock.Object);
         lavaLinkServiceMock.Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .Returns(Task.CompletedTask);
         lavaLinkServiceMock.Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
@@ -350,7 +356,6 @@ public class ReactionHandlerTests
     [Fact]
     public async Task ExecuteOnReactionAddedAsync_WhenBotExceptionThrown_LogsOperationFailedWithEventId1208()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -371,10 +376,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act – must NOT throw; exception is swallowed by the catch block
         await reactionHandler.ExecuteOnReactionAddedAsync("⏸️", messageMock.Object, memberMock.Object);
 
-        // Assert – EventId 1208, LogLevel.Error, operation name in message
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -390,7 +393,6 @@ public class ReactionHandlerTests
     [Fact]
     public async Task ExecuteOnReactionAddedAsync_WhenGeneralExceptionThrown_LogsOperationFailedWithEventId1208()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -411,10 +413,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act
         await reactionHandler.ExecuteOnReactionAddedAsync("▶️", messageMock.Object, memberMock.Object);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -430,7 +430,6 @@ public class ReactionHandlerTests
     [Fact]
     public async Task ExecuteOnReactionRemovedAsync_WhenBotExceptionThrown_LogsOperationFailedWithEventId1208()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -451,10 +450,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act – ⏸️ removed → calls ResumeAsync internally
         await reactionHandler.ExecuteOnReactionRemovedAsync("⏸️", messageMock.Object, memberMock.Object);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -470,7 +467,6 @@ public class ReactionHandlerTests
     [Fact]
     public async Task ExecuteOnReactionRemovedAsync_WhenGeneralExceptionThrown_LogsOperationFailedWithEventId1208()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
@@ -491,10 +487,8 @@ public class ReactionHandlerTests
             localizationServiceMock.Object
         );
 
-        // Act – ▶️ removed → calls PauseAsync internally
         await reactionHandler.ExecuteOnReactionRemovedAsync("▶️", messageMock.Object, memberMock.Object);
 
-        // Assert
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -510,15 +504,19 @@ public class ReactionHandlerTests
     [Fact]
     public async Task SendReactionControlMessage_WhenSendFails_LogsEventId1209AndThrowsMessageSendException()
     {
-        // Arrange
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         var loggerMock = new Mock<ILogger<ReactionHandler>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var channelMock = new Mock<IDiscordChannel>();
+        var guildMock = new Mock<IDiscordGuild>();
 
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
+        localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns("test");
+        guildMock.SetupGet(g => g.Id).Returns(123UL);
+        channelMock.SetupGet(c => c.Guild).Returns(guildMock.Object);
 
         var sendException = new InvalidOperationException("Discord API failure");
         channelMock.Setup(x => x.ToDiscordChannel()).Throws(sendException);
@@ -534,16 +532,12 @@ public class ReactionHandlerTests
         );
         reactionHandler.RegisterHandler(discordClient);
 
-        // Act – raise TrackStarted which internally calls SendReactionControlMessage
-        lavaLinkServiceMock.Raise(
+        var exception = await Assert.ThrowsAsync<MessageSendException>(() => lavaLinkServiceMock.RaiseAsync(
             x => x.TrackStarted += null!,
             channelMock.Object,
             discordClient,
-            new DiscordEmbedBuilder().WithTitle("test").Build());
+            new DiscordEmbedBuilder().WithTitle("test").Build()));
 
-        await Task.Delay(200);
-
-        // Assert – EventId 1209, LogLevel.Error
         loggerMock.Verify(
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -555,6 +549,7 @@ public class ReactionHandlerTests
             Times.Once
         );
 
+        Assert.Same(sendException, exception.InnerException);
         reactionHandler.UnregisterHandler(discordClient);
     }
 }

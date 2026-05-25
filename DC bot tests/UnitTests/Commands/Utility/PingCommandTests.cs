@@ -9,6 +9,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Utility;
 
+[Trait("Category", "Unit")]
 public class PingCommandTests
 {
     private const string PingCommandName = "ping";
@@ -41,14 +42,11 @@ public class PingCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldSendNothing()
     {
-        //Arrange
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
 
-        // Act
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
     }
@@ -56,14 +54,11 @@ public class PingCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsNotBot_ShouldSendPongMessage()
     {
-        //Arrange
         _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
 
-        // Act
         await _pingCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.PingCommandResponse),
             Times.Once);
     }

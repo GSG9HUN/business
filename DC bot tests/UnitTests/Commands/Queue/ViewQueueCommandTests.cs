@@ -14,6 +14,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Queue;
 
+[Trait("Category", "Unit")]
 public class ViewQueueCommandTests
 {
     private const string ViewQueueCommandName = "viewList";
@@ -47,8 +48,12 @@ public class ViewQueueCommandTests
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ViewListCommandEmbedTitle))
             .Returns(ViewListEmbedTitleValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ViewListCommandEmbedTitle))
+            .Returns(ViewListEmbedTitleValue);
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ViewListCommandResponse, 1))
+            .Returns(ViewListFooterValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ViewListCommandResponse, 1))
             .Returns(ViewListFooterValue);
 
         _messageMock = new Mock<IDiscordMessage>();
@@ -71,7 +76,6 @@ public class ViewQueueCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        //Arrange
         _commandHelperMock
             .Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
@@ -79,17 +83,14 @@ public class ViewQueueCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuteAsync_UserNotIn_VoiceChannel()
     {
-        //Arrange
         _commandHelperMock
             .Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
@@ -97,17 +98,14 @@ public class ViewQueueCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Never);
     }
 
     [Fact]
     public async Task ExecuteAsync_QueueIsEmpty_ShouldSendErrorMessage()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -130,10 +128,8 @@ public class ViewQueueCommandTests
 
         _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).ReturnsAsync(new List<ILavaLinkTrack>());
 
-        //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, LocalizationKeys.ViewListCommandError), Times.Once);
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
@@ -142,7 +138,6 @@ public class ViewQueueCommandTests
     [Fact]
     public async Task ExecuteAsync_Should_Run_Correctly()
     {
-        //Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -169,10 +164,8 @@ public class ViewQueueCommandTests
         _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>()))
             .ReturnsAsync(new List<ILavaLinkTrack> { lavaLinkTrackMock.Object });
 
-        //Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _messageMock.Verify(m => m.RespondAsync(It.Is<DiscordEmbed>(embed =>
             embed.Title == ViewListEmbedTitleValue &&
             embed.Fields.Count == 1 &&
@@ -185,7 +178,6 @@ public class ViewQueueCommandTests
     [Fact]
     public async Task ExecuteAsync_Should_Display_Footer_When_Queue_Has_More_Than_10_Tracks()
     {
-        // Arrange
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
 
@@ -217,13 +209,11 @@ public class ViewQueueCommandTests
 
         _musicQueueMock.Setup(l => l.ViewQueue(It.IsAny<ulong>())).ReturnsAsync(tracks);
 
-        // Act
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _messageMock.Verify(m => m.RespondAsync(It.Is<DiscordEmbed>(embed =>
             embed.Title == ViewListEmbedTitleValue &&
-            embed.Fields.Count == 10 && // Csak 10 track-et kell megjelenítenie
+                embed.Fields.Count == 10 &&
             embed.Fields[0].Name == $"{TitlePrefix}1" &&
             embed.Fields[0].Value == $"🎵 {AuthorPrefix}1" &&
             embed.Fields[9].Name == $"{TitlePrefix}10" &&

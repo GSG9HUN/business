@@ -50,11 +50,12 @@ public class ReactionHandler(
     {
         try
         {
-            var controlText = $"🎵 **{localizationService.Get(LocalizationKeys.MusicControl)}** 🎵\n" +
-                              $"⏸️ - {localizationService.Get(LocalizationKeys.PauseReaction)} " +
-                              $"▶️ - {localizationService.Get(LocalizationKeys.ResumeReaction)} " +
-                              $"⏭️ - {localizationService.Get(LocalizationKeys.SkipReaction)} " +
-                              $"🔁 - {localizationService.Get(LocalizationKeys.RepeatReaction)}";
+            var guildId = textChannel.Guild.Id;
+            var controlText = $"🎵 **{localizationService.Get(guildId, LocalizationKeys.MusicControl)}** 🎵\n" +
+                              $"⏸️ - {localizationService.Get(guildId, LocalizationKeys.PauseReaction)} " +
+                              $"▶️ - {localizationService.Get(guildId, LocalizationKeys.ResumeReaction)} " +
+                              $"⏭️ - {localizationService.Get(guildId, LocalizationKeys.SkipReaction)} " +
+                              $"🔁 - {localizationService.Get(guildId, LocalizationKeys.RepeatReaction)}";
 
             var builder = new DiscordMessageBuilder()
                 .WithContent(controlText)
@@ -163,7 +164,8 @@ public class ReactionHandler(
                 break;
 
             case "🔁": // Repeat emoji
-                await message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOn));
+                await message.RespondAsync(
+                    localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOn));
                 break;
         }
     }
@@ -185,7 +187,8 @@ public class ReactionHandler(
                 break;
 
             case "🔁": // Repeat emoji
-                await message.RespondAsync(localizationService.Get(LocalizationKeys.ReactionHandlerRepeatOff));
+                await message.RespondAsync(
+                    localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOff));
                 break;
         }
     }

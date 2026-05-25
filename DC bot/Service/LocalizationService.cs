@@ -10,6 +10,8 @@ namespace DC_bot.Service;
 
 public class LocalizationService : ILocalizationService
 {
+    private const string DefaultLanguage = "eng";
+
     private static readonly string LocalizationDirectory =
         Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/localization");
 
@@ -17,10 +19,10 @@ public class LocalizationService : ILocalizationService
         Path.Combine(Directory.GetCurrentDirectory(), "localization");
 
     private readonly IFileSystem _fileSystem;
-
+    private readonly Dictionary<ulong, Dictionary<string, string>> _guildTranslations = new();
     private readonly ILogger<LocalizationService> _logger;
-    private string? _lang;
-    private Dictionary<string, string> _translations = new();
+    private readonly object _syncRoot = new();
+    private Dictionary<string, string>? _defaultTranslations;
 
     public LocalizationService(ILogger<LocalizationService> logger, IFileSystem? fileSystem = null)
     {
@@ -33,41 +35,36 @@ public class LocalizationService : ILocalizationService
 
     public string Get(string key, params object[] args)
     {
-        return _translations.TryGetValue(key, out var value)
-            ? string.Format(value, args)
-            : key; // Ha nincs fordítás, akkor az eredeti kulcsot adja vissza
-        // TODO: Ha egy kulcs hiányzik a fordítási fájlból, a Get() visszaadja magát a kulcsot (pl. "play_command_description").
-        //       Ez nehézzé teszi a hiányzó fordítások észlelését éles környezetben. Javasolt legalább egy
-        //       warning szintű log bejegyzés, ha egy kulcs nem található a szótárban.
+        return GetTranslation(GetDefaultTranslations(), key, args);
+    }
+
+    public string Get(ulong guildId, string key, params object[] args)
+    {
+        return GetTranslation(GetGuildTranslations(guildId), key, args);
     }
 
     public void LoadLanguage(ulong guildId)
     {
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
+        var language = DefaultLanguage;
 
-        if (!_fileSystem.FileExists(filePath))
-        {
-            LoadTranslations();
-            return;
-        }
+        if (_fileSystem.FileExists(filePath)) language = ReadJson<string>(filePath, "unknown") ?? DefaultLanguage;
 
-        var lang = ReadJson<string>(filePath);
-        _lang = lang ?? "eng";
-
-        LoadTranslations(_lang);
+        var translations = LoadTranslations(language);
+        SetGuildTranslations(guildId, language, translations);
     }
 
     public void SaveLanguage(ulong guildId, string language)
     {
         var filePath = Path.Combine(LocalizationDirectory, $"{guildId}.json");
-        _lang = language;
+        var translations = LoadTranslations(language);
 
-        WriteJson(filePath, _lang);
+        WriteJson(filePath, language, language);
 
-        LoadTranslations(_lang);
+        SetGuildTranslations(guildId, language, translations);
     }
 
-    private T? ReadJson<T>(string filePath)
+    private T? ReadJson<T>(string filePath, string languageCode)
     {
         try
         {
@@ -77,11 +74,11 @@ public class LocalizationService : ILocalizationService
         catch (Exception ex)
         {
             _logger.LocalizationReadFailed(ex, filePath);
-            throw new LocalizationException(_lang ?? "unknown", $"Failed to read JSON file: {filePath}", ex);
+            throw new LocalizationException(languageCode, $"Failed to read JSON file: {filePath}", ex);
         }
     }
 
-    private void WriteJson<T>(string filePath, T value)
+    private void WriteJson<T>(string filePath, T value, string languageCode)
     {
         try
         {
@@ -90,11 +87,11 @@ public class LocalizationService : ILocalizationService
         catch (Exception ex)
         {
             _logger.LocalizationWriteFailed(ex, filePath);
-            throw new LocalizationException(_lang ?? "unknown", $"Failed to write JSON file: {filePath}", ex);
+            throw new LocalizationException(languageCode, $"Failed to write JSON file: {filePath}", ex);
         }
     }
 
-    private void LoadTranslations(string languageCode = "eng")
+    private Dictionary<string, string> LoadTranslations(string languageCode)
     {
         _logger.LocalizationLoading(languageCode);
 
@@ -106,8 +103,57 @@ public class LocalizationService : ILocalizationService
             throw new LocalizationException(languageCode, $"Translation file not found: {filePath}", exception);
         }
 
-        _translations = ReadJson<Dictionary<string, string>>(filePath) ?? new Dictionary<string, string>();
+        var translations = ReadJson<Dictionary<string, string>>(filePath, languageCode) ??
+                           new Dictionary<string, string>();
 
         _logger.LocalizationLoaded();
+        return translations;
+    }
+
+    private Dictionary<string, string> GetDefaultTranslations()
+    {
+        lock (_syncRoot)
+        {
+            if (_defaultTranslations is not null) return _defaultTranslations;
+        }
+
+        var translations = LoadTranslations(DefaultLanguage);
+
+        lock (_syncRoot)
+        {
+            _defaultTranslations ??= translations;
+            return _defaultTranslations;
+        }
+    }
+
+    private Dictionary<string, string> GetGuildTranslations(ulong guildId)
+    {
+        lock (_syncRoot)
+        {
+            if (_guildTranslations.TryGetValue(guildId, out var translations)) return translations;
+        }
+
+        LoadLanguage(guildId);
+
+        lock (_syncRoot)
+        {
+            return _guildTranslations[guildId];
+        }
+    }
+
+    private void SetGuildTranslations(ulong guildId, string language, Dictionary<string, string> translations)
+    {
+        lock (_syncRoot)
+        {
+            _guildTranslations[guildId] = translations;
+            if (language == DefaultLanguage) _defaultTranslations ??= translations;
+        }
+    }
+
+    private static string GetTranslation(IReadOnlyDictionary<string, string> translations, string key, object[] args)
+    {
+        return translations.TryGetValue(key, out var value)
+            ? string.Format(value, args)
+            : key;
     }
 }

@@ -1,10 +1,11 @@
-﻿using DC_bot.Wrapper;
+using DC_bot.Wrapper;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
+[Trait("Category", "Unit")]
 public class DiscordChannelWrapperTests
 {
     [Fact]
@@ -28,13 +29,13 @@ public class DiscordChannelWrapperTests
         var wrapper = new DiscordChannelWrapper(channel);
         Assert.Equal(channel, wrapper.ToDiscordChannel());
     }
-    
+
     [Fact]
     public async Task SendMessageAsync_String_WhenDiscordThrows_LogsEventId3002AndDoesNotThrow()
     {
         var loggerMock = new Mock<ILogger<DiscordChannelWrapper>>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        
+
         var wrapper = new DiscordChannelWrapper(DiscordEntityFactory.CreateChannel(), loggerMock.Object);
 
         await wrapper.SendMessageAsync("hello");
@@ -47,7 +48,7 @@ public class DiscordChannelWrapperTests
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
-    
+
     [Fact]
     public async Task SendMessageAsync_Embed_WhenDiscordThrows_LogsEventId3002AndDoesNotThrow()
     {

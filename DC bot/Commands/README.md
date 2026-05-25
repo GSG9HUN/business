@@ -8,7 +8,7 @@ Commands handle user input from Discord messages and delegate business logic to 
 types:
 
 1. **Text Commands** - Prefix-based commands (`!play`, `!pause`)
-2. **Slash Commands** - Discord interactions (`/play`, `/ping`)
+2. **Slash Commands** - Discord interactions (`/play`, `/ping`), currently present in source but not registered at runtime
 
 ## Folder Structure
 
@@ -45,6 +45,8 @@ Queue management commands.
 
 Slash command implementations.
 
+Runtime registration is currently commented out in `Program.cs`.
+
 **Commands:**
 
 - `PlaySlashCommand` - `/play`
@@ -61,9 +63,9 @@ General-purpose bot commands.
 **Commands:**
 
 - `HelpCommand` - List all commands
-- `PingCommand` - Check bot latency
-- `LanguageCommand` - Change guild language
-- `TagCommand` - Manage custom tags
+- `PingCommand` - Reply with Pong
+- `LanguageCommand` - Save guild language preference
+- `TagCommand` - Mention a guild member by username
 
 ---
 
@@ -139,7 +141,8 @@ services.AddSingleton<ICommand, PauseCommand>();
 ## Related Components
 
 - **Interface/ICommand.cs** - Text command contract
-- **Service/CommandHandlerService.cs** - Command routing
-- **Service/ValidationService.cs** - User validation
-- **Helper/CommandHelper.cs** - Command utilities
+- **Service/Core/CommandHandlerService.cs** - Command routing
+- **Service/Core/ValidationService.cs** - User validation
+- **Service/Core/CommandValidationService.cs** - Command utilities
+- **Interface/Core/ICommandHelper.cs** - Command helper contract
 

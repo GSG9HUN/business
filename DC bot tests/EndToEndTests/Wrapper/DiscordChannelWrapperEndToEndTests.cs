@@ -1,31 +1,31 @@
-﻿using DC_bot.Interface.Discord;
+using DC_bot.Interface.Discord;
 using DC_bot.Wrapper;
-using DotNetEnv;
 using DSharpPlus;
-using DSharpPlus.Entities; 
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Wrapper;
+namespace DC_bot_tests.EndToEndTests.Wrapper;
 
-[Collection("Integration Tests")]
-public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class DiscordChannelWrapperEndToEndTests : IAsyncLifetime
 {
     private readonly DiscordClient? _discordClient;
     private readonly bool _isConfigured;
-    private readonly ulong _guildId = 1309813939563003966;
-    private const ulong TestChannelId = 1339151008307351572;
+    private readonly ulong _guildId;
+    private readonly ulong _testChannelId;
 
-    public DiscordChannelWrapperIntegrationTests()
+    public DiscordChannelWrapperEndToEndTests()
     {
-        var directoryInfo =
-            Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
+        var hasGuild = EndToEndTestConfiguration.TryGetDiscordGuildId(out var guildId);
+        var hasChannel = EndToEndTestConfiguration.TryGetDiscordChannelId(out var testChannelId);
 
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        _guildId = guildId;
+        _testChannelId = testChannelId;
 
-        if (!string.IsNullOrWhiteSpace(token))
+        if (hasToken && hasGuild && hasChannel)
         {
             _isConfigured = true;
             _discordClient = new DiscordClient(new DiscordConfiguration
@@ -51,41 +51,41 @@ public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         if (_discordClient != null)
+        {
             await _discordClient.DisconnectAsync();
+        }
     }
 
     private DiscordChannel? GetTestChannel()
     {
         if (_discordClient == null) return null;
         if (!_discordClient.Guilds.TryGetValue(_guildId, out var guild)) return null;
-        return guild.Channels.GetValueOrDefault(TestChannelId);
+        return guild.Channels.GetValueOrDefault(_testChannelId);
     }
 
     private DiscordChannel GetRequiredTestChannel()
     {
         var channel = GetTestChannel();
         if (channel is null)
-            throw SkipException.ForSkip($"Integration test channel '{TestChannelId}' not found in guild '{_guildId}'.");
+            throw SkipException.ForSkip($"E2E test channel '{_testChannelId}' not found in guild '{_guildId}'.");
         return channel;
     }
 
     [Fact]
-    public async Task Id_ReturnsCorrectChannelId()
+    public void Id_ReturnsCorrectChannelId()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
 
-        Assert.Equal(TestChannelId, wrapper.Id);
+        Assert.Equal(_testChannelId, wrapper.Id);
     }
 
     [Fact]
-    public async Task Name_ReturnsNonEmptyChannelName()
+    public void Name_ReturnsNonEmptyChannelName()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
@@ -95,10 +95,9 @@ public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ToDiscordChannel_ReturnsSameInstance()
+    public void ToDiscordChannel_ReturnsSameInstance()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
@@ -107,10 +106,9 @@ public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Guild_ReturnsDiscordGuildWrapper()
+    public void Guild_ReturnsDiscordGuildWrapper()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
@@ -120,10 +118,9 @@ public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Guild_ReturnsCorrectGuildId()
+    public void Guild_ReturnsCorrectGuildId()
     {
-        if (!_isConfigured) return;
-        await Task.CompletedTask;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
@@ -134,32 +131,35 @@ public class DiscordChannelWrapperIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task SendMessageAsync_String_DoesNotThrow()
     {
-        if (!_isConfigured) return;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var wrapper = new DiscordChannelWrapper(channel);
 
-        var ex = await Record.ExceptionAsync(() =>
-            wrapper.SendMessageAsync($"Integration test message - string - {Guid.NewGuid():N}"));
-
-        Assert.Null(ex);
+        await wrapper.SendMessageAsync($"E2E test message - string - {Guid.NewGuid():N}");
     }
 
     [Fact]
     public async Task SendMessageAsync_Embed_DoesNotThrow()
     {
-        if (!_isConfigured) return;
+        EnsureConfigured();
 
         var channel = GetRequiredTestChannel();
         var embed = new DiscordEmbedBuilder()
-            .WithTitle("Integration Test")
-            .WithDescription($"DiscordChannelWrapper integration test - embed - {Guid.NewGuid():N}")
+            .WithTitle("E2E Test")
+            .WithDescription($"DiscordChannelWrapper E2E test - embed - {Guid.NewGuid():N}")
             .Build();
 
         var wrapper = new DiscordChannelWrapper(channel);
 
-        var ex = await Record.ExceptionAsync(() => wrapper.SendMessageAsync(embed));
+        await wrapper.SendMessageAsync(embed);
+    }
 
-        Assert.Null(ex);
+    private void EnsureConfigured()
+    {
+        if (!_isConfigured || _discordClient == null)
+        {
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenGuildAndChannelMessage());
+        }
     }
 }

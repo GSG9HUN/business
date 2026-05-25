@@ -11,6 +11,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Utility;
 
+[Trait("Category", "Unit")]
 public class HelpCommandTests
 {
     private const string CommandNamePing = "ping";
@@ -41,6 +42,8 @@ public class HelpCommandTests
             .Returns(HelpCommandDescriptionValue);
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns(HelpCommandResponseValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
             .Returns(HelpCommandResponseValue);
 
         _messageMock = new Mock<IDiscordMessage>();
@@ -73,7 +76,6 @@ public class HelpCommandTests
     [Fact]
     public async Task ExecuteAsync_ShouldListCommands_WhenCalled()
     {
-        //Arrange
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
 
         _discordMemberMock.SetupGet(dm => dm.IsBot).Returns(false);
@@ -85,17 +87,14 @@ public class HelpCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
-        // Act
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsList), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_ShouldHandleNoCommands()
     {
-        // Arrange
         Mock<ILogger<HelpCommand>> mockLogger = new();
         Mock<ILogger<ValidationService>> validationLoggerMock = new();
         Mock<ILocalizationService> localizationServiceMock = new();
@@ -104,6 +103,8 @@ public class HelpCommandTests
             .Returns(HelpCommandDescriptionValue);
 
         localizationServiceMock.Setup(g => g.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns(HelpCommandResponseValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
             .Returns(HelpCommandResponseValue);
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
@@ -125,17 +126,14 @@ public class HelpCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
-        // Act
         await helpCommandWithNoCommands.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsHeader), Times.Once);
     }
 
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        //Arrange
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
 
@@ -146,10 +144,8 @@ public class HelpCommandTests
         _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
         _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
 
-        //Act
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
-        //Assert
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);
     }

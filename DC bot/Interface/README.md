@@ -92,6 +92,7 @@ Service layer interfaces grouped by domain.
 - `IO/` - File system interfaces
 - `Localization/` - Localization service
 - `Music/` - Music and playback services
+- `Persistence/` - Repository contracts and persistence DTOs
 - `Presentation/` - Response building
 
 ---

@@ -29,7 +29,7 @@ public interface ICommandHelper
 - `TryValidateUserAsync()` - Validates user and sends error if invalid
 - `TryGetArgumentAsync()` - Extracts command arguments from message
 
-**Implementation:** `Service/Core/CommandHelperService.cs` (if exists) or used in commands directly
+**Implementation:** `Service/Core/CommandValidationService.cs`
 
 ---
 

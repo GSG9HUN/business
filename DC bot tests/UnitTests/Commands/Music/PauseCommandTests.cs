@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Music;
 
+[Trait("Category", "Unit")]
 public class PauseCommandTests
 {
     private const string PauseCommandName = "pause";
@@ -53,7 +54,6 @@ public class PauseCommandTests
     [Fact]
     public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
     {
-        // Arrange
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
         _discordUserMock.SetupGet(du => du.IsBot).Returns(true);
 
@@ -69,10 +69,8 @@ public class PauseCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(l => l.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
             Times.Never);
     }
@@ -80,7 +78,6 @@ public class PauseCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotInVoiceChannel_ShouldSendErrorMessage()
     {
-        // Arrange
         IDiscordVoiceState? mockDiscordVoiceState = null;
 
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
@@ -100,10 +97,8 @@ public class PauseCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        //Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
 
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
@@ -115,7 +110,6 @@ public class PauseCommandTests
     [Fact]
     public async Task ExecuteAsync_UserInVoiceChannel_ShouldPauseMusic()
     {
-        // Arrange
         var voiceChannel = new Mock<IDiscordVoiceState>();
 
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
@@ -137,10 +131,8 @@ public class PauseCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
 
-        // Act
         await _pauseCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _lavaLinkServiceMock.Verify(l => l.PauseAsync(_messageMock.Object, _discordMemberMock.Object), Times.Once);
     }
 

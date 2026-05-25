@@ -1,7 +1,8 @@
-﻿using DC_bot.Persistence.Repositories;
+using DC_bot.Persistence.Repositories;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 
+[Trait("Category", "Unit")]
 public class QueueRepositoryTests
 {
     private static InMemoryDbContextFactory CreateFactory() =>
@@ -82,7 +83,7 @@ public class QueueRepositoryTests
         var result = await repo.GetPreviousItemAsync(1ul);
 
         Assert.NotNull(result);
-        Assert.Equal(item.Id, result!.Id);
+        Assert.Equal(item.Id, result.Id);
     }
 
     [Fact]
@@ -97,7 +98,7 @@ public class QueueRepositoryTests
         var result = await repo.GetPreviousItemAsync(1ul);
 
         Assert.NotNull(result);
-        Assert.Equal(item.Id, result!.Id);
+        Assert.Equal(item.Id, result.Id);
     }
 
     [Fact]
@@ -184,9 +185,7 @@ public class QueueRepositoryTests
     {
         var repo = new QueueRepository(CreateFactory());
 
-        var ex = await Record.ExceptionAsync(() => repo.MarkPlayedAsync(99999L));
-
-        Assert.Null(ex);
+        await repo.MarkPlayedAsync(99999L);
     }
 
     [Fact]
@@ -208,9 +207,7 @@ public class QueueRepositoryTests
     {
         var repo = new QueueRepository(CreateFactory());
 
-        var ex = await Record.ExceptionAsync(() => repo.UpdateQueueItemPositionAsync(99999L, 0));
-
-        Assert.Null(ex);
+        await repo.UpdateQueueItemPositionAsync(99999L, 0);
     }
 
     [Fact]

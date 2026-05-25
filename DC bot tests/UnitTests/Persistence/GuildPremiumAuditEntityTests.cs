@@ -1,8 +1,9 @@
-﻿using DC_bot.Persistence.Entities;
+using DC_bot.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 
+[Trait("Category", "Unit")]
 public class GuildPremiumAuditEntityTests
 {
     private static InMemoryDbContextFactory CreateFactory() =>

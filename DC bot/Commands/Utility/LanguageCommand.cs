@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Exceptions.Localization;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -32,14 +33,28 @@ public class LanguageCommand(
         if (userValidation.IsBotUser(message)) return;
 
         var language = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
+        
         if (language is null) return;
-
+        
         language = language.Trim();
         if (string.IsNullOrWhiteSpace(language) || !AllowedLanguageCodes.Contains(language))
         {
             await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.LanguageCommandInvalidLanguage);
             return;
         }
+        
+        try
+        {
+            localizationService.SaveLanguage(message.Channel.Guild.Id, language);
+        }
+        catch (LocalizationException ex)
+        {
+            logger.CommandExecutionFailed(ex, Name);
+            await responseBuilder.SendCommandErrorResponse(message, Name);
+            return;
+        }
+
+      
 
         localizationService.SaveLanguage(message.Channel.Guild.Id, language.ToLowerInvariant());
         await responseBuilder.SendCommandResponseAsync(message, Name);

@@ -256,7 +256,7 @@ public async Task ExecuteAsync_TrackLoadException_SendsErrorMessage()
 - **Logging/LogExtensions.cs** - Exception logging extensions
 - **Service/** - Services that throw domain exceptions
 - **Helper/Validation/** - Validation result objects
-- **Constants/LocalizationKeys.cs** - Error message keys
+- **Constants/AppConstants.cs** - Error message keys
 
 ---
 

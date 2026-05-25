@@ -12,6 +12,7 @@ using Moq;
 
 namespace DC_bot_tests.UnitTests.Commands.Queue;
 
+[Trait("Category", "Unit")]
 public class ShuffleCommandTests
 {
     private const string ShuffleCommandName = "shuffle";
@@ -19,7 +20,6 @@ public class ShuffleCommandTests
     private const string ShuffleCommandResponseValue = "Queue shuffled!";
     private const string ShuffleCommandErrorValue = "There is no music in queue.";
     private const string ShuffleCommandNotEnoughTracksValue = "Not enough tracks to shuffle.";
-    private const string ValidationErrorKey = "validation_error_key";
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<ICommandHelper> _commandHelperMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -60,7 +60,6 @@ public class ShuffleCommandTests
     [Fact]
     public async Task ExecuteAsync_EmptyQueue_SendsErrorMessage()
     {
-        // Arrange
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
         _guildMock.Setup(g => g.Id).Returns(123456789UL);
@@ -79,10 +78,8 @@ public class ShuffleCommandTests
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
             .Returns(ShuffleCommandErrorValue);
 
-        // Act
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
             Times.Once);
     }
@@ -90,7 +87,6 @@ public class ShuffleCommandTests
     [Fact]
     public async Task ExecuteAsync_ValidQueue_ShufflesQueue()
     {
-        // Arrange
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
         _guildMock.Setup(g => g.Id).Returns(It.IsAny<ulong>());
@@ -115,10 +111,8 @@ public class ShuffleCommandTests
                 It.IsAny<IResponseBuilder>(), It.IsAny<IDiscordMessage>()))
             .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
 
-        // Act
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Once);
 
@@ -139,7 +133,6 @@ public class ShuffleCommandTests
     [Fact]
     public async Task ExecuteAsync_SingleTrackQueue_SendsErrorMessage()
     {
-        // Arrange
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
         _guildMock.Setup(g => g.Id).Returns(123456789UL);
@@ -163,10 +156,8 @@ public class ShuffleCommandTests
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
             .Returns(ShuffleCommandNotEnoughTracksValue);
 
-        // Act
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Never);
         _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
@@ -176,7 +167,6 @@ public class ShuffleCommandTests
     [Fact]
     public async Task ExecuteAsync_ValidationFails_ShouldNotShuffle()
     {
-        // Arrange
         _commandHelperMock
             .Setup(h => h.TryValidateUserAsync(
                 It.IsAny<IUserValidationService>(),
@@ -184,10 +174,8 @@ public class ShuffleCommandTests
                 It.IsAny<IDiscordMessage>()))
             .ReturnsAsync((UserValidationResult?)null);
 
-        // Act
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _musicQueueServiceMock.Verify(m => m.GetQueue(It.IsAny<ulong>()), Times.Never);
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Never);
@@ -196,7 +184,6 @@ public class ShuffleCommandTests
     [Fact]
     public async Task ExecuteAsync_QueueWithIdenticalTrackReferences_UsesRetryPathAndKeepsSequenceEqual()
     {
-        // Arrange
         _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
         _channelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
         _guildMock.Setup(g => g.Id).Returns(123456789UL);
@@ -209,22 +196,18 @@ public class ShuffleCommandTests
             .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
 
         var sameTrack = Mock.Of<ILavaLinkTrack>();
-        var originalQueue = new Queue<ILavaLinkTrack>(new[] { sameTrack, sameTrack, sameTrack, sameTrack });
+        var originalQueue = new Queue<ILavaLinkTrack>([sameTrack, sameTrack, sameTrack, sameTrack]);
 
         _musicQueueServiceMock
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
             .ReturnsAsync(originalQueue);
 
-        // With identical references in each slot, any Fisher-Yates permutation stays SequenceEqual,
-        // so the loop can only exit by incrementing attempts until maxAttempts.
         _musicQueueServiceMock
             .Setup(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        // Assert
         _musicQueueServiceMock.Verify(m => m.SetQueue(
                 It.IsAny<ulong>(),
                 It.Is<Queue<ILavaLinkTrack>>(q => q.SequenceEqual(originalQueue))),

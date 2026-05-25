@@ -1,8 +1,8 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
     container_name: dc-bot-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-dc_bot}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -12,25 +12,63 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-dc_bot}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - dc-bot-network
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4.2.1
+    container_name: dc-bot-lavalink
+    restart: unless-stopped
+    environment:
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:-nagyon_eros_jelszo}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
+      APPLE_MUSIC_API_TOKEN: ${APPLE_MUSIC_API_TOKEN:-}
+      DEEZER_ARL: ${DEEZER_ARL:-}
+      YANDEX_MUSIC_ACCESS_TOKEN: ${YANDEX_MUSIC_ACCESS_TOKEN:-}
+    ports:
+      - "127.0.0.1:2333:2333"
+    volumes:
+      - ./lavalink-server/application.yaml:/opt/Lavalink/application.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:2333/version >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      dc-bot-network:
+        aliases:
+          - lavalink
 
   discord-bot:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: discord-bot
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+      lavalink:
+        condition: service_started
     env_file:
       - .env
     environment:
       POSTGRES_CONNECTION_STRING: Host=postgres;Port=5432;Database=${POSTGRES_DB:-dc_bot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
-# Ha a botod folyamatosan fut, nincs szükség extra restart policy-re, de hozzáadhatod:
-    restart: unless-stopped
+      LAVALINK_HOSTNAME: lavalink
+      LAVALINK_PORT: 2333
+      LAVALINK_SECURED: false
+    networks:
+      - dc-bot-network
 
 volumes:
   postgres_data:
+
+networks:
+  dc-bot-network:
+    driver: bridge

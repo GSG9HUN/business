@@ -51,5 +51,5 @@ localizationService.LoadLanguage(guildId);
 
 - **Service/LocalizationService.cs** - Implementation
 - **localization/** - Language files
-- **Constants/LocalizationKeys.cs** - Key constants
+- **Constants/AppConstants.cs** - Key constants
 

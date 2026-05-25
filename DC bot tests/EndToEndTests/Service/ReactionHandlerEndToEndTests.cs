@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using DC_bot.Constants;
 using DC_bot.Interface.Discord;
@@ -7,17 +7,17 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Service;
 using DC_bot.Wrapper;
-using DotNetEnv;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Sdk;
 
-namespace DC_bot_tests.IntegrationTests.Service;
+namespace DC_bot_tests.EndToEndTests.Service;
 
-[Collection("Integration Tests")]
-public class ReactionHandlerIntegrationTests : IAsyncLifetime
+[Collection("E2E Tests")]
+[Trait("Category", "E2E")]
+public class ReactionHandlerEndToEndTests : IAsyncLifetime
 {
     private readonly ulong _testChannelId;
     private readonly string _controlMarker = $"MusicControl-{Guid.NewGuid():N}";
@@ -29,17 +29,29 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
     private readonly Mock<IProgressiveTimerService> _progressiveTimerServiceMock = new();
     private readonly ReactionHandler _reactionHandler;
     private readonly ReactionHandler _productionReactionHandler;
-    private const ulong TestChannelId = 1339151008307351572;
-    public ReactionHandlerIntegrationTests()
+
+    public ReactionHandlerEndToEndTests()
     {
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.MusicControl)).Returns(_controlMarker);
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.MusicControl))
+            .Returns(_controlMarker);
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.PauseReaction)).Returns("Pause");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.PauseReaction)).Returns("Pause");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ResumeReaction)).Returns("Resume");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ResumeReaction))
+            .Returns("Resume");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.SkipReaction)).Returns("Skip");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.SkipReaction)).Returns("Skip");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.RepeatReaction)).Returns("Repeat");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.RepeatReaction))
+            .Returns("Repeat");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOn)).Returns("Repeat on");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOn))
+            .Returns("Repeat on");
         _localizationServiceMock.Setup(x => x.Get(LocalizationKeys.ReactionHandlerRepeatOff)).Returns("Repeat off");
+        _localizationServiceMock.Setup(x => x.Get(It.IsAny<ulong>(), LocalizationKeys.ReactionHandlerRepeatOff))
+            .Returns("Repeat off");
 
         _reactionHandler = new ReactionHandler(
             _lavaLinkServiceMock.Object,
@@ -53,15 +65,12 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
             _progressiveTimerServiceMock.Object,
             _localizationServiceMock.Object);
 
-        var directoryInfo = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent?.Parent?.FullName ?? "";
-        var envPath = Path.Combine(directoryInfo, ".env");
-        Env.Load(envPath);
+        var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
+        var hasChannel = EndToEndTestConfiguration.TryGetDiscordChannelId(out var testChannelId);
+        _testChannelId = testChannelId;
 
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-
-        if (!string.IsNullOrWhiteSpace(token))
+        if (hasToken && hasChannel)
         {
-            _testChannelId = TestChannelId;
             _isConfigured = true;
             _discordClient = new DiscordClient(new DiscordConfiguration
             {
@@ -102,7 +111,7 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
 
         var channel = await client.GetChannelAsync(_testChannelId);
         var wrapper = new DiscordChannelWrapper(channel);
-        var embed = new DiscordEmbedBuilder().WithTitle("Integration track").Build();
+        var embed = new DiscordEmbedBuilder().WithTitle("E2E track").Build();
 
         await _lavaLinkServiceMock.RaiseAsync(
             x => x.TrackStarted += null!,
@@ -139,7 +148,7 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
         _reactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
-        var message = await channel.SendMessageAsync($"integration-reaction-added-{emojiName}");
+        var message = await channel.SendMessageAsync($"e2e-reaction-added-{emojiName}");
         await message.CreateReactionAsync(DiscordEmoji.FromName(client, emojiName));
 
         await Task.Delay(1200);
@@ -148,7 +157,7 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
             emojiName == ":pause_button:" ? Times.Once : Times.Never);
         _lavaLinkServiceMock.Verify(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":arrow_forward:" ? Times.Once : Times.Never);
-        _lavaLinkServiceMock.Verify(x => x.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), 
+        _lavaLinkServiceMock.Verify(x => x.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":track_next:" ? Times.Once : Times.Never);
         _reactionHandler.UnregisterHandler(client);
     }
@@ -162,24 +171,23 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
         _reactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
-        var message = await channel.SendMessageAsync($"integration-reaction-removed-{emojiName}");
+        var message = await channel.SendMessageAsync($"e2e-reaction-removed-{emojiName}");
         var emoji = DiscordEmoji.FromName(client, emojiName);
 
         await message.CreateReactionAsync(emoji);
         await Task.Delay(700);
 
-        // Ignore calls triggered by the setup Add event; this test verifies Remove behavior only.
         _lavaLinkServiceMock.Invocations.Clear();
 
         await message.DeleteOwnReactionAsync(emoji);
 
         await Task.Delay(1200);
 
-        _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), 
+        _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":arrow_forward:" ? Times.Once : Times.Never);
-        _lavaLinkServiceMock.Verify(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), 
+        _lavaLinkServiceMock.Verify(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":pause_button:" ? Times.Once : Times.Never);
-        _lavaLinkServiceMock.Verify(x => x.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), 
+        _lavaLinkServiceMock.Verify(x => x.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":track_next:" ? Times.Once : Times.Never);
 
         _reactionHandler.UnregisterHandler(client);
@@ -239,21 +247,21 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
         var client = _discordClient!;
 
         var channel = await client.GetChannelAsync(_testChannelId);
-        var message = await channel.SendMessageAsync("integration-build-context");
+        var message = await channel.SendMessageAsync("e2e-build-context");
 
         var method = typeof(ReactionHandler).GetMethod("BuildContextAsync", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(method);
 
-        var task = (Task)method!.Invoke(null, [message, client.CurrentUser, channel])!;
+        var task = (Task)method.Invoke(null, [message, client.CurrentUser, channel])!;
         await task;
 
         var resultProperty = task.GetType().GetProperty("Result");
         Assert.NotNull(resultProperty);
 
-        var result = resultProperty!.GetValue(task);
+        var result = resultProperty.GetValue(task);
         Assert.NotNull(result);
 
-        var tuple = (ITuple)result!;
+        var tuple = (ITuple)result;
         Assert.Equal(channel.Guild.Id, (ulong)tuple[2]!);
         Assert.NotNull(tuple[0]);
         Assert.NotNull(tuple[1]);
@@ -262,6 +270,6 @@ public class ReactionHandlerIntegrationTests : IAsyncLifetime
     private void EnsureConfigured()
     {
         if (!_isConfigured || _discordClient == null)
-            throw SkipException.ForSkip("Integration test requires DISCORD_TOKEN in .env.");
+            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndChannelMessage());
     }
 }

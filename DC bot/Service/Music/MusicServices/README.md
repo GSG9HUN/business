@@ -44,7 +44,7 @@ These services split music functionality into focused responsibilities. Each imp
 - `GetQueue()` - Get queue snapshot
 - `SetQueue()` - Persist reordered queue
 - `ClearQueue()` - Mark queued tracks as skipped
-- `GetRepeatableQueue()` - Get queue for repeat mode
+- `GetRepeatableQueue()` - Declared on `IMusicQueueService`, but the current `MusicQueueService` implementation throws `NotImplementedException`; repeat-list snapshots are handled by `RepeatService`
 
 **Persistence:**
 
@@ -111,7 +111,7 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Methods:**
 
-- `SafeSendAsync()` - Send notification with error handling
+- `SendSafeAsync()` - Send notification with error handling
 
 ---
 

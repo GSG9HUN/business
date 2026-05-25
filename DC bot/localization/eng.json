@@ -5,6 +5,7 @@
   "language_command_usage": "Please provide language.",
   "language_command_invalid_language": "Invalid language code. Allowed languages: eng, hu.",
   "language_command_response": "The language changed successfully.",
+  "language_command_error": "Unsupported language.",
   "pause_command_description": "Pause the current music.",
   "pause_command_error": "There is no track currently playing.",
   "pause_command_response": "Paused:",
