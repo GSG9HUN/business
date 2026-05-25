@@ -35,14 +35,14 @@ public class LanguageCommand(
         var language = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, Name);
         
         if (language is null) return;
-        
-        language = language.Trim();
+
+        language = language.Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(language) || !AllowedLanguageCodes.Contains(language))
         {
             await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.LanguageCommandInvalidLanguage);
             return;
         }
-        
+
         try
         {
             localizationService.SaveLanguage(message.Channel.Guild.Id, language);
@@ -54,9 +54,6 @@ public class LanguageCommand(
             return;
         }
 
-      
-
-        localizationService.SaveLanguage(message.Channel.Guild.Id, language.ToLowerInvariant());
         await responseBuilder.SendCommandResponseAsync(message, Name);
         logger.CommandExecuted(Name);
     }

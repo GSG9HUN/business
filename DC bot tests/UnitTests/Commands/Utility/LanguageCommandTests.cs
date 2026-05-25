@@ -153,19 +153,19 @@ public class LanguageCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenLanguageIsInvalid_ShouldSendCommandError()
+    public async Task ExecuteAsync_WhenSaveLanguageFails_ShouldSendCommandError()
     {
         var userMock = new Mock<IDiscordUser>();
 
         userMock.Setup(u => u.IsBot).Returns(false);
         userMock.Setup(u => u.Id).Returns(TestUserId);
 
-        _messageMock.Setup(m => m.Content).Returns("!language invalid");
+        _messageMock.Setup(m => m.Content).Returns(LanguageCommandContentHu);
         _messageMock.Setup(m => m.Author).Returns(userMock.Object);
         _guildMock.Setup(g => g.Id).Returns(TestGuildId);
         _localizationServiceMock
-            .Setup(l => l.SaveLanguage(TestGuildId, "invalid"))
-            .Throws(new LocalizationException("invalid", "Translation file not found"));
+            .Setup(l => l.SaveLanguage(TestGuildId, LanguageCodeHu))
+            .Throws(new LocalizationException(LanguageCodeHu, "Translation file not found"));
 
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
