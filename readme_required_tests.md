@@ -1,392 +1,372 @@
-﻿﻿# Required Tests - DC Bot
+# Required Tests - DC Bot
+
+This file tracks which test areas are already covered and which test areas are still required. It is a living checklist, not only a command reference.
 
 ## Executive Summary
 
-**Current Test Coverage: 149/167 tests completed (89%)**
+**Current automated test inventory:**
 
-- ✅ **Unit Tests:** 87/87 completed (100%) ✨
-- ✅ **Integration Tests:** 56/52 completed (108% - exceeded!)
-- ⚠️ **E2E Tests:** 3/28 completed (11%)
+- Unit test methods in source: **531**
+- Integration test methods in source: **22**
+- E2E test methods in source: **40**
+- Total tracked test methods: **593**
 
-**Newly Completed (Session 3):**
-- ✅ DiscordClientEventHandler integration tests (3 tests)
-- ✅ Moved `OnGuildAvailable` null-args checks from unit to integration
+The source-method count and the `dotnet test` result count differ because xUnit `[Theory]` tests can produce multiple executed test cases from one method.
 
-**Main Gaps:**
-- ❌ SlashCommand unit tests (9 tests - abstract classes, need different approach)
-- ❌ Full E2E test suite (25 tests needed)
+**Current status:**
+
+- COMPLETE: Core text commands, music services, persistence, startup composition, wrappers, validation, localization, logging/error paths.
+- COMPLETE: PostgreSQL persistence integration coverage through Testcontainers.
+- PARTIAL: E2E coverage exists for Discord lifecycle, command messages, reaction handling, and wrappers.
+- PENDING: Slash command unit tests and slash command E2E tests.
+- PENDING: Full real Lavalink music playback E2E flow.
+
+**Required normal verification:**
+
+```bash
+dotnet restore "DC bot.sln"
+dotnet build "DC bot.sln" --configuration Debug --no-restore
+dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build --filter "Category!=E2E"
+```
 
 ---
 
 ## Required Unit Tests
 
-### BotService ✅ COMPLETED
-- ✅ `BotService` - `StartAsync` - connects client when called
-- ✅ `BotService` - `StartAsync` - logs error and throws when ConnectAsync fails
-- ✅ `BotService` - `StartAsync` - waits indefinitely when isTestEnvironment = false
-- ✅ `BotService` - `StartAsync` - returns immediately when isTestEnvironment = true
+### BotService - COMPLETE
 
-### DiscordClientFactory ✅ COMPLETED
-- ✅ `DiscordClientFactory` - `Create` - creates DiscordClient with correct token from BotSettings
-- ✅ `DiscordClientFactory` - `Create` - applies correct intents (DiscordIntents.All)
-- ✅ `DiscordClientFactory` - `Create` - wires DiscordClientEventHandler to client events (Ready + GuildAvailable)
-- ✅ `DiscordClientFactory` - `Create` - throws when BotSettings.Token is null
+- [x] `StartAsync` connects the Discord client when called.
+- [x] `StartAsync` logs and throws when `ConnectAsync` fails.
+- [x] `StartAsync` waits indefinitely outside test mode.
+- [x] `StartAsync` returns immediately in test mode.
+- [x] Additional lifecycle/error-path coverage in `UnitTests/Service/BotServiceTests.cs`.
 
-### DiscordClientEventHandler ✅ COMPLETED
-- ✅ `DiscordClientEventHandler` - `OnClientReady` - logs "Bot is ready!" when ready event fires
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - initializes services for guild (localization, lavalink, queue)
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - connects to Lavalink
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - loads saved queue for guild
+### DiscordClientFactory - COMPLETE
 
-### SingletonDiscordClient (if testable - currently has static instance)
-- `SingletonDiscordClient` - `InitializeLogger` - sets logger and logs initialization message
-- `SingletonDiscordClient` - `Instance` - creates DiscordClient with environment variables
-- `SingletonDiscordClient` - `Instance` - throws when DISCORD_TOKEN not set
+- [x] Creates `DiscordClient` from `BotSettings`.
+- [x] Applies expected Discord intents.
+- [x] Throws when token is missing.
+- [x] Keeps event subscription outside the factory.
 
-### ReactionHandler ✅ COMPLETED
-- ✅ `ReactionHandler` - `RegisterHandler` - registers reaction event handlers
-- ✅ `ReactionHandler` - `RegisterHandler` - logs "Registered reaction handler" when first called
-- ✅ `ReactionHandler` - `RegisterHandler` - logs already registered when called twice
-- ✅ `ReactionHandler` - `UnregisterHandler` - unregisters handler after registration
-- ✅ `ReactionHandler` - `UnregisterHandler` - logs warning when unregister without register
+### DiscordClientEventHandler - COMPLETE
 
-### LocalizationService ✅ COMPLETED
-- ✅ `LocalizationService` - `LoadLanguage` - loads default language when file not found
-- ✅ `LocalizationService` - `LoadLanguage` - throws LocalizationException when ReadJson fails in production mode
-- ✅ `LocalizationService` - `ReadJson` - catch block when JSON deserialization fails (not covered)
-- ✅ `LocalizationService` - `Get` - returns key when translation not found
+- [x] `OnClientReady` logs ready state.
+- [x] `OnGuildAvailable` initializes localization, Lavalink, queue, and guild data dependencies.
+- [x] Handles startup dependency calls without rethrowing unexpected null-event paths.
+- [x] Covered by both unit and integration-style tests.
 
-### SlashCommands ❌ (not unit tested yet)
-- `PlaySlashCommand` - `Play` - defers response when invoked
-- `PlaySlashCommand` - `Play` - validates user is in voice channel
-- `PlaySlashCommand` - `Play` - handles URL vs query appropriately
-- `PlaySlashCommand` - `Play` - responds with success message
-- `TagSlashCommand` - `Tag` - finds member by username
-- `TagSlashCommand` - `Tag` - returns error when member not found
-- `TagSlashCommand` - `Tag` - tags member successfully
-- `PingSlashCommand` - `Ping` - responds with "Pong!"
-- `HelpSlashCommand` - `Help` - lists all available commands
+### ReactionHandler - COMPLETE
 
-### Commands (Utility) ✅ COMPLETED
-- ✅ `PingCommand` - ExecuteAsync - responds with Pong when user is valid
-- ✅ `PingCommand` - ExecuteAsync - ignores bot users
-- ✅ `PingCommand` - Name and Description - returns correct values
-- ✅ `HelpCommand` - ExecuteAsync - lists all available commands
-- ✅ `HelpCommand` - ExecuteAsync - ignores bot users
-- ✅ `TagCommand` - ExecuteAsync - tags user successfully
-- ✅ `TagCommand` - ExecuteAsync - handles missing arguments
-- ✅ `TagCommand` - ExecuteAsync - handles not found users
-- ✅ `TagCommand` - ExecuteAsync - ignores bot users
+- [x] Registers reaction event handlers.
+- [x] Logs first registration.
+- [x] Handles duplicate registration.
+- [x] Unregisters after registration.
+- [x] Logs warning when unregister is called before register.
+- [x] Covers test-mode reaction add/remove behavior.
 
-### Commands (Music) ✅ COMPLETED
-- ✅ `JoinCommand` - ExecuteAsync - joins voice channel
-- ✅ `JoinCommand` - ExecuteAsync - handles validation errors
-- ✅ `LeaveCommand` - ExecuteAsync - leaves voice channel
-- ✅ `LeaveCommand` - ExecuteAsync - handles no active connection
-- ✅ `PauseCommand` - ExecuteAsync - pauses playback
-- ✅ `PauseCommand` - ExecuteAsync - handles pause errors
-- ✅ `ResumeCommand` - ExecuteAsync - resumes playback
-- ✅ `ResumeCommand` - ExecuteAsync - handles resume errors
-- ✅ `SkipCommand` - ExecuteAsync - skips to next track
-- ✅ `SkipCommand` - ExecuteAsync - handles skip errors
-- ✅ `PlayCommand` - ExecuteAsync - plays by URL
-- ✅ `PlayCommand` - ExecuteAsync - plays by query
-- ✅ `PlayCommand` - ExecuteAsync - ignores bot users
+### LocalizationService - COMPLETE
 
-### Commands (Queue) ✅ COMPLETED
-- ✅ `ClearCommand` - ExecuteAsync - clears queue
-- ✅ `ClearCommand` - ExecuteAsync - handles validation errors
-- ✅ `RepeatCommand` - ExecuteAsync - toggles repeat mode
-- ✅ `RepeatCommand` - ExecuteAsync - logs repeat state
-- ✅ `RepeatListCommand` - ExecuteAsync - toggles repeat list mode
-- ✅ `RepeatListCommand` - ExecuteAsync - logs repeat list state
-- ✅ `ShuffleCommand` - ExecuteAsync - shuffles queue
-- ✅ `ShuffleCommand` - ExecuteAsync - logs shuffle action
-- ✅ `ViewQueueCommand` - ExecuteAsync - displays queue items
-- ✅ `ViewQueueCommand` - ExecuteAsync - handles empty queue
-- ✅ `LanguageCommand` - ExecuteAsync - changes bot language
-- ✅ `LanguageCommand` - ExecuteAsync - validates language parameter
+- [x] Loads default language when guild language file is missing.
+- [x] Throws `LocalizationException` when JSON loading fails in production mode.
+- [x] Handles JSON deserialization failure paths.
+- [x] Returns the key when translation is missing.
+- [x] Persists and resolves guild language values.
 
-### LavaLinkService ✅ COMPLETED (integration level)
-- ✅ `LavaLinkService` - `PlayAsyncUrl` - handles track load failure gracefully
-- ✅ `LavaLinkService` - `PlayAsyncUrl` - handles null/failed TrackLoadResult
-- ✅ `LavaLinkService` - `PlayAsyncUrl` - registers playback handler
-- ✅ `LavaLinkService` - `PlayAsyncQuery` - handles track load failure gracefully
-- ✅ `LavaLinkService` - `PlayAsyncQuery` - handles null/failed TrackLoadResult
-- ✅ `LavaLinkService` - `Init` - initializes current track and repeat state
-- ✅ `LavaLinkService` - `ConnectAsync` - idempotent connect (called twice starts once)
-- ✅ `LavaLinkService` - `ConnectAsync` - startup failure maps to domain exception
-- ✅ `LavaLinkService` - `StartPlayingQueue` - queued track triggers play and updates current track
-- ✅ `LavaLinkService` - `StartPlayingQueue` - empty queue no playback call
-- ✅ `LavaLinkService` - `LeaveVoiceChannel` - current track exists -> stop/clear/disconnect
+### Configuration Models - COMPLETE
 
-### Music Services ✅ COMPLETED
-- ✅ `MusicQueueService` - Enqueue - adds track to queue
-- ✅ `MusicQueueService` - Dequeue - removes track from queue
-- ✅ `MusicQueueService` - GetQueue - returns current queue
-- ✅ `MusicQueueService` - Persistence - saves and loads queue
-- ✅ `CurrentTrackService` - SetCurrentTrack - stores current track
-- ✅ `CurrentTrackService` - GetCurrentTrack - retrieves current track
-- ✅ `RepeatService` - SetRepeat - toggles repeat mode
-- ✅ `RepeatService` - IsRepeating - checks repeat state
-- ✅ `TrackFormatterService` - Format - formats track info
-- ✅ `TrackNotificationService` - NotifyNowPlaying - sends now playing message
-- ✅ `TrackEndedHandlerService` - Handle - processes track end events
-- ✅ `PlaybackEventHandlerService` - RegisterHandler - registers playback events
-- ✅ `TrackSearchResolverService` - ResolveAsync - searches for tracks
-- ✅ `TrackPlaybackService` - PlayAsync - plays track
+- [x] `BotSettings`
+- [x] `LavalinkSettings`
+- [x] `SearchResolverOptions`
 
-### Program class (not testable as-is, needs refactoring for DI testability)
-- Extract `RegisterSlashCommands` logic to testable service
-- Extract `RegisterHandlers` logic to testable service
-- Extract `ConfigureServices` to builder pattern for testability
+### Exceptions - COMPLETE
+
+- [x] `BotException`
+- [x] `LocalizationException`
+- [x] `MessageSendException`
+- [x] `LavalinkOperationException`
+- [x] `QueueOperationException`
+- [x] `TrackLoadException`
+- [x] `ValidationException`
+
+### SlashCommands - PENDING
+
+These classes still need a framework-aware testing approach because DSharpPlus slash command classes are harder to instantiate and exercise cleanly in isolated unit tests.
+
+- [ ] `PlaySlashCommand` - defers response when invoked.
+- [ ] `PlaySlashCommand` - validates user voice channel.
+- [ ] `PlaySlashCommand` - handles URL vs query input.
+- [ ] `PlaySlashCommand` - responds with success or validation error.
+- [ ] `TagSlashCommand` - finds member by username.
+- [ ] `TagSlashCommand` - returns error when member is not found.
+- [ ] `TagSlashCommand` - tags member successfully.
+- [ ] `PingSlashCommand` - responds with `Pong!`.
+- [ ] `HelpSlashCommand` - lists available commands.
+
+### Commands - Utility - COMPLETE
+
+- [x] `PingCommand` - responds with Pong.
+- [x] `PingCommand` - ignores bot users.
+- [x] `PingCommand` - name and description.
+- [x] `HelpCommand` - lists commands.
+- [x] `HelpCommand` - handles empty command list.
+- [x] `HelpCommand` - ignores bot users.
+- [x] `TagCommand` - tags user successfully.
+- [x] `TagCommand` - handles missing arguments.
+- [x] `TagCommand` - handles not-found users.
+- [x] `TagCommand` - handles case-insensitive and whitespace input.
+- [x] `TagCommand` - handles null guild/member edge cases.
+- [x] `LanguageCommand` - returns usage when language is missing.
+- [x] `LanguageCommand` - validates language code.
+- [x] `LanguageCommand` - normalizes language code.
+- [x] `LanguageCommand` - handles save failure.
+
+### Commands - Music - COMPLETE
+
+- [x] `JoinCommand` - joins voice channel.
+- [x] `JoinCommand` - handles validation errors.
+- [x] `JoinCommand` - ignores bot users.
+- [x] `LeaveCommand` - leaves voice channel.
+- [x] `LeaveCommand` - handles no active connection.
+- [x] `LeaveCommand` - ignores bot users.
+- [x] `PauseCommand` - pauses playback.
+- [x] `PauseCommand` - handles validation errors.
+- [x] `ResumeCommand` - resumes playback.
+- [x] `ResumeCommand` - handles validation errors.
+- [x] `SkipCommand` - skips playback.
+- [x] `SkipCommand` - handles validation errors.
+- [x] `PlayCommand` - handles missing query/URL.
+- [x] `PlayCommand` - validates voice channel.
+- [x] `PlayCommand` - plays URL inputs.
+- [x] `PlayCommand` - plays search-query inputs.
+- [x] `PlayCommand` - covers YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, and Yandex Music modes.
+- [x] `PlayCommand` - ignores bot users.
+
+### Commands - Queue - COMPLETE
+
+- [x] `ClearCommand` - clears queue.
+- [x] `ClearCommand` - handles validation errors.
+- [x] `RepeatCommand` - toggles repeat mode.
+- [x] `RepeatCommand` - handles repeat-list conflict.
+- [x] `RepeatCommand` - handles validation errors.
+- [x] `RepeatListCommand` - toggles repeat-list mode.
+- [x] `RepeatListCommand` - handles repeat-track conflict.
+- [x] `RepeatListCommand` - handles current-track-null repeat-list snapshot.
+- [x] `ShuffleCommand` - handles empty queue.
+- [x] `ShuffleCommand` - handles single-track queue.
+- [x] `ShuffleCommand` - shuffles valid queues.
+- [x] `ShuffleCommand` - covers retry path for identical references.
+- [x] `ViewQueueCommand` - handles empty queue.
+- [x] `ViewQueueCommand` - displays queue items.
+- [x] `ViewQueueCommand` - displays footer when queue has more than 10 tracks.
+
+### Core Services - COMPLETE
+
+- [x] `CommandHandlerService` - register/unregister handler.
+- [x] `CommandHandlerService` - duplicate registration.
+- [x] `CommandHandlerService` - unknown command.
+- [x] `CommandHandlerService` - prefix validation.
+- [x] `CommandHandlerService` - command dispatch and logging.
+- [x] `CommandValidationService` - argument parsing and validation helpers.
+- [x] `ValidationService` - user, player, and connection validation.
+- [x] `ResponseBuilder` - message and embed response behavior.
+
+### Music Services - COMPLETE
+
+- [x] `LavaLinkService` facade delegates to focused services.
+- [x] `LavalinkNodeConnectionService` handles idempotent and concurrent connect.
+- [x] `LavalinkNodeConnectionService` maps startup failures to domain exception.
+- [x] `PlaybackRequestService` handles URL and query loading.
+- [x] `PlaybackRequestService` handles track-not-found and load exceptions.
+- [x] `PlaybackControlService` handles pause, resume, skip, leave, and error paths.
+- [x] `PlayerConnectionService` handles join, existing player validation, retry, and exception paths.
+- [x] `MusicQueueService` handles enqueue/dequeue/view/get/set/clear.
+- [x] `MusicQueueService` handles invalid stored track identifiers.
+- [x] `MusicQueueService` handles repeatable queue snapshots.
+- [x] `RepeatService` handles repeat and repeat-list flags.
+- [x] `CurrentTrackService` stores/restores current track and queue item ID.
+- [x] `TrackEndedHandlerService` handles repeat, repeat-list, normal queue advance, and empty queue.
+- [x] `TrackPlaybackService` handles immediate play and queue behavior.
+- [x] `TrackFormatterService` formats current and queued track output.
+- [x] `TrackNotificationService` sends now-playing notifications.
+- [x] `PlaybackEventHandlerService` registers and cleans up playback event handlers.
+- [x] `ProgressiveTimerService` covers timer start, stop, cancellation, position bounds, and message modification failures.
+- [x] `TrackSearchResolverService` covers URL/query source resolution and default/fallback behavior.
+
+### Persistence - COMPLETE
+
+- [x] `GuildDataRepository`
+- [x] `PlaybackStateRepository`
+- [x] `QueueRepository`
+- [x] `RepeatListRepository`
+- [x] `GuildPremiumAuditEntity`
+
+### IO, Models, Helpers, Wrappers - COMPLETE
+
+- [x] `PhysicalFileSystem`
+- [x] `SerializedTrack`
+- [x] validation result models
+- [x] `DiscordChannelWrapper`
+- [x] `DiscordGuildWrapper`
+- [x] `DiscordMemberWrapper`
+- [x] `DiscordMessageWrapper`
+- [x] `DiscordUserWrapper`
+- [x] `DiscordVoiceStateWrapper`
+- [x] `LavalinkTrackWrapper`
 
 ---
 
 ## Required Integration Tests
 
-### BotService Integration ✅ COMPLETED
-- ✅ `BotService` - `StartAsync` - with real DiscordClient connects successfully (or throws with invalid token)
-- ✅ `BotService` - `StartAsync` - propagates connection exception with logging
-- ✅ `BotService` - `StartAsync` - test mode returns without infinite wait
+### Startup and DI - COMPLETE
 
-### CommandHandlerService Integration ✅ COMPLETED
-- ✅ `CommandHandlerService` - `RegisterHandler` - registers event handler successfully
-- ✅ `CommandHandlerService` - `RegisterHandler` - logs "Registered command handler" with EventId 1102
-- ✅ `CommandHandlerService` - `RegisterHandler` - logs already registered when called twice (EventId 1101)
-- ✅ `CommandHandlerService` - `UnregisterHandler` - unregisters handler successfully (EventId 1105)
-- ✅ `CommandHandlerService` - `UnregisterHandler` - logs warning when unregister without register (EventId 1106)
-- ✅ `CommandHandlerService` - command dispatch - resolves PingCommand from DI
-- ✅ `CommandHandlerService` - command dispatch - unknown command returns localized error
-- ✅ `CommandHandlerService` - prefix handling - null prefix logs error and stops processing (EventId 1103)
+- [x] `Program.Main` loads `.env` only when present and falls through to environment validation.
+- [x] `BotApplication.RunAsync` reports missing `DISCORD_TOKEN`.
+- [x] `BotApplication.RunAsync` reports missing `LAVALINK_HOSTNAME`.
+- [x] `BotServiceProviderFactory` registers core services.
+- [x] Full startup graph resolves against PostgreSQL.
+- [x] `DatabaseMigrationRunner` rejects in-memory migration provider.
+- [x] `DatabaseMigrationRunner` applies pending PostgreSQL migrations.
 
-### DiscordClientEventHandler Integration ✅ COMPLETED
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - logs error when event args are null (`OnGuildAvailable` catch path)
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - does not resolve services when event args are null (early failure path)
-- ✅ `DiscordClientEventHandler` - `OnGuildAvailable` - completes without rethrowing when args are null
+### PostgreSQL Persistence - COMPLETE
 
-### ReactionHandler Integration ✅ COMPLETED
-- ✅ `ReactionHandler` - event flow - registers event handlers successfully
-- ✅ `ReactionHandler` - event flow - unregisters handlers and maintains state
-- ✅ `ReactionHandler` - event flow - handles double registration gracefully
-- ✅ `ReactionHandler` - lifecycle - register/unregister maintains consistent state
-- ✅ `ReactionHandler` - error handling - logs warning when unregister without register
+- [x] Playback queue and repeat state survive repository recreation.
+- [x] `QueueRepository.ClaimNextQueuedItemAsync` claims the lowest queued item.
+- [x] Concurrent claim does not claim the same queued item twice.
+- [x] Reorder works against PostgreSQL unique position index without constraint collision.
 
-### LavaLinkService Integration ✅ COMPLETED
-- ✅ `LavaLinkService` - `Init` - initializes current track and repeat state
-- ✅ `LavaLinkService` - `ConnectAsync` - idempotent (called twice starts once)
-- ✅ `LavaLinkService` - `ConnectAsync` - startup failure maps to LavalinkOperationException
-- ✅ `LavaLinkService` - `StartPlayingQueue` - queued track triggers play and updates current
-- ✅ `LavaLinkService` - `StartPlayingQueue` - empty queue no playback call
-- ✅ `LavaLinkService` - `LeaveVoiceChannel` - current track exists -> stop/cleanup/disconnect
-- ✅ `LavaLinkService` - `PlayAsyncUrl` - full flow with real queue/current track services
-- ✅ `LavaLinkService` - `PlayAsyncQuery` - full flow with real queue/current track services
-- ✅ `LavaLinkService` - `PauseAsync` - with real validation and response services
-- ✅ `LavaLinkService` - `ResumeAsync` - with real validation and response services
-- ✅ `LavaLinkService` - `SkipAsync` - with real queue and current track state
+### CommandHandlerService Integration - COMPLETE
 
-### TrackEndedHandlerService Integration ✅ COMPLETED
-- ✅ `TrackEndedHandlerService` - track end flow - repeat mode replays current track
-- ✅ `TrackEndedHandlerService` - track end flow - repeat list re-queues and continues
-- ✅ `TrackEndedHandlerService` - track end flow - normal mode advances to next track
-- ✅ `TrackEndedHandlerService` - track end flow - empty queue notifies user
+- [x] Register/unregister behavior.
+- [x] Unknown command response.
+- [x] DI command resolution.
+- [x] Prefix validation and logging.
 
-### MusicQueueService Integration ✅ COMPLETED
-- ✅ `MusicQueueService` - persistence flow - LoadQueue restores saved tracks
-- ✅ `MusicQueueService` - persistence flow - SaveQueue persists after enqueue/dequeue
-- ✅ `MusicQueueService` - persistence flow - handles corrupted queue file gracefully
+### LavaLinkService Integration - COMPLETE
 
-### TrackFormatterService Integration ✅ COMPLETED
-- ✅ `TrackFormatterService` - format flow - formats track with correct metadata
-- ✅ `TrackFormatterService` - format flow - handles missing track info gracefully
-- ✅ `TrackFormatterService` - `CloneRepeatableQueue_PreservesOrder_ForRepeatListFlow` - repeat-list requeue preserves current + queue order without `SaveQueue` serialization failure
+- [x] `Init` initializes current track and repeat state.
+- [x] `ConnectAsync` is idempotent.
+- [x] `ConnectAsync` maps startup failure to `LavalinkOperationException`.
+- [x] `StartPlayingQueue` plays queued track and updates current track.
+- [x] `StartPlayingQueue` handles empty queue.
+- [x] `LeaveVoiceChannel` stops, cleans up, and disconnects.
+
+### TrackFormatterService Integration - COMPLETE
+
+- [x] Formats track metadata.
+- [x] Handles missing track info gracefully.
 
 ---
 
 ## Required E2E Tests
 
-### Bot Runtime E2E ❌ (Not yet implemented)
-- `BotService` - full startup - connects to Discord with real token
-- `BotService` - full startup - initializes all services on guild available
-- `BotService` - full shutdown - disconnects cleanly and disposes resources
+E2E tests require real Discord configuration and are excluded from normal PR verification. The E2E workflow starts PostgreSQL and Lavalink containers, mounts `lavalink-server/application.yaml`, and runs `Category=E2E` by default.
 
-### Command Flow E2E ✅ PARTIALLY COMPLETED
-- ✅ `CommandHandlerService` - message event - `!ping` in test channel returns "Pong!" 
-- ✅ `CommandHandlerService` - message event - `!unknowncommand` returns localized error
-- ✅ `CommandHandlerService` - message event - `!noPrefix` null prefix logs error
-- ❌ `CommandHandlerService` - message event - `!help` in test channel lists commands
-- ❌ `CommandHandlerService` - message event - non-prefixed message is ignored
-- ❌ `CommandHandlerService` - message event - bot messages are ignored
+Required E2E settings:
 
-### Music Flow E2E ❌ (Not yet implemented)
-- `LavaLinkService` - voice connect - bot joins voice channel successfully
-- `LavaLinkService` - playback - `!play [URL]` plays track in voice channel
-- `LavaLinkService` - playback - `!play [query]` searches and plays track
-- `LavaLinkService` - playback - `!pause` pauses current track
-- `LavaLinkService` - playback - `!resume` resumes paused track
-- `LavaLinkService` - playback - `!skip` skips to next track in queue
-- `LavaLinkService` - playback - track end auto-advances to next track
-- `LavaLinkService` - repeat mode - `!repeat` replays current track on end
-- `LavaLinkService` - repeat list - `!repeatlist` cycles through entire queue
-- `LavaLinkService` - leave - `!leave` disconnects and clears player state
+- `DISCORD_TOKEN`
+- `DISCORD_TEST_GUILD_ID`
+- `DISCORD_TEST_CHANNEL_ID`
+- `LAVALINK_HOSTNAME=lavalink`
+- `LAVALINK_PORT=2333`
+- `LAVALINK_SECURED=false`
+- `LAVALINK_PASSWORD`
+- PostgreSQL settings used by the E2E workflow
 
-### Reaction Flow E2E ❌ (Not yet implemented)
-- `ReactionHandler` - reaction control - pause emoji pauses playback
-- `ReactionHandler` - reaction control - play emoji resumes playback
-- `ReactionHandler` - reaction control - skip emoji skips track
-- `ReactionHandler` - reaction control - repeat emoji toggles repeat mode
-- `ReactionHandler` - reaction removal - removes control functionality
+### Bot Runtime E2E - PARTIAL
 
-### SlashCommand E2E ❌ (Not yet implemented)
-- `PlaySlashCommand` - `/play [query]` - plays track via slash command
-- `TagSlashCommand` - `/tag [username]` - tags member via slash command
-- `PingSlashCommand` - `/ping` - responds with "Pong!" via slash command
-- `HelpSlashCommand` - `/help` - lists commands via slash command
+- [x] Bot startup/shutdown connects with a real Discord token and resolves the configured guild.
+- [ ] Full bot process startup through `BotApplication` with real Discord, PostgreSQL, and Lavalink service graph.
+- [ ] Full guild-available initialization against live Discord and real persistence state.
 
----
+### Command Flow E2E - COMPLETE FOR CURRENT TEXT COMMAND SCOPE
 
-## Test Organization Recommendations
+- [x] `!ping` in the test channel returns `Pong`.
+- [x] `!unknowncommand` returns localized unknown-command error.
+- [x] `!help` lists available commands.
+- [x] Non-prefixed message is ignored.
+- [x] Bot-authored command is ignored outside test mode.
+- [x] Null prefix logs the expected error.
+- [x] Register, unregister, duplicate register, and unregister-before-register logging paths are covered.
 
-### Current Issues
-1. **`CommandHandlerServiceTests` (IntegrationTests folder)** is actually **E2E** because it:
-   - Uses real `DiscordClient` with real token
-   - Connects to Discord network
-   - Sends real messages to test channel ID `1339151008307351572`
-   - Depends on Discord API timing/availability
+### Discord Wrapper E2E - COMPLETE
 
-2. **Missing true integration tests** for:
-   - `CommandHandlerService` at service boundary (mock Discord, real command resolution)
-   - `ReactionHandler` at service boundary (mock Discord, real LavaLinkService calls)
+- [x] `DiscordChannelWrapper` maps real channel ID/name/guild and sends string/embed messages.
+- [x] `DiscordGuildWrapper` maps real guild ID/name, members, and member lookup.
+- [x] `DiscordMemberWrapper` maps bot flag, username, mention, and voice state.
+- [x] `DiscordMessageWrapperFactory` maps real message properties and supports respond/modify.
+- [x] `DiscordClientEventHandler` E2E-style startup dependency calls are covered.
 
-### Recommended Actions
-1. **Split `CommandHandlerServiceTests.cs`**:
-   - Move `HandleCommandAsync_Should_Respond_To_Test_Message` → new `CommandHandlerServiceE2ETests.cs`
-   - Move `HandleCommandAsync_Responds_To_Unknown_Command` → new `CommandHandlerServiceE2ETests.cs`
-   - Move `HandleCommandAsync_Should_Log_No_Prefix_Provided` → keep as integration (or make true unit test)
-   - Keep `RegisterHandler_ShouldRegisterEvent` as integration test
-   - Keep `UnregisterCommandHandler_Should_Log_Warning` as integration test
+### Reaction Flow E2E - PARTIAL
 
-2. **Create E2E test suite**:
-   - Mark with `[Category("E2E")]` or `[Trait("Category", "E2E")]`
-   - Require environment variables: `DISCORD_TOKEN`, `TEST_CHANNEL_ID`, `LAVALINK_HOST`
-   - Run in separate CI/CD stage (nightly or manual trigger)
-   - Add README with E2E test setup instructions
+- [x] Sends reaction control message when track-started event is raised.
+- [x] Reaction add in test mode calls expected Lavalink operation.
+- [x] Reaction remove in test mode calls expected Lavalink operation.
+- [x] Bot-authored reactions are ignored outside test mode.
+- [x] Real Discord object context builds expected guild ID.
+- [ ] Full reaction flow with real Lavalink playback state.
 
-3. **Add missing unit tests** for:
-   - SlashCommand classes
-   - `DiscordClientFactory`
-   - `DiscordClientEventHandler`
-   - `ReactionHandler` individual methods
+### Music Flow E2E - PENDING
 
-4. **Add missing integration tests** for:
-   - Full playback flows with real internal services
-   - Queue persistence + formatter integration
-   - Track end handler + repeat service integration
+- [ ] Bot joins voice channel with real Lavalink.
+- [ ] `!play [URL]` plays a track in a real voice channel.
+- [ ] `!play [query]` searches and plays a track in a real voice channel.
+- [ ] `!pause` pauses current playback.
+- [ ] `!resume` resumes current playback.
+- [ ] `!skip` skips to the next queued track.
+- [ ] Track end auto-advances to the next track.
+- [ ] `!repeat` repeats current track.
+- [ ] `!repeatlist` cycles through queue snapshot.
+- [ ] `!leave` disconnects and clears player state.
+
+### SlashCommand E2E - PENDING
+
+- [ ] `/play [query]` plays track via slash command.
+- [ ] `/tag [username]` tags member via slash command.
+- [ ] `/ping` responds with `Pong!`.
+- [ ] `/help` lists commands.
 
 ---
 
 ## Priority Recommendations
 
-### High Priority (Core Functionality)
-1. ✅ Unit tests for `DiscordClientFactory` and `DiscordClientEventHandler` - **COMPLETED**
-2. ❌ Unit tests for SlashCommand classes
-3. ✅ Integration tests for full music playback flow - **COMPLETED**
-4. ❌ Split E2E tests from integration tests properly
+### High Priority
 
-### Medium Priority (Error Handling)
-1. ✅ `LocalizationService.ReadJson` catch block unit test - **COMPLETED**
-2. ✅ `LavaLinkService` exception handling unit tests (pause/resume/skip failures) - **COMPLETED**
-3. ✅ Integration tests for queue persistence edge cases - **COMPLETED**
+1. Add slash command tests or extract slash command logic into testable services.
+2. Add real Lavalink music-flow E2E tests for play/pause/resume/skip/leave.
+3. Add full `BotApplication` E2E startup coverage with real external services.
 
-### Low Priority (Nice to Have)
-1. ❌ E2E tests for slash commands (requires real registration)
-2. ❌ E2E tests for reaction flow (requires real messages)
-3. ❌ Refactor `Program.cs` for testability
+### Medium Priority
 
----
+1. Keep PostgreSQL integration tests in sync with every new migration.
+2. Add E2E coverage for repeat and repeat-list behavior after basic playback E2E is stable.
+3. Add workflow smoke verification when Docker, Lavalink, or E2E config changes.
 
-## Test Coverage Summary
+### Low Priority
 
-### Overall Completion Status
-- **Unit Tests:** 87/87 completed (100%) ✅ **COMPLETE!**
-- **Integration Tests:** 56/52 completed (108%) ✅ **EXCEEDED!**
-- **E2E Tests:** 3/28 completed (11%) ⚠️
-- **Total:** 149/167 completed (89%)
-
-### Completed Unit Test Suites (ALL 87/87) ✅
-✅ BotService (4 tests)
-✅ DiscordClientFactory (12 tests)
-✅ DiscordClientEventHandler (8 tests)
-✅ ReactionHandler (5 tests)
-✅ LocalizationService (4 tests)
-✅ PingCommand (3 tests)
-✅ HelpCommand (2 tests)
-✅ TagCommand (4 tests)
-✅ JoinCommand (2 tests)
-✅ LeaveCommand (2 tests)
-✅ PauseCommand (2 tests)
-✅ ResumeCommand (2 tests)
-✅ SkipCommand (2 tests)
-✅ PlayCommand (8 tests)
-✅ ClearCommand (2 tests)
-✅ RepeatCommand (2 tests)
-✅ RepeatListCommand (2 tests)
-✅ ShuffleCommand (2 tests)
-✅ ViewQueueCommand (2 tests)
-✅ LanguageCommand (3 tests)
-✅ MusicQueueService (13 tests)
-✅ CurrentTrackService (3 tests)
-✅ RepeatService (3 tests)
-✅ TrackNotificationService (2 tests)
-✅ TrackFormatterService (6 tests)
-✅ TrackEndedHandlerService (4 tests)
-✅ PlaybackEventHandlerService (2 tests)
-✅ TrackSearchResolverService (5 tests)
-✅ TrackPlaybackService (2 tests)
-
-### Completed Integration Test Suites (56/52 - EXCEEDED!) ✅
-✅ CommandHandlerService (8 tests)
-✅ DiscordClientEventHandler (3 tests) - NEW!
-✅ BotService (3 tests)
-✅ ReactionHandler (5 tests)
-✅ LavaLinkService (11 tests)
-✅ TrackEndedHandlerService (4 tests)
-✅ MusicQueueService (3 integration tests)
-✅ TrackFormatterService (3 integration tests)
-
-### Pending Test Suites (Remaining)
-❌ Bot Runtime E2E Tests (3 tests needed)
-❌ Music Flow E2E Tests (10 tests needed)
-❌ Reaction Flow E2E Tests (5 tests needed)
-❌ Command Flow E2E Tests (3 tests needed)
-❌ SlashCommand E2E Tests (4 tests needed)
-⚠️ SlashCommand Unit Tests (9 tests - abstract classes, requires different approach)
+1. Add exact coverage reports if required by branch policy.
+2. Split very large unit suites if they become hard to maintain.
+3. Replace manual status counts with generated reporting if the checklist becomes stale again.
 
 ---
 
-## Final Status
+## Current Verification Result
 
-### Major Achievement: 100% Unit Test Coverage + Exceeded Integration Tests! 🎉
-- All 87 unit-testable components have comprehensive test coverage
-- 149 out of 167 tests completed (89% overall)
-- Integration tests **exceeded** expectations (56/52 = 108%!)
+Last local verification run:
 
-### What Was Accomplished
-✅ **Complete unit test suite** for all core components (87/87)
-✅ **Comprehensive integration tests** for service interactions (56/52)
-✅ **Proper test organization** - clear separation of concerns
-✅ **High-quality mocks** - using Moq effectively throughout
-✅ **Logging verification** - testing logging behavior properly
-✅ **Moved OnGuildAvailable to integration** - proper test classification
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --filter "Category!=E2E"
 
-### Remaining Gaps
-⚠️ **E2E Tests (25 tests)** - require real Discord connection, slow/unreliable
-❓ **SlashCommand Unit Tests (9 tests)** - abstract classes require framework testing approach
+Passed: 576
+Failed: 0
+Skipped: 0
+```
 
-### Technical Notes
-- Current test coverage is **excellent for core music services** (queue, formatter, playback)
-- **Discord client lifecycle and event wiring** has comprehensive coverage
-- **Command handling** is fully tested at unit and integration levels
-- **E2E tests exist** but are environment-dependent (need real Discord token + Lavalink)
-- **SlashCommands testing limitation**: Abstract classes in DSharpPlus framework require different testing strategy (Xunit fixtures or direct framework testing)
-- All testable business logic has **solid test coverage**
+E2E tests were not run locally in this pass because they require real Discord/Lavalink configuration.
+
+---
+
+## Notes
+
+- `readme_required_tests.md` should keep listing completed and missing test areas.
+- `.gitignore` and `.dockerignore` policy belongs in the root README and repository hygiene docs, not as a replacement for this checklist.
+- If a feature changes behavior, update this checklist in the same PR as the tests.

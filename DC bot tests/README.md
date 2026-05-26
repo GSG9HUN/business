@@ -32,7 +32,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category!=E2E"
 
 `IntegrationTests/Service/ProgramIntegrationTests.cs` covers the startup refactor:
 
-- missing `.env` exits with a message
+- missing `.env` continues with already-provided environment variables
 - missing required environment values exits with a message
 - `BotServiceProviderFactory` registers the core service graph
 - the full startup service graph resolves against PostgreSQL
@@ -45,6 +45,7 @@ E2E tests depend on real Discord configuration and are not part of the default n
 Required values depend on the specific test, but generally include:
 
 - Discord bot token
+- Discord test guild ID
 - Discord test channel ID
 - reachable Lavalink server
 

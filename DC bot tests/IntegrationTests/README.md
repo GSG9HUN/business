@@ -23,7 +23,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Integration"
 
 `Service/ProgramIntegrationTests.cs` verifies the startup split:
 
-- `Program.cs` exits cleanly when `.env` is missing
+- `Program.cs` continues when `.env` is missing and relies on environment variables
 - `BotApplication` exits cleanly when required settings are missing
 - `BotServiceProviderFactory` resolves the core services
 - the full startup graph resolves against PostgreSQL

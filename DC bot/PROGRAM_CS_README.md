@@ -1,14 +1,14 @@
 # Program.cs and Startup
 
-`Program.cs` is intentionally thin. It verifies that the `.env` file exists, loads it with DotNetEnv, and delegates runtime startup to `Startup/BotApplication.cs`.
+`Program.cs` is intentionally thin. It loads `.env` with DotNetEnv when the file is present, then delegates runtime startup to `Startup/BotApplication.cs`.
 
 ## Responsibilities
 
 ### Program.cs
 
 - locate `.env` in the current working directory
-- print `Please provide .env file.` and exit when the file is missing
-- load environment variables with `Env.Load(...)`
+- load environment variables with `Env.Load(...)` when `.env` exists
+- continue with already-provided environment variables when `.env` does not exist
 - call `BotApplication.RunAsync()`
 
 ### Startup components
@@ -22,8 +22,8 @@
 
 ## Startup Flow
 
-1. `Program.Main()` checks for `.env`.
-2. `Program.Main()` loads `.env` and calls `BotApplication.RunAsync()`.
+1. `Program.Main()` loads `.env` when it exists.
+2. `Program.Main()` calls `BotApplication.RunAsync()`.
 3. `BotConfigurationLoader.LoadFromEnvironment(...)` builds `BotRuntimeSettings`.
 4. `BotServiceProviderFactory.Create(...)` creates the `ServiceProvider`.
 5. `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
@@ -46,6 +46,8 @@ reactionHandler.RegisterHandler(discordClient);
 This keeps client construction independent from `DiscordClientEventHandler`, which now receives its dependencies directly through constructor injection.
 
 ## Environment Variables
+
+Local development and Docker Compose usually use a repository-root `.env` file. CI and production can provide the same keys directly as environment variables. Startup validates the required keys after optional `.env` loading, so the physical `.env` file is not required when the environment is already populated.
 
 ### Required
 
@@ -122,7 +124,6 @@ Required settings are validated before the DI container is created:
 
 - missing `DISCORD_TOKEN` prints `DISCORD_TOKEN is not set in the environment variables.`
 - missing `LAVALINK_HOSTNAME` prints `LAVALINK_HOSTNAME is not set in the environment variables.`
-- missing `.env` prints `Please provide .env file.`
 
 In these cases startup exits before connecting to Discord.
 

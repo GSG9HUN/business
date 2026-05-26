@@ -48,7 +48,7 @@ services:
   discord-bot:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: DC bot/Dockerfile
     container_name: discord-bot
     restart: unless-stopped
     depends_on:

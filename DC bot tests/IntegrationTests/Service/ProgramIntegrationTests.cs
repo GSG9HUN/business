@@ -47,11 +47,17 @@ public class ProgramIntegrationTests
     }
 
     [Fact]
-    public async Task Main_WhenEnvFileMissing_WritesMessageAndReturns()
+    public async Task Main_WhenEnvFileMissing_UsesEnvironmentValidation()
     {
         var currentDir = Directory.GetCurrentDirectory();
         var tempDir = Path.Combine(Path.GetTempPath(), $"dcbot-program-main-{Guid.NewGuid():N}");
         Directory.CreateDirectory(tempDir);
+        using var env = new EnvScope(new Dictionary<string, string?>
+        {
+            ["DISCORD_TOKEN"] = null,
+            ["BOT_PREFIX"] = null,
+            ["LAVALINK_HOSTNAME"] = null
+        });
 
         var output = new StringWriter();
         var originalOut = Console.Out;
@@ -67,7 +73,8 @@ public class ProgramIntegrationTests
             var task = (Task)mainMethod.Invoke(null, null)!;
             await task;
 
-            Assert.Contains("Please provide .env file.", output.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain("Please provide .env file.", output.ToString(), StringComparison.Ordinal);
+            Assert.Contains("DISCORD_TOKEN is not set", output.ToString(), StringComparison.Ordinal);
         }
         finally
         {
