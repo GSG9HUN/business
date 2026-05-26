@@ -6,7 +6,7 @@ This folder contains music-domain service interfaces.
 
 ### ILavaLinkService.cs
 
-**Purpose:** Music playback orchestration.
+**Purpose:** Facade over music playback orchestration.
 
 ```csharp
 public interface ILavaLinkService
@@ -18,7 +18,7 @@ public interface ILavaLinkService
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
     Task Init(ulong guildId);
-    event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted;
+    event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
 }
@@ -26,19 +26,19 @@ public interface ILavaLinkService
 
 **Methods:**
 
-- `ConnectAsync()` - Connect to Lavalink server
-- `PlayAsyncUrl()` - Play track from URL
-- `PlayAsyncQuery()` - Play track from search query
-- `PauseAsync()` - Pause current track
-- `ResumeAsync()` - Resume paused track
-- `SkipAsync()` - Skip to next track
+- `ConnectAsync()` - Delegate Lavalink node startup
+- `PlayAsyncUrl()` - Delegate URL play request handling
+- `PlayAsyncQuery()` - Delegate query play request handling
+- `PauseAsync()` - Delegate pause control
+- `ResumeAsync()` - Delegate resume control
+- `SkipAsync()` - Delegate skip control
 - `StartPlayingQueue()` - Join voice and start queue
 - `LeaveVoiceChannel()` - Disconnect from voice
 - `Init()` - Initialize guild state
 
 **Events:**
 
-- `TrackStarted` - Fired when track starts playing
+- `TrackStarted` - Fired when track starts playing; carries the target text channel and embed payload
 
 **Implementation:** `Service/Music/LavaLinkService.cs`
 
@@ -61,9 +61,12 @@ public interface ILavaLinkService
 Contains granular music service interfaces:
 
 - `ICurrentTrackService.cs`
+- `ILavalinkNodeConnectionService.cs`
 - `IMusicQueueService.cs`
+- `IPlaybackControlService.cs`
 - `IPlaybackEventHandlerService.cs`
 - `IPlayerConnectionService.cs`
+- `IPlaybackRequestService.cs`
 - `IRepeatService.cs`
 - `ITrackEndedHandlerService.cs`
 - `ITrackFormatterService.cs`

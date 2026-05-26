@@ -6,7 +6,7 @@ This folder contains music playback and queue management services.
 
 ### LavaLinkService.cs
 
-**Purpose:** Main orchestration service for Lavalink audio server and music playback.
+**Purpose:** Facade for Lavalink audio server and music playback operations.
 
 **Implements:** `ILavaLinkService`
 
@@ -29,8 +29,11 @@ This folder contains music playback and queue management services.
 **Architecture:**
 
 - Delegates to specialized services for specific tasks
+- Uses `ILavalinkNodeConnectionService` for node connection lifecycle
+- Uses `IPlaybackRequestService` for URL/query play request orchestration
+- Uses `IPlaybackControlService` for pause/resume/skip/leave behavior
 - Uses `IPlayerConnectionService` for voice channel management
-- Uses `ITrackPlaybackService` for playback control
+- Uses `ITrackPlaybackService` for queue track playback
 - Uses `IPlaybackEventHandlerService` for event handling
 - Uses `IMusicQueueService` for queue management
 
@@ -73,8 +76,11 @@ Granular music component services.
 **Services:**
 
 - `CurrentTrackService.cs`
+- `LavalinkNodeConnectionService.cs`
 - `MusicQueueService.cs`
+- `PlaybackControlService.cs`
 - `PlaybackEventHandlerService.cs`
+- `PlaybackRequestService.cs`
 - `PlayerConnectionService.cs`
 - `RepeatService.cs`
 - `TrackEndedHandlerService.cs`

@@ -76,8 +76,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             .AddSingleton<IGuildDataRepository>(guildDataRepositoryMock.Object)
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(
-                provider.GetRequiredService<BotSettings>(),
-                provider.GetRequiredService<DiscordClientEventHandler>()))
+                provider.GetRequiredService<BotSettings>()))
             .AddSingleton<ILavaLinkService>(_lavaLinkServiceMock.Object)
             .AddSingleton<IMusicQueueService>(_musicQueueServiceMock.Object)
             .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)

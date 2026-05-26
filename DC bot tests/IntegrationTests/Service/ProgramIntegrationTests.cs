@@ -13,6 +13,7 @@ using DC_bot.Interface.Service.Presentation;
 using DC_bot.Persistence.Db;
 using DC_bot.Service;
 using DC_bot.Service.Core;
+using DC_bot.Startup;
 using DC_bot_tests.IntegrationTests.Persistence;
 using DSharpPlus;
 using DC_bot.Wrapper;
@@ -77,7 +78,7 @@ public class ProgramIntegrationTests
     }
 
     [Fact]
-    public async Task RunBotAsync_WhenDiscordTokenMissing_WritesMessageAndReturns()
+    public async Task BotApplicationRunAsync_WhenDiscordTokenMissing_WritesMessageAndReturns()
     {
         using var env = new EnvScope(new Dictionary<string, string?>
         {
@@ -93,14 +94,7 @@ public class ProgramIntegrationTests
         {
             Console.SetOut(output);
 
-            var instance = Activator.CreateInstance(typeof(Program));
-            Assert.NotNull(instance);
-
-            var runMethod = typeof(Program).GetMethod("RunBotAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(runMethod);
-
-            var task = (Task)runMethod.Invoke(instance, null)!;
-            await task;
+            await BotApplication.RunAsync();
 
             Assert.Contains("DISCORD_TOKEN is not set", output.ToString(), StringComparison.Ordinal);
         }
@@ -111,7 +105,7 @@ public class ProgramIntegrationTests
     }
 
     [Fact]
-    public async Task RunBotAsync_WhenLavalinkHostnameMissing_WritesMessageAndReturns()
+    public async Task BotApplicationRunAsync_WhenLavalinkHostnameMissing_WritesMessageAndReturns()
     {
         using var env = new EnvScope(new Dictionary<string, string?>
         {
@@ -127,14 +121,7 @@ public class ProgramIntegrationTests
         {
             Console.SetOut(output);
 
-            var instance = Activator.CreateInstance(typeof(Program));
-            Assert.NotNull(instance);
-
-            var runMethod = typeof(Program).GetMethod("RunBotAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.NotNull(runMethod);
-
-            var task = (Task)runMethod.Invoke(instance, null)!;
-            await task;
+            await BotApplication.RunAsync();
 
             Assert.Contains("LAVALINK_HOSTNAME is not set", output.ToString(), StringComparison.Ordinal);
         }
@@ -147,9 +134,6 @@ public class ProgramIntegrationTests
     [Fact]
     public async Task ConfigureServices_RegistersCoreServices()
     {
-        var configureMethod = typeof(Program).GetMethod("ConfigureServices", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(configureMethod);
-
         var botSettings = new BotSettings { Token = "token", Prefix = "!" };
         var lavaSettings = new LavalinkSettings
         {
@@ -168,7 +152,7 @@ public class ProgramIntegrationTests
             ["POSTGRES_PASSWORD"] = "postgres"
         });
 
-        var provider = (ServiceProvider)configureMethod.Invoke(null, [botSettings, lavaSettings])!;
+        var provider = BotServiceProviderFactory.Create(botSettings, lavaSettings);
 
         try
         {
@@ -192,9 +176,6 @@ public class ProgramIntegrationTests
         await using var _ = database;
         using var env = new EnvScope(database.CreateProgramEnvironment().ToDictionary());
 
-        var configureMethod = typeof(Program).GetMethod("ConfigureServices", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(configureMethod);
-
         var botSettings = new BotSettings { Token = "token", Prefix = "!" };
         var lavaSettings = new LavalinkSettings
         {
@@ -204,7 +185,7 @@ public class ProgramIntegrationTests
             Password = "pass"
         };
 
-        var provider = (ServiceProvider)configureMethod.Invoke(null, [botSettings, lavaSettings])!;
+        var provider = BotServiceProviderFactory.Create(botSettings, lavaSettings);
 
         try
         {
@@ -259,12 +240,8 @@ public class ProgramIntegrationTests
             .AddDbContextFactory<BotDbContext>(options => options.UseInMemoryDatabase($"program-migrations-{Guid.NewGuid():N}"))
             .BuildServiceProvider();
 
-        var applyMethod = typeof(Program).GetMethod("ApplyMigrationsIfNeededAsync", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(applyMethod);
-
-        var task = (Task)applyMethod.Invoke(null, [services])!;
-
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await task);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(services));
 
         await services.DisposeAsync();
     }
@@ -283,11 +260,7 @@ public class ProgramIntegrationTests
             Assert.NotEmpty(await beforeContext.Database.GetPendingMigrationsAsync());
         }
 
-        var applyMethod = typeof(Program).GetMethod("ApplyMigrationsIfNeededAsync", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(applyMethod);
-
-        var task = (Task)applyMethod.Invoke(null, [services])!;
-        await task;
+        await DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(services);
 
         await using var afterContext = await factory.CreateDbContextAsync();
         Assert.Empty(await afterContext.Database.GetPendingMigrationsAsync());
