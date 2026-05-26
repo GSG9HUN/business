@@ -11,7 +11,7 @@ Slash commands are Discord's interaction system that provides:
 - Ephemeral (private) responses
 - Better discoverability
 
-Current status: these classes are source stubs only. Runtime registration is commented out in `Program.cs`, and most command bodies are commented/no-op until slash command support is re-enabled and completed.
+Current status: these classes are source stubs only. Runtime registration is disabled in the startup composition root, and most command bodies are commented/no-op until slash command support is re-enabled and completed.
 
 ## Available Slash Commands
 
@@ -64,7 +64,7 @@ public async Task Play(
 
 ## Registration
 
-Slash command registration is currently disabled. `Program.cs` contains the registration block in `RegisterSlashCommands(...)`, but it is commented out, so these commands are not active at runtime.
+Slash command registration is currently disabled. `Startup/BotServiceProviderFactory.cs` does not register slash command services, so these commands are not active at runtime.
 
 ## Related Components
 

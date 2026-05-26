@@ -1,23 +1,49 @@
-﻿# Program.cs - Application Entry Point
+# Program.cs and Startup
 
-This file wires up runtime configuration, dependency injection, database migrations, and startup handlers.
+`Program.cs` is intentionally thin. It verifies that the `.env` file exists, loads it with DotNetEnv, and delegates runtime startup to `Startup/BotApplication.cs`.
 
 ## Responsibilities
 
-- load `.env`
-- read required bot and Lavalink settings
-- configure DI container
-- register repository implementations and services
-- apply pending EF Core migrations
-- register handlers and start the bot
+### Program.cs
+
+- locate `.env` in the current working directory
+- print `Please provide .env file.` and exit when the file is missing
+- load environment variables with `Env.Load(...)`
+- call `BotApplication.RunAsync()`
+
+### Startup components
+
+- `BotApplication.cs` - coordinates the startup flow
+- `BotConfigurationLoader.cs` - reads and validates required environment values
+- `BotRuntimeSettings.cs` - groups bot, Lavalink, and database startup settings
+- `BotServiceProviderFactory.cs` - builds the DI container
+- `DatabaseMigrationRunner.cs` - applies pending EF Core migrations
+- `BotHandlerRegistrar.cs` - wires Discord client events, command handling, and reaction handling
 
 ## Startup Flow
 
-1. `Main()` verifies `.env` exists, then calls `RunBotAsync()`.
-2. `RunBotAsync()` reads environment values using `GetEnv(...)`.
-3. `ConfigureServices(...)` builds the `ServiceProvider`.
-4. `ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
-5. Handlers are registered, then `BotService.StartAsync()` starts the bot.
+1. `Program.Main()` checks for `.env`.
+2. `Program.Main()` loads `.env` and calls `BotApplication.RunAsync()`.
+3. `BotConfigurationLoader.LoadFromEnvironment(...)` builds `BotRuntimeSettings`.
+4. `BotServiceProviderFactory.Create(...)` creates the `ServiceProvider`.
+5. `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
+6. `BotHandlerRegistrar.RegisterHandlers(...)` wires runtime event handlers.
+7. `BotService.StartAsync()` connects the Discord client and keeps the bot running.
+
+## Handler Registration
+
+`DiscordClientFactory` only creates a configured `DiscordClient`.
+
+`BotHandlerRegistrar` owns event subscription:
+
+```csharp
+discordClient.Ready += eventHandler.OnClientReady;
+discordClient.GuildAvailable += eventHandler.OnGuildAvailable;
+commandHandler.RegisterHandler(discordClient);
+reactionHandler.RegisterHandler(discordClient);
+```
+
+This keeps client construction independent from `DiscordClientEventHandler`, which now receives its dependencies directly through constructor injection.
 
 ## Environment Variables
 
@@ -26,15 +52,15 @@ This file wires up runtime configuration, dependency injection, database migrati
 - `DISCORD_TOKEN`
 - `LAVALINK_HOSTNAME`
 
+### Optional Bot
+
+- `BOT_PREFIX` (default: `!`)
+
 ### Optional Lavalink
 
 - `LAVALINK_PORT` (default: `2333`)
 - `LAVALINK_SECURED` (default: `false`)
 - `LAVALINK_PASSWORD` (default: empty)
-
-### Optional Bot
-
-- `BOT_PREFIX` (if omitted, downstream command parsing behavior applies)
 
 ### Optional PostgreSQL
 
@@ -44,9 +70,9 @@ This file wires up runtime configuration, dependency injection, database migrati
 - `POSTGRES_USER` (default: `postgres`)
 - `POSTGRES_PASSWORD` (default: `postgres`)
 
-### Optional Lavalink provider settings
+### Optional Lavalink Provider Settings
 
-These are consumed by `lavalink-server/application.yaml` through Docker Compose, not directly by `Program.cs`:
+These are consumed by `lavalink-server/application.yaml` through Docker Compose, not directly by the C# startup classes:
 
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
@@ -80,7 +106,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ## Persistence Wiring
 
-`ConfigureServices(...)` registers:
+`BotServiceProviderFactory` registers:
 
 - `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
 - `IGuildDataRepository -> GuildDataRepository`
@@ -88,139 +114,33 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - `IQueueRepository -> QueueRepository`
 - `IRepeatListRepository -> RepeatListRepository`
 
-At startup, `ApplyMigrationsIfNeededAsync(...)` executes `MigrateAsync()` when pending migrations exist.
-
-## Slash Commands
-
-Slash command registration code is currently present but commented out in `RegisterSlashCommands(...)`.
-
----
+`DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` checks pending migrations and runs `MigrateAsync()` when needed.
 
 ## Error Handling
 
-The application validates required settings and exits gracefully on errors:
+Required settings are validated before the DI container is created:
 
-```csharp
-if (string.IsNullOrWhiteSpace(botSettings.Token))
-{
-    Console.WriteLine("DISCORD_TOKEN is not set in the environment variables.");
-    return;
-}
+- missing `DISCORD_TOKEN` prints `DISCORD_TOKEN is not set in the environment variables.`
+- missing `LAVALINK_HOSTNAME` prints `LAVALINK_HOSTNAME is not set in the environment variables.`
+- missing `.env` prints `Please provide .env file.`
 
-if (string.IsNullOrWhiteSpace(lavalinkHost))
-{
-    Console.WriteLine("LAVALINK_HOSTNAME is not set in the environment variables.");
-    return;
-}
-```
-
-**Missing Required Variables:**
-
-- Application prints error message
-- Exits without starting bot
-
----
+In these cases startup exits before connecting to Discord.
 
 ## Running the Bot
 
-### Prerequisites
-
-1. **Create `.env` file** in project root with required variables
-2. **.NET 9.0 SDK** installed
-3. **Lavalink server** running and accessible
-
-### Build and Run
-
 ```bash
-# Restore dependencies
 dotnet restore
-
-# Build project
 dotnet build
-
-# Run bot
-dotnet run
+dotnet run --project "DC bot/DC bot.csproj"
 ```
-
-### Deployment
-
-```bash
-# Publish for production
-dotnet publish -c Release
-
-# Run published executable
-./DC bot.exe
-```
-
----
-
-## Configuration Loading Order
-
-1. **Default Values** (hardcoded in code)
-    - `Prefix = "!"`
-    - `Port = 2333`
-    - `Secured = false`
-    - `Password = ""`
-
-2. **Environment Variables** (override defaults)
-    - `BOT_PREFIX`
-    - `LAVALINK_PORT`
-    - `LAVALINK_SECURED`
-    - `LAVALINK_PASSWORD`
-
-3. **Validation** (check required values)
-    - `DISCORD_TOKEN` - Required, exit if missing
-    - `LAVALINK_HOSTNAME` - Required, exit if missing
-
----
 
 ## Related Components
 
-- **Configuration/BotSettings.cs** - Bot configuration model
-- **Configuration/LavalinkSettings.cs** - Lavalink configuration model
-- **Service/BotService.cs** - Bot lifecycle management
-- **Service/Core/CommandHandlerService.cs** - Command routing
-- **Service/ReactionHandler.cs** - Reaction handling
-- **Wrapper/DiscordClientFactory.cs** - Discord client creation
-- **Interface/** - Service contracts
-- **Commands/** - Registered text commands
-- **Service/Music/** - Music playback services
-
----
-
-## Troubleshooting
-
-### "Please provide .env file."
-
-**Cause:** `.env` file not found in project root
-
-**Solution:** Create `.env` file in project root with required variables
-
-### "DISCORD_TOKEN is not set"
-
-**Cause:** `DISCORD_TOKEN` environment variable missing or empty
-
-**Solution:** Add `DISCORD_TOKEN=your_token` to `.env` file
-
-### "LAVALINK_HOSTNAME is not set"
-
-**Cause:** `LAVALINK_HOSTNAME` environment variable missing or empty
-
-**Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env` file
-
-### Bot connects but commands don't work
-
-**Cause:** Command prefix doesn't match `!`
-
-**Solution:** Check `BOT_PREFIX` in `.env` or use correct prefix
-
-### Lavalink connection fails
-
-**Cause:** Wrong hostname, port, password, or Lavalink server offline
-
-**Solution:**
-
-- Verify `LAVALINK_HOSTNAME`, `LAVALINK_PORT`, `LAVALINK_PASSWORD`
-- Check Lavalink server is running and accessible
-- Verify `LAVALINK_SECURED` matches server configuration
-
+- `Startup/README.md` - startup component details
+- `Configuration/BotSettings.cs` - bot configuration model
+- `Configuration/LavalinkSettings.cs` - Lavalink configuration model
+- `Service/BotService.cs` - bot lifecycle management
+- `Service/Core/CommandHandlerService.cs` - command routing
+- `Service/ReactionHandler.cs` - reaction handling
+- `Wrapper/DiscordClientFactory.cs` - Discord client creation
+- `Wrapper/DiscordClientEventHandler.cs` - Discord lifecycle event handling

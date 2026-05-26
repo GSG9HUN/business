@@ -135,7 +135,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 ### DiscordClientEventHandler.cs
 
-**Purpose:** Register and manage Discord client event handlers.
+**Purpose:** Handle Discord client lifecycle events.
 
 **Methods:**
 
@@ -144,7 +144,9 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 **Features:**
 
-- Handles Discord client startup and guild availability lifecycle hooks
+- Uses direct constructor injection for `IGuildDataRepository`, `ILocalizationService`, and `ILavaLinkService`
+- Does not resolve dependencies through `IServiceProvider`
+- Is subscribed to Discord events by `Startup/BotHandlerRegistrar`
 
 ---
 
@@ -160,7 +162,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 - Sets intents (privileged and unprivileged)
 - Enables auto reconnect
-- Registers `Ready` and `GuildAvailable` handlers
+- Does not register event handlers; handler wiring is owned by `Startup/BotHandlerRegistrar`
 
 ---
 

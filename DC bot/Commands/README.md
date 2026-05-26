@@ -45,7 +45,7 @@ Queue management commands.
 
 Slash command implementations.
 
-Runtime registration is currently commented out in `Program.cs`.
+Runtime registration is currently disabled; these classes are not registered by the startup composition root.
 
 **Commands:**
 
@@ -130,7 +130,7 @@ Commands typically inject:
 
 ## Registration
 
-Commands are registered in `Program.cs`:
+Commands are registered in `Startup/BotServiceProviderFactory.cs`:
 
 ```csharp
 services.AddSingleton<ICommand, PlayCommand>();
