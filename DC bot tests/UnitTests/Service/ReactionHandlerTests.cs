@@ -535,7 +535,6 @@ public class ReactionHandlerTests
         var exception = await Assert.ThrowsAsync<MessageSendException>(() => lavaLinkServiceMock.RaiseAsync(
             x => x.TrackStarted += null!,
             channelMock.Object,
-            discordClient,
             new DiscordEmbedBuilder().WithTitle("test").Build()));
 
         loggerMock.Verify(

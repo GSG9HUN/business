@@ -25,7 +25,7 @@ public class ReactionHandler(
     private bool _isRegistered;
     private AsyncEventHandler<DiscordClient, MessageReactionAddEventArgs>? _messageReactionAdded;
     private AsyncEventHandler<DiscordClient, MessageReactionRemoveEventArgs>? _messageReactionRemoved;
-    private Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task>? _sendReactionControlMessage;
+    private Func<IDiscordChannel, DiscordEmbed, Task>? _sendReactionControlMessage;
 
     public void RegisterHandler(DiscordClient client)
     {
@@ -37,7 +37,7 @@ public class ReactionHandler(
 
         _messageReactionAdded = OnReactionAdded;
         _messageReactionRemoved = OnReactionRemoved;
-        _sendReactionControlMessage = SendReactionControlMessage;
+        _sendReactionControlMessage = (textChannel, msg) => SendReactionControlMessage(textChannel, client, msg);
 
         lavaLinkService.TrackStarted += _sendReactionControlMessage;
         client.MessageReactionAdded += _messageReactionAdded;

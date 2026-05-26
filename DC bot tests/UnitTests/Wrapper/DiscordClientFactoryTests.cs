@@ -1,8 +1,5 @@
 using DC_bot.Configuration;
-using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace DC_bot_tests.UnitTests.Wrapper;
 
@@ -13,9 +10,8 @@ public class DiscordClientFactoryTests
     public void Create_WithValidSettings_ReturnsDiscordClient()
     {
         var settings = new BotSettings { Token = "valid_test_token" };
-        var eventHandler = CreateEventHandler();
 
-        using var client = DiscordClientFactory.Create(settings, eventHandler);
+        using var client = DiscordClientFactory.Create(settings);
 
         Assert.NotNull(client);
     }
@@ -25,8 +21,8 @@ public class DiscordClientFactoryTests
     {
         var settings = new BotSettings { Token = "valid_test_token" };
 
-        using var firstClient = DiscordClientFactory.Create(settings, CreateEventHandler());
-        using var secondClient = DiscordClientFactory.Create(settings, CreateEventHandler());
+        using var firstClient = DiscordClientFactory.Create(settings);
+        using var secondClient = DiscordClientFactory.Create(settings);
 
         Assert.NotSame(firstClient, secondClient);
     }
@@ -37,7 +33,7 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = null };
 
         var exception = Assert.Throws<Exception>(() =>
-            DiscordClientFactory.Create(settings, CreateEventHandler()));
+            DiscordClientFactory.Create(settings));
 
         Assert.Equal("DISCORD_TOKEN is not set.", exception.Message);
     }
@@ -50,17 +46,8 @@ public class DiscordClientFactoryTests
         var settings = new BotSettings { Token = token };
 
         var exception = Assert.Throws<ArgumentNullException>(() =>
-            DiscordClientFactory.Create(settings, CreateEventHandler()));
+            DiscordClientFactory.Create(settings));
 
         Assert.Equal("value", exception.ParamName);
-    }
-
-    private static DiscordClientEventHandler CreateEventHandler()
-    {
-        var logger = Mock.Of<ILogger<DiscordClientEventHandler>>();
-        var guildDataRepository = Mock.Of<IGuildDataRepository>();
-        var serviceProvider = Mock.Of<IServiceProvider>();
-
-        return new DiscordClientEventHandler(logger, guildDataRepository, serviceProvider);
     }
 }

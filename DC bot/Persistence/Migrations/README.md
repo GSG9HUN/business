@@ -24,7 +24,7 @@ dotnet ef database update --project "DC bot/DC bot.csproj"
 
 ## Runtime Behavior
 
-`Program.cs` checks for pending migrations and applies them automatically during startup.
+`Startup/DatabaseMigrationRunner.cs` checks for pending migrations and applies them automatically during startup.
 
 ## Caution
 

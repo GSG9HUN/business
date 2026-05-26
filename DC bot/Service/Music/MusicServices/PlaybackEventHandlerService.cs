@@ -17,7 +17,11 @@ public class PlaybackEventHandlerService(
 
     public void RegisterPlaybackFinishedHandler(ulong guildId, ILavalinkPlayer connection, IDiscordChannel textChannel)
     {
-        if (_trackEndedHandlers.ContainsKey(guildId)) return;
+        if (_trackEndedHandlers.ContainsKey(guildId))
+        {
+            logger.LogDebug("Playback finished event already registered for guild {GuildId}", guildId);
+            return;
+        }
 
         AsyncEventHandler<TrackEndedEventArgs> handler = async (_, args) =>
             await trackEndedHandlerService.HandleTrackEndedAsync(connection, args, textChannel);

@@ -5,7 +5,6 @@ using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Music.MusicServices;
-using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -19,11 +18,10 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
         channel.Setup(x => x.SendMessageAsync("msg")).Returns(Task.CompletedTask);
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
 
         await service.SendSafeAsync(channel.Object, "msg", "op");
 
@@ -35,12 +33,11 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
         channel.Setup(x => x.SendMessageAsync(It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("send fail"));
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
 
         await Assert.ThrowsAsync<MessageSendException>(() => service.SendSafeAsync(channel.Object, "msg", "op"));
     }
@@ -50,7 +47,6 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
         var guild = new Mock<IDiscordGuild>();
 
@@ -61,7 +57,7 @@ public class TrackNotificationServiceTests
         channel.SetupGet(x => x.Guild).Returns(guild.Object);
         channel.Setup(x => x.SendMessageAsync("Queue empty")).Returns(Task.CompletedTask);
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
 
         await service.NotifyQueueEmptyAsync(channel.Object);
 
@@ -73,7 +69,6 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
         var guild = new Mock<IDiscordGuild>();
 
@@ -83,9 +78,9 @@ public class TrackNotificationServiceTests
         guild.SetupGet(x => x.Id).Returns(123UL);
         channel.SetupGet(x => x.Guild).Returns(guild.Object);
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var raised = false;
-        service.TrackStarted += (_, _, msg) =>
+        service.TrackStarted += (_, msg) =>
         {
             raised = msg.Description.Contains("Artist") && msg.Description.Contains("Title");
             return Task.CompletedTask;
@@ -103,7 +98,6 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         var channel = new Mock<IDiscordChannel>();
         var guild = new Mock<IDiscordGuild>();
 
@@ -113,7 +107,7 @@ public class TrackNotificationServiceTests
         guild.SetupGet(x => x.Id).Returns(123UL);
         channel.SetupGet(x => x.Guild).Returns(guild.Object);
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var track = TrackTestHelper.CreateTrackWrapper("Artist", "Title");
 
         await service.NotifyNowPlayingAsync(channel.Object, track, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120));
@@ -124,10 +118,9 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var track = new Mock<ILavaLinkTrack>();
         track.SetupGet(t => t.Author).Returns("Artist");
         track.SetupGet(t => t.Title).Returns("Title");
@@ -145,10 +138,9 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var track = new Mock<ILavaLinkTrack>();
         track.SetupGet(t => t.Author).Returns("Artist");
         track.SetupGet(t => t.Title).Returns("Title");
@@ -167,10 +159,9 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var track = new Mock<ILavaLinkTrack>();
         track.SetupGet(t => t.Author).Returns("Artist");
         track.SetupGet(t => t.Title).Returns("Title");
@@ -185,10 +176,9 @@ public class TrackNotificationServiceTests
     {
         var localization = new Mock<ILocalizationService>();
         var logger = new Mock<ILogger<TrackNotificationService>>();
-        var client = new DiscordClient(new DiscordConfiguration { Token = "x", TokenType = TokenType.Bot });
         localization.Setup(x => x.Get(LocalizationKeys.PlayCommandMusicPlaying)).Returns("Now playing:");
 
-        var service = new TrackNotificationService(localization.Object, logger.Object, client);
+        var service = new TrackNotificationService(localization.Object, logger.Object);
         var track = new Mock<ILavaLinkTrack>();
         track.SetupGet(t => t.Author).Returns("Artist");
         track.SetupGet(t => t.Title).Returns("Title");

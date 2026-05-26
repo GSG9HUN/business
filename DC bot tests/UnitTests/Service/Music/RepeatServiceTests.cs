@@ -2,7 +2,6 @@ using DC_bot.Interface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music;
@@ -15,9 +14,7 @@ public class RepeatServiceTests
     {
         var service = new RepeatService(
             new InMemoryPlaybackStateRepository(),
-            new InMemoryRepeatListRepository(),
-            new Mock<ILogger<RepeatService>>().Object
-            );
+            new InMemoryRepeatListRepository());
         const ulong guildId = 10;
 
         await service.InitAsync(guildId);
@@ -31,9 +28,7 @@ public class RepeatServiceTests
     {
         var service = new RepeatService(
             new InMemoryPlaybackStateRepository(),
-            new InMemoryRepeatListRepository(),
-            new Mock<ILogger<RepeatService>>().Object
-            );
+            new InMemoryRepeatListRepository());
         const ulong guildId = 11;
 
         await service.InitAsync(guildId);
@@ -45,7 +40,7 @@ public class RepeatServiceTests
     [Fact]
     public async Task SetRepeating_WithoutInit_CreatesAndUpdatesState()
     {
-        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository());
         const ulong guildId = 12;
 
         await service.SetRepeatingAsync(guildId, true);
@@ -56,7 +51,7 @@ public class RepeatServiceTests
     [Fact]
     public async Task SetRepeatingList_AfterInit_UpdatesFlag()
     {
-        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository());
         const ulong guildId = 13;
 
         await service.InitAsync(guildId);
@@ -68,7 +63,7 @@ public class RepeatServiceTests
     [Fact]
     public async Task SetRepeatingList_WithoutInit_CreatesAndUpdatesState()
     {
-        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository(), new Mock<ILogger<RepeatService>>().Object);
+        var service = new RepeatService(new InMemoryPlaybackStateRepository(), new InMemoryRepeatListRepository());
         const ulong guildId = 14;
 
         await service.SetRepeatingListAsync(guildId, true);
@@ -83,8 +78,7 @@ public class RepeatServiceTests
         var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
         var service = new RepeatService(
             playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
+            repeatListRepositoryMock.Object);
         const ulong guildId = 15;
 
         await service.SetRepeatingListAsync(guildId, false);
@@ -99,8 +93,7 @@ public class RepeatServiceTests
         var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
         var service = new RepeatService(
             playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
+            repeatListRepositoryMock.Object);
         const ulong guildId = 16;
 
         var current = new Mock<ILavaLinkTrack>();
@@ -125,32 +118,10 @@ public class RepeatServiceTests
     {
         var service = new RepeatService(
             new InMemoryPlaybackStateRepository(),
-            new InMemoryRepeatListRepository(),
-            new Mock<ILogger<RepeatService>>().Object);
+            new InMemoryRepeatListRepository());
 
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             service.SaveRepeatListSnapshotAsync(17UL, null, null!));
-    }
-
-    [Fact]
-    public async Task GetRepeatableQueueAsync_WhenStoredIdsExist_ReturnsParsedTracks()
-    {
-        var playbackStateRepository = new InMemoryPlaybackStateRepository();
-        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
-        repeatListRepositoryMock
-            .Setup(r => r.GetTrackIdentifiersAsync(18UL, CancellationToken.None))
-            .ReturnsAsync([
-                "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
-            ]);
-
-        var service = new RepeatService(
-            playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
-
-        var queue = await service.GetRepeatableQueueAsync(18UL);
-
-        Assert.Single(queue);
     }
 
     private sealed class InMemoryPlaybackStateRepository : IPlaybackStateRepository
@@ -184,55 +155,13 @@ public class RepeatServiceTests
     }
 
     [Fact]
-    public async Task GetRepeatableQueueAsync_WhenSomeIdentifiersInvalid_SkipsInvalidAndReturnsValid()
-    {
-        var playbackStateRepository = new InMemoryPlaybackStateRepository();
-        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
-        repeatListRepositoryMock
-            .Setup(r => r.GetTrackIdentifiersAsync(19UL, CancellationToken.None))
-            .ReturnsAsync([
-                "bad-identifier",
-                "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA="
-            ]);
-
-        var service = new RepeatService(
-            playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
-
-        var result = await service.GetRepeatableQueueAsync(19UL);
-
-        Assert.Single(result);
-    }
-
-    [Fact]
-    public async Task GetRepeatableQueueAsync_WhenAllIdentifiersInvalid_ReturnsEmpty()
-    {
-        var playbackStateRepository = new InMemoryPlaybackStateRepository();
-        var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
-        repeatListRepositoryMock
-            .Setup(r => r.GetTrackIdentifiersAsync(20UL, CancellationToken.None))
-            .ReturnsAsync(["bad-1", "bad-2"]);
-
-        var service = new RepeatService(
-            playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
-
-        var result = await service.GetRepeatableQueueAsync(20UL);
-
-        Assert.Empty(result);
-    }
-
-    [Fact]
     public async Task SaveRepeatListSnapshot_WithNullCurrentTrack_PersistsOnlyQueue()
     {
         var playbackStateRepository = new InMemoryPlaybackStateRepository();
         var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
         var service = new RepeatService(
             playbackStateRepository,
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
+            repeatListRepositoryMock.Object);
 
         var queued1 = new Mock<ILavaLinkTrack>();
         queued1.Setup(t => t.ToString()).Returns("q1");
@@ -252,8 +181,7 @@ public class RepeatServiceTests
         var repeatListRepositoryMock = new Mock<IRepeatListRepository>();
         var service = new RepeatService(
             new InMemoryPlaybackStateRepository(),
-            repeatListRepositoryMock.Object,
-            new Mock<ILogger<RepeatService>>().Object);
+            repeatListRepositoryMock.Object);
 
         await service.SetRepeatingListAsync(22UL, true);
 

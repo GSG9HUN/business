@@ -52,7 +52,7 @@ dotnet run
 1. [Project Structure](#project-structure)
 2. [Key Features](#key-features)
 3. [Architecture Overview](#architecture-overview)
-4. [Application Entry Point (Program.cs)](#application-entry-point-programcs)
+4. [Application Startup](#application-startup)
 5. [Environment Configuration](#environment-configuration)
 6. [Service Registration & Dependency Injection](#service-registration--dependency-injection)
 7. [Documentation Guide](#documentation-guide)
@@ -116,6 +116,15 @@ DC bot/
 │   ├── Presentation/              # ResponseBuilder
 │   └── README.md
 │
+├── Startup/                       # Runtime composition and startup orchestration
+│   ├── BotApplication.cs          # Application runtime flow
+│   ├── BotConfigurationLoader.cs  # Environment configuration loading
+│   ├── BotHandlerRegistrar.cs     # Discord event and handler registration
+│   ├── BotRuntimeSettings.cs      # Startup settings aggregate
+│   ├── BotServiceProviderFactory.cs # Dependency injection composition root
+│   ├── DatabaseMigrationRunner.cs # EF Core migration execution
+│   └── README.md
+│
 ├── Wrapper/                       # Discord API wrappers (DSharpPlus abstraction)
 │   ├── DiscordMessageWrapper.cs
 │   ├── DiscordUserWrapper.cs
@@ -166,8 +175,8 @@ DC bot/
 │   ├── localization/              # Guild language preferences
 │   └── README.md
 │
-├── Program.cs                     # Application entry point
-├── PROGRAM_CS_README.md           # Program.cs detailed documentation
+├── Program.cs                     # Thin process entry point
+├── PROGRAM_CS_README.md           # Program.cs and startup documentation
 ├── DC bot.csproj                  # Project file
 └── README.md                      # This file
 
@@ -273,43 +282,49 @@ DC bot/
 
 ---
 
-## Application Entry Point (Program.cs)
+## Application Startup
 
 ### Overview
 
-`Program.cs` is responsible for:
+Startup is split between a thin process entry point and focused startup components:
 
-1. Loading environment variables from `.env` file
-2. Creating configuration objects
-3. Configuring the Dependency Injection container
-4. Registering event handlers
-5. Starting the bot
+1. `Program.cs` verifies the `.env` file exists and delegates to `BotApplication`.
+2. `BotConfigurationLoader` reads required bot and Lavalink settings from the environment.
+3. `BotServiceProviderFactory` builds the Dependency Injection container.
+4. `DatabaseMigrationRunner` applies pending EF Core migrations.
+5. `BotHandlerRegistrar` wires Discord client events, command handling, and reaction handling.
+6. `BotService` starts the Discord client lifecycle.
 
-For detailed documentation, see **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)**
+For detailed documentation, see **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** and **[Startup/README.md](Startup/README.md)**.
 
 ### Initialization Flow
 
 ```
 Main()
   ↓
-Load .env file
+Verify .env file and load environment variables
   ↓
-Parse environment variables
+BotApplication.RunAsync()
   ↓
-Create BotSettings & LavalinkSettings
+BotConfigurationLoader.LoadFromEnvironment()
   ↓
-ConfigureServices()
+BotServiceProviderFactory.Create()
   ├─ Add Logging
   ├─ Configure Lavalink
+  ├─ Add EF Core DbContext factory
   ├─ Register Core Services
   ├─ Register All Commands (15 text commands)
-  ├─ Register Music Services (11 specialized services)
+  ├─ Register Music Services (12 specialized services)
   ├─ Register Validation & Localization
   └─ Build ServiceProvider
   ↓
-RegisterHandlers()
-  ├─ CommandHandlerService.RegisterHandler()
-  └─ ReactionHandler.RegisterHandler()
+DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync()
+  ↓
+BotHandlerRegistrar.RegisterHandlers()
+  ├─ DiscordClient.Ready += DiscordClientEventHandler.OnClientReady
+  ├─ DiscordClient.GuildAvailable += DiscordClientEventHandler.OnGuildAvailable
+  ├─ CommandHandlerService.RegisterHandler(discordClient)
+  └─ ReactionHandler.RegisterHandler(discordClient)
   ↓
 BotService.StartAsync()
   ├─ Connect DiscordClient
@@ -396,7 +411,9 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ### Runtime Registrations
 
-`Program.cs` currently registers 43 singleton entries, plus the EF Core `BotDbContext` factory and Lavalink client configuration.
+`Startup/BotServiceProviderFactory.cs` is the composition root. It registers runtime services, commands, repositories, the EF Core `BotDbContext` factory, and Lavalink client configuration.
+
+`Startup/BotHandlerRegistrar.cs` performs runtime event wiring after the `DiscordClient` and its dependent services are constructed. Keeping event subscription out of `DiscordClientFactory` avoids dependency construction cycles.
 
 #### Logging Configuration
 
@@ -414,7 +431,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 #### Core Services
 
 - `DiscordClient` - Discord connection
-- `DiscordClientEventHandler` - Startup event handling
+- `DiscordClientEventHandler` - Discord lifecycle event handling with direct constructor-injected dependencies
 - `BotService` - Bot lifecycle
 - `CommandHandlerService` - Message routing
 - `ReactionHandler` - Reaction handling
@@ -437,8 +454,8 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 #### All 12 Music Services
 
 - `LavaLinkService` - Playback orchestration
-- `MusicQueueService` - Queue management
-- `RepeatService` - Repeat logic
+- `MusicQueueService` - Queue management and repeat-list snapshot rehydration
+- `RepeatService` - Repeat flags and repeat-list snapshot writes
 - `CurrentTrackService` - Track state
 - `TrackNotificationService` - Notifications
 - `TrackFormatterService` - Formatting
@@ -485,11 +502,17 @@ The project has **40+ README.md files** documenting every component:
     - Service registration details
     - Initialization flow
 
+5. **[Startup/README.md](Startup/README.md)** - Startup composition
+    - Configuration loading
+    - DI registration
+    - Discord event wiring
+
 ### Detailed Documentation
 
 - **Exceptions/** - Exception types and error handling
 - **Helper/** - Validation result types and factories
 - **IO/** - File system abstraction
+- **Startup/** - Runtime composition and startup orchestration
 - **Wrapper/** - Discord API wrapper implementation
 - **Configuration/** - Configuration models
 - **Constants/** - Localization keys
@@ -528,7 +551,7 @@ public class MyCommand(
 }
 ```
 
-2. **Register in Program.cs:**
+2. **Register in `Startup/BotServiceProviderFactory.cs`:**
 
 ```csharp
 .AddSingleton<ICommand, MyCommand>()
@@ -561,7 +584,7 @@ public const string MyCommandDescription = "mycommand_description";
 
 1. Create interface in `Interface/Service/`
 2. Implement in `Service/`
-3. Register in `Program.cs`:
+3. Register in `Startup/BotServiceProviderFactory.cs`:
    ```csharp
    .AddSingleton<IMyService, MyService>()
    ```
@@ -744,13 +767,14 @@ DC bot tests/
 - **Lavalink4NET:** 4.2.0
 - **EF Core:** 9.0.10
 - **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
-- **Last Updated:** 2026-05-21
+- **Last Updated:** 2026-05-26
 
 ---
 
 ## Quick Links
 
-- **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** - Detailed Program.cs documentation
+- **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** - Program.cs and startup documentation
+- **[Startup/README.md](Startup/README.md)** - Startup composition
 - **[Commands/README.md](Commands/README.md)** - Command architecture
 - **[Service/README.md](Service/README.md)** - Service layer documentation
 - **[Interface/README.md](Interface/README.md)** - Interface abstractions

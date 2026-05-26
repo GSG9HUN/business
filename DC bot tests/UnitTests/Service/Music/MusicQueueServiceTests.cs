@@ -13,11 +13,15 @@ public class MusicQueueServiceTests
     private const ulong GuildId = 12345UL;
     private const string ValidTrackIdentifier = "QAAA2QMAPFJpY2sgQXN0bGV5IC0gTmV2ZXIgR29ubmEgR2l2ZSBZb3UgVXAgKE9mZmljaWFsIE11c2ljIFZpZGVvKQALUmljayBBc3RsZXkAAAAAAANACAALZFF3NHc5V2dYY1EAAQAraHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQEANGh0dHBzOi8vaS55dGltZy5jb20vdmkvZFF3NHc5V2dYY1EvbWF4cmVzZGVmYXVsdC5qcGcAAAd5b3V0dWJlAAAAAAAAAAA=";
     private readonly Mock<IQueueRepository> _queueRepositoryMock = new();
+    private readonly Mock<IRepeatListRepository> _repeatListRepositoryMock = new();
     private readonly MusicQueueService _service;
 
     public MusicQueueServiceTests()
     {
-        _service = new MusicQueueService(_queueRepositoryMock.Object, Mock.Of<ILogger<MusicQueueService>>());
+        _service = new MusicQueueService(
+            _queueRepositoryMock.Object,
+            _repeatListRepositoryMock.Object,
+            Mock.Of<ILogger<MusicQueueService>>());
     }
 
     [Fact]
@@ -216,6 +220,42 @@ public class MusicQueueServiceTests
 
         Assert.Empty(result);
         _queueRepositoryMock.Verify(repository => repository.MarkSkippedAsync(1, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetRepeatableQueue_WhenStoredIdsExist_ReturnsParsedTracks()
+    {
+        _repeatListRepositoryMock
+            .Setup(repository => repository.GetTrackIdentifiersAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync([ValidTrackIdentifier, ValidTrackIdentifier]);
+
+        var result = await _service.GetRepeatableQueue(GuildId);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task GetRepeatableQueue_WhenSomeIdentifiersInvalid_SkipsInvalidAndReturnsValid()
+    {
+        _repeatListRepositoryMock
+            .Setup(repository => repository.GetTrackIdentifiersAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync(["bad-identifier", ValidTrackIdentifier]);
+
+        var result = await _service.GetRepeatableQueue(GuildId);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task GetRepeatableQueue_WhenAllIdentifiersInvalid_ReturnsEmpty()
+    {
+        _repeatListRepositoryMock
+            .Setup(repository => repository.GetTrackIdentifiersAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync(["bad-1", "bad-2"]);
+
+        var result = await _service.GetRepeatableQueue(GuildId);
+
+        Assert.Empty(result);
     }
 
     [Fact]
