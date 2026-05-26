@@ -1,6 +1,5 @@
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
@@ -15,23 +14,14 @@ public class DiscordClientEventHandlerTests
     private readonly Mock<ILavaLinkService> _lavaLinkServiceMock = new();
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<ILogger<DiscordClientEventHandler>> _loggerMock = new();
-    private readonly Mock<IMusicQueueService> _musicQueueServiceMock = new();
     private readonly Mock<IGuildDataRepository> _guildDataRepositoryMock = new();
-    private readonly Mock<IServiceProvider> _serviceProviderMock = new();
 
     public DiscordClientEventHandlerTests()
     {
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        _serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService)))
-            .Returns(_lavaLinkServiceMock.Object);
-        _serviceProviderMock.Setup(sp => sp.GetService(typeof(ILocalizationService)))
-            .Returns(_localizationServiceMock.Object);
-        _serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService)))
-            .Returns(_musicQueueServiceMock.Object);
-
         _eventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
-            _serviceProviderMock.Object);
+            _localizationServiceMock.Object, _lavaLinkServiceMock.Object);
     }
 
     #region OnGuildAvailable Tests
@@ -40,7 +30,7 @@ public class DiscordClientEventHandlerTests
     public void Constructor_InitializesWithProperDependencies()
     {
         var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
-            _serviceProviderMock.Object);
+            _localizationServiceMock.Object, _lavaLinkServiceMock.Object);
 
         Assert.NotNull(testEventHandler);
     }

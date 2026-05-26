@@ -1,11 +1,10 @@
-﻿using DC_bot.Constants;
+using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Logging;
-using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -13,17 +12,16 @@ namespace DC_bot.Service.Music.MusicServices;
 
 public class TrackNotificationService(
     ILocalizationService localizationService,
-    ILogger<TrackNotificationService> logger,
-    DiscordClient discordClient) : ITrackNotificationService
+    ILogger<TrackNotificationService> logger) : ITrackNotificationService
 {
-    public event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted =
-        (_, _, _) => Task.CompletedTask;
+    public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted =
+        (_, _) => Task.CompletedTask;
 
     public async Task NotifyNowPlayingAsync(IDiscordChannel textChannel, ILavaLinkTrack track, TimeSpan position,
         TimeSpan duration)
     {
         var embed = BuildNowPlayingEmbed(textChannel.Guild.Id, track, position, duration);
-        await TrackStarted.Invoke(textChannel, discordClient, embed);
+        await TrackStarted.Invoke(textChannel, embed);
         logger.NowPlaying(track.Author, track.Title);
     }
 
@@ -71,8 +69,7 @@ public class TrackNotificationService(
 
         if (track.ArtworkUri != null) builder.WithThumbnail(track.ArtworkUri);
 
-        return builder
-            .Build();
+        return builder.Build();
     }
 
     private static TimeSpan ClampPosition(TimeSpan position, TimeSpan duration)

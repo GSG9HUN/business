@@ -116,7 +116,6 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         await _lavaLinkServiceMock.RaiseAsync(
             x => x.TrackStarted += null!,
             wrapper,
-            client,
             embed);
 
         await Task.Delay(2000);
