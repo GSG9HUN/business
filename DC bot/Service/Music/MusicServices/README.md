@@ -55,11 +55,66 @@ These services split music functionality into focused responsibilities. Each imp
 
 ---
 
+### LavalinkNodeConnectionService.cs
+
+**Implements:** `ILavalinkNodeConnectionService`
+
+**Purpose:** Start and guard the Lavalink node connection lifecycle.
+
+**Key Methods:**
+
+- `ConnectAsync()` - Start `IAudioService` once and map startup failures to `LavalinkOperationException`
+
+**Notes:**
+
+- Owns the connection semaphore and idempotent startup state
+- Keeps node lifecycle details out of `LavaLinkService`
+
+---
+
+### PlaybackControlService.cs
+
+**Implements:** `IPlaybackControlService`
+
+**Purpose:** Handle playback transport controls.
+
+**Key Methods:**
+
+- `PauseAsync()` - Validate the existing player and pause the current track
+- `ResumeAsync()` - Validate the existing player and resume playback
+- `SkipAsync()` - Stop the current player and stop the progressive timer
+- `LeaveVoiceChannel()` - Stop playback if needed, clean playback handlers, stop timers, and disconnect
+
+**Notes:**
+
+- Keeps pause/resume/skip/leave behavior out of the `LavaLinkService` facade
+- Reuses `IPlayerConnectionService` for player lookup and validation
+
+---
+
 ### PlaybackEventHandlerService.cs
 
 **Implements:** `IPlaybackEventHandlerService`
 
 **Purpose:** Register and manage playback event handlers.
+
+---
+
+### PlaybackRequestService.cs
+
+**Implements:** `IPlaybackRequestService`
+
+**Purpose:** Orchestrate `play` requests for URL and query input.
+
+**Key Methods:**
+
+- `PlayAsyncUrl()` - Join/validate the voice channel, load tracks from a URL, register playback end handling, and delegate playback
+- `PlayAsyncQuery()` - Join/validate the voice channel, load tracks from a search query, register playback end handling, and delegate playback
+
+**Notes:**
+
+- Keeps track loading and not-found handling out of `LavaLinkService`
+- Delegates successful playback to `ITrackPlaybackService`
 
 ---
 
@@ -119,7 +174,7 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Implements:** `ITrackPlaybackService`
 
-**Purpose:** Control track playback (play, pause, skip, resume).
+**Purpose:** Play loaded tracks and queued tracks, send now-playing notifications, and update current-track state.
 
 ---
 
