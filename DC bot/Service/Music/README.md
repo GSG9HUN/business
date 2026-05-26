@@ -35,7 +35,7 @@ This folder contains music playback and queue management services.
 - Uses `IPlayerConnectionService` for voice channel management
 - Uses `ITrackPlaybackService` for queue track playback
 - Uses `IPlaybackEventHandlerService` for event handling
-- Uses `IMusicQueueService` for queue management
+- Uses `IMusicQueueService` for queue management and repeat-list queue rehydration
 
 ---
 

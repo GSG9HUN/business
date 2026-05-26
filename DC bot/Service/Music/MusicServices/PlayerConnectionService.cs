@@ -24,6 +24,7 @@ public class PlayerConnectionService(
     {
         if (channel is null)
         {
+            logger.LogInformation("Join validation failed because the user is not in a voice channel.");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
             return (null, null, 0, false);
         }
@@ -54,6 +55,10 @@ public class PlayerConnectionService(
 
             if (!validationPlayerResult.IsValid)
             {
+                logger.LogInformation(
+                    "Player validation failed after join attempt. Guild: {GuildId}, ErrorKey: {ErrorKey}",
+                    guildId,
+                    validationPlayerResult.ErrorKey);
                 await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
                 return (null, channel, guildId, false);
             }
@@ -70,8 +75,18 @@ public class PlayerConnectionService(
             } 
             
             if (validationConnectionResult is { IsValid: true })
+            {
+                logger.LogInformation("Joined and validated voice channel. Guild: {GuildId}, Channel: {ChannelId}",
+                    guildId,
+                    channel.Id);
                 return (connection, channel, guildId, true);
+            }
 
+            logger.LogInformation(
+                "Connection validation failed after join attempt. Guild: {GuildId}, Channel: {ChannelId}, ErrorKey: {ErrorKey}",
+                guildId,
+                channel.Id,
+                validationConnectionResult.ErrorKey);
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
         }
@@ -99,6 +114,7 @@ public class PlayerConnectionService(
     {
         if (channel is null)
         {
+            logger.LogInformation("Existing player validation failed because the user is not in a voice channel.");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
             return (null, null, 0, false);
         }
@@ -112,12 +128,17 @@ public class PlayerConnectionService(
 
             if (!validationPlayerResult.IsValid)
             {
+                logger.LogInformation(
+                    "Existing player validation failed. Guild: {GuildId}, ErrorKey: {ErrorKey}",
+                    guildId,
+                    validationPlayerResult.ErrorKey);
                 await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
                 return (null, channel, guildId, false);
             }
 
             if (validationPlayerResult.Player is null)
             {
+                logger.LogError("Existing player validation returned success without a player. Guild: {GuildId}", guildId);
                 await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
                 return (null, channel, guildId, false);
             }
@@ -126,8 +147,16 @@ public class PlayerConnectionService(
             var validationConnectionResult =
                 await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
-            if (validationConnectionResult.IsValid) return (connection, channel, guildId, true);
+            if (validationConnectionResult.IsValid)
+            {
+                logger.LogDebug("Existing player validated for guild {GuildId}.", guildId);
+                return (connection, channel, guildId, true);
+            }
 
+            logger.LogInformation(
+                "Existing connection validation failed. Guild: {GuildId}, ErrorKey: {ErrorKey}",
+                guildId,
+                validationConnectionResult.ErrorKey);
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
         }

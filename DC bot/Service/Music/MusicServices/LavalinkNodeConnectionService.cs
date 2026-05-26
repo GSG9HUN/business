@@ -15,13 +15,21 @@ public class LavalinkNodeConnectionService(
 
     public async Task ConnectAsync()
     {
-        if (_isAudioServiceStarted) return;
+        if (_isAudioServiceStarted)
+        {
+            logger.LogDebug("Lavalink node connection requested, but audio service is already started.");
+            return;
+        }
 
         await _connectLock.WaitAsync().ConfigureAwait(false);
 
         try
         {
-            if (_isAudioServiceStarted) return;
+            if (_isAudioServiceStarted)
+            {
+                logger.LogDebug("Lavalink node connection skipped because another caller already started the audio service.");
+                return;
+            }
 
             await audioService.StartAsync().ConfigureAwait(false);
             _isAudioServiceStarted = true;

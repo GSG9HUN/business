@@ -50,16 +50,14 @@ public class LavaLinkServiceIntegrationTests
     {
         var inMemoryPlaybackStateRepository = new InMemoryPlaybackStateRepository();
         var inMemoryRepeatListRepository = new InMemoryRepeatListRepository();
-        var repeatServiceLoggerMock = new Mock<ILogger<RepeatService>>();
         var currentTrackServiceLoggerMock = new Mock<ILogger<CurrentTrackService>>();
 
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
-        var queueService = new MusicQueueService(_inMemoryQueueRepository);
         _repeatService = new RepeatService(
             inMemoryPlaybackStateRepository,
-            inMemoryRepeatListRepository,
-            repeatServiceLoggerMock.Object);
+            inMemoryRepeatListRepository);
+        var queueService = new MusicQueueService(_inMemoryQueueRepository, inMemoryRepeatListRepository);
 
         _currentTrackService = new CurrentTrackService(inMemoryPlaybackStateRepository, currentTrackServiceLoggerMock.Object);
 

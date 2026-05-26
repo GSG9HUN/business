@@ -8,5 +8,4 @@ public interface IRepeatService
     Task<bool> IsRepeatingListAsync(ulong guildId);
     Task SetRepeatingListAsync(ulong guildId, bool value);
     Task SaveRepeatListSnapshotAsync(ulong guildId, ILavaLinkTrack? currentTrack, IReadOnlyCollection<ILavaLinkTrack> queuedTracks);
-    Task<IReadOnlyCollection<ILavaLinkTrack>> GetRepeatableQueueAsync(ulong guildId);
 }
