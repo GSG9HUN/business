@@ -187,7 +187,7 @@ public class TrackEndedHandlerServiceTests
         _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(false);
         _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(false);
         _repeatServiceMock.Setup(r => r.IsRepeatingListAsync(GuildId)).ReturnsAsync(true);
-        _repeatServiceMock.Setup(r => r.GetRepeatableQueueAsync(GuildId)).ReturnsAsync(repeatableQueue);
+        _musicQueueServiceMock.Setup(q => q.GetRepeatableQueue(GuildId)).ReturnsAsync(repeatableQueue);
 
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
 
@@ -216,7 +216,7 @@ public class TrackEndedHandlerServiceTests
 
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
 
-        _repeatServiceMock.Verify(q => q.GetRepeatableQueueAsync(It.IsAny<ulong>()), Times.Never);
+        _musicQueueServiceMock.Verify(q => q.GetRepeatableQueue(It.IsAny<ulong>()), Times.Never);
     }
 
 
@@ -230,7 +230,7 @@ public class TrackEndedHandlerServiceTests
         _musicQueueServiceMock.SetupSequence(q => q.HasTracks(GuildId))
             .ReturnsAsync(false)
             .ReturnsAsync(false);
-        _repeatServiceMock.Setup(r => r.GetRepeatableQueueAsync(GuildId))
+        _musicQueueServiceMock.Setup(q => q.GetRepeatableQueue(GuildId))
             .ReturnsAsync(Array.Empty<ILavaLinkTrack>());
 
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);

@@ -50,7 +50,7 @@ Implements `IRepeatListRepository`.
 
 Responsibilities:
 
-- read repeat-list track identifiers
+- read repeat-list track identifiers for `MusicQueueService.GetRepeatableQueue()`
 - replace repeat list transactionally
 - clear repeat list
 

@@ -1,0 +1,119 @@
+name: Nightly staging-trunk merge
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub cron uses UTC. Run both possible UTC offsets and gate on Europe/Budapest midnight.
+    - cron: "0 22,23 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: nightly-staging-trunk-merge
+  cancel-in-progress: false
+
+jobs:
+  merge-staging-trunk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Gate scheduled run to Budapest midnight
+        id: schedule_gate
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$(TZ=Europe/Budapest date +%H)" = "00" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping because it is not midnight in Europe/Budapest."
+          fi
+
+      - name: Checkout main
+        if: steps.schedule_gate.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git author
+        if: steps.schedule_gate.outputs.should_run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch trunk branches
+        if: steps.schedule_gate.outputs.should_run == 'true'
+        run: git fetch origin main staging-trunk
+
+      - name: Check for staging-trunk changes
+        if: steps.schedule_gate.outputs.should_run == 'true'
+        id: changes
+        run: |
+          if git merge-base --is-ancestor origin/staging-trunk origin/main; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "staging-trunk has no commits that are missing from main."
+            exit 0
+          fi
+
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          echo "staging-trunk contains commits that are missing from main."
+
+      - name: Merge staging-trunk into main
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git checkout main
+          git merge --no-ff origin/staging-trunk -m "Nightly merge staging-trunk into main"
+
+      - name: Setup .NET
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore merged result
+        if: steps.changes.outputs.has_changes == 'true'
+        run: dotnet restore "./DC bot.sln"
+
+      - name: Build merged result
+        if: steps.changes.outputs.has_changes == 'true'
+        run: dotnet build "./DC bot.sln" --configuration Debug --no-restore
+
+      - name: Test merged result
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          BOT_PREFIX: "!"
+          DISCORD_TOKEN: "ci-dummy-token"
+          LAVALINK_HOSTNAME: "localhost"
+          LAVALINK_PASSWORD: "ci-dummy-password"
+          LAVALINK_PORT: "2333"
+          LAVALINK_SECURED: "false"
+        run: dotnet test "./DC bot tests/DC bot tests.csproj" --configuration Debug --no-build --filter "Category!=E2E"
+
+      - name: Push main
+        if: steps.changes.outputs.has_changes == 'true'
+        run: git push origin HEAD:main
+
+      - name: Create recovery PR when nightly merge fails
+        if: failure() && steps.schedule_gate.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git merge --abort || true
+
+          existing_pr="$(gh pr list --base main --head staging-trunk --state open --json number --jq '.[0].number')"
+          if [ -n "$existing_pr" ]; then
+            echo "Recovery PR already exists: #$existing_pr"
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head staging-trunk \
+            --title "Manual merge required: staging-trunk into main" \
+            --body "The nightly auto-merge from staging-trunk into main failed. Please review this PR, resolve any conflicts or failing checks, and merge manually."

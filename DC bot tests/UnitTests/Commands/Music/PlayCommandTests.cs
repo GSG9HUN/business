@@ -140,7 +140,8 @@ public class PlayCommandTests
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_voice_channel"),
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
             Times.Once);
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
@@ -176,7 +177,8 @@ public class PlayCommandTests
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendValidationErrorAsync(_messageMock.Object, "user_not_in_voice_channel"),
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
             Times.Once);
         _lavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),

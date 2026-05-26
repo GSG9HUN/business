@@ -2,9 +2,9 @@ name: .NET Core DC Bot
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "staging-trunk" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "staging-trunk" ]
 
 jobs:
   build:

@@ -85,7 +85,7 @@ public class TrackEndedHandlerService(
 
         if (await musicQueueService.HasTracks(guildId)) return false;
 
-        var repeatableQueue = await repeatService.GetRepeatableQueueAsync(guildId);
+        var repeatableQueue = await musicQueueService.GetRepeatableQueue(guildId);
         if (repeatableQueue.Count == 0)
         {
             return false;

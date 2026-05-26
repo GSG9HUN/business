@@ -10,11 +10,11 @@ public abstract class HelpSlashCommand : ApplicationCommandModule
     private const string CommandNameHelp = "help";
 
     // Property injection supported by DSharpPlus SlashCommands
-    public ILogger<PlaySlashCommand> Logger { private get; set; } = null!;
+    public ILogger<HelpSlashCommand> Logger { private get; set; } = null!;
     public IEnumerable<ICommand> Commands { private get; set; } = null!;
 
     [SlashCommand("help", "List the available commands")]
-    public async Task Help(InteractionContext ctx)
+    public Task Help(InteractionContext ctx)
     {
         Logger.CommandInvoked(CommandNameHelp);
         //await SlashCommandResponseHelper.DeferAsync(ctx);
@@ -25,5 +25,6 @@ public abstract class HelpSlashCommand : ApplicationCommandModule
         //await SlashCommandResponseHelper.EditResponseAsync(ctx, $"Available commands:\n{response}");
 
         Logger.CommandExecuted(CommandNameHelp);
+        return Task.CompletedTask;
     }
 }

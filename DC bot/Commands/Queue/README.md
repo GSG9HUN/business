@@ -79,7 +79,8 @@ for (var i = trackList.Count - 1; i > 0; i--)
 
 1. Validates user
 2. Calls `ILavaLinkService.RepeatList()`
-3. Toggles queue repeat on/off
+3. When enabling, snapshots the current track plus queued tracks into repeat-list storage
+4. When playback reaches the end and repeat-list mode is still enabled, `TrackEndedHandlerService` reloads that snapshot through `IMusicQueueService.GetRepeatableQueue()` and copies it back into queue storage through `EnqueueMany()`
 
 ---
 
@@ -107,7 +108,9 @@ for (var i = trackList.Count - 1; i > 0; i--)
 - `SetQueue(guildId, queue)` - Replace entire queue
 - `Clear(guildId)` - Empty queue
 - `Enqueue(guildId, track)` - Add track
+- `EnqueueMany(guildId, tracks)` - Bulk add tracks, used when rehydrating repeat-list playback
 - `Dequeue(guildId)` - Remove and return next
+- `GetRepeatableQueue(guildId)` - Read the saved repeat-list snapshot and return parseable tracks
 
 ### ILavaLinkService
 
@@ -123,11 +126,14 @@ Queue state is persisted to:
 - **Implementation:** `Persistence/Repositories/QueueRepository.cs`
 - **State model:** queued/playing/played/skipped queue item lifecycle
 
+Repeat-list snapshots are stored separately through `IRepeatListRepository`; they are read by `MusicQueueService.GetRepeatableQueue()` and copied back into the queue through `IQueueRepository.EnqueueManyAsync`.
+
 ## Related Components
 
 - `Service/Music/MusicServices/MusicQueueService.cs` - Queue state management
-- `Service/Music/MusicServices/RepeatService.cs` - Repeat mode logic
+- `Service/Music/MusicServices/RepeatService.cs` - Repeat flags and repeat-list snapshot writes
 - `Interface/Service/Music/MusicServiceInterface/IMusicQueueService.cs` - Queue contract
 - `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
+- `Interface/Service/Persistence/IRepeatListRepository.cs` - Repeat-list snapshot persistence contract
 - `Persistence/Repositories/QueueRepository.cs` - Queue persistence implementation
 
