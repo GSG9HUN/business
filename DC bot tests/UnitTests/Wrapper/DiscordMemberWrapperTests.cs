@@ -27,4 +27,14 @@ public class DiscordMemberWrapperTests
         var wrapper = new DiscordMemberWrapper(member);
         Assert.NotNull(wrapper.Mention);
     }
+
+    [Fact]
+    public void VoiceState_WhenProvided_UsesProvidedVoiceState()
+    {
+        var member = DiscordEntityFactory.CreateMember(id: 99ul);
+        var voiceState = DiscordEntityFactory.CreateVoiceState(channelId: 123ul);
+        var wrapper = new DiscordMemberWrapper(member, voiceState);
+
+        Assert.Equal(voiceState, wrapper.VoiceState.ToDiscordVoiceState());
+    }
 }

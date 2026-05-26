@@ -34,7 +34,7 @@ public class PlayCommand(
         var voiceChannel = validationResult.Member?.VoiceState?.Channel;
         if (voiceChannel is null)
         {
-            await responseBuilder.SendValidationErrorAsync(message, "user_not_in_voice_channel");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
             return;
         }
 
