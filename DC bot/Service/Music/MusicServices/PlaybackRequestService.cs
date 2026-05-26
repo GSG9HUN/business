@@ -59,9 +59,21 @@ public class PlaybackRequestService(
         string loadFailureMessage,
         Action<string> logNotFound)
     {
+        logger.LogDebug(
+            "Playback request started. Guild: {GuildId}, Channel: {ChannelId}, SearchMode: {SearchMode}, Operation: {Operation}",
+            voiceStateChannel.Guild.Id,
+            voiceStateChannel.Id,
+            trackSearchMode,
+            loadOperation);
+
         var (connection, _, guildId, isValid) =
             await playerConnectionService.TryJoinAndValidateAsync(message, voiceStateChannel);
-        if (!isValid || connection == null) return;
+        if (!isValid || connection == null)
+        {
+            logger.LogInformation("Playback request aborted after failed connection validation. Guild: {GuildId}",
+                voiceStateChannel.Guild.Id);
+            return;
+        }
 
         var textChannel = message.Channel;
 
@@ -89,6 +101,9 @@ public class PlaybackRequestService(
             throw new TrackLoadException(query, "Track not found or load failed");
         }
 
+        logger.LogDebug("Playback request loaded tracks for guild {GuildId}. IsPlaylist: {IsPlaylist}",
+            guildId,
+            loadResult.IsPlaylist);
         await trackPlaybackService.PlayTheFoundMusicAsync(loadResult, connection, textChannel);
     }
 }

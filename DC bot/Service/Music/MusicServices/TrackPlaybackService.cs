@@ -22,6 +22,10 @@ public class TrackPlaybackService(
     {
         var musicTracks = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
         var guildId = textChannel.Guild.Id;
+        logger.LogDebug("Playback request resolved for guild {GuildId}. IsPlaylist: {IsPlaylist}, TrackCount: {TrackCount}",
+            guildId,
+            searchQuery.IsPlaylist,
+            musicTracks.Count);
 
         if (searchQuery.IsPlaylist)
         {
@@ -36,7 +40,11 @@ public class TrackPlaybackService(
         {
             var nextTrack = await musicQueueService.Dequeue(guildId);
 
-            if (nextTrack == null) return;
+            if (nextTrack == null)
+            {
+                logger.LogWarning("Playback request for guild {GuildId} enqueued tracks, but no track could be dequeued.", guildId);
+                return;
+            }
 
             try
             {
@@ -54,6 +62,10 @@ public class TrackPlaybackService(
             }
 
             await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+            logger.LogInformation("Started playback from queue for guild {GuildId}: {Author} - {Title}",
+                guildId,
+                nextTrack.Author,
+                nextTrack.Title);
             return;
         }
 
@@ -82,7 +94,11 @@ public class TrackPlaybackService(
     public async Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId)
     {
         var nextTrack = await musicQueueService.Dequeue(guildId);
-        if (nextTrack is null) return;
+        if (nextTrack is null)
+        {
+            logger.LogDebug("No queued track available for guild {GuildId}.", guildId);
+            return;
+        }
 
         try
         {
@@ -90,6 +106,10 @@ public class TrackPlaybackService(
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
                 nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
             await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+            logger.LogInformation("Started next queued track for guild {GuildId}: {Author} - {Title}",
+                guildId,
+                nextTrack.Author,
+                nextTrack.Title);
         }
         catch (Exception ex)
         {

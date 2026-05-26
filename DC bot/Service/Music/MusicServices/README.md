@@ -42,16 +42,18 @@ These services split music functionality into focused responsibilities. Each imp
 - `ViewQueue()` - View all queued tracks
 - `HasTracks()` - Check if queue has tracks
 - `GetQueue()` - Get queue snapshot
+- `GetRepeatableQueue()` - Load the saved repeat-list snapshot from `IRepeatListRepository`, parse valid track identifiers, and return tracks that can be copied back into the queue
 - `SetQueue()` - Persist reordered queue
 - `ClearQueue()` - Mark queued tracks as skipped
-- `GetRepeatableQueue()` - Declared on `IMusicQueueService`, but the current `MusicQueueService` implementation throws `NotImplementedException`; repeat-list snapshots are handled by `RepeatService`
 
 **Persistence:**
 
 - Uses `IQueueRepository` for database-backed queue operations
+- Uses `IRepeatListRepository` to read repeat-list snapshots when queue repeat needs to restart playback
 - Queue state transitions are persisted (`queued`, `playing`, `played`, `skipped`)
 - Ordering updates are handled transactionally in repository layer
 - `QueueItemId` on the dequeued `LavaLinkTrackWrapper` is later used by `TrackEndedHandlerService` to mark the item as played or skipped
+- When repeat-list playback restarts, `TrackEndedHandlerService` loads tracks through `GetRepeatableQueue()` and copies them into queue storage through `EnqueueMany()`
 
 ---
 
@@ -134,7 +136,13 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Implements:** `IRepeatService`
 
-**Purpose:** Manage repeat modes (single track, queue).
+**Purpose:** Manage repeat mode flags and persist repeat-list snapshots.
+
+**Key Methods:**
+
+- `SetRepeatingAsync()` - Toggle current-track repeat
+- `SetRepeatingListAsync()` - Toggle repeat-list mode and clear the saved snapshot when disabled
+- `SaveRepeatListSnapshotAsync()` - Persist the current track plus queued tracks into `IRepeatListRepository`
 
 ---
 

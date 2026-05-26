@@ -10,12 +10,12 @@ These interfaces split music domain responsibilities into focused contracts.
 
 - `ICurrentTrackService.cs` - Current track management
 - `ILavalinkNodeConnectionService.cs` - Lavalink node lifecycle connection
-- `IMusicQueueService.cs` - Queue operations
+- `IMusicQueueService.cs` - Queue operations, including repeat-list snapshot rehydration
 - `IPlaybackControlService.cs` - Pause, resume, skip, and leave control operations
 - `IPlaybackEventHandlerService.cs` - Playback event handling
 - `IPlaybackRequestService.cs` - Play request orchestration for URL/query input
 - `IPlayerConnectionService.cs` - Player connection management
-- `IRepeatService.cs` - Repeat mode logic
+- `IRepeatService.cs` - Repeat mode flags and repeat-list snapshot writes
 - `ITrackEndedHandlerService.cs` - Track end event handling
 - `ITrackFormatterService.cs` - Track formatting for display
 - `ITrackNotificationService.cs` - Track notification messages

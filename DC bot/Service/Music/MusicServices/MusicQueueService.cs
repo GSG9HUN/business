@@ -8,7 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service.Music.MusicServices;
 
-public class MusicQueueService(IQueueRepository queueRepository, ILogger<MusicQueueService>? logger = null) : IMusicQueueService
+public class MusicQueueService(
+    IQueueRepository queueRepository,
+    IRepeatListRepository repeatListRepository,
+    ILogger<MusicQueueService>? logger = null) : IMusicQueueService
 {
     private const int MaxQueueSize = 100;
     private readonly ILogger<MusicQueueService> _logger = logger ?? NullLogger<MusicQueueService>.Instance;
@@ -121,6 +124,33 @@ public class MusicQueueService(IQueueRepository queueRepository, ILogger<MusicQu
 
         _logger.LogDebug("Queue snapshot created for guild {GuildId}. Track count: {TrackCount}", guildId, trackQueue.Count);
         return trackQueue;
+    }
+
+    public async Task<IReadOnlyCollection<ILavaLinkTrack>> GetRepeatableQueue(ulong guildId)
+    {
+        var trackIdentifiers = await repeatListRepository.GetTrackIdentifiersAsync(guildId);
+        var repeatableQueue = new List<ILavaLinkTrack>(trackIdentifiers.Count);
+
+        foreach (var identifier in trackIdentifiers)
+        {
+            try
+            {
+                var track = LavalinkTrack.Parse(identifier, null);
+                repeatableQueue.Add(new LavaLinkTrackWrapper(track));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Skipping unparsable repeat-list track identifier for guild {GuildId}. Identifier: {Identifier}",
+                    guildId,
+                    identifier);
+            }
+        }
+
+        _logger.LogDebug("Repeatable queue snapshot loaded for guild {GuildId}. Track count: {TrackCount}",
+            guildId,
+            repeatableQueue.Count);
+        return repeatableQueue;
     }
 
     public async Task SetQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)

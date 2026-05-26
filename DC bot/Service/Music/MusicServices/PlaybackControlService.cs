@@ -85,6 +85,7 @@ public class PlaybackControlService(
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
+            logger.LogInformation("Skip requested for guild {GuildId}, but no current or queued track exists.", guildId);
             return;
         }
 
@@ -92,6 +93,7 @@ public class PlaybackControlService(
         {
             await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
+            logger.LogInformation("Skip requested for guild {GuildId}. Current playback stopped.", guildId);
         }
         catch (Exception ex)
         {
@@ -112,6 +114,7 @@ public class PlaybackControlService(
             await playbackEventHandlerService.CleanupGuildAsync(guildId).ConfigureAwait(false);
             progressiveTimerService.Stop(guildId);
             await connection.DisconnectAsync().ConfigureAwait(false);
+            logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);
         }
         catch (Exception ex)
         {

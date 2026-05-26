@@ -18,11 +18,17 @@ public class CurrentTrackService(
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId, cancellationToken);
         if (state.CurrentTrackIdentifier is null)
+        {
+            _logger.LogDebug("No current track stored for guild {GuildId}.", guildId);
             return null;
+        }
 
         try
         {
             var track = LavalinkTrack.Parse(state.CurrentTrackIdentifier, null);
+            _logger.LogDebug("Current track loaded for guild {GuildId}. QueueItemId: {QueueItemId}",
+                guildId,
+                state.QueueItemId);
             return new LavaLinkTrackWrapper(track)
             {
                 QueueItemId = state.QueueItemId
@@ -46,6 +52,15 @@ public class CurrentTrackService(
         }
         
         await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, queueItemId, cancellationToken);
+        if (track is null)
+        {
+            _logger.LogInformation("Current track cleared for guild {GuildId}.", guildId);
+            return;
+        }
+
+        _logger.LogDebug("Current track persisted for guild {GuildId}. QueueItemId: {QueueItemId}",
+            guildId,
+            queueItemId);
     }
 
     public async Task<string> GetCurrentTrackFormattedAsync(ulong guildId, CancellationToken cancellationToken = default)

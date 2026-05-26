@@ -1,25 +1,30 @@
 ﻿using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
-using DC_bot.Wrapper;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service.Music.MusicServices;
 
 public class RepeatService(
     IPlaybackStateRepository playbackStateRepository,
-    IRepeatListRepository repeatListRepository, 
-    ILogger<RepeatService> logger) : IRepeatService
+    IRepeatListRepository repeatListRepository,
+    ILogger<RepeatService>? logger = null) : IRepeatService
 {
+    private readonly ILogger<RepeatService> _logger = logger ?? NullLogger<RepeatService>.Instance;
+
     public async Task InitAsync(ulong guildId)
     {
         await playbackStateRepository.GetOrCreateAsync(guildId);
+        _logger.LogDebug("Repeat state initialized for guild {GuildId}.", guildId);
     }
 
     public async Task<bool> IsRepeatingAsync(ulong guildId)
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
+        _logger.LogDebug("Single-track repeat state queried for guild {GuildId}. Enabled: {IsRepeating}",
+            guildId,
+            state.IsRepeating);
         return state.IsRepeating;
     }
 
@@ -27,11 +32,19 @@ public class RepeatService(
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
         await playbackStateRepository.SetRepeatStateAsync(guildId, value, state.IsRepeatingList);
+        _logger.LogInformation(
+            "Single-track repeat state updated for guild {GuildId}. Previous: {PreviousValue}, New: {NewValue}",
+            guildId,
+            state.IsRepeating,
+            value);
     }
 
     public async Task<bool> IsRepeatingListAsync(ulong guildId)
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
+        _logger.LogDebug("Repeat-list state queried for guild {GuildId}. Enabled: {IsRepeatingList}",
+            guildId,
+            state.IsRepeatingList);
         return state.IsRepeatingList;
     }
 
@@ -39,10 +52,16 @@ public class RepeatService(
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
         await playbackStateRepository.SetRepeatStateAsync(guildId, state.IsRepeating, value);
+        _logger.LogInformation(
+            "Repeat-list state updated for guild {GuildId}. Previous: {PreviousValue}, New: {NewValue}",
+            guildId,
+            state.IsRepeatingList,
+            value);
 
         if (!value)
         {
             await repeatListRepository.ClearAsync(guildId);
+            _logger.LogInformation("Repeat-list snapshot cleared for guild {GuildId}.", guildId);
         }
     }
 
@@ -62,25 +81,11 @@ public class RepeatService(
         trackIdentifiers.AddRange(queuedTracks.Select(track => track.ToString()));
 
         await repeatListRepository.ReplaceAsync(guildId, trackIdentifiers);
+        _logger.LogInformation(
+            "Repeat-list snapshot saved for guild {GuildId}. Track count: {TrackCount}, Includes current track: {IncludesCurrentTrack}",
+            guildId,
+            trackIdentifiers.Count,
+            currentTrack is not null);
     }
 
-    public async Task<IReadOnlyCollection<ILavaLinkTrack>> GetRepeatableQueueAsync(ulong guildId)
-    {
-        var trackIdentifiers = await repeatListRepository.GetTrackIdentifiersAsync(guildId);
-        var validTracks = new List<ILavaLinkTrack>();
-       foreach (var identifier in trackIdentifiers)
-        {
-            try
-            {
-                var track = LavalinkTrack.Parse(identifier, null);
-                validTracks.Add(new LavaLinkTrackWrapper(track));
-            }
-            catch (Exception ex)
-            { 
-                logger.LogError(ex, "Corrupted track identifier: {GuildId}. Identifier: {Identifier}", guildId, identifier);
-            }
-        }
-
-        return validTracks;
-    }
 }

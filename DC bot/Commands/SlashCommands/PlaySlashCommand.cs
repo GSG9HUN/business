@@ -14,7 +14,7 @@ public abstract class PlaySlashCommand : ApplicationCommandModule
     public ILogger<PlaySlashCommand> Logger { private get; set; } = null!;
 
     [SlashCommand("play", "Start playing music in the voice channel")]
-    public async Task Play(
+    public Task Play(
         InteractionContext ctx,
         [Option("query", "URL or search query")]
         string query)
@@ -51,5 +51,9 @@ public abstract class PlaySlashCommand : ApplicationCommandModule
 
          await SlashCommandResponseHelper.RespondAfterDeferAsync(ctx, "Now playing your request!");
          Logger.CommandExecuted(CommandNamePlay);*/
+
+        Logger.LogDebug("Slash play command body is currently disabled.");
+        Logger.CommandExecuted(CommandNamePlay);
+        return Task.CompletedTask;
     }
 }

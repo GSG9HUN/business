@@ -437,8 +437,8 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 #### All 12 Music Services
 
 - `LavaLinkService` - Playback orchestration
-- `MusicQueueService` - Queue management
-- `RepeatService` - Repeat logic
+- `MusicQueueService` - Queue management and repeat-list snapshot rehydration
+- `RepeatService` - Repeat flags and repeat-list snapshot writes
 - `CurrentTrackService` - Track state
 - `TrackNotificationService` - Notifications
 - `TrackFormatterService` - Formatting

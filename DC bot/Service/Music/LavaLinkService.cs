@@ -32,6 +32,7 @@ public class LavaLinkService(
     public async Task Init(ulong guildId)
     {
         await repeatService.InitAsync(guildId);
+        logger.LogDebug("Music services initialized for guild {GuildId}.", guildId);
     }
 
     public async Task ConnectAsync()
@@ -81,7 +82,11 @@ public class LavaLinkService(
         playbackEventHandlerService.RegisterPlaybackFinishedHandler(guildId, connection, textChannel);
 
         var nextTrack = await musicQueueService.Dequeue(guildId);
-        if (nextTrack is null) return;
+        if (nextTrack is null)
+        {
+            logger.LogDebug("StartPlayingQueue requested for guild {GuildId}, but the queue is empty.", guildId);
+            return;
+        }
 
         try
         {
@@ -97,5 +102,9 @@ public class LavaLinkService(
         }
 
         await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+        logger.LogInformation("Started queue playback for guild {GuildId}: {Author} - {Title}",
+            guildId,
+            nextTrack.Author,
+            nextTrack.Title);
     }
 }
