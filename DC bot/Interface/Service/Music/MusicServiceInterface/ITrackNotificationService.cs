@@ -1,12 +1,11 @@
-﻿using DC_bot.Interface.Discord;
-using DSharpPlus;
+using DC_bot.Interface.Discord;
 using DSharpPlus.Entities;
 
 namespace DC_bot.Interface.Service.Music.MusicServiceInterface;
 
 public interface ITrackNotificationService
 {
-    public event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted;
+    public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
 
     public Task NotifyNowPlayingAsync(IDiscordChannel textChannel, ILavaLinkTrack track, TimeSpan position,
         TimeSpan duration);

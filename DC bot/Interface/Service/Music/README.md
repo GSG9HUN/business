@@ -18,7 +18,7 @@ public interface ILavaLinkService
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
     Task Init(ulong guildId);
-    event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted;
+    event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
 }
@@ -38,7 +38,7 @@ public interface ILavaLinkService
 
 **Events:**
 
-- `TrackStarted` - Fired when track starts playing
+- `TrackStarted` - Fired when track starts playing; carries the target text channel and embed payload. The Discord client is not part of the event contract.
 
 **Implementation:** `Service/Music/LavaLinkService.cs`
 

@@ -24,11 +24,11 @@ public sealed class BotSettings
 **Usage:**
 
 ```csharp
-// In Program.cs
+// In Startup/BotConfigurationLoader.cs
 var botSettings = new BotSettings
 {
     Token = GetEnv("DISCORD_TOKEN"),
-    Prefix = GetEnv("BOT_PREFIX")
+    Prefix = GetEnv("BOT_PREFIX") ?? "!"
 };
 
 // In services
@@ -100,7 +100,8 @@ The provider secrets are consumed by `lavalink-server/application.yaml` through 
 
 ## Related Components
 
-- **Program.cs** - Configuration setup
+- **Startup/BotConfigurationLoader.cs** - Configuration loading
+- **Startup/BotServiceProviderFactory.cs** - Configuration injection
 - **Service/** - Consumes configuration
 - **Interface/Service/** - Configuration injection
 

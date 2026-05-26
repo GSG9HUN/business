@@ -25,7 +25,7 @@ All persistence operations are exposed through interfaces in `Interface/Service/
 ## Notes
 
 - Discord IDs are represented as `ulong` in domain/service contracts and converted to `long` for database columns.
-- `Program.cs` applies pending migrations automatically at startup.
+- `Startup/DatabaseMigrationRunner.cs` applies pending migrations automatically at startup.
 - PostgreSQL connection settings are read from environment variables.
 - `GuildPremiumAuditEntity` is mapped in the EF model, but there is currently no dedicated audit repository.
 
@@ -34,3 +34,4 @@ All persistence operations are exposed through interfaces in `Interface/Service/
 - `Interface/Service/Persistence/README.md` - persistence contracts
 - `Service/Music/README.md` - business logic that uses repositories
 - `PROGRAM_CS_README.md` - startup flow and migration step
+- `Startup/README.md` - startup composition and migration runner

@@ -113,7 +113,7 @@ public class LavaLinkServiceTests
     [Fact]
     public void TrackStarted_AddAndRemove_ForwardedToTrackNotificationService()
     {
-        Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> handler = (_, _, _) => Task.CompletedTask;
+        Func<IDiscordChannel, DiscordEmbed, Task> handler = (_, _) => Task.CompletedTask;
 
         _service.TrackStarted += handler;
         _service.TrackStarted -= handler;

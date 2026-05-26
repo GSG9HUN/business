@@ -1,7 +1,6 @@
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
 using DSharpPlus;
@@ -20,12 +19,13 @@ public class DiscordClientEventHandlerEndToEndTests
     public async Task OnGuildAvailable_WithNullArgs_LogsError()
     {
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
-        var serviceProviderMock = new Mock<IServiceProvider>();
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            serviceProviderMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
@@ -42,24 +42,28 @@ public class DiscordClientEventHandlerEndToEndTests
     }
 
     [Fact]
-    public async Task OnGuildAvailable_WithNullArgs_DoesNotResolveServices()
+    public async Task OnGuildAvailable_WithNullArgs_DoesNotCallDependencies()
     {
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
-        var serviceProviderMock = new Mock<IServiceProvider>();
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            serviceProviderMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(ILavaLinkService)), Times.Never);
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Never);
+        guildDataRepositoryMock.Verify(
+            repository => repository.EnsureGuildExistsAsync(It.IsAny<ulong>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        localizationServiceMock.Verify(service => service.LoadLanguage(It.IsAny<ulong>()), Times.Never);
+        lavaLinkServiceMock.Verify(service => service.Init(It.IsAny<ulong>()), Times.Never);
     }
 
     [Fact]
-    public async Task OnGuildAvailable_Call_GetRequiredService_Two_Times()
+    public async Task OnGuildAvailable_CallsStartupDependencies()
     {
         if (!EndToEndTestConfiguration.TryGetDiscordToken(out var envToken))
         {
@@ -84,25 +88,22 @@ public class DiscordClientEventHandlerEndToEndTests
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
-
-        var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILavaLinkService)))
-            .Returns(new Mock<ILavaLinkService>().Object);
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(ILocalizationService)))
-            .Returns(new Mock<ILocalizationService>().Object);
-        serviceProviderMock.Setup(sp => sp.GetService(typeof(IMusicQueueService)))
-            .Returns(new Mock<IMusicQueueService>().Object);
+        var localizationServiceMock = new Mock<ILocalizationService>();
+        var lavaLinkServiceMock = new Mock<ILavaLinkService>();
 
         var handler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            serviceProviderMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object);
 
         await mockClient.ConnectAsync();
         var guildArgs = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
         await handler.OnGuildAvailable(mockClient, guildArgs);
 
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(ILavaLinkService)), Times.Once);
-        serviceProviderMock.Verify(sp => sp.GetService(typeof(ILocalizationService)), Times.Once);
+        guildDataRepositoryMock.Verify(
+            repository => repository.EnsureGuildExistsAsync(guildArgs.Guild.Id, CancellationToken.None),
+            Times.Once);
+        localizationServiceMock.Verify(service => service.LoadLanguage(guildArgs.Guild.Id), Times.Once);
+        lavaLinkServiceMock.Verify(service => service.Init(guildArgs.Guild.Id), Times.Once);
 
         await mockClient.DisconnectAsync();
     }

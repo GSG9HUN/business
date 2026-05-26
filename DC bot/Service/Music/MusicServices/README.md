@@ -107,10 +107,11 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Events:**
 
-- `TrackStarted` - Fired when new track starts playing
+- `TrackStarted` - Fired when new track starts playing. It passes the target text channel and now-playing embed; it does not pass `DiscordClient`.
 
 **Methods:**
 
+- `NotifyNowPlayingAsync()` - Build and publish the now-playing embed
 - `SendSafeAsync()` - Send notification with error handling
 
 ---

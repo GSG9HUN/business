@@ -7,7 +7,6 @@ using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using DSharpPlus;
 using DSharpPlus.Entities;
 using Lavalink4NET;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -32,7 +31,7 @@ public class LavaLinkService(
     private readonly SemaphoreSlim _connectLock = new(1, 1);
     private bool _isAudioServiceStarted;
 
-    public event Func<IDiscordChannel, DiscordClient, DiscordEmbed, Task> TrackStarted
+    public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted
     {
         add => trackNotificationService.TrackStarted += value;
         remove => trackNotificationService.TrackStarted -= value;

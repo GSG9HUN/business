@@ -24,7 +24,7 @@ This folder contains music playback and queue management services.
 
 **Events:**
 
-- `TrackStarted` - Fired when track begins playing
+- `TrackStarted` - Fired when track begins playing. The event publishes the target text channel and embed; `ReactionHandler` captures the `DiscordClient` when it registers.
 
 **Architecture:**
 
