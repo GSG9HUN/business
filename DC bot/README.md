@@ -13,7 +13,7 @@ robust error handling, and comprehensive documentation.
 
 ### Setup
 
-1. **Create `.env` file** in project root:
+1. **Create `.env` file** in the repository root for local or Docker Compose runs, or provide the same keys as environment variables:
 
 ```env
 DISCORD_TOKEN=your_bot_token_here
@@ -40,9 +40,9 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 2. **Build and run**:
 
 ```bash
-dotnet restore
-dotnet build
-dotnet run
+dotnet restore "DC bot.sln"
+dotnet build "DC bot.sln"
+dotnet run --project "DC bot/DC bot.csproj"
 ```
 
 ---
@@ -288,7 +288,7 @@ DC bot/
 
 Startup is split between a thin process entry point and focused startup components:
 
-1. `Program.cs` verifies the `.env` file exists and delegates to `BotApplication`.
+1. `Program.cs` loads `.env` when present and delegates to `BotApplication`.
 2. `BotConfigurationLoader` reads required bot and Lavalink settings from the environment.
 3. `BotServiceProviderFactory` builds the Dependency Injection container.
 4. `DatabaseMigrationRunner` applies pending EF Core migrations.
@@ -302,7 +302,7 @@ For detailed documentation, see **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)**
 ```
 Main()
   ↓
-Verify .env file and load environment variables
+Load optional .env file and validate required environment variables
   ↓
 BotApplication.RunAsync()
   ↓
@@ -344,8 +344,8 @@ BotService.StartAsync()
    └─ Secured = false
    └─ Password = ""
         ↓
-2. Environment Variables (.env file)
-   └─ Override defaults
+2. Environment Variables
+   └─ Provided by `.env`, Docker Compose `env_file`, CI secrets, or the host process environment
         ↓
 3. Validation
    └─ Check required: DISCORD_TOKEN, LAVALINK_HOSTNAME
@@ -606,7 +606,7 @@ public const string MyCommandDescription = "mycommand_description";
 - .NET 9.0 SDK
 - Lavalink server running and accessible
 - Discord bot token (from Discord Developer Portal)
-- `.env` file in project root
+- `.env` file in the repository root, or equivalent environment variables
 
 ### Build and Run
 
@@ -618,7 +618,7 @@ dotnet restore
 dotnet build
 
 # Run bot
-dotnet run
+dotnet run --project "DC bot/DC bot.csproj"
 ```
 
 ### Deployment (Release Build)
@@ -651,7 +651,10 @@ DC bot tests/
 │   ├── Commands/
 │   ├── Service/
 │   └── Model/
-└── IntegrationTests/
+├── IntegrationTests/
+│   ├── Persistence/
+│   └── Service/
+└── EndToEndTests/
     ├── Service/
     └── Wrapper/
 ```
@@ -660,23 +663,17 @@ DC bot tests/
 
 ## Troubleshooting
 
-### "Please provide .env file."
-
-**Cause:** `.env` file not found
-
-**Solution:** Create `.env` in project root with required variables
-
 ### "DISCORD_TOKEN is not set"
 
-**Cause:** `DISCORD_TOKEN` missing or empty in `.env`
+**Cause:** `DISCORD_TOKEN` missing or empty in `.env` or the process environment
 
-**Solution:** Add `DISCORD_TOKEN=your_token` to `.env`
+**Solution:** Add `DISCORD_TOKEN=your_token` to `.env`, Docker Compose `env_file`, CI secrets, or the host environment
 
 ### "LAVALINK_HOSTNAME is not set"
 
-**Cause:** `LAVALINK_HOSTNAME` missing or empty
+**Cause:** `LAVALINK_HOSTNAME` missing or empty in `.env` or the process environment
 
-**Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env`
+**Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env`, Docker Compose `env_file`, CI secrets, or the host environment
 
 ### Bot connects but commands don't work
 
@@ -684,7 +681,7 @@ DC bot tests/
 
 **Solution:**
 
-- Verify `BOT_PREFIX` in `.env` (default: `!`)
+- Verify `BOT_PREFIX` in `.env` or the process environment (default: `!`)
 - Check bot has `MESSAGE_CONTENT` intent enabled
 - Verify bot has message permissions in Discord
 
@@ -714,7 +711,7 @@ DC bot tests/
 
 **Solution:**
 
-- Ensure PostgreSQL is running and `.env` database settings are correct
+- Ensure PostgreSQL is running and database environment settings are correct
 - Check that all EF Core migrations have been applied (bot applies them automatically on startup)
 - Check logs for database errors
 
@@ -734,7 +731,8 @@ DC bot tests/
 
 ## Security
 
-- ✅ Bot token in `.env` (not in source control)
+- ✅ Bot token provided by `.env` or environment variables; `.env` is ignored by git
+- ✅ `.env.example` documents required keys without storing secrets
 - ✅ Input validation on all commands
 - ✅ Rate limiting via Discord API
 - ✅ No sensitive data in logs
@@ -767,7 +765,7 @@ DC bot tests/
 - **Lavalink4NET:** 4.2.0
 - **EF Core:** 9.0.10
 - **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
-- **Last Updated:** 2026-05-26
+- **Last Updated:** 2026-05-29
 
 ---
 

@@ -62,7 +62,7 @@ var commandHandler = new CommandHandlerService(..., botSettings);
 
 ## Configuration Sources
 
-Runtime configuration currently comes from `.env` through DotNetEnv and `Environment.GetEnvironmentVariable(...)`.
+Runtime configuration comes from environment variables. `Program.cs` loads repository-root `.env` values through DotNetEnv when the file exists; Docker Compose, CI, and production can provide the same keys directly.
 
 1. **Bot**
    ```env

@@ -1,5 +1,46 @@
-/.idea
+# Local environment and secrets
 .env
-/.vscode
-/.vs
+.env.*
+!.env.example
+
+# IDE and editor state
+/.idea/
+/.vscode/
+/.vs/
 *.DotSettings.user
+*.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+
+# Test and coverage output
+TestResults/
+**/TestResults/
+*.trx
+coverage/
+**/coverage/
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+
+# Logs and local diagnostics
+*.log
+logs/
+**/logs/
+
+# Docker Compose local overrides
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# OS metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Local scratch notes
+/DC bot/refactor walktrought.txt
