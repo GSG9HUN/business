@@ -2,7 +2,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Sdk;
 
 namespace DC_bot_tests.EndToEndTests.Wrapper;
@@ -25,12 +24,9 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
         if (hasToken && hasGuild)
         {
             _isConfigured = true;
-            _discordClient = new DiscordClient(new DiscordConfiguration
-            {
-                Token = token,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers,
-                LoggerFactory = NullLoggerFactory.Instance
-            });
+            _discordClient = TestDiscordClientFactory.Create(
+                token,
+                DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers);
         }
         else
         {
@@ -53,15 +49,19 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
         }
     }
 
-    private DiscordGuild? GetGuild() =>
-        _discordClient?.Guilds.GetValueOrDefault(_guildId);
+    private async Task<DiscordGuild?> GetGuildAsync()
+    {
+        return _discordClient is null
+            ? null
+            : await _discordClient.GetGuildAsync(_guildId);
+    }
 
     [Fact]
-    public void Id_ReturnsCorrectGuildId()
+    public async Task Id_ReturnsCorrectGuildId()
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var wrapper = new DiscordGuildWrapper(guild);
@@ -70,11 +70,11 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Name_ReturnsNonEmptyGuildName()
+    public async Task Name_ReturnsNonEmptyGuildName()
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var wrapper = new DiscordGuildWrapper(guild);
@@ -84,11 +84,11 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public void ToDiscordGuild_ReturnsSameInstance()
+    public async Task ToDiscordGuild_ReturnsSameInstance()
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var wrapper = new DiscordGuildWrapper(guild);
@@ -101,7 +101,7 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var wrapper = new DiscordGuildWrapper(guild);
@@ -116,7 +116,7 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var wrapper = new DiscordGuildWrapper(guild);
@@ -130,7 +130,7 @@ public class DiscordGuildWrapperEndToEndTests : IAsyncLifetime
     {
         EnsureConfigured();
 
-        var guild = GetGuild();
+        var guild = await GetGuildAsync();
         Assert.NotNull(guild);
 
         var allMembers = await guild.GetAllMembersAsync();

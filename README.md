@@ -14,7 +14,7 @@ This repository contains a .NET 9 Discord music bot, its test project, Docker/La
 
 - `DC bot/README.md` - application architecture and setup
 - `DC bot/PROGRAM_CS_README.md` - process entry point and startup flow
-- `DC bot/Startup/README.md` - runtime composition, DI, migrations, and handler registration
+- `DC bot/Startup/README.md` - runtime composition, DI, migrations, DSharpPlus event wiring, and handler activation
 - `DC bot tests/README.md` - test layout and commands
 - `lavalink-server/README.md` - Lavalink configuration
 
@@ -50,7 +50,7 @@ Do not commit local secrets, IDE state, build output, test result artifacts, cov
 - configuration loading
 - service provider creation
 - migration execution
-- Discord event registration
-- command and reaction handler registration
+- DSharpPlus 5 event-handler registration through the service collection
+- command and reaction handler activation
 
-`DiscordClientEventHandler` receives dependencies directly through constructor injection. `DiscordClientFactory` creates the Discord client only; event subscription is handled by `BotHandlerRegistrar`.
+`DiscordClientEventHandler` receives dependencies directly through constructor injection. `BotServiceProviderFactory` configures Discord lifecycle/message/reaction events through DSharpPlus 5 builder APIs, while `BotHandlerRegistrar` enables the text command and reaction handlers after the service graph is built.

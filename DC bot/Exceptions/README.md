@@ -18,10 +18,10 @@ System.Exception
 BotException (abstract)
     ├── LocalizationException (Localization/)
     ├── MessageSendException (Messaging/)
-    ├── ValidationException (Validation/) [Not currently used]
+    ├── ValidationException (Validation/) [currently not thrown]
     └── Music Exceptions (Music/)
         ├── LavalinkOperationException
-        ├── QueueOperationException
+        ├── QueueOperationException [defined, currently not thrown]
         └── TrackLoadException
 ```
 
@@ -97,7 +97,7 @@ Contains music playback exceptions.
 
 ### Validation/
 
-Contains `ValidationException` (currently not used in code).
+Contains `ValidationException` (currently not thrown in code).
 
 The application uses validation result objects instead (`UserValidationResult`, `PlayerValidationResult`,
 `ConnectionValidationResult`).
@@ -130,56 +130,55 @@ catch (Exception ex)
     throw new MessageSendException("SendReactionControlMessage", "Failed to send reaction control message", ex);
 }
 
-// Music - Lavalink
+// Music - Lavalink node connection
 try
 {
-    await _audioService.ConnectAsync(configuration);
+    await audioService.StartAsync();
+    await audioService.WaitForReadyAsync();
 }
 catch (Exception ex)
 {
     throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
 }
 
-// Music - Queue
+// Music - Track Loading
 try
 {
-    await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);
+    loadResult = await audioService.Tracks.LoadTracksAsync(query, trackSearchMode);
 }
 catch (Exception ex)
 {
-    throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
+    throw new TrackLoadException(query, "Failed to load track from query", ex);
 }
 
-// Music - Track Loading
 if (loadResult.Tracks.Count == 0)
 {
-    throw new TrackLoadException(url.ToString(), "Track not found or load failed");
+    throw new TrackLoadException(query, "Track not found or load failed");
 }
 ```
 
 ### Catching Exceptions
 
 ```csharp
-// Catch specific exception
+// LanguageCommand catches the expected localization failure boundary.
 try
 {
-    await lavaLinkService.PlayAsyncUrl(channel, url, message, mode);
+    localizationService.SaveLanguage(message.Channel.Guild.Id, language);
 }
-catch (TrackLoadException ex)
+catch (LocalizationException ex)
 {
-    logger.LogWarning(ex, "Track not found: {Query}", ex.Query);
-    await responseBuilder.SendErrorAsync(message, "track_not_found");
+    logger.CommandExecutionFailed(ex, Name);
+    await responseBuilder.SendCommandErrorResponse(message, Name);
 }
 
-// Catch all bot exceptions
+// CommandHandlerService and SlashCommandExecutor catch all BotException instances.
 try
 {
     await command.ExecuteAsync(message);
 }
-catch (BotException ex)
+catch (BotException botEx)
 {
-    logger.LogError(ex, "Bot exception in command: {CommandName}", command.Name);
-    await responseBuilder.SendErrorAsync(message, "command_failed");
+    logger.CommandExecutionFailed(botEx, commandName);
 }
 ```
 
@@ -203,6 +202,7 @@ catch (BotException ex)
 
 - `Operation` (string) - Queue operation that failed
 - `GuildId` (ulong) - Discord guild ID
+- Current status: defined for queue persistence failure boundaries, but not currently thrown by production code
 
 ### TrackLoadException
 
@@ -216,36 +216,32 @@ catch (BotException ex)
 
 ```csharp
 [Fact]
-public async Task LoadLanguageAsync_FileNotFound_ThrowsLocalizationException()
+public void LoadLanguage_WhenTranslationFileIsMissing_ThrowsLocalizationException()
 {
     // Arrange
-    var service = new LocalizationService(mockFileSystem.Object);
+    var service = new LocalizationService(logger, mockFileSystem.Object);
 
     // Act & Assert
-    var exception = await Assert.ThrowsAsync<LocalizationException>(
-        () => service.LoadLanguageAsync("invalid")
-    );
+    var exception = Assert.Throws<LocalizationException>(
+        () => service.SaveLanguage(123UL, "invalid"));
     
     Assert.Equal("invalid", exception.LanguageCode);
     Assert.Contains("not found", exception.Message);
 }
 
 [Fact]
-public async Task ExecuteAsync_TrackLoadException_SendsErrorMessage()
+public async Task ExecuteCommandAsync_WhenCommandThrowsBotException_LogsFailure()
 {
     // Arrange
-    mockLavaLink
-        .Setup(x => x.PlayAsync(It.IsAny<string>()))
+    commandMock
+        .Setup(x => x.ExecuteAsync(It.IsAny<IDiscordMessage>()))
         .ThrowsAsync(new TrackLoadException("query", "Not found"));
 
     // Act
-    await command.ExecuteAsync(message);
+    await commandHandler.ExecuteCommandAsync("play", commandMock.Object, message);
 
     // Assert
-    mockResponseBuilder.Verify(
-        x => x.SendErrorAsync(message, "track_not_found"),
-        Times.Once
-    );
+    logger.VerifyCommandExecutionFailed("play");
 }
 ```
 

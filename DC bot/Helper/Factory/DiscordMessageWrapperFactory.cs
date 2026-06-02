@@ -5,13 +5,17 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Helper.Factory;
 
-public static class DiscordMessageWrapperFactory
+public class DiscordMessageWrapperFactory : IDiscordMessageFactory
 {
-    public static IDiscordMessage Create(DiscordMessage message, DiscordChannel channel, DiscordUser author,
-        ILogger<DiscordMessageWrapper>? logger = null)
+    public static IDiscordMessage Create(
+        DiscordMessage message,
+        DiscordChannel channel,
+        DiscordUser author,
+        ILogger<DiscordMessageWrapper>? logger = null,
+        DiscordGuild? guild = null)
     {
         var discordAuthor = new DiscordUserWrapper(author);
-        var discordChannel = new DiscordChannelWrapper(channel);
+        var discordChannel = new DiscordChannelWrapper(channel, guild: guild);
         return new DiscordMessageWrapper(
             message.Id,
             message.Content,
@@ -24,5 +28,14 @@ public static class DiscordMessageWrapperFactory
             builder => message.ModifyAsync(builder),
             logger
         );
+    }
+
+    IDiscordMessage IDiscordMessageFactory.Create(
+        DiscordMessage message,
+        DiscordChannel channel,
+        DiscordUser author,
+        DiscordGuild? guild)
+    {
+        return Create(message, channel, author, guild: guild);
     }
 }

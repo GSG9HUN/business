@@ -7,38 +7,45 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Logging;
 using DSharpPlus;
-using DSharpPlus.AsyncEvents;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Core;
 
-public class CommandHandlerService
+public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
 {
     private readonly Dictionary<string, ICommand> _commands;
     private readonly bool _isTestMode;
     private readonly ILocalizationService _localizationService;
     private readonly ILogger<CommandHandlerService> _logger;
+    private readonly IDiscordMessageFactory _messageFactory;
     private bool _isRegistered;
-    private AsyncEventHandler<DiscordClient, MessageCreateEventArgs>? _messageHandler;
 
-
-    public CommandHandlerService(IServiceProvider services,
+    public CommandHandlerService(
+        IServiceProvider services,
         ILogger<CommandHandlerService> logger,
         ILocalizationService localizationService,
-        BotSettings botSettings, bool isTestMode = false)
+        BotSettings botSettings,
+        bool isTestMode = false,
+        IDiscordMessageFactory? messageFactory = null)
     {
         _logger = logger;
         _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);
         _localizationService = localizationService;
+        _messageFactory = messageFactory ?? new DiscordMessageWrapperFactory();
         _isTestMode = isTestMode;
         Prefix = botSettings.Prefix;
     }
 
     internal string? Prefix { get; set; }
 
-    public void RegisterHandler(DiscordClient client)
+    public Task HandleEventAsync(DiscordClient sender, MessageCreatedEventArgs eventArgs)
+    {
+        return _isRegistered ? HandleCommandAsync(sender, eventArgs) : Task.CompletedTask;
+    }
+
+    public void RegisterHandler(DiscordClient _)
     {
         if (_isRegistered)
         {
@@ -46,13 +53,11 @@ public class CommandHandlerService
             return;
         }
 
-        _messageHandler = HandleCommandAsync; // Tároljuk a referenciát
-        client.MessageCreated += _messageHandler;
         _logger.CommandHandlerRegistered();
         _isRegistered = true;
     }
 
-    private async Task HandleCommandAsync(DiscordClient sender, MessageCreateEventArgs args)
+    private async Task HandleCommandAsync(DiscordClient sender, MessageCreatedEventArgs args)
     {
         try
         {
@@ -78,13 +83,17 @@ public class CommandHandlerService
             {
                 _logger.CommandInvoked(commandName);
 
-                var discordMessageWrapper = DiscordMessageWrapperFactory.Create(args.Message, args.Channel, args.Author);
+                var discordMessageWrapper = _messageFactory.Create(
+                    args.Message,
+                    args.Channel,
+                    args.Author,
+                    guild: args.Guild);
 
                 await ExecuteCommandAsync(commandName, command, discordMessageWrapper);
             }
             else
             {
-                await message.Channel.SendMessageAsync(
+                await args.Channel.SendMessageAsync(
                     guildId == 0
                         ? _localizationService.Get(LocalizationKeys.UnknownCommandError)
                         : _localizationService.Get(guildId, LocalizationKeys.UnknownCommandError));
@@ -117,17 +126,17 @@ public class CommandHandlerService
     private static string? TryGetCommandName(string content, string prefix)
     {
         if (content.Length <= prefix.Length) return null;
-        var remainder = content.Substring(prefix.Length).TrimStart();
+        var remainder = content[prefix.Length..].TrimStart();
         if (remainder.Length == 0) return null;
         var splitIndex = remainder.IndexOf(' ');
         return splitIndex >= 0 ? remainder[..splitIndex] : remainder;
     }
 
-    private static ulong TryGetGuildId(MessageCreateEventArgs args)
+    private static ulong TryGetGuildId(MessageCreatedEventArgs args)
     {
         try
         {
-            return args.Guild?.Id ?? 0;
+            return args.Guild.Id;
         }
         catch
         {
@@ -135,13 +144,11 @@ public class CommandHandlerService
         }
     }
 
-    internal void UnregisterHandler(DiscordClient client)
+    internal void UnregisterHandler(DiscordClient _)
     {
-        if (_messageHandler != null)
+        if (_isRegistered)
         {
-            client.MessageCreated -= _messageHandler;
             _logger.CommandHandlerUnregistered();
-            _messageHandler = null;
             _isRegistered = false;
         }
         else

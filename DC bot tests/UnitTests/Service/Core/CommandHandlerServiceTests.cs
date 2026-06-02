@@ -5,7 +5,6 @@ using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Core;
-using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -320,13 +319,7 @@ public class CommandHandlerServiceTests
     [Fact]
     public void UnregisterHandler_WithNullMessageHandler_LogsWarning()
     {
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-
-        using var client = new DiscordClient(discordConfig);
+        var client = TestDiscordClientFactory.Create("test-token");
 
         _commandHandlerService.UnregisterHandler(client);
 
@@ -343,13 +336,7 @@ public class CommandHandlerServiceTests
     [Fact]
     public void RegisterHandler_WithTestMode_RegistersSuccessfully()
     {
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-
-        using var client = new DiscordClient(discordConfig);
+        var client = TestDiscordClientFactory.Create("test-token");
 
         _commandHandlerService.RegisterHandler(client);
 
@@ -368,13 +355,7 @@ public class CommandHandlerServiceTests
     [Fact]
     public void RegisterHandler_CalledTwice_LogsAlreadyRegisteredSecondTime()
     {
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-
-        using var client = new DiscordClient(discordConfig);
+        var client = TestDiscordClientFactory.Create("test-token");
 
         _mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _commandHandlerService.RegisterHandler(client);

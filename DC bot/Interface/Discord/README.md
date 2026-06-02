@@ -33,6 +33,25 @@ public interface IDiscordMessage
 
 ---
 
+### IDiscordMessageFactory.cs
+
+```csharp
+public interface IDiscordMessageFactory
+{
+    IDiscordMessage Create(
+        DiscordMessage message,
+        DiscordChannel channel,
+        DiscordUser author,
+        DiscordGuild? guild = null);
+}
+```
+
+**Implementation:** `Helper/Factory/DiscordMessageWrapperFactory.cs`
+
+This keeps the DSharpPlus message-to-wrapper boundary injectable for command handling while preserving the existing wrapper behavior in production.
+
+---
+
 ### IDiscordChannel.cs
 
 ```csharp
@@ -120,6 +139,7 @@ public interface IDiscordVoiceState
 ## Related Components
 
 - **Wrapper/** - Implements these interfaces
+- **Helper/Factory/** - Creates wrapper instances from DSharpPlus objects
 - **Commands/** - Use these interfaces instead of DSharpPlus types
 - **Service/** - Use these interfaces for Discord operations
 

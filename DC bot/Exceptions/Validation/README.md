@@ -33,7 +33,7 @@ public class ValidationException : BotException
 
 ## Current Status
 
-**Note:** This exception type is currently **not used** in the codebase. No services throw `ValidationException`.
+**Note:** This exception type is currently **not thrown** in the codebase. No services throw `ValidationException`.
 
 The application uses **validation result objects** instead:
 

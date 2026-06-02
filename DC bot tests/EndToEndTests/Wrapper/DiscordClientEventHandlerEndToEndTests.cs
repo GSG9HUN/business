@@ -72,18 +72,19 @@ public class DiscordClientEventHandlerEndToEndTests
 
         var botSettings = new BotSettings { Token = envToken, Prefix = "!" };
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token"
-        };
-        var mockClient = new DiscordClient(discordConfig);
-        var tcs = new TaskCompletionSource<GuildCreateEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<GuildAvailableEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        mockClient.GuildAvailable += (_, e) =>
-        {
-            tcs.TrySetResult(e);
-            return Task.CompletedTask;
-        };
+        var mockClient = DiscordClientBuilder
+            .CreateDefault(botSettings.Token ?? "fake-test-token", DiscordIntents.All)
+            .ConfigureEventHandlers(builder =>
+            {
+                builder.HandleGuildAvailable((_, e) =>
+                {
+                    tcs.TrySetResult(e);
+                    return Task.CompletedTask;
+                });
+            })
+            .Build();
 
         var loggerMock = new Mock<ILogger<DiscordClientEventHandler>>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);

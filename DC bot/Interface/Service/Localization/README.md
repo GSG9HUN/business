@@ -12,6 +12,7 @@ This folder contains localization service interfaces.
 public interface ILocalizationService
 {
     string Get(string key, params object[] args);
+    string Get(ulong guildId, string key, params object[] args);
     void LoadLanguage(ulong guildId);
     void SaveLanguage(ulong guildId, string language);
 }
@@ -19,7 +20,8 @@ public interface ILocalizationService
 
 **Methods:**
 
-- `Get()` - Retrieve localized string by key with optional formatting
+- `Get(string key, ...)` - Retrieve default-language text by key with optional formatting
+- `Get(ulong guildId, string key, ...)` - Retrieve guild-specific text by key with optional formatting
 - `LoadLanguage()` - Load language for guild
 - `SaveLanguage()` - Save guild's language preference
 
@@ -31,8 +33,11 @@ public interface ILocalizationService
 // Get localized string
 var description = localizationService.Get(LocalizationKeys.PlayCommandDescription);
 
+// Get localized string for a guild
+var response = localizationService.Get(guildId, LocalizationKeys.PlayCommandMusicPlaying);
+
 // Get with formatting
-var message = localizationService.Get("track_added", trackTitle, queuePosition);
+var message = localizationService.Get(guildId, LocalizationKeys.TagCommandResponse, member.Mention);
 
 // Change guild language
 localizationService.SaveLanguage(guildId, "hu");

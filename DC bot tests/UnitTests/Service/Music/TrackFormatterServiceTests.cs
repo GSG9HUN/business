@@ -1,4 +1,3 @@
-using DC_bot_tests.TestHelperFiles;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Service.Music.MusicServices;
@@ -9,21 +8,6 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 [Trait("Category", "Unit")]
 public class TrackFormatterServiceTests
 {
-    [Fact]
-    public async Task FormatCurrentTrack_DelegatesToCurrentTrackService()
-    {
-        var current = new Mock<ICurrentTrackService>();
-        var queue = new Mock<IMusicQueueService>();
-        const ulong guildId = 21;
-        current.Setup(x => x.GetCurrentTrackFormattedAsync(guildId, CancellationToken.None)).ReturnsAsync("A T");
-
-        var service = new TrackFormatterService(current.Object, queue.Object);
-
-        var result = await service.FormatCurrentTrackAsync(guildId);
-
-        Assert.Equal("A T", result);
-    }
-
     [Fact]
     public async Task FormatCurrentTrackList_WithCurrentAndQueue_ReturnsCombinedLines()
     {

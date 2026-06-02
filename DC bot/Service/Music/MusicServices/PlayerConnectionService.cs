@@ -45,7 +45,7 @@ public class PlayerConnectionService(
             return (null, channel, guildId, false);
         }
 
-        LavalinkPlayer? connection;
+        ILavalinkPlayer? connection;
         try
         {
             connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
@@ -53,14 +53,16 @@ public class PlayerConnectionService(
             var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
                 .ConfigureAwait(false);
 
-            if (!validationPlayerResult.IsValid)
+            if (validationPlayerResult.IsValid)
             {
-                logger.LogInformation(
-                    "Player validation failed after join attempt. Guild: {GuildId}, ErrorKey: {ErrorKey}",
+                connection = validationPlayerResult.Player ?? connection;
+            }
+            else
+            {
+                logger.LogDebug(
+                    "Player manager lookup failed after join, validating the returned connection instead. Guild: {GuildId}, ErrorKey: {ErrorKey}",
                     guildId,
                     validationPlayerResult.ErrorKey);
-                await responseBuilder.SendValidationErrorAsync(message, validationPlayerResult.ErrorKey);
-                return (null, channel, guildId, false);
             }
 
             const int maxAttempts = 5;

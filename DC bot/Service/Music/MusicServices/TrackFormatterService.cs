@@ -6,10 +6,6 @@ public class TrackFormatterService(
     ICurrentTrackService currentTrackService,
     IMusicQueueService musicQueueService) : ITrackFormatterService
 {
-   public async Task<string> FormatCurrentTrackAsync(ulong guildId)
-{
-    return await currentTrackService.GetCurrentTrackFormattedAsync(guildId);
-}
     public async Task<string> FormatCurrentTrackListAsync(ulong guildId)
     {
         var track = await currentTrackService.GetCurrentTrackAsync(guildId);

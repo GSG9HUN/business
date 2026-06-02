@@ -10,6 +10,7 @@ E2E tests are allowed to:
 - send or inspect real Discord messages
 - use configured Discord channels
 - depend on a reachable Lavalink server
+- validate local end-to-end command pipelines when external Discord self-invocation is not possible
 
 Because they depend on external services and timing, they are excluded from the normal non-E2E verification command.
 
@@ -32,5 +33,7 @@ Commonly required values include:
 ## Related Tests
 
 - `Service/` - bot lifecycle and reaction flow
+- `Service/LiveMusicFlowTestContext.cs` - shared real Discord, Lavalink, PostgreSQL, reaction handler, and command execution setup for live music-flow tests
 - `Service/Core/` - real command handling through Discord messages
+- `Commands/SlashCommands/` - local slash adapter -> executor -> text command pipeline, split by Music/Queue/Utility command domains
 - `Wrapper/` - DSharpPlus wrapper behavior against real Discord objects

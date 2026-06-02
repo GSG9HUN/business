@@ -12,10 +12,12 @@ This folder contains language translation files.
 
 ```json
 {
-  "clear_command_description": "Clear all queued tracks",
-  "clear_command_response": "Queue cleared",
-  "play_command_description": "Play music from URL or search query",
-  "play_command_music_playing": "Now playing: {0}",
+  "clear_command_description": "Clear the playlist.",
+  "clear_command_response": "Playlist cleared.",
+  "clear_command_confirmation_required": "Set confirm to true to clear the playlist.",
+  "play_command_description": "Start playing a music.",
+  "play_command_music_playing": "Music is playing :",
+  "slash_command_guild_only": "This command can only be used in a server.",
   ...
 }
 ```
@@ -45,7 +47,8 @@ Examples:
 - play_command_description
 - pause_command_response
 - skip_command_queue_is_empty
-- user_not_in_voice_channel
+- user_not_in_a_voice_channel
+- slash_command_unexpected_error
 ```
 
 ## Usage
@@ -63,8 +66,9 @@ var message = localizationService.Get("play_command_music_playing", trackTitle);
 1. Create new JSON file (e.g., `es.json` for Spanish)
 2. Copy all keys from `eng.json`
 3. Translate values
-4. Save the matching language code through `!language <code>` (the code must match the JSON file name without `.json`)
-5. Add validation in `LanguageCommand` if you want to restrict allowed language codes
+4. Add the new code to `LanguageCommand.AllowedLanguageCodes`
+5. Add a matching slash command choice if the language should be selectable through `/language`
+6. Save the matching language code through `!language <code>` or `/language`
 
 ---
 

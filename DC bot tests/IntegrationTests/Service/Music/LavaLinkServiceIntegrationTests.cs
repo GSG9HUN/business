@@ -1,13 +1,11 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
-using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.MusicServices;
-using Lavalink4NET;
 using Lavalink4NET.Players;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
@@ -22,7 +20,6 @@ public class LavaLinkServiceIntegrationTests
     private readonly CurrentTrackService _currentTrackService;
 
     private readonly Mock<IDiscordGuild> _guildMock = new();
-    private readonly Mock<ILocalizationService> _localizationMock = new();
 
     private readonly Mock<ILogger<LavaLinkService>> _loggerMock = new();
     private readonly Mock<ILavalinkNodeConnectionService> _lavalinkNodeConnectionServiceMock = new();

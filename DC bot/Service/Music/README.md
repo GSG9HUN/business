@@ -65,6 +65,9 @@ This folder contains music playback and queue management services.
 - Configurable via `SearchResolverOptions`
 - Falls back to YouTube if not specified
 
+For absolute URLs, the resolver also maps known hosts such as YouTube, YouTube Music, SoundCloud, Spotify, Apple Music,
+Deezer, Yandex Music, and Bandcamp. Unknown absolute URLs resolve to `TrackSearchMode.None`.
+
 ---
 
 ## Subfolders
@@ -95,13 +98,15 @@ Each service implements a corresponding interface from `Interface/Service/Music/
 ### ProgressiveTimer/
 
 Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
+The timer is started from the reaction control message flow and stopped by skip/leave playback controls.
 
 ---
 
 ## Related Components
 
 - **Interface/Service/Music/** - Service contracts
-- **Commands/Music/** - Use LavaLinkService
-- **Commands/Queue/** - Use MusicQueueService
+- **Commands/TextCommands/Music/** - Text commands that use `LavaLinkService`
+- **Commands/TextCommands/Queue/** - Text commands that use `MusicQueueService`
+- **Commands/SlashCommands/** - Slash adapters that reuse the same text command pipeline
 - **Service/Music/MusicServices/** - Detailed service implementations
 

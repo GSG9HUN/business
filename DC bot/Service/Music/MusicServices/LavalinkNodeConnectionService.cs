@@ -32,6 +32,7 @@ public class LavalinkNodeConnectionService(
             }
 
             await audioService.StartAsync().ConfigureAwait(false);
+            await audioService.WaitForReadyAsync().ConfigureAwait(false);
             _isAudioServiceStarted = true;
             logger.LavalinkNodeConnectedSuccessfully();
         }

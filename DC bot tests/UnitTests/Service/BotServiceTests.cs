@@ -1,5 +1,4 @@
 using DC_bot.Service;
-using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -12,12 +11,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_Constructor_WithValidClient_CreatesInstance()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
 
         var service = new BotService(client);
 
@@ -27,12 +21,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_Constructor_WithLogger_CreatesInstance()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
         var mockLogger = new Mock<ILogger<BotService>>();
 
         var service = new BotService(client, mockLogger.Object);
@@ -43,12 +32,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_Constructor_WithNullLogger_CreatesInstanceWithNullLogger()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
 
         var service = new BotService(client);
 
@@ -58,12 +42,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_Constructor_WithNullLoggerDefaultParameter_CreatesInstance()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
 
         var service = new BotService(client);
 
@@ -73,18 +52,8 @@ public class BotServiceTests
     [Fact]
     public void BotService_MultipleInstances_AreIndependent()
     {
-        var config1 = new DiscordConfiguration
-        {
-            Token = "test_token_1",
-            TokenType = TokenType.Bot
-        };
-        var config2 = new DiscordConfiguration
-        {
-            Token = "test_token_2",
-            TokenType = TokenType.Bot
-        };
-        var client1 = new DiscordClient(config1);
-        var client2 = new DiscordClient(config2);
+        var client1 = TestDiscordClientFactory.Create("test_token_1");
+        var client2 = TestDiscordClientFactory.Create("test_token_2");
 
         var service1 = new BotService(client1);
         var service2 = new BotService(client2);
@@ -97,12 +66,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_WithDifferentLoggers_CreatesIndependentInstances()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
         var logger1 = NullLogger<BotService>.Instance;
         var logger2 = new Mock<ILogger<BotService>>().Object;
 
@@ -117,12 +81,7 @@ public class BotServiceTests
     [Fact]
     public void BotService_DefaultLogger_IsNullLogger()
     {
-        var config = new DiscordConfiguration
-        {
-            Token = "test_token",
-            TokenType = TokenType.Bot
-        };
-        var client = new DiscordClient(config);
+        var client = TestDiscordClientFactory.Create("test_token");
 
         var service = new BotService(client);
 

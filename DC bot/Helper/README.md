@@ -9,7 +9,6 @@ Reusable helper classes that:
 - Reduce code duplication
 - Provide validation result types
 - Offer factory methods for wrappers
-- Support slash command responses
 
 ## Subfolders
 
@@ -36,21 +35,6 @@ Contains factory classes for object creation.
 - `DiscordMessageWrapperFactory.cs`
 
 **Purpose:** Create Discord wrapper instances from DSharpPlus objects.
-
----
-
-## Files
-
-### SlashCommandResponseHelper.cs
-
-**Purpose:** Utility methods for slash command responses.
-
-**Note:** Currently commented out in the code. Contains helper methods for:
-
-- `DeferAsync()` - Defer slash command response
-- `RespondAsync()` - Send response
-- `EditResponseAsync()` - Edit deferred response
-- `RequireGuildAsync()` - Check guild context
 
 ---
 
@@ -83,7 +67,7 @@ var member = result.Member;
 
 - User is not a bot
 - User is in a voice channel
-- Bot users are ignored unless test mode is enabled
+- Bot users are invalid unless `ValidationService` is constructed in test mode
 
 ---
 
@@ -140,8 +124,7 @@ if (!result.IsValid)
 
 **Validation Checks:**
 
-- Connection is established
-- Connection is in valid state
+- Connection state reports connected, or the player has a non-zero voice channel and is not destroyed
 
 ---
 
@@ -158,7 +141,8 @@ public static IDiscordMessage Create(
     DiscordMessage message, 
     DiscordChannel channel, 
     DiscordUser author, 
-    ILogger<DiscordMessageWrapper>? logger = null)
+    ILogger<DiscordMessageWrapper>? logger = null,
+    DiscordGuild? guild = null)
 ```
 
 **Usage:**
@@ -168,7 +152,8 @@ var wrappedMessage = DiscordMessageWrapperFactory.Create(
     discordMessage, 
     channel, 
     author, 
-    logger
+    logger,
+    guild
 );
 ```
 
@@ -176,6 +161,7 @@ var wrappedMessage = DiscordMessageWrapperFactory.Create(
 
 - Centralizes wrapper creation logic
 - Ensures consistent wrapper initialization
+- Preserves explicit guild context for event payloads where `DiscordChannel.Guild` is not populated
 - Simplifies testing with mock objects
 
 ---

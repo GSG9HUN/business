@@ -26,33 +26,13 @@ namespace DC_bot_tests.IntegrationTests.Service;
 [Trait("Category", "Integration")]
 public class ProgramIntegrationTests
 {
-    private sealed class EnvScope : IDisposable
-    {
-        private readonly Dictionary<string, string?> _original = new();
-
-        public EnvScope(Dictionary<string, string?> values)
-        {
-            foreach (var pair in values)
-            {
-                _original[pair.Key] = Environment.GetEnvironmentVariable(pair.Key);
-                Environment.SetEnvironmentVariable(pair.Key, pair.Value);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var pair in _original)
-                Environment.SetEnvironmentVariable(pair.Key, pair.Value);
-        }
-    }
-
     [Fact]
     public async Task Main_WhenEnvFileMissing_UsesEnvironmentValidation()
     {
         var currentDir = Directory.GetCurrentDirectory();
         var tempDir = Path.Combine(Path.GetTempPath(), $"dcbot-program-main-{Guid.NewGuid():N}");
         Directory.CreateDirectory(tempDir);
-        using var env = new EnvScope(new Dictionary<string, string?>
+        using var env = new TestEnvironmentVariableScope(new Dictionary<string, string?>
         {
             ["DISCORD_TOKEN"] = null,
             ["BOT_PREFIX"] = null,
@@ -87,7 +67,7 @@ public class ProgramIntegrationTests
     [Fact]
     public async Task BotApplicationRunAsync_WhenDiscordTokenMissing_WritesMessageAndReturns()
     {
-        using var env = new EnvScope(new Dictionary<string, string?>
+        using var env = new TestEnvironmentVariableScope(new Dictionary<string, string?>
         {
             ["DISCORD_TOKEN"] = null,
             ["BOT_PREFIX"] = "!",
@@ -114,7 +94,7 @@ public class ProgramIntegrationTests
     [Fact]
     public async Task BotApplicationRunAsync_WhenLavalinkHostnameMissing_WritesMessageAndReturns()
     {
-        using var env = new EnvScope(new Dictionary<string, string?>
+        using var env = new TestEnvironmentVariableScope(new Dictionary<string, string?>
         {
             ["DISCORD_TOKEN"] = "dummy-token",
             ["BOT_PREFIX"] = "!",
@@ -150,7 +130,7 @@ public class ProgramIntegrationTests
             Password = "pass"
         };
 
-        using var env = new EnvScope(new Dictionary<string, string?>
+        using var env = new TestEnvironmentVariableScope(new Dictionary<string, string?>
         {
             ["POSTGRES_HOST"] = "localhost",
             ["POSTGRES_PORT"] = "5432",
@@ -171,7 +151,7 @@ public class ProgramIntegrationTests
         }
         finally
         {
-            await provider.DisposeAsync();
+            await ServiceProviderDisposeHelper.DisposeIgnoringDisconnectedDiscordClientAsync(provider);
         }
     }
 
@@ -181,7 +161,7 @@ public class ProgramIntegrationTests
         var database = await PostgreSqlTestDatabase.TryCreateAsync();
         if (database is null) return;
         await using var _ = database;
-        using var env = new EnvScope(database.CreateProgramEnvironment().ToDictionary());
+        using var env = new TestEnvironmentVariableScope(database.CreateProgramEnvironment().ToDictionary());
 
         var botSettings = new BotSettings { Token = "token", Prefix = "!" };
         var lavaSettings = new LavalinkSettings
@@ -236,7 +216,7 @@ public class ProgramIntegrationTests
         }
         finally
         {
-            await provider.DisposeAsync();
+            await ServiceProviderDisposeHelper.DisposeIgnoringDisconnectedDiscordClientAsync(provider);
         }
     }
 

@@ -1,0 +1,111 @@
+using DC_bot.Commands.TextCommands.Queue;
+using DC_bot.Constants;
+using DC_bot.Helper.Validation;
+using DC_bot.Interface.Core;
+using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Presentation;
+using DC_bot.Service.Core;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace DC_bot_tests.UnitTests.Commands.TextCommands.Queue;
+
+[Trait("Category", "Unit")]
+public class ClearCommandTests
+{
+    private const string ClearCommandName = "clear";
+    private const string ClearCommandDescriptionValue = "Clear the music queue.";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly ClearCommand _clearCommand;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+
+    private readonly Mock<IDiscordGuild> _guildMock;
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IMusicQueueService> _musicQueueServiceMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
+
+    public ClearCommandTests()
+    {
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
+        Mock<ILogger<ClearCommand>> loggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.ClearCommandDescription))
+            .Returns(ClearCommandDescriptionValue);
+        localizationServiceMock.Setup(g => g.Get(It.IsAny<ulong>(), LocalizationKeys.ClearCommandResponse))
+            .Returns("Cleared.");
+
+        _messageMock = new Mock<IDiscordMessage>();
+        _guildMock = new Mock<IDiscordGuild>();
+        _channelMock = new Mock<IDiscordChannel>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+        _musicQueueServiceMock = new Mock<IMusicQueueService>();
+        _commandHelperMock = new Mock<ICommandHelper>();
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _clearCommand = new ClearCommand(userValidationService, _musicQueueServiceMock.Object,
+            loggerMock.Object, _responseBuilderMock.Object, localizationServiceMock.Object, _commandHelperMock.Object);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
+    {
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
+
+        await _clearCommand.ExecuteAsync(_messageMock.Object);
+
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(It.IsAny<ulong>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ValidationFails_ShouldSendError()
+    {
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
+
+        await _clearCommand.ExecuteAsync(_messageMock.Object);
+
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(It.IsAny<ulong>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ValidUser_ShouldClearQueue()
+    {
+        const ulong guildId = 987654321UL;
+
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(
+                It.IsAny<IUserValidationService>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, new Mock<IDiscordMember>().Object));
+
+        _guildMock.SetupGet(g => g.Id).Returns(guildId);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+
+        await _clearCommand.ExecuteAsync(_messageMock.Object);
+
+        _musicQueueServiceMock.Verify(m => m.ClearQueue(guildId), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void Command_Name_And_Description_ShouldReturnCorrectValue()
+    {
+        Assert.Equal(ClearCommandName, _clearCommand.Name);
+        Assert.Equal(ClearCommandDescriptionValue, _clearCommand.Description);
+    }
+}

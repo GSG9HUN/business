@@ -5,7 +5,7 @@ namespace DC_bot.Startup;
 
 internal static class BotApplication
 {
-    public static async Task RunAsync(TextWriter? output = null)
+    public static async Task RunAsync(TextWriter? output = null, bool isTestEnvironment = false)
     {
         var runtimeSettings = BotConfigurationLoader.LoadFromEnvironment(output ?? Console.Out);
         if (runtimeSettings is null) return;
@@ -15,6 +15,6 @@ internal static class BotApplication
         BotHandlerRegistrar.RegisterHandlers(services);
 
         var botService = services.GetRequiredService<BotService>();
-        await botService.StartAsync();
+        await botService.StartAsync(isTestEnvironment);
     }
 }

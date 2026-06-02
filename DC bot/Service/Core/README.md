@@ -12,24 +12,29 @@ This folder contains core application services for command handling and validati
 
 **Key Methods:**
 
-- `RegisterHandler()` - Register message event handler
-- `HandleCommandAsync()` - Process Discord messages
+- `HandleEventAsync()` - Receives DSharpPlus `MessageCreatedEventArgs`
+- `RegisterHandler()` - Enables text command processing after the service graph is built
+- `UnregisterHandler()` - Disables processing in tests/internal cleanup
 
 **Behavior:**
 
-1. Listens to Discord MessageCreated events
-2. Parses message prefix (e.g., `!play`)
-3. Extracts command name
-4. Finds matching `ICommand` from DI container
-5. Executes command
-6. Logs result
+1. Receives message-created events wired in `Startup/BotServiceProviderFactory.cs`
+2. Ignores messages until `RegisterHandler()` has enabled processing
+3. Ignores bot authors unless the service was created in test mode
+4. Parses the configured prefix (e.g., `!play`)
+5. Extracts command name and argument text
+6. Finds the matching `ICommand` from DI
+7. Wraps the DSharpPlus message with explicit guild context
+8. Executes the command and logs the result
+9. Sends a guild-localized unknown-command response when no command matches
 
 **Initialization:**
 
 ```csharp
-var commandHandler = new CommandHandlerService(services, logger, localization, botSettings);
-commandHandler.RegisterHandler(discordClient);
+BotHandlerRegistrar.RegisterHandlers(services);
 ```
+
+Event routing itself is configured through DSharpPlus 5 builder APIs in `Startup/BotServiceProviderFactory.cs`.
 
 ---
 
@@ -85,7 +90,7 @@ User validation:
 Player validation:
 
 - Player exists for guild
-- Connection is established
+- Connection is considered valid when Lavalink reports an active connection, or when the player is not destroyed and still has a voice channel ID
 
 ---
 

@@ -1,75 +1,41 @@
-﻿# Commands
+# Commands
 
-This folder contains command implementations for the Discord bot.
+This folder contains the Discord command presentation layer.
 
 ## Overview
 
-Commands handle user input from Discord messages and delegate business logic to services. The bot supports two command
-types:
+Commands handle user input from Discord and delegate business logic to services. The bot currently exposes two command
+surfaces:
 
-1. **Text Commands** - Prefix-based commands (`!play`, `!pause`)
-2. **Slash Commands** - Discord interactions (`/play`, `/ping`), currently present in source but not registered at runtime
+1. **TextCommands** - prefix-based message commands such as `!play`, `!pause`, and `!viewList`.
+2. **SlashCommands** - Discord application commands such as `/play`, `/pause`, and `/queue`.
+
+Slash commands are intentionally thin adapters. They create a slash execution request and reuse the existing text command
+pipeline through `ISlashCommandExecutor`, so validation, localization, playback, persistence, and response behavior stay
+aligned between both command surfaces.
 
 ## Folder Structure
 
-### Music/
+### TextCommands/
 
-Music playback control commands.
+Text command implementations grouped by domain.
 
-**Commands:**
-
-- `PlayCommand` - Play music from URL or search query
-- `PauseCommand` - Pause current track
-- `ResumeCommand` - Resume paused track
-- `SkipCommand` - Skip to next track
-- `JoinCommand` - Join user's voice channel
-- `LeaveCommand` - Disconnect from voice channel
-
----
-
-### Queue/
-
-Queue management commands.
-
-**Commands:**
-
-- `ViewQueueCommand` - Display current queue
-- `ShuffleCommand` - Randomize queue order
-- `RepeatCommand` - Toggle single-track repeat
-- `RepeatListCommand` - Toggle queue repeat
-- `ClearCommand` - Clear all queued tracks
-
----
+- `Music/` - `PlayCommand`, `PauseCommand`, `ResumeCommand`, `SkipCommand`, `JoinCommand`, `LeaveCommand`
+- `Queue/` - `ViewQueueCommand`, `ShuffleCommand`, `RepeatCommand`, `RepeatListCommand`, `ClearCommand`
+- `Utility/` - `HelpCommand`, `PingCommand`, `LanguageCommand`, `TagCommand`
 
 ### SlashCommands/
 
-Slash command implementations.
+Slash command modules grouped to mirror the text command domains.
 
-Runtime registration is currently disabled; these classes are not registered by the startup composition root.
+- `Music/` - `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
+- `Queue/` - `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
+- `Utility/` - `/help`, `/ping`, `/language`, `/tag`
 
-**Commands:**
+Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in
+`Startup/BotServiceCollectionExtensions.cs` through `DSharpPlus.Commands` and `SlashCommandProcessor`.
 
-- `PlaySlashCommand` - `/play`
-- `PingSlashCommand` - `/ping`
-- `HelpSlashCommand` - `/help`
-- `TagSlashCommand` - `/tag`
-
----
-
-### Utility/
-
-General-purpose bot commands.
-
-**Commands:**
-
-- `HelpCommand` - List all commands
-- `PingCommand` - Reply with Pong
-- `LanguageCommand` - Save guild language preference
-- `TagCommand` - Mention a guild member by username
-
----
-
-## ICommand Interface
+## Text Command Contract
 
 Text commands implement `ICommand`:
 
@@ -82,67 +48,90 @@ public interface ICommand
 }
 ```
 
-## Command Flow
+## Text Command Flow
 
-```
-Discord Message → CommandHandlerService
-                   ↓
-              Parse Prefix (!play)
-                   ↓
-         Find ICommand (PlayCommand)
-                   ↓
-    command.ExecuteAsync(message)
-                   ↓
-       1. Validate user
-       2. Extract arguments
-       3. Call service
-       4. Send response
+```text
+Discord Message
+    -> CommandHandlerService
+    -> Parse prefix and command name
+    -> Resolve ICommand implementation
+    -> command.ExecuteAsync(message)
+    -> Validate input and user state
+    -> Call domain services
+    -> Send localized response
 ```
 
-## Common Pattern
+## Slash Command Flow
+
+```text
+Discord Interaction
+    -> DSharpPlus Commands / SlashCommandProcessor
+    -> Slash command module
+    -> ISlashInteractionContextFactory
+    -> ISlashCommandExecutor
+    -> Existing ICommand implementation
+```
+
+## Common Text Command Pattern
 
 ```csharp
 public async Task ExecuteAsync(IDiscordMessage message)
 {
     logger.CommandInvoked(Name);
-    
+
     var validationResult = await commandHelper.TryValidateUserAsync(
         userValidation, responseBuilder, message);
     if (validationResult is null) return;
-    
-    // Command logic
+
     await service.DoSomethingAsync();
-    
+
     logger.CommandExecuted(Name);
+}
+```
+
+## Common Slash Command Pattern
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context)
+{
+    return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(
+        "commandName",
+        context,
+        RequireGuild: true,
+        Defer: true));
 }
 ```
 
 ## Dependencies
 
-Commands typically inject:
+Commands typically inject a subset of:
 
-- `ILavaLinkService` / `IMusicQueueService` - Business logic
-- `IUserValidationService` - User validation
-- `IResponseBuilder` - Message sending
-- `ILocalizationService` - Multi-language support
-- `ICommandHelper` - Validation helpers
-- `ILogger<T>` - Logging
+- `ILavaLinkService` / `IMusicQueueService` - music and queue orchestration
+- `IUserValidationService` - user and voice-state validation
+- `IResponseBuilder` - Discord response sending
+- `ILocalizationService` - localized response text
+- `ICommandHelper` - text command argument and validation helpers
+- `ISlashCommandExecutor` - slash-to-text command adapter execution
+- `ISlashInteractionContextFactory` - slash context wrapper creation
+- `ILogger<T>` - structured logging
 
 ## Registration
 
-Commands are registered in `Startup/BotServiceProviderFactory.cs`:
+Commands are registered in `Startup/BotServiceCollectionExtensions.cs`:
 
 ```csharp
-services.AddSingleton<ICommand, PlayCommand>();
-services.AddSingleton<ICommand, PauseCommand>();
-// ... more commands
+services.AddTextCommands();
+services.AddSlashCommandServices();
 ```
+
+Slash modules are also added to the DSharpPlus Commands extension from `AddSlashCommandProcessor`.
 
 ## Related Components
 
-- **Interface/ICommand.cs** - Text command contract
-- **Service/Core/CommandHandlerService.cs** - Command routing
-- **Service/Core/ValidationService.cs** - User validation
-- **Service/Core/CommandValidationService.cs** - Command utilities
-- **Interface/Core/ICommandHelper.cs** - Command helper contract
-
+- `Interface/ICommand.cs` - text command contract
+- `Interface/Service/SlashCommands/` - slash adapter contracts
+- `Service/Core/CommandHandlerService.cs` - text command routing
+- `Service/Core/CommandValidationService.cs` - command argument helpers
+- `Service/Core/ValidationService.cs` - validation services
+- `Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
+- `Wrapper/SlashInteractionContextWrapper.cs` - slash context wrapper
