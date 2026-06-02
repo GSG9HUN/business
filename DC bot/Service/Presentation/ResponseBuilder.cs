@@ -43,8 +43,8 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
 
     private string GetForMessage(IDiscordMessage message, string key, params object[] args)
     {
-        var guildId = message.Channel?.Guild?.Id;
-        return guildId.HasValue ? localization.Get(guildId.Value, key, args) : localization.Get(key, args);
+        var guildId = message.Channel.Guild.Id;
+        return localization.Get(guildId, key, args);
     }
 
     private async Task SafeRespondAsync(IDiscordMessage message, string text, string operation)

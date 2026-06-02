@@ -4,10 +4,13 @@ This folder contains persistence contracts used by the service layer.
 
 ## Interfaces
 
-- `IGuildDataRepository` - guild premium state operations
+- `IGuildDataRepository` - guild row creation and premium state operations
 - `IPlaybackStateRepository` - current track and repeat flags
 - `IQueueRepository` - queue item lifecycle and ordering
 - `IRepeatListRepository` - repeat-list snapshot persistence used for saving repeat-list mode state and rehydrating queue playback
+
+`IQueueRepository` uses queued/playing/played/skipped item state transitions and exposes atomic claim operations through
+`ClaimNextQueuedItemAsync`.
 
 ## Models
 

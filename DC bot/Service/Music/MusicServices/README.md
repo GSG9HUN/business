@@ -100,6 +100,11 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Purpose:** Register and manage playback event handlers.
 
+**Key Methods:**
+
+- `RegisterPlaybackFinishedHandler()` - Attach one track-ended handler per guild
+- `CleanupGuildAsync()` - Remove the registered track-ended handler for a guild
+
 ---
 
 ### PlaybackRequestService.cs
@@ -152,6 +157,15 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Purpose:** Handle track end events and queue progression.
 
+**Behavior:**
+
+- marks the current queue item as played when the track finishes normally
+- marks it as skipped for other end reasons
+- repeats the current track when single-track repeat is enabled
+- plays the next queued track when available
+- rehydrates and plays the repeat-list snapshot when list repeat is enabled and the queue is empty
+- sends the queue-empty notification when no playback path remains
+
 ---
 
 ### TrackFormatterService.cs
@@ -184,6 +198,12 @@ These services split music functionality into focused responsibilities. Each imp
 **Implements:** `ITrackPlaybackService`
 
 **Purpose:** Play loaded tracks and queued tracks, send now-playing notifications, and update current-track state.
+
+**Notes:**
+
+- playlists are enqueued in bulk
+- single tracks are enqueued and started immediately when the player has no current track
+- when playback fails, the service sends the localized Lavalink validation error to the text channel
 
 ---
 

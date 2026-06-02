@@ -51,7 +51,8 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
 
     public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
     {
-        if (connection.ConnectionState.IsConnected)
+        if (connection.ConnectionState.IsConnected ||
+            connection is { State: not PlayerState.Destroyed, VoiceChannelId: not 0 })
             return Task.FromResult(new ConnectionValidationResult(true, string.Empty, connection));
 
         logger.ValidationBotNotConnected();

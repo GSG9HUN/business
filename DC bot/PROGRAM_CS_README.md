@@ -7,7 +7,8 @@
 ### Program.cs
 
 - locate `.env` in the current working directory
-- load environment variables with `Env.Load(...)` when `.env` exists
+- load environment variables with `Env.NoClobber().Load(...)` when `.env` exists
+- preserve already-provided process environment variables when the same key also exists in `.env`
 - continue with already-provided environment variables when `.env` does not exist
 - call `BotApplication.RunAsync()`
 
@@ -17,8 +18,9 @@
 - `BotConfigurationLoader.cs` - reads and validates required environment values
 - `BotRuntimeSettings.cs` - groups bot, Lavalink, and database startup settings
 - `BotServiceProviderFactory.cs` - builds the DI container
+- `BotServiceCollectionExtensions.cs` - groups DI registrations by Discord, slash command, persistence, core, text command, and music domains
 - `DatabaseMigrationRunner.cs` - applies pending EF Core migrations
-- `BotHandlerRegistrar.cs` - wires Discord client events, command handling, and reaction handling
+- `BotHandlerRegistrar.cs` - activates command and reaction handlers after the service graph is built
 
 ## Startup Flow
 
@@ -27,27 +29,27 @@
 3. `BotConfigurationLoader.LoadFromEnvironment(...)` builds `BotRuntimeSettings`.
 4. `BotServiceProviderFactory.Create(...)` creates the `ServiceProvider`.
 5. `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
-6. `BotHandlerRegistrar.RegisterHandlers(...)` wires runtime event handlers.
+6. `BotHandlerRegistrar.RegisterHandlers(...)` activates command and reaction handlers.
 7. `BotService.StartAsync()` connects the Discord client and keeps the bot running.
 
 ## Handler Registration
 
-`DiscordClientFactory` only creates a configured `DiscordClient`.
+`BotServiceProviderFactory` calls `BotServiceCollectionExtensions.AddDiscordRuntime(...)`, which registers the DSharpPlus 5 event handlers with `ConfigureEventHandlers(...)`.
 
-`BotHandlerRegistrar` owns event subscription:
+`BotHandlerRegistrar` only enables handlers that maintain their own registration state:
 
 ```csharp
-discordClient.Ready += eventHandler.OnClientReady;
-discordClient.GuildAvailable += eventHandler.OnGuildAvailable;
 commandHandler.RegisterHandler(discordClient);
 reactionHandler.RegisterHandler(discordClient);
 ```
 
-This keeps client construction independent from `DiscordClientEventHandler`, which now receives its dependencies directly through constructor injection.
+This keeps startup ordering explicit: DSharpPlus event callbacks are registered during service composition, and command/reaction handling is enabled after the service graph is available.
 
 ## Environment Variables
 
-Local development and Docker Compose usually use a repository-root `.env` file. CI and production can provide the same keys directly as environment variables. Startup validates the required keys after optional `.env` loading, so the physical `.env` file is not required when the environment is already populated.
+Local development usually runs from the repository root, so the current working directory `.env` is normally the repository-root `.env` file. Docker Compose, CI, and production can provide the same keys directly as environment variables. Startup validates the required keys after optional `.env` loading, so the physical `.env` file is not required when the environment is already populated.
+
+`.env` loading uses DotNetEnv `NoClobber`, so environment variables already present in the process take precedence over values from the file.
 
 ### Required
 
@@ -88,12 +90,16 @@ These are consumed by `lavalink-server/application.yaml` through Docker Compose,
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
 
-LAVALINK_HOSTNAME=lavalink
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: lavalink
+LAVALINK_HOSTNAME=127.0.0.1
 LAVALINK_PORT=2333
 LAVALINK_SECURED=false
 LAVALINK_PASSWORD=your_password
 
-POSTGRES_HOST=postgres
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: postgres
+POSTGRES_HOST=127.0.0.1
 POSTGRES_PORT=5432
 POSTGRES_DB=dc_bot
 POSTGRES_USER=postgres
@@ -108,7 +114,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ## Persistence Wiring
 
-`BotServiceProviderFactory` registers:
+`BotServiceProviderFactory` calls `AddPersistenceServices(...)`, which registers:
 
 - `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
 - `IGuildDataRepository -> GuildDataRepository`
@@ -117,6 +123,8 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - `IRepeatListRepository -> RepeatListRepository`
 
 `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` checks pending migrations and runs `MigrateAsync()` when needed.
+
+The runtime PostgreSQL connection string is built from the `POSTGRES_*` variables by `BotConfigurationLoader.BuildPostgresConnectionString()`. The current C# startup path does not read `POSTGRES_CONNECTION_STRING` directly.
 
 ## Error Handling
 
@@ -143,5 +151,5 @@ dotnet run --project "DC bot/DC bot.csproj"
 - `Service/BotService.cs` - bot lifecycle management
 - `Service/Core/CommandHandlerService.cs` - command routing
 - `Service/ReactionHandler.cs` - reaction handling
-- `Wrapper/DiscordClientFactory.cs` - Discord client creation
+- `Wrapper/DiscordClientFactory.cs` - direct/test Discord client creation outside the production DI startup path
 - `Wrapper/DiscordClientEventHandler.cs` - Discord lifecycle event handling

@@ -41,17 +41,19 @@ await responseBuilder.SendCommandResponseAsync(message, "play");
 
 **Features:**
 
-- Automatic localization lookup
+- Guild-aware localization lookup with default-language fallback
 - Error handling with try-catch
 - Consistent formatting
 - Wrapped `IDiscordMessage` usage
+- Empty validation error keys are ignored
 
 **Localization Integration:**
 
 ```csharp
-// Retrieves from localization service
-localization.Get(errorKey)
-localization.Get($"{commandName}_command_response")
+var guildId = message.Channel?.Guild?.Id;
+var text = guildId.HasValue
+    ? localization.Get(guildId.Value, key)
+    : localization.Get(key);
 ```
 
 ---

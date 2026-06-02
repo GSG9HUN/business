@@ -33,11 +33,24 @@ Playback orchestration and queue behavior.
 
 Main entry service: `LavaLinkService.cs`
 
+Subcomponents:
+
+- `MusicServices/` - focused music playback, queue, repeat, notification, and connection services
+- `ProgressiveTimer/` - now-playing message update timer
+
 ### Presentation/
 
 Message/embed response construction and sending.
 
-### Persistence
+### SlashCommands/
+
+Slash command execution adapters that turn DSharpPlus interaction contexts into the existing text command pipeline.
+
+Files:
+
+- `SlashCommandExecutor.cs`
+
+## Persistence Boundary
 
 There is no `Service/Persistence/` folder in the current source tree. Persistence contracts and implementations are currently in:
 
@@ -47,7 +60,7 @@ There is no `Service/Persistence/` folder in the current source tree. Persistenc
 ## Service Architecture
 
 ```
-Commands
+Commands / Slash adapters
    ↓
 ICommandHelper / IValidationService
    ↓

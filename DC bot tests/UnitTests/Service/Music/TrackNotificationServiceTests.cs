@@ -1,4 +1,3 @@
-using DC_bot_tests.TestHelperFiles;
 using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
 using DC_bot.Interface;
@@ -82,7 +81,9 @@ public class TrackNotificationServiceTests
         var raised = false;
         service.TrackStarted += (_, msg) =>
         {
-            raised = msg.Description.Contains("Artist") && msg.Description.Contains("Title");
+            raised = msg.Description is not null
+                     && msg.Description.Contains("Artist")
+                     && msg.Description.Contains("Title");
             return Task.CompletedTask;
         };
 

@@ -149,11 +149,13 @@ does not currently call these methods.
 
 ## Filtering by Event ID
 
-### Current Program.cs setup
+### Current startup setup
 
 ```csharp
 .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
 ```
+
+This is configured in `Startup/BotServiceProviderFactory.cs`.
 
 ### In Code
 

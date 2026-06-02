@@ -72,11 +72,10 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         if (hasToken && hasChannel)
         {
             _isConfigured = true;
-            _discordClient = new DiscordClient(new DiscordConfiguration
-            {
-                Token = token,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents | DiscordIntents.GuildMessageReactions
-            });
+            _discordClient = TestDiscordClientFactory.Create(
+                token,
+                DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers | DiscordIntents.MessageContents |
+                DiscordIntents.GuildMessageReactions);
         }
         else
         {
@@ -110,7 +109,8 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         _reactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
-        var wrapper = new DiscordChannelWrapper(channel);
+        var guild = await client.GetGuildAsync(channel.GuildId!.Value);
+        var wrapper = new DiscordChannelWrapper(channel, guild: guild);
         var embed = new DiscordEmbedBuilder().WithTitle("E2E track").Build();
 
         await _lavaLinkServiceMock.RaiseAsync(
@@ -147,10 +147,13 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         _reactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
+        var guild = await client.GetGuildAsync(channel.GuildId!.Value);
+        var member = await guild.GetMemberAsync(client.CurrentUser.Id);
         var message = await channel.SendMessageAsync($"e2e-reaction-added-{emojiName}");
-        await message.CreateReactionAsync(DiscordEmoji.FromName(client, emojiName));
+        var emoji = DiscordEmoji.FromName(client, emojiName);
 
-        await Task.Delay(1200);
+        await _reactionHandler.HandleEventAsync(client,
+            DiscordEventArgsFactory.CreateMessageReactionAdded(message, member, channel, emoji, guild));
 
         _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":pause_button:" ? Times.Once : Times.Never);
@@ -170,17 +173,13 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         _reactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
+        var guild = await client.GetGuildAsync(channel.GuildId!.Value);
+        var member = await guild.GetMemberAsync(client.CurrentUser.Id);
         var message = await channel.SendMessageAsync($"e2e-reaction-removed-{emojiName}");
         var emoji = DiscordEmoji.FromName(client, emojiName);
 
-        await message.CreateReactionAsync(emoji);
-        await Task.Delay(700);
-
-        _lavaLinkServiceMock.Invocations.Clear();
-
-        await message.DeleteOwnReactionAsync(emoji);
-
-        await Task.Delay(1200);
+        await _reactionHandler.HandleEventAsync(client,
+            DiscordEventArgsFactory.CreateMessageReactionRemoved(message, member, channel, emoji, guild));
 
         _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()),
             emojiName == ":arrow_forward:" ? Times.Once : Times.Never);
@@ -201,10 +200,12 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         _productionReactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
         var message = await channel.SendMessageAsync($"bot-ignore-add-{emojiName}");
-        await message.CreateReactionAsync(DiscordEmoji.FromName(client, emojiName));
+        var emoji = DiscordEmoji.FromName(client, emojiName);
 
-        await Task.Delay(1200);
+        await _productionReactionHandler.HandleEventAsync(client,
+            DiscordEventArgsFactory.CreateMessageReactionAdded(message, client.CurrentUser, channel, emoji, guild));
 
         _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), Times.Never);
         _lavaLinkServiceMock.Verify(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), Times.Never);
@@ -222,15 +223,14 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         _productionReactionHandler.RegisterHandler(client);
 
         var channel = await client.GetChannelAsync(_testChannelId);
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
         var message = await channel.SendMessageAsync($"bot-ignore-remove-{emojiName}");
         var emoji = DiscordEmoji.FromName(client, emojiName);
 
-        await message.CreateReactionAsync(emoji);
-        await Task.Delay(700);
         _lavaLinkServiceMock.Invocations.Clear();
 
-        await message.DeleteOwnReactionAsync(emoji);
-        await Task.Delay(1200);
+        await _productionReactionHandler.HandleEventAsync(client,
+            DiscordEventArgsFactory.CreateMessageReactionRemoved(message, client.CurrentUser, channel, emoji, guild));
 
         _lavaLinkServiceMock.Verify(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), Times.Never);
         _lavaLinkServiceMock.Verify(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()), Times.Never);
@@ -246,12 +246,13 @@ public class ReactionHandlerEndToEndTests : IAsyncLifetime
         var client = _discordClient!;
 
         var channel = await client.GetChannelAsync(_testChannelId);
+        var guild = await client.GetGuildAsync(channel.GuildId!.Value);
         var message = await channel.SendMessageAsync("e2e-build-context");
 
         var method = typeof(ReactionHandler).GetMethod("BuildContextAsync", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(method);
 
-        var task = (Task)method.Invoke(null, [message, client.CurrentUser, channel])!;
+        var task = (Task)method.Invoke(null, [message, client.CurrentUser, channel, guild])!;
         await task;
 
         var resultProperty = task.GetType().GetProperty("Result");

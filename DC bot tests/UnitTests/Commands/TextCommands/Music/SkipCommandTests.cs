@@ -1,0 +1,129 @@
+using DC_bot.Commands.TextCommands.Music;
+using DC_bot.Constants;
+using DC_bot.Helper.Validation;
+using DC_bot.Interface.Core;
+using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Presentation;
+using DC_bot.Service.Core;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace DC_bot_tests.UnitTests.Commands.TextCommands.Music;
+
+[Trait("Category", "Unit")]
+public class SkipCommandTests
+{
+    private const string SkipCommandName = "skip";
+    private const string SkipCommandDescriptionValue = "Skip the current song.";
+    private readonly Mock<IDiscordChannel> _channelMock;
+    private readonly Mock<ICommandHelper> _commandHelperMock;
+    private readonly Mock<IDiscordMember> _discordMemberMock;
+    private readonly Mock<IDiscordUser> _discordUserMock;
+    private readonly Mock<IDiscordGuild> _guildMock;
+
+    private readonly Mock<ILavaLinkService> _lavaLinkServiceMock;
+    private readonly Mock<IDiscordMessage> _messageMock;
+    private readonly Mock<IResponseBuilder> _responseBuilderMock;
+    private readonly SkipCommand _skipCommand;
+
+    public SkipCommandTests()
+    {
+        Mock<ILogger<SkipCommand>> loggerMock = new();
+        Mock<ILogger<ValidationService>> validationLoggerMock = new();
+        Mock<ILocalizationService> localizationServiceMock = new();
+
+        localizationServiceMock.Setup(g => g.Get(LocalizationKeys.SkipCommandDescription))
+            .Returns(SkipCommandDescriptionValue);
+
+        _messageMock = new Mock<IDiscordMessage>();
+        _discordUserMock = new Mock<IDiscordUser>();
+        _discordMemberMock = new Mock<IDiscordMember>();
+        _guildMock = new Mock<IDiscordGuild>();
+        _channelMock = new Mock<IDiscordChannel>();
+        _lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        _responseBuilderMock = new Mock<IResponseBuilder>();
+        _commandHelperMock = new Mock<ICommandHelper>();
+
+        var userValidationService = new ValidationService(validationLoggerMock.Object);
+        _skipCommand = new SkipCommand(_lavaLinkServiceMock.Object, userValidationService, loggerMock.Object,
+            _responseBuilderMock.Object, localizationServiceMock.Object, _commandHelperMock.Object);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserIsBot_ShouldDoNothing()
+    {
+        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
+        _discordMemberMock.Setup(dm => dm.IsBot).Returns(true);
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
+
+        await _skipCommand.ExecuteAsync(_messageMock.Object);
+
+
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserNotIn_VoiceChannel()
+    {
+        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
+        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
+        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns((IDiscordVoiceState?)null);
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync((UserValidationResult?)null);
+
+        await _skipCommand.ExecuteAsync(_messageMock.Object);
+
+        _responseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.UserNotInVoiceChannel),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserIn_VoiceChannel()
+    {
+        var mockDiscordVoiceState = new Mock<IDiscordVoiceState>();
+        mockDiscordVoiceState.Setup(vs => vs.Channel).Returns(_channelMock.Object);
+
+        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
+        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
+        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(mockDiscordVoiceState.Object);
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+        _commandHelperMock
+            .Setup(h => h.TryValidateUserAsync(It.IsAny<IUserValidationService>(), It.IsAny<IResponseBuilder>(),
+                It.IsAny<IDiscordMessage>()))
+            .ReturnsAsync(new UserValidationResult(true, string.Empty, _discordMemberMock.Object));
+
+        await _skipCommand.ExecuteAsync(_messageMock.Object);
+
+        _lavaLinkServiceMock.Verify(l => l.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void Command_Name_And_Description_ShouldReturnCorrectValue_WhenCalled()
+    {
+        Assert.Equal(SkipCommandName, _skipCommand.Name);
+        Assert.Equal(SkipCommandDescriptionValue, _skipCommand.Description);
+    }
+}

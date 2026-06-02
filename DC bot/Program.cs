@@ -11,7 +11,7 @@ internal static class Program
 
         if (File.Exists(envPath))
         {
-            Env.Load(envPath);
+            Env.NoClobber().Load(envPath);
         }
 
         await BotApplication.RunAsync();

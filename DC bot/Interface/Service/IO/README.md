@@ -32,11 +32,11 @@ public interface IFileSystem
 **Used By:**
 
 - `Service/LocalizationService.cs` - Read/write language files
-- Tests can provide `InMemoryFileSystem` for localization scenarios
+- Tests can mock this interface or use `PhysicalFileSystem` against a temporary directory
 
 **Benefits:**
 
-- Testable with in-memory file system
+- Testable through mocks or temporary filesystem fixtures
 - Isolates I/O operations
 - Simplifies mocking in tests
 
@@ -45,5 +45,5 @@ public interface IFileSystem
 ## Related Components
 
 - **IO/PhysicalFileSystem.cs** - Production implementation
-- **DC bot tests/Helpers/InMemoryFileSystem.cs** - Test implementation
+- **DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs** - Production implementation tests
 

@@ -14,4 +14,5 @@ These records decouple service logic from EF Core entities and provide stable, t
 ## Notes
 
 - `GuildId` is represented as `ulong` at contract level.
-- Queue item `State` is numeric and mapped by repository logic.
+- `PlaybackStateRecord.QueueItemId` links current playback to a persisted queue item when available.
+- Queue item `State` is numeric and mapped by repository logic to queued, playing, played, or skipped lifecycle states.

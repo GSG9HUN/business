@@ -1,74 +1,80 @@
-﻿# Slash Commands
+# Slash Commands
 
-This folder contains modern Discord slash command implementations.
+This folder contains Discord slash command modules for the bot.
 
-## Overview
+## Current Status
 
-Slash commands are Discord's interaction system that provides:
+Slash commands are active and registered from `Startup/BotServiceProviderFactory.cs` through `DSharpPlus.Commands` with
+`SlashCommandProcessor`.
 
-- Auto-completion
-- Built-in type validation
-- Ephemeral (private) responses
-- Better discoverability
+The modules are intentionally thin adapters:
 
-Current status: these classes are source stubs only. Runtime registration is disabled in the startup composition root, and most command bodies are commented/no-op until slash command support is re-enabled and completed.
+1. DSharpPlus receives the slash interaction through `SlashCommandContext`.
+2. The module wraps the interaction as `ISlashInteractionContext`.
+3. `ISlashCommandExecutor` creates an `IDiscordMessage`-compatible wrapper.
+4. The existing text command implementation executes the real command logic.
+
+This keeps text and slash command behavior aligned and avoids duplicating music, validation, localization, queue, and
+response logic.
+
+## Folder Structure
+
+- `Music/` - playback slash commands.
+- `Queue/` - queue management slash commands.
+- `Utility/` - general bot slash commands.
+
+Each subfolder has its own README with command-specific behavior.
 
 ## Available Slash Commands
 
-- `PlaySlashCommand.cs` - `/play` - source exists, playback logic is commented out
-- `PingSlashCommand.cs` - `/ping` - source exists, response logic is commented out
-- `HelpSlashCommand.cs` - `/help` - source exists, response logic is commented out
-- `TagSlashCommand.cs` - `/tag` - source exists, member lookup/response logic is commented out
+### Music
 
-## Slash Command vs Text Command
+- `/play query:<url-or-search>` -> `PlayCommand`
+- `/join` -> `JoinCommand`
+- `/pause` -> `PauseCommand`
+- `/resume` -> `ResumeCommand`
+- `/skip` -> `SkipCommand`
+- `/leave` -> `LeaveCommand`
 
-| Aspect              | Text Commands  | Slash Commands      |
-|---------------------|----------------|---------------------|
-| Prefix              | `!play`        | `/play`             |
-| Type Safety         | Manual parsing | Built-in validation |
-| Auto-complete       | No             | Yes                 |
-| Discoverability     | Poor           | Excellent           |
-| Ephemeral Responses | No             | Yes                 |
+### Queue
 
-## Structure
+- `/queue` -> `ViewQueueCommand`
+- `/shuffle` -> `ShuffleCommand`
+- `/repeat track` -> `RepeatCommand`
+- `/repeat list` -> `RepeatListCommand`
+- `/clear confirm:<true>` -> `ClearCommand`
 
-Slash commands:
+### Utility
 
-1. Receive an `InteractionContext` instead of `IDiscordMessage`
-2. Use `SlashCommandResponseHelper` for responses
-3. Support options with validation
-4. Can respond ephemerally (only visible to user)
-
-## Implementation Pattern
-
-```csharp
-[SlashCommand("play", "Play music from URL or search query")]
-public async Task Play(
-    InteractionContext ctx,
-    [Option("query", "URL or search query")] string query)
-{
-    await ctx.DeferAsync(); // Must respond within 3 seconds
-    
-    // Execute logic
-    await lavaLinkService.PlayAsync(query);
-    
-    await SlashCommandResponseHelper.RespondAsync(ctx, "Playing...");
-}
-```
-
-## Response Types
-
-- **Deferred Response** - `ctx.DeferAsync()` then `ctx.EditResponseAsync()`
-- **Ephemeral Response** - Only visible to user
-- **Follow-up** - `ctx.FollowUpAsync()` for multiple messages
-
-## Registration
-
-Slash command registration is currently disabled. `Startup/BotServiceProviderFactory.cs` does not register slash command services, so these commands are not active at runtime.
+- `/ping` -> `PingCommand`
+- `/help` -> `HelpCommand`
+- `/tag user:<member>` -> `TagCommand`
+- `/language language:<eng|hu>` -> `LanguageCommand`
 
 ## Related Components
 
-- `Helper/SlashCommandResponseHelper.cs` - Slash response utilities
-- `Commands/` - Text command equivalents
-- `Service/` - Shared business logic
+- `Interface/Service/SlashCommands/ISlashInteractionContext.cs`
+- `Interface/Service/SlashCommands/ISlashInteractionContextFactory.cs`
+- `Interface/Service/SlashCommands/ISlashCommandExecutor.cs`
+- `Service/SlashCommands/SlashCommandExecutor.cs`
+- `Wrapper/SlashInteractionContextFactory.cs`
+- `Wrapper/SlashInteractionContextWrapper.cs`
+- `Wrapper/SlashInteractionMessageWrapper.cs`
 
+## Package Notes
+
+The project uses DSharpPlus `5.0.0-nightly-02574` consistently for the DSharpPlus packages used here. Because the
+DSharpPlus nightly package removes old sharded client types used by the stable Lavalink integration package, the
+DSharpPlus Lavalink adapter is `Lavalink4NET.DSharpPlus.Nightly`.
+
+The legacy `DSharpPlus.SlashCommands` package is intentionally not used.
+
+## Tests
+
+Slash command coverage includes:
+
+- Unit tests for executor behavior and module delegation.
+- Integration tests for startup registration and DI resolution.
+- E2E-category pipeline tests for active slash command adapters.
+
+Live Discord slash invocation requires a user/client-side command trigger and is tracked by the manual smoke checklist.

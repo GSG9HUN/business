@@ -1,7 +1,6 @@
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Sdk;
 
 namespace DC_bot_tests.EndToEndTests.Wrapper;
@@ -24,12 +23,9 @@ public class DiscordMemberWrapperEndToEndTests : IAsyncLifetime
         if (hasToken && hasGuild)
         {
             _isConfigured = true;
-            _discordClient = new DiscordClient(new DiscordConfiguration
-            {
-                Token = token,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers,
-                LoggerFactory = NullLoggerFactory.Instance
-            });
+            _discordClient = TestDiscordClientFactory.Create(
+                token,
+                DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers);
         }
         else
         {
@@ -56,10 +52,8 @@ public class DiscordMemberWrapperEndToEndTests : IAsyncLifetime
     {
         EnsureConfigured();
 
-        if (!_discordClient!.Guilds.TryGetValue(_guildId, out var guild))
-        {
-            throw SkipException.ForSkip($"E2E test guild '{_guildId}' was not available.");
-        }
+        var guild = await _discordClient!.GetGuildAsync(_guildId);
+        Assert.NotNull(guild);
 
         var members = await guild.GetAllMembersAsync();
         return members.FirstOrDefault()

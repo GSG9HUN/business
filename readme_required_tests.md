@@ -4,22 +4,26 @@ This file tracks which test areas are already covered and which test areas are s
 
 ## Executive Summary
 
-**Current automated test inventory:**
+**Current automated test inventory from the latest local run:**
 
-- Unit test methods in source: **531**
-- Integration test methods in source: **22**
-- E2E test methods in source: **40**
-- Total tracked test methods: **593**
+- Non-E2E executed tests: **658 passed**
+- Targeted live guild/music E2E additions: **5 passed** against real Discord, PostgreSQL Testcontainers, and local Lavalink (`LAVALINK_HOSTNAME=127.0.0.1`).
+- Targeted live play/pause/resume/skip/leave music-flow E2E: **1 passed** against real Discord voice and local Lavalink.
+- Slash command targeted E2E: **16 passed**
+- Latest full E2E suite attempt before the focused additions: **68 passed, 1 failed** because Discord returned `RateLimitException: TooManyRequests` during an existing reaction-flow Discord client connect.
 
-The source-method count and the `dotnet test` result count differ because xUnit `[Theory]` tests can produce multiple executed test cases from one method.
+The source-method count and the `dotnet test` result count can differ because xUnit `[Theory]` tests can produce multiple executed test cases from one method.
 
 **Current status:**
 
 - COMPLETE: Core text commands, music services, persistence, startup composition, wrappers, validation, localization, logging/error paths.
 - COMPLETE: PostgreSQL persistence integration coverage through Testcontainers.
-- PARTIAL: E2E coverage exists for Discord lifecycle, command messages, reaction handling, and wrappers.
-- PENDING: Slash command unit tests and slash command E2E tests.
-- PENDING: Full real Lavalink music playback E2E flow.
+- COMPLETE: Targeted integration coverage now includes text command DI, command-handler routing through the real text command list, direct PostgreSQL repositories, queue/repeat/current-track services, track-ended persistence orchestration, and real localization JSON loading.
+- COMPLETE FOR CURRENT AUTOMATED SCOPE: E2E coverage exists for Discord lifecycle, command messages, reaction handling, wrappers, guild initialization, and live music flows.
+- COMPLETE: Slash command unit, integration, and E2E-category pipeline coverage.
+- COMPLETE: BotApplication E2E startup coverage with real Discord, Lavalink settings, and PostgreSQL Testcontainers.
+- CONFIG-GATED: Real Lavalink music-flow E2E coverage exists for play/pause/resume/skip/leave, track-end auto-advance, repeat, repeat-list, and reaction controls when `DISCORD_TEST_VOICE_CHANNEL_ID` is configured.
+- COMPLETE: Live Discord slash invocation manual smoke checklist is documented.
 
 **Required normal verification:**
 
@@ -77,6 +81,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build 
 - [x] `BotSettings`
 - [x] `LavalinkSettings`
 - [x] `SearchResolverOptions`
+- [x] `BotConfigurationLoader` - validates required environment values, trims quoted values, applies defaults, and builds PostgreSQL connection strings.
 
 ### Exceptions - COMPLETE
 
@@ -88,19 +93,29 @@ dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build 
 - [x] `TrackLoadException`
 - [x] `ValidationException`
 
-### SlashCommands - PENDING
+### SlashCommands - COMPLETE
 
-These classes still need a framework-aware testing approach because DSharpPlus slash command classes are harder to instantiate and exercise cleanly in isolated unit tests.
+Slash commands are tested through the framework-facing modules and the shared `ISlashCommandExecutor` pipeline that delegates to the existing text commands.
 
-- [ ] `PlaySlashCommand` - defers response when invoked.
-- [ ] `PlaySlashCommand` - validates user voice channel.
-- [ ] `PlaySlashCommand` - handles URL vs query input.
-- [ ] `PlaySlashCommand` - responds with success or validation error.
-- [ ] `TagSlashCommand` - finds member by username.
-- [ ] `TagSlashCommand` - returns error when member is not found.
-- [ ] `TagSlashCommand` - tags member successfully.
-- [ ] `PingSlashCommand` - responds with `Pong!`.
-- [ ] `HelpSlashCommand` - lists available commands.
+- [x] `PlaySlashCommand` - defers response when invoked.
+- [x] `PlaySlashCommand` - validates user voice channel.
+- [x] `PlaySlashCommand` - handles URL vs query input.
+- [x] `PlaySlashCommand` - responds with success or validation error.
+- [x] `JoinSlashCommand` - delegates to `JoinCommand` and starts queued playback through the shared pipeline.
+- [x] `TagSlashCommand` - exposes a Discord member option as `/tag user:<member>`.
+- [x] `TagSlashCommand.Tag` - wraps the DSharpPlus context and forwards the selected member mention.
+- [x] `TagSlashCommand.ExecuteAsync` - forwards `IDiscordMember.Mention` to the executor.
+- [x] `TagSlashCommand` - tags a member successfully through the shared pipeline.
+- [x] `PingSlashCommand` - responds with `Pong!`.
+- [x] `HelpSlashCommand` - lists available commands.
+- [x] `QueueSlashCommand` - delegates to `ViewQueueCommand`.
+- [x] `ShuffleSlashCommand` - delegates to `ShuffleCommand`.
+- [x] `RepeatSlashCommand` - delegates `track` and `list` subcommands to the matching queue commands.
+- [x] `LanguageSlashCommand` - maps `eng` and `hu` choices to text command arguments.
+- [x] `LanguageSlashCommand` - rejects unsupported enum values without executing the command.
+- [x] `ClearSlashCommand` - requires `confirm:true` before delegating to `ClearCommand`.
+- [x] Slash command module entrypoints wrap DSharpPlus context and delegate to the executor.
+- [x] `SlashCommandExecutor` - handles guild-only, missing-command, deferred fallback, domain exception, and unexpected exception paths.
 
 ### Commands - Utility - COMPLETE
 
@@ -114,6 +129,7 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 - [x] `TagCommand` - handles missing arguments.
 - [x] `TagCommand` - handles not-found users.
 - [x] `TagCommand` - handles case-insensitive and whitespace input.
+- [x] `TagCommand` - handles Discord member mentions from slash command input.
 - [x] `TagCommand` - handles null guild/member edge cases.
 - [x] `LanguageCommand` - returns usage when language is missing.
 - [x] `LanguageCommand` - validates language code.
@@ -209,6 +225,7 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 - [x] `DiscordGuildWrapper`
 - [x] `DiscordMemberWrapper`
 - [x] `DiscordMessageWrapper`
+- [x] `SlashInteractionMessageWrapper`
 - [x] `DiscordUserWrapper`
 - [x] `DiscordVoiceStateWrapper`
 - [x] `LavalinkTrackWrapper`
@@ -223,6 +240,7 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 - [x] `BotApplication.RunAsync` reports missing `DISCORD_TOKEN`.
 - [x] `BotApplication.RunAsync` reports missing `LAVALINK_HOSTNAME`.
 - [x] `BotServiceProviderFactory` registers core services.
+- [x] Startup graph resolves all 15 text command implementations.
 - [x] Full startup graph resolves against PostgreSQL.
 - [x] `DatabaseMigrationRunner` rejects in-memory migration provider.
 - [x] `DatabaseMigrationRunner` applies pending PostgreSQL migrations.
@@ -230,6 +248,9 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 ### PostgreSQL Persistence - COMPLETE
 
 - [x] Playback queue and repeat state survive repository recreation.
+- [x] `GuildDataRepository` persists premium state and expiry behavior.
+- [x] `PlaybackStateRepository` persists repeat flags, current track identifier, and queue item ID.
+- [x] `RepeatListRepository` replaces, orders, and clears repeat-list snapshots.
 - [x] `QueueRepository.ClaimNextQueuedItemAsync` claims the lowest queued item.
 - [x] Concurrent claim does not claim the same queued item twice.
 - [x] Reorder works against PostgreSQL unique position index without constraint collision.
@@ -240,6 +261,16 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 - [x] Unknown command response.
 - [x] DI command resolution.
 - [x] Prefix validation and logging.
+- [x] Fake Discord message events route through the real text command list for `ping`, `help`, `language`, `tag`, one music command, and one queue command.
+
+### SlashCommand Integration - COMPLETE
+
+- [x] Startup graph resolves `ISlashCommandExecutor`.
+- [x] Startup graph resolves `ISlashInteractionContextFactory`.
+- [x] Startup graph resolves slash command modules.
+- [x] DSharpPlus Commands extension resolves from DI with `SlashCommandProcessor`.
+- [x] Startup graph resolves `TagSlashCommand` with a Discord member option.
+- [x] Executor from startup graph executes the slash ping pipeline.
 
 ### LavaLinkService Integration - COMPLETE
 
@@ -255,6 +286,19 @@ These classes still need a framework-aware testing approach because DSharpPlus s
 - [x] Formats track metadata.
 - [x] Handles missing track info gracefully.
 
+### Music Service Persistence Integration - COMPLETE
+
+- [x] `MusicQueueService` enqueues, bulk-enqueues, reorders, dequeues, clears, and reads queue state through real PostgreSQL repositories.
+- [x] `MusicQueueService.GetRepeatableQueue` reads repeat-list snapshots through the real repeat-list repository.
+- [x] `RepeatService` and `CurrentTrackService` share persisted playback state through real repositories.
+- [x] `TrackEndedHandlerService` marks the current queue item played and starts the next queued track with real persistence and mocked playback.
+- [x] `TrackEndedHandlerService` requeues repeat-list snapshots with real persistence and mocked playback.
+
+### Localization Integration - COMPLETE
+
+- [x] Real `localization/eng.json` and `localization/hu.json` files load successfully.
+- [x] Important slash fallback texts exist in both English and Hungarian.
+
 ---
 
 ## Required E2E Tests
@@ -266,17 +310,22 @@ Required E2E settings:
 - `DISCORD_TOKEN`
 - `DISCORD_TEST_GUILD_ID`
 - `DISCORD_TEST_CHANNEL_ID`
-- `LAVALINK_HOSTNAME=lavalink`
+- `DISCORD_TEST_VOICE_CHANNEL_ID`
+- `LAVALINK_HOSTNAME`
+  - Local host run against `docker-compose.yaml`: `127.0.0.1`
+  - CI/container run inside the Docker network: `lavalink`
 - `LAVALINK_PORT=2333`
 - `LAVALINK_SECURED=false`
 - `LAVALINK_PASSWORD`
+- Optional `E2E_MUSIC_TEST_QUERY`; defaults to `Indila - Ainsi Bas La Vida (Marcoz Lima Remix)`.
+- Optional `E2E_MUSIC_SECOND_TEST_QUERY`; defaults to `Daft Punk - Harder Better Faster Stronger`.
 - PostgreSQL settings used by the E2E workflow
 
-### Bot Runtime E2E - PARTIAL
+### Bot Runtime E2E - COMPLETE
 
 - [x] Bot startup/shutdown connects with a real Discord token and resolves the configured guild.
-- [ ] Full bot process startup through `BotApplication` with real Discord, PostgreSQL, and Lavalink service graph.
-- [ ] Full guild-available initialization against live Discord and real persistence state.
+- [x] Full bot process startup through `BotApplication` with real Discord, PostgreSQL, and Lavalink service graph.
+- [x] Full guild-available initialization against live Discord and real persistence state.
 
 ### Command Flow E2E - COMPLETE FOR CURRENT TEXT COMMAND SCOPE
 
@@ -296,34 +345,47 @@ Required E2E settings:
 - [x] `DiscordMessageWrapperFactory` maps real message properties and supports respond/modify.
 - [x] `DiscordClientEventHandler` E2E-style startup dependency calls are covered.
 
-### Reaction Flow E2E - PARTIAL
+### Reaction Flow E2E - COMPLETE FOR CURRENT AUTOMATED SCOPE
 
 - [x] Sends reaction control message when track-started event is raised.
 - [x] Reaction add in test mode calls expected Lavalink operation.
 - [x] Reaction remove in test mode calls expected Lavalink operation.
 - [x] Bot-authored reactions are ignored outside test mode.
 - [x] Real Discord object context builds expected guild ID.
-- [ ] Full reaction flow with real Lavalink playback state.
+- [x] Full reaction flow with real Lavalink playback state.
 
-### Music Flow E2E - PENDING
+### Music Flow E2E - CONFIG-GATED
 
-- [ ] Bot joins voice channel with real Lavalink.
-- [ ] `!play [URL]` plays a track in a real voice channel.
-- [ ] `!play [query]` searches and plays a track in a real voice channel.
-- [ ] `!pause` pauses current playback.
-- [ ] `!resume` resumes current playback.
-- [ ] `!skip` skips to the next queued track.
-- [ ] Track end auto-advances to the next track.
-- [ ] `!repeat` repeats current track.
-- [ ] `!repeatlist` cycles through queue snapshot.
-- [ ] `!leave` disconnects and clears player state.
+- [x] Bot joins voice channel with real Lavalink when `DISCORD_TEST_VOICE_CHANNEL_ID` is configured.
+- [x] `!play [query-or-url]` plays a configured track in a real voice channel when live music E2E settings are present.
+- [x] Live music-flow test publishes visible Discord chat markers for each command step.
+- [x] Live music-flow test registers the production `ReactionHandler`, sends the now-playing control message, and verifies progressive timer message updates.
+- [x] `!pause` pauses current playback in the live music-flow test.
+- [x] `!resume` resumes current playback in the live music-flow test.
+- [x] `!skip` skips/stops current playback in the live music-flow test.
+- [x] Track end auto-advances to the next track.
+- [x] `!repeat` repeats current track.
+- [x] `!repeatlist` cycles through queue snapshot.
+- [x] `!leave` disconnects and clears player state in the live music-flow test.
 
-### SlashCommand E2E - PENDING
+### SlashCommand E2E - PIPELINE COMPLETE
 
-- [ ] `/play [query]` plays track via slash command.
-- [ ] `/tag [username]` tags member via slash command.
-- [ ] `/ping` responds with `Pong!`.
-- [ ] `/help` lists commands.
+- [x] `/play [query]` reaches the existing play command path via slash pipeline.
+- [x] `/join` reaches the existing join command path via slash pipeline.
+- [x] `/tag user:<member>` reaches the existing tag command path via slash pipeline.
+- [x] `/ping` responds with `Pong!` via slash pipeline.
+- [x] `/help` lists commands via slash pipeline.
+- [x] `/skip`, `/pause`, `/resume`, and `/leave` reach the existing music control command paths.
+- [x] `/queue` reaches the existing queue display command path.
+- [x] `/shuffle` reaches the existing shuffle command path.
+- [x] `/repeat track` and `/repeat list` reach the existing repeat command paths.
+- [x] `/language hu` saves the selected language and returns a localized Hungarian response.
+- [x] `/clear confirm:true` clears the queue through the existing clear command path.
+- [x] `/clear confirm:false` does not clear the queue.
+
+Live Discord slash invocation remains a manual/external-client validation area because bots cannot self-invoke application commands as a user.
+
+Manual smoke checklist: `DC bot tests/EndToEndTests/Commands/SlashCommands/live_slash_invocation_smoke_checklist.md`.
 
 ---
 
@@ -331,15 +393,14 @@ Required E2E settings:
 
 ### High Priority
 
-1. Add slash command tests or extract slash command logic into testable services.
-2. Add real Lavalink music-flow E2E tests for play/pause/resume/skip/leave.
-3. Add full `BotApplication` E2E startup coverage with real external services.
+1. Keep `DISCORD_TEST_VOICE_CHANNEL_ID` configured in CI/local E2E environments so the live Lavalink music-flow test exercises the real voice-channel path.
+2. Execute the live slash invocation smoke checklist with a real Discord client before release.
+3. Keep `E2E_MUSIC_TEST_QUERY` and `E2E_MUSIC_SECOND_TEST_QUERY` stable enough for queue, repeat, and repeat-list E2E coverage.
 
 ### Medium Priority
 
 1. Keep PostgreSQL integration tests in sync with every new migration.
-2. Add E2E coverage for repeat and repeat-list behavior after basic playback E2E is stable.
-3. Add workflow smoke verification when Docker, Lavalink, or E2E config changes.
+2. Add workflow smoke verification when Docker, Lavalink, or E2E config changes.
 
 ### Low Priority
 
@@ -351,17 +412,87 @@ Required E2E settings:
 
 ## Current Verification Result
 
-Last local verification run:
+Last local verification run after the targeted integration expansion:
 
 ```text
-dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --filter "Category!=E2E"
+dotnet build "DC bot.sln" --configuration Debug --no-restore
 
-Passed: 576
+Warnings: 0
+Errors: 0
+
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category!=E2E"
+
+Passed: 658
 Failed: 0
 Skipped: 0
 ```
 
-E2E tests were not run locally in this pass because they require real Discord/Lavalink configuration.
+Integration verification after adding targeted DI, command-handler, repository, music-service, track-ended, and localization coverage:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Integration"
+
+Passed: 41
+Failed: 0
+Skipped: 0
+```
+
+Focused live E2E verification for the newly automated gaps:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "FullyQualifiedName~GuildAvailable_WithRealDiscordAndPostgreSql_InitializesGuildDataAndPlaybackState|FullyQualifiedName~TrackEnded_WithQueuedTrack_AutoAdvancesToNextTrack|FullyQualifiedName~RepeatCommand_WithRealPlayback_ReplaysCurrentTrackAfterTrackEnd|FullyQualifiedName~RepeatListCommand_WithRealPlayback_RequeuesSnapshotAfterQueueEnds|FullyQualifiedName~ReactionControls_WithRealPlayback_InvokeLavalinkOperations"
+
+Passed: 5
+Failed: 0
+Skipped: 0
+```
+
+Focused live verification for the live music-flow fixture and play/pause/resume/skip/leave test:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "FullyQualifiedName~MusicCommands_WithRealDiscordAndLavalink_PlayPauseResumeSkipLeave"
+
+Passed: 1
+Failed: 0
+Skipped: 0
+```
+
+Previous full E2E suite run with real Discord configuration:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=E2E"
+
+Passed: 68
+Failed: 1
+Skipped: 0
+
+Failure:
+DC_bot_tests.EndToEndTests.Service.ReactionHandlerEndToEndTests.OnReactionAdded_WhenBotAddsReaction_AndIsTestModeFalse_DoesNotCallLavaLinkOperations(emojiName: ":track_next:")
+DSharpPlus.Exceptions.RateLimitException: Rate limited: TooManyRequests
+
+Local host execution used `LAVALINK_HOSTNAME=127.0.0.1`; `lavalink` is only resolvable from inside the Docker network.
+```
+
+Slash command targeted verification:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "FullyQualifiedName~SlashCommand"
+Passed: 75
+Failed: 0
+Skipped: 0
+
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Integration&FullyQualifiedName~SlashCommand"
+Passed: 7
+Failed: 0
+Skipped: 0
+
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=E2E&FullyQualifiedName~SlashCommand"
+Passed: 16
+Failed: 0
+Skipped: 0
+```
+
+Full live playback execution is implemented and has targeted passing runs for `play/pause/resume/skip/leave`, track-end auto-advance, `!repeat`, `!repeatlist`, and reaction controls with real Discord voice, Lavalink, and PostgreSQL Testcontainers.
 
 ---
 

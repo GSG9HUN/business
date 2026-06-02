@@ -13,14 +13,14 @@ This folder contains exceptions for music playback operations.
 **When Thrown:**
 
 ```csharp
-// In LavaLinkService.ConnectAsync()
+// In LavalinkNodeConnectionService.ConnectAsync()
 catch (Exception ex)
 {
     throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
 }
 ```
 
-**Usage:** Thrown when connecting to the Lavalink audio server fails.
+**Usage:** Thrown when starting the Lavalink audio service or waiting for the node readiness signal fails.
 
 ---
 
@@ -35,27 +35,15 @@ catch (Exception ex)
 
 **When Thrown:**
 
-### 1. Queue Reorder Persist Failure
+`QueueOperationException` is defined for queue persistence failure boundaries, but production code currently does not
+throw it. `MusicQueueService` now lets repository exceptions bubble naturally and uses validation/logging for expected
+queue states.
 
 ```csharp
-// In MusicQueueService.SetQueue()
-catch (Exception ex)
-{
-    throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
-}
+throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
 ```
 
-### 2. Queue Read Failure
-
-```csharp
-// In MusicQueueService.ViewQueue()
-catch (Exception ex)
-{
-    throw new QueueOperationException("ViewQueue", guildId, "Failed to read persisted queue", ex);
-}
-```
-
-**Usage:** Thrown when queue persistence operations fail.
+**Usage:** Reserved for future queue-specific exception wrapping.
 
 ---
 
@@ -69,71 +57,56 @@ catch (Exception ex)
 
 **When Thrown:**
 
-### 1. Track Load from URL Failure
+### 1. Track Load Failure
 
 ```csharp
-// In LavaLinkService.PlayAsyncUrl()
+// In PlaybackRequestService.PlayAsync()
 catch (Exception ex)
 {
-    throw new TrackLoadException(url.ToString(), "Failed to load track from URL", ex);
-}
-
-// Or when no tracks returned
-if (loadResult.Tracks.Count == 0)
-{
-    throw new TrackLoadException(url.ToString(), "Track not found or load failed");
+    throw new TrackLoadException(query, loadFailureMessage, ex);
 }
 ```
 
-### 2. Track Load from Query Failure
+### 2. No Track Returned
 
 ```csharp
-// In LavaLinkService.PlayAsyncQuery()
-catch (Exception ex)
-{
-    throw new TrackLoadException(query, "Failed to load track from query", ex);
-}
-
-// Or when no tracks returned
-if (loadResult.Tracks.Count == 0)
+if (loadResult.Track is null || loadResult.IsFailed)
 {
     throw new TrackLoadException(query, "Track not found or load failed");
 }
 ```
 
-**Usage:** Thrown when track loading/searching fails via Lavalink.
+**Usage:** Thrown when track loading/searching fails via Lavalink for URL and query requests.
 
 ---
 
 ## Usage in Code
 
-### LavaLinkService.cs
+### LavalinkNodeConnectionService.cs
 
 - `LavalinkOperationException` - Lavalink connection failures
+
+### PlaybackRequestService.cs
+
 - `TrackLoadException` - Track loading from URLs or search queries
 
 ### MusicQueueService.cs
 
-- `QueueOperationException` - Queue persistence operation failures
+- Does not currently throw `QueueOperationException`
 
 ## Handling
 
-Commands and services catch these exceptions:
+Music exceptions bubble to the shared command execution boundaries. `CommandHandlerService`, `SlashCommandExecutor`, and
+reaction handling catch `BotException` and log the command or operation failure.
 
 ```csharp
 try
 {
-    await lavaLinkService.PlayAsyncUrl(channel, url, message, mode);
+    await command.ExecuteAsync(message);
 }
-catch (TrackLoadException ex)
+catch (BotException botEx)
 {
-    logger.LogWarning(ex, "Track not found: {Query}", ex.Query);
-    await responseBuilder.SendErrorAsync(message, "track_not_found");
-}
-catch (LavalinkOperationException ex)
-{
-    logger.LogError(ex, "Lavalink error: {Operation}", ex.Operation);
-    await responseBuilder.SendErrorAsync(message, "playback_error");
+    logger.CommandExecutionFailed(botEx, commandName);
 }
 ```
 

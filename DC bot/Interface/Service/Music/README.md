@@ -89,5 +89,6 @@ Contains `IProgressiveTimerService`, which starts/stops per-guild timer updates 
 
 - **Service/Music/LavaLinkService.cs** - Main service
 - **Service/Music/MusicServices/** - Granular services
-- **Commands/Music/** - Use these interfaces
+- **Commands/TextCommands/Music/** - Text commands that use these interfaces
+- **Commands/SlashCommands/Music/** - Slash adapters that reach these interfaces through the text command pipeline
 

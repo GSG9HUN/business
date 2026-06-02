@@ -6,7 +6,6 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Service;
-using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,12 +26,7 @@ public class ReactionHandlerTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
@@ -68,12 +62,7 @@ public class ReactionHandlerTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
@@ -108,12 +97,7 @@ public class ReactionHandlerTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
@@ -150,12 +134,7 @@ public class ReactionHandlerTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
@@ -190,12 +169,7 @@ public class ReactionHandlerTests
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         localizationServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns("test");
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = "test-token",
-            Intents = DiscordIntents.AllUnprivileged
-        };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
@@ -521,8 +495,7 @@ public class ReactionHandlerTests
         var sendException = new InvalidOperationException("Discord API failure");
         channelMock.Setup(x => x.ToDiscordChannel()).Throws(sendException);
 
-        var discordConfig = new DiscordConfiguration { Token = "test-token", Intents = DiscordIntents.AllUnprivileged };
-        var discordClient = new DiscordClient(discordConfig);
+        var discordClient = TestDiscordClientFactory.Create("test-token");
 
         var reactionHandler = new ReactionHandler(
             lavaLinkServiceMock.Object,
