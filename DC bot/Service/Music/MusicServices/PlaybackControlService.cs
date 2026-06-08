@@ -110,8 +110,8 @@ public class PlaybackControlService(
 
         try
         {
-            if (connection.CurrentTrack != null) await connection.StopAsync();
             await playbackEventHandlerService.CleanupGuildAsync(guildId).ConfigureAwait(false);
+            if (connection.CurrentTrack != null) await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
             await connection.DisconnectAsync().ConfigureAwait(false);
             logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);

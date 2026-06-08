@@ -6,7 +6,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Wrapper;
 
-public class DiscordChannelWrapper(DiscordChannel discordChannel, ILogger<DiscordChannelWrapper>? logger = null)
+public class DiscordChannelWrapper(
+    DiscordChannel discordChannel,
+    ILogger<DiscordChannelWrapper>? logger = null,
+    DiscordGuild? guild = null)
     : IDiscordChannel
 {
     private readonly ILogger<DiscordChannelWrapper> _logger = logger ?? NullLogger<DiscordChannelWrapper>.Instance;
@@ -38,7 +41,8 @@ public class DiscordChannelWrapper(DiscordChannel discordChannel, ILogger<Discor
         }
     }
 
-    public IDiscordGuild Guild => new DiscordGuildWrapper(discordChannel.Guild);
+    public IDiscordGuild Guild => new DiscordGuildWrapper(
+        guild ?? discordChannel.Guild ?? throw new InvalidOperationException("Discord channel has no guild context."));
 
     public DiscordChannel ToDiscordChannel()
     {

@@ -2,7 +2,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Sdk;
 
 namespace DC_bot_tests.EndToEndTests.Wrapper;
@@ -28,12 +27,9 @@ public class DiscordChannelWrapperEndToEndTests : IAsyncLifetime
         if (hasToken && hasGuild && hasChannel)
         {
             _isConfigured = true;
-            _discordClient = new DiscordClient(new DiscordConfiguration
-            {
-                Token = token,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents,
-                LoggerFactory = NullLoggerFactory.Instance
-            });
+            _discordClient = TestDiscordClientFactory.Create(
+                token,
+                DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents);
         }
         else
         {

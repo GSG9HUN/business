@@ -25,8 +25,13 @@ public class DiscordGuildWrapper(DiscordGuild discordGuild) : IDiscordGuild
 
     public async Task<IReadOnlyCollection<IDiscordMember>> GetAllMembersAsync()
     {
-        var discordMembers = await discordGuild.GetAllMembersAsync();
-        var discordMembersWrapper = discordMembers.Select(x => new DiscordMemberWrapper(x)).ToList();
+        var discordMembersWrapper = new List<IDiscordMember>();
+
+        await foreach (var discordMember in discordGuild.GetAllMembersAsync())
+        {
+            discordMembersWrapper.Add(new DiscordMemberWrapper(discordMember));
+        }
+
         return discordMembersWrapper;
     }
 }

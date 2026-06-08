@@ -16,7 +16,7 @@ public class TrackFormatterServiceIntegrationTests
 
         var repoMock = new Mock<IPlaybackStateRepository>();
         var currentTrack = CreateTrackMock("CurrentAuthor", "CurrentTitle");
-        repoMock.Setup(r => r.GetOrCreateAsync(guildId, default))
+        repoMock.Setup(r => r.GetOrCreateAsync(guildId, CancellationToken.None))
             .ReturnsAsync(new PlaybackStateRecord(
                 guildId,
                 false,
@@ -27,7 +27,7 @@ public class TrackFormatterServiceIntegrationTests
 
         var currentTrackServiceMock = new Mock<ICurrentTrackService>();
         currentTrackServiceMock
-            .Setup(s => s.GetCurrentTrackAsync(guildId, default))
+            .Setup(s => s.GetCurrentTrackAsync(guildId, CancellationToken.None))
             .ReturnsAsync(currentTrack.Object);
 
         var queueServiceMock = new Mock<IMusicQueueService>();
@@ -38,8 +38,8 @@ public class TrackFormatterServiceIntegrationTests
 
         queueServiceMock
             .SetupSequence(q => q.ViewQueue(guildId))
-            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { trackA.Object, trackB.Object })
-            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { trackB.Object });
+            .ReturnsAsync(new List<ILavaLinkTrack> { trackA.Object, trackB.Object })
+            .ReturnsAsync(new List<ILavaLinkTrack> { trackB.Object });
 
         var beforeDequeue = await formatter.FormatCurrentTrackListAsync(guildId);
         var afterDequeue = await formatter.FormatCurrentTrackListAsync(guildId);
@@ -61,10 +61,10 @@ public class TrackFormatterServiceIntegrationTests
 
         var currentTrackServiceMock = new Mock<ICurrentTrackService>();
         currentTrackServiceMock
-            .Setup(s => s.GetCurrentTrackAsync(guildA, default))
+            .Setup(s => s.GetCurrentTrackAsync(guildA, CancellationToken.None))
             .ReturnsAsync(aCurrentTrack.Object);
         currentTrackServiceMock
-            .Setup(s => s.GetCurrentTrackAsync(guildB, default))
+            .Setup(s => s.GetCurrentTrackAsync(guildB, CancellationToken.None))
             .ReturnsAsync(bCurrentTrack.Object);
 
         var queueServiceMock = new Mock<IMusicQueueService>();
@@ -72,10 +72,10 @@ public class TrackFormatterServiceIntegrationTests
 
         queueServiceMock
             .Setup(q => q.ViewQueue(guildA))
-            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { aQueueTrack.Object });
+            .ReturnsAsync(new List<ILavaLinkTrack> { aQueueTrack.Object });
         queueServiceMock
             .Setup(q => q.ViewQueue(guildB))
-            .ReturnsAsync((IReadOnlyCollection<ILavaLinkTrack>)new List<ILavaLinkTrack> { bQueueTrack.Object });
+            .ReturnsAsync(new List<ILavaLinkTrack> { bQueueTrack.Object });
 
         var resultA = await formatter.FormatCurrentTrackListAsync(guildA);
         var resultB = await formatter.FormatCurrentTrackListAsync(guildB);

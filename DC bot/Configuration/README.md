@@ -54,15 +54,33 @@ var commandHandler = new CommandHandlerService(..., botSettings);
 
 **Purpose:** Music search resolution options.
 
+```csharp
+public sealed class SearchResolverOptions
+{
+    public string DefaultQueryMode { get; set; } = "yt";
+}
+```
+
 **Properties:**
 
-- `DefaultQueryMode` - Default search mode (YouTube, Spotify, etc.)
+- `DefaultQueryMode` - Default search mode for plain text queries. Supported configured values are:
+  - `yt` or any unknown value -> YouTube
+  - `ytm` -> YouTube Music
+  - `sc` -> SoundCloud
+  - `sp` -> Spotify
+
+`TrackSearchResolverService` also detects explicit query prefixes such as `spotify:`, `soundcloud:`, `youtube:`,
+`youtubemusic:`, `applemusic:`, `deezer:`, `yandexmusic:`, and `bandcamp:`. Absolute URLs are resolved from their host
+where possible.
+
+**Current runtime note:** `SearchResolverOptions` currently uses its code default unless tests or future startup code
+provide an `IOptions<SearchResolverOptions>` value. There is no environment variable mapping for this option yet.
 
 ---
 
 ## Configuration Sources
 
-Runtime configuration currently comes from `.env` through DotNetEnv and `Environment.GetEnvironmentVariable(...)`.
+Runtime configuration comes from environment variables. `Program.cs` loads repository-root `.env` values through DotNetEnv when the file exists; Docker Compose, CI, and production can provide the same keys directly.
 
 1. **Bot**
    ```env
@@ -72,7 +90,9 @@ Runtime configuration currently comes from `.env` through DotNetEnv and `Environ
 
 2. **Lavalink connection**
    ```env
-   LAVALINK_HOSTNAME=lavalink
+   # Host dotnet run/tests against docker-compose: 127.0.0.1
+   # Bot running inside Docker Compose network: lavalink
+   LAVALINK_HOSTNAME=127.0.0.1
    LAVALINK_PORT=2333
    LAVALINK_SECURED=false
    LAVALINK_PASSWORD=CHANGE_ME
@@ -102,6 +122,6 @@ The provider secrets are consumed by `lavalink-server/application.yaml` through 
 
 - **Startup/BotConfigurationLoader.cs** - Configuration loading
 - **Startup/BotServiceProviderFactory.cs** - Configuration injection
-- **Service/** - Consumes configuration
-- **Interface/Service/** - Configuration injection
+- **Service/Music/TrackSearchResolverService.cs** - Uses `SearchResolverOptions`
+- **Service/Core/CommandHandlerService.cs** - Uses `BotSettings`
 

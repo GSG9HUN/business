@@ -39,11 +39,11 @@ var content = fileSystem.ReadAllText(path);
 **Used By:**
 
 - `Service/LocalizationService.cs` - Language file operations
-- Tests can substitute `InMemoryFileSystem` for file-backed localization scenarios
+- `DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs` - Verifies filesystem behavior with a temporary test directory
 
 ## Related Components
 
 - **Interface/Service/IO/IFileSystem.cs** - Interface contract
 - **Service/LocalizationService.cs** - Uses for language files
-- **DC bot tests/Helpers/InMemoryFileSystem.cs** - Test implementation
+- **DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs** - Unit coverage for this implementation
 

@@ -57,5 +57,10 @@
   "skip": "Átugrás",
   "repeat": "Ismétlés",
   "clear_command_description": "Kitörli a zenéket a lejátszási listából.",
-  "clear_command_response": "A lejátszási lista kiürítve."
+  "clear_command_response": "A lejátszási lista kiürítve.",
+  "clear_command_confirmation_required": "A lejátszási lista törléséhez állítsd a confirm értékét true-ra.",
+  "slash_command_guild_only": "Ez a parancs csak szerveren használható.",
+  "slash_command_deferred_accepted": "A kérés elfogadva.",
+  "slash_command_not_registered": "A(z) '{0}' parancs nincs regisztrálva.",
+  "slash_command_unexpected_error": "Váratlan hiba történt a parancs futtatása közben."
 }

@@ -22,11 +22,9 @@ public class DiscordMessageWrapperFactoryEndToEndTests : IAsyncLifetime
         if (hasToken && hasChannel)
         {
             _isConfigured = true;
-            _discordClient = new DiscordClient(new DiscordConfiguration
-            {
-                Token = token,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
-            });
+            _discordClient = TestDiscordClientFactory.Create(
+                token,
+                DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents);
         }
         else
         {

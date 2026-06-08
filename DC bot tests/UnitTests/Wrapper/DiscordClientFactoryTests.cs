@@ -11,7 +11,7 @@ public class DiscordClientFactoryTests
     {
         var settings = new BotSettings { Token = "valid_test_token" };
 
-        using var client = DiscordClientFactory.Create(settings);
+        var client = DiscordClientFactory.Create(settings);
 
         Assert.NotNull(client);
     }
@@ -21,8 +21,8 @@ public class DiscordClientFactoryTests
     {
         var settings = new BotSettings { Token = "valid_test_token" };
 
-        using var firstClient = DiscordClientFactory.Create(settings);
-        using var secondClient = DiscordClientFactory.Create(settings);
+        var firstClient = DiscordClientFactory.Create(settings);
+        var secondClient = DiscordClientFactory.Create(settings);
 
         Assert.NotSame(firstClient, secondClient);
     }

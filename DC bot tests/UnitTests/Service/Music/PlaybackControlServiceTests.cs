@@ -290,12 +290,25 @@ public class PlaybackControlServiceTests
     [Fact]
     public async Task LeaveVoiceChannel_ValidConnection_CurrentTrackExists_StopsCleansDisconnects()
     {
+        var calls = new List<string>();
         _playerMock.SetupGet(p => p.CurrentTrack).Returns(new LavalinkTrack
         {
             Author = "Artist",
             Title = "Current",
             Identifier = "current-id"
         });
+        _playbackEventHandlerServiceMock
+            .Setup(h => h.CleanupGuildAsync(GuildId))
+            .Callback(() => calls.Add("cleanup"))
+            .Returns(Task.CompletedTask);
+        _playerMock
+            .Setup(p => p.StopAsync(CancellationToken.None))
+            .Callback(() => calls.Add("stop"))
+            .Returns(new ValueTask());
+        _playerMock
+            .Setup(p => p.DisconnectAsync(CancellationToken.None))
+            .Callback(() => calls.Add("disconnect"))
+            .Returns(new ValueTask());
 
         _playerConnectionServiceMock
             .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
@@ -307,6 +320,7 @@ public class PlaybackControlServiceTests
         _playbackEventHandlerServiceMock.Verify(h => h.CleanupGuildAsync(GuildId), Times.Once);
         _progressiveTimerServiceMock.Verify(t => t.Stop(GuildId), Times.Once);
         _playerMock.Verify(p => p.DisconnectAsync(CancellationToken.None), Times.Once);
+        Assert.Equal(["cleanup", "stop", "disconnect"], calls);
     }
 
     [Fact]

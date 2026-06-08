@@ -9,6 +9,7 @@ namespace DC_bot_tests.UnitTests.Service.Presentation;
 [Trait("Category", "Unit")]
 public class ResponseBuilderTests
 {
+    private const ulong GuildId = 123UL;
     private readonly Mock<ILocalizationService> _mockLocalizationService;
     private readonly Mock<IDiscordMessage> _mockMessage;
     private readonly ResponseBuilder _responseBuilder;
@@ -18,6 +19,11 @@ public class ResponseBuilderTests
         _mockLocalizationService = new Mock<ILocalizationService>();
         _responseBuilder = new ResponseBuilder(_mockLocalizationService.Object, NullLogger<ResponseBuilder>.Instance);
         _mockMessage = new Mock<IDiscordMessage>();
+
+        SetupMessageGuild();
+        _mockLocalizationService
+            .Setup(x => x.Get(GuildId, It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns<ulong, string, object[]>((_, key, _) => _mockLocalizationService.Object.Get(key));
     }
 
     #region Exception Handling Tests
@@ -159,6 +165,7 @@ public class ResponseBuilderTests
         foreach (var cmd in commands)
         {
             _mockMessage.Reset();
+            SetupMessageGuild();
             _mockMessage
                 .Setup(x => x.RespondAsync($"Usage: !{cmd}"))
                 .Returns(Task.CompletedTask);
@@ -301,4 +308,15 @@ public class ResponseBuilderTests
     }
 
     #endregion
+
+    private void SetupMessageGuild()
+    {
+        var guild = new Mock<IDiscordGuild>();
+        guild.SetupGet(x => x.Id).Returns(GuildId);
+
+        var channel = new Mock<IDiscordChannel>();
+        channel.SetupGet(x => x.Guild).Returns(guild.Object);
+
+        _mockMessage.SetupGet(x => x.Channel).Returns(channel.Object);
+    }
 }

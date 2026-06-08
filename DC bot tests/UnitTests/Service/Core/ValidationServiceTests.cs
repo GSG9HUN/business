@@ -28,7 +28,7 @@ public class ValidationServiceTests
         var audioServiceMock = new Mock<IAudioService>();
         ulong guildId = 12345;
 
-        audioServiceMock.Setup(a => a.Players.GetPlayerAsync(guildId, default))
+        audioServiceMock.Setup(a => a.Players.GetPlayerAsync(guildId, CancellationToken.None))
             .ReturnsAsync((ILavalinkPlayer?)null);
 
         _localizationServiceMock.Setup(l => l.Get(ValidationErrorKeys.LavalinkError))
@@ -48,7 +48,7 @@ public class ValidationServiceTests
         ulong guildId = 12345;
 
         var mockPlayer = new Mock<ILavalinkPlayer>();
-        audioServiceMock.Setup(a => a.Players.GetPlayerAsync(guildId, default))
+        audioServiceMock.Setup(a => a.Players.GetPlayerAsync(guildId, CancellationToken.None))
             .ReturnsAsync(mockPlayer.Object);
 
         var result = await _validationService.ValidatePlayerAsync(audioServiceMock.Object, guildId);
@@ -98,6 +98,21 @@ public class ValidationServiceTests
         Assert.True(result.IsValid);
         Assert.NotNull(result.Connection);
         textChannelMock.Verify(t => t.SendMessageAsync("Bot is not connected to a voice channel."), Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateConnectionAsync_PlayerHasVoiceChannelBeforeConnectionUpdate_ReturnsTrue()
+    {
+        var lavalinkPlayer = new Mock<ILavalinkPlayer>();
+
+        lavalinkPlayer.SetupGet(l => l.ConnectionState).Returns(new PlayerConnectionState(false, null));
+        lavalinkPlayer.SetupGet(l => l.State).Returns(PlayerState.NotPlaying);
+        lavalinkPlayer.SetupGet(l => l.VoiceChannelId).Returns(67890UL);
+
+        var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(lavalinkPlayer.Object, result.Connection);
     }
 
     [Fact]

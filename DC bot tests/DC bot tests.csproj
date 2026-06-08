@@ -15,19 +15,18 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="DotNetEnv" Version="3.1.1" />
-        <PackageReference Include="DSharpPlus" Version="5.0.0" />
+        <PackageReference Include="DSharpPlus" Version="5.0.0-nightly-02574" />
+        <PackageReference Include="DSharpPlus.Commands" Version="5.0.0-nightly-02574" />
         <PackageReference Include="DSharpPlus.CommandsNext" Version="5.0.0-nightly-02574" />
         <PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0-nightly-02574" />
-        <PackageReference Include="DSharpPlus.Rest" Version="5.0.0" />
-        <PackageReference Include="DSharpPlus.SlashCommands" Version="5.0.0-nightly-02574" />
         <PackageReference Include="DSharpPlus.VoiceNext" Version="5.0.0-nightly-02574" />
-        <PackageReference Include="Lavalink4NET" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.Abstractions" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.DSharpPlus" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.Lyrics" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.Protocol" Version="4.2.0" />
-        <PackageReference Include="Lavalink4NET.Rest" Version="4.2.0" />
+        <PackageReference Include="Lavalink4NET" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.Abstractions" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.DSharpPlus.Nightly" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.Lyrics" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.Protocol" Version="4.2.1" />
+        <PackageReference Include="Lavalink4NET.Rest" Version="4.2.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
@@ -52,6 +51,13 @@
 
     <ItemGroup>
         <ProjectReference Include="..\DC bot\DC bot.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UnitTests\Commands\SlashCommands\Music\" />
+      <Folder Include="UnitTests\Commands\SlashCommands\Queue\" />
+      <Folder Include="UnitTests\Commands\SlashCommands\Utility\" />
+      <Folder Include="UnitTests\Commands\TextCommands\" />
     </ItemGroup>
 
 </Project>

@@ -25,7 +25,7 @@ public interface ICommand
 }
 ```
 
-**Implementations:** All classes in `Commands/` (except SlashCommands)
+**Implementations:** Classes in `Commands/TextCommands/`
 
 ---
 
@@ -94,12 +94,14 @@ Service layer interfaces grouped by domain.
 - `Music/` - Music and playback services
 - `Persistence/` - Repository contracts and persistence DTOs
 - `Presentation/` - Response building
+- `SlashCommands/` - Slash command adapter contracts
 
 ---
 
 ## Related Components
 
-- **Commands/** - Implement `ICommand`
+- **Commands/TextCommands/** - Implement `ICommand`
+- **Commands/SlashCommands/** - Use slash adapter contracts and delegate to `ICommand`
 - **Service/** - Implement service interfaces
 - **Wrapper/** - Implement Discord interfaces
 

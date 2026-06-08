@@ -15,20 +15,20 @@ This folder contains exceptions for localization system errors.
 ### 1. File Read Failure
 
 ```csharp
-// In LocalizationService.ReadJson<T>()
+// In LocalizationService.ReadJson<T>(filePath, languageCode)
 catch (Exception ex)
 {
-    throw new LocalizationException(_lang ?? "unknown", $"Failed to read JSON file: {filePath}", ex);
+    throw new LocalizationException(languageCode, $"Failed to read JSON file: {filePath}", ex);
 }
 ```
 
 ### 2. File Write Failure
 
 ```csharp
-// In LocalizationService.WriteJson<T>()
+// In LocalizationService.WriteJson<T>(filePath, value, languageCode)
 catch (Exception ex)
 {
-    throw new LocalizationException(_lang ?? "unknown", $"Failed to write JSON file: {filePath}", ex);
+    throw new LocalizationException(languageCode, $"Failed to write JSON file: {filePath}", ex);
 }
 ```
 
@@ -52,17 +52,18 @@ if (!_fileSystem.FileExists(filePath))
 
 ## Handling
 
-Commands and services catch this exception to handle language loading failures:
+`LanguageCommand` catches this exception when saving a guild language fails. Other localization loading paths allow the
+domain exception to bubble to the command handler or slash executor, where it is logged as a bot exception.
 
 ```csharp
 try
 {
-    await localizationService.LoadLanguageAsync(languageCode);
+    localizationService.SaveLanguage(message.Channel.Guild.Id, language);
 }
 catch (LocalizationException ex)
 {
-    logger.LogWarning(ex, "Failed to load language: {LanguageCode}", ex.LanguageCode);
-    // Fall back to default language
+    logger.CommandExecutionFailed(ex, Name);
+    await responseBuilder.SendCommandErrorResponse(message, Name);
 }
 ```
 

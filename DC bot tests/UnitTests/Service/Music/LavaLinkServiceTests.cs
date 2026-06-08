@@ -4,7 +4,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music;
-using DC_bot_tests.TestHelperFiles;
 using DSharpPlus.Entities;
 using Lavalink4NET.Players;
 using Lavalink4NET.Rest.Entities.Tracks;

@@ -45,12 +45,17 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 - `Id` - Channel ID
 - `Name` - Channel name
-- `Guild` - Parent guild
+- `Guild` - Parent guild from the channel or an explicitly supplied guild context
 
 **Methods:**
 
 - `SendMessageAsync()` - Send message to channel
 - `ToDiscordChannel()` - Get underlying DSharpPlus channel
+
+**Notes:**
+
+- Some DSharpPlus event payloads do not populate `DiscordChannel.Guild`; callers can pass the guild explicitly to keep command and reaction handling guild-aware.
+- `Guild` throws if neither the channel nor the explicit constructor argument contains guild context.
 
 ---
 
@@ -133,6 +138,49 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 ---
 
+### SlashInteractionContextFactory.cs
+
+**Implements:** `ISlashInteractionContextFactory`
+
+**Purpose:** Creates `ISlashInteractionContext` wrappers from DSharpPlus `CommandContext` instances. This keeps framework-owned slash contexts behind a testable boundary.
+
+---
+
+### SlashInteractionContextWrapper.cs
+
+**Implements:** `ISlashInteractionContext`
+
+**Purpose:** Adapts DSharpPlus command/slash contexts to the bot's internal slash command abstraction.
+
+**Properties:**
+
+- `GuildId` / `Guild` - Current guild context when the slash command is guild-scoped
+- `Channel` - Interaction channel wrapper with explicit guild context
+- `User` / `Member` - Interaction user/member wrappers
+- `IsDeferred` / `HasResponded` - Response state tracked for slash execution fallback behavior
+
+**Methods:**
+
+- `DeferAsync()` - defer the interaction response
+- `RespondAsync()` - send, edit, or follow up interaction responses
+- `CreateMessage()` - create an `IDiscordMessage`-compatible command message
+
+---
+
+### SlashInteractionMessageWrapper.cs
+
+**Implements:** `IDiscordMessage`
+
+**Purpose:** Lets slash command execution reuse existing text command implementations.
+
+**Notes:**
+
+- `Content` is built as `commandName` or `commandName argument` so text commands can parse it consistently.
+- `RespondAsync()` delegates back to the slash interaction context.
+- `ModifyAsync()` responds with builder content or the first embed, matching the subset used by the shared command pipeline.
+
+---
+
 ### DiscordClientEventHandler.cs
 
 **Purpose:** Handle Discord client lifecycle events.
@@ -146,7 +194,7 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 - Uses direct constructor injection for `IGuildDataRepository`, `ILocalizationService`, and `ILavaLinkService`
 - Does not resolve dependencies through `IServiceProvider`
-- Is subscribed to Discord events by `Startup/BotHandlerRegistrar`
+- Is connected to DSharpPlus 5 event handlers by `Startup/BotServiceProviderFactory`
 
 ---
 
@@ -160,9 +208,9 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 **Configuration:**
 
-- Sets intents (privileged and unprivileged)
-- Enables auto reconnect
-- Does not register event handlers; handler wiring is owned by `Startup/BotHandlerRegistrar`
+- Creates a default DSharpPlus client with `DiscordIntents.All`
+- Does not register event handlers; lifecycle/message/reaction event wiring is configured by `Startup/BotServiceProviderFactory`
+- Production startup currently creates the client through DSharpPlus DI builder APIs in `Startup/BotServiceProviderFactory`; this factory remains useful for tests and direct wrapper-level construction
 
 ---
 
@@ -176,7 +224,8 @@ var wrappedMessage = DiscordMessageWrapperFactory.Create(
     discordMessage, 
     channel, 
     author, 
-    logger
+    logger,
+    guild
 );
 
 // Pass to command (expects IDiscordMessage interface)

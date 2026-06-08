@@ -57,5 +57,10 @@
   "skip": "Skip",
   "repeat": "Repeat",
   "clear_command_description": "Clear the playlist.",
-  "clear_command_response": "Playlist cleared."
+  "clear_command_response": "Playlist cleared.",
+  "clear_command_confirmation_required": "Set confirm to true to clear the playlist.",
+  "slash_command_guild_only": "This command can only be used in a server.",
+  "slash_command_deferred_accepted": "Request accepted.",
+  "slash_command_not_registered": "Command '{0}' is not registered.",
+  "slash_command_unexpected_error": "An unexpected error occurred while executing the command."
 }

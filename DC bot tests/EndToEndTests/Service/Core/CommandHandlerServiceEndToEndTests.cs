@@ -1,4 +1,4 @@
-using DC_bot.Commands.Utility;
+using DC_bot.Commands.TextCommands.Utility;
 using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
@@ -47,11 +47,19 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
 
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.UnknownCommandError))
             .Returns("Unknown command. Use `!help` to see available commands.");
+        _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.UnknownCommandError))
+            .Returns("Unknown command. Use `!help` to see available commands.");
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.PingCommandDescription))
+            .Returns("Replies with Pong.");
+        _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.PingCommandDescription))
             .Returns("Replies with Pong.");
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.HelpCommandDescription))
             .Returns("Lists the available commands.");
+        _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandDescription))
+            .Returns("Lists the available commands.");
         _localizationServiceMock.Setup(ls => ls.Get(LocalizationKeys.HelpCommandResponse))
+            .Returns("Available commands:");
+        _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
             .Returns("Available commands:");
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
@@ -59,7 +67,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
 
         var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
+            .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton<ICommand, PingCommand>()
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
@@ -73,14 +81,14 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             .AddLogging()
             .AddSingleton(botSettings)
             .AddSingleton<IUserValidationService>(userValidationService)
-            .AddSingleton<IGuildDataRepository>(guildDataRepositoryMock.Object)
+            .AddSingleton(guildDataRepositoryMock.Object)
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<DiscordClient>(provider => DiscordClientFactory.Create(
                 provider.GetRequiredService<BotSettings>()))
-            .AddSingleton<ILavaLinkService>(_lavaLinkServiceMock.Object)
-            .AddSingleton<IMusicQueueService>(_musicQueueServiceMock.Object)
-            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
-            .AddSingleton<CommandHandlerService>(_commandHandlerService)
+            .AddSingleton(_lavaLinkServiceMock.Object)
+            .AddSingleton(_musicQueueServiceMock.Object)
+            .AddSingleton(_localizationServiceMock.Object)
+            .AddSingleton(_commandHandlerService)
             .BuildServiceProvider();
 
         _discordClient = _serviceProvider.GetRequiredService<DiscordClient>();
@@ -102,8 +110,8 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             await _discordClient.DisconnectAsync();
         }
 
-        await _serviceProvider.DisposeAsync();
-        _discordClient.Dispose();
+        await ServiceProviderDisposeHelper.DisposeIgnoringDisconnectedDiscordClientAsync(_serviceProvider);
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(_discordClient);
     }
 
     private (Mock<ILogger<CommandHandlerService>> freshLoggerMock, CommandHandlerService freshCommandHandlerService,
@@ -122,7 +130,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
-            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
+            .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton<IUserValidationService>(userValidationService)
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ICommand, PingCommand>()
@@ -144,11 +152,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token"
-        };
-        var mockClient = new DiscordClient(discordConfig);
+        var mockClient = TestDiscordClientFactory.Create(botSettings.Token ?? "fake-test-token");
 
         freshCommandHandlerService.RegisterHandler(mockClient);
 
@@ -164,7 +168,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         );
 
         freshCommandHandlerService.UnregisterHandler(mockClient);
-        mockClient.Dispose();
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
     }
 
     [Fact]
@@ -172,11 +176,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token"
-        };
-        var mockClient = new DiscordClient(discordConfig);
+        var mockClient = TestDiscordClientFactory.Create(botSettings.Token ?? "fake-test-token");
 
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshCommandHandlerService.UnregisterHandler(mockClient);
@@ -192,7 +192,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             Times.Once
         );
 
-        mockClient.Dispose();
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
     }
 
     [Fact]
@@ -202,14 +202,18 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         _commandHandlerService.RegisterHandler(_discordClient);
 
         var channel = await _discordClient.GetChannelAsync(_testChannelId);
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
         var testMessage = await channel.SendMessageAsync("!ping");
 
         Assert.NotNull(testMessage);
 
+        await _commandHandlerService.HandleEventAsync(_discordClient,
+            DiscordEventArgsFactory.CreateMessageCreated(testMessage, guild));
         await Task.Delay(1000);
 
-        var messages = await channel.GetMessagesAsync(1);
-        var response = messages.FirstOrDefault();
+        var messages = await channel.GetMessagesAfterAsync(testMessage.Id, 5);
+        var response = messages
+            .FirstOrDefault(message => message.Content.Contains("Pong", StringComparison.OrdinalIgnoreCase));
 
         Assert.NotNull(response);
         Assert.Contains("Pong", response.Content, StringComparison.OrdinalIgnoreCase);
@@ -224,14 +228,18 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         _commandHandlerService.RegisterHandler(_discordClient);
 
         var channel = await _discordClient.GetChannelAsync(_testChannelId);
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
         var testMessage = await channel.SendMessageAsync("!unknowncommand");
 
         Assert.NotNull(testMessage);
 
+        await _commandHandlerService.HandleEventAsync(_discordClient,
+            DiscordEventArgsFactory.CreateMessageCreated(testMessage, guild));
         await Task.Delay(1000);
 
-        var messages = await channel.GetMessagesAsync(1);
-        var response = messages.FirstOrDefault();
+        var messages = await channel.GetMessagesAfterAsync(testMessage.Id, 5);
+        var response = messages
+            .FirstOrDefault(message => message.Content.Contains("Unknown command.", StringComparison.OrdinalIgnoreCase));
 
         Assert.NotNull(response);
         Assert.Contains("Unknown command.", response.Content, StringComparison.OrdinalIgnoreCase);
@@ -248,13 +256,15 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         try
         {
             var channel = await _discordClient.GetChannelAsync(_testChannelId);
+            var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
             var testMessage = await channel.SendMessageAsync("!help");
 
+            await _commandHandlerService.HandleEventAsync(_discordClient,
+                DiscordEventArgsFactory.CreateMessageCreated(testMessage, guild));
             await Task.Delay(1000);
 
-            var messages = await channel.GetMessagesAsync(5);
+            var messages = await channel.GetMessagesAfterAsync(testMessage.Id, 5);
             var response = messages
-                .Where(message => message.Id > testMessage.Id)
                 .FirstOrDefault(message => message.Content.Contains("Available commands:", StringComparison.OrdinalIgnoreCase));
 
             Assert.NotNull(response);
@@ -276,9 +286,12 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         try
         {
             var channel = await _discordClient.GetChannelAsync(_testChannelId);
+            var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
             var marker = $"e2e-no-prefix-{Guid.NewGuid():N}";
             var markerMessage = await channel.SendMessageAsync(marker);
 
+            await _commandHandlerService.HandleEventAsync(_discordClient,
+                DiscordEventArgsFactory.CreateMessageCreated(markerMessage, guild));
             await Task.Delay(1200);
 
             var recentMessages = await channel.GetMessagesAsync(10);
@@ -300,19 +313,19 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
         freshCommandHandlerService.Prefix = null;
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token",
-            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
-        };
-        var mockClient = new DiscordClient(discordConfig);
+        var mockClient = TestDiscordClientFactory.Create(
+            botSettings.Token ?? "fake-test-token",
+            DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents);
         await mockClient.ConnectAsync();
 
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshLoggerMock.Invocations.Clear();
         var channel = await mockClient.GetChannelAsync(_testChannelId);
-        await channel.SendMessageAsync("!noPrefix");
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
+        var message = await channel.SendMessageAsync("!noPrefix");
 
+        await freshCommandHandlerService.HandleEventAsync(mockClient,
+            DiscordEventArgsFactory.CreateMessageCreated(message, guild));
         await Task.Delay(3000);
 
         freshLoggerMock.Verify(
@@ -328,7 +341,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
 
         freshCommandHandlerService.UnregisterHandler(mockClient);
         await mockClient.DisconnectAsync();
-        mockClient.Dispose();
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
     }
 
     [Fact]
@@ -336,11 +349,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token"
-        };
-        var mockClient = new DiscordClient(discordConfig);
+        var mockClient = TestDiscordClientFactory.Create(botSettings.Token ?? "fake-test-token");
 
         freshCommandHandlerService.UnregisterHandler(mockClient);
 
@@ -356,7 +365,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             Times.Once
         );
 
-        mockClient.Dispose();
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
     }
 
     [Fact]
@@ -364,11 +373,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
     {
         var (freshLoggerMock, freshCommandHandlerService, botSettings) = Init();
 
-        var discordConfig = new DiscordConfiguration
-        {
-            Token = botSettings.Token ?? "fake-test-token"
-        };
-        var mockClient = new DiscordClient(discordConfig);
+        var mockClient = TestDiscordClientFactory.Create(botSettings.Token ?? "fake-test-token");
 
         freshCommandHandlerService.RegisterHandler(mockClient);
         freshCommandHandlerService.RegisterHandler(mockClient);
@@ -385,7 +390,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         );
 
         freshCommandHandlerService.UnregisterHandler(mockClient);
-        mockClient.Dispose();
+        DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
     }
 
     [Fact]
@@ -402,7 +407,7 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton(botSettings)
-            .AddSingleton<ILocalizationService>(_localizationServiceMock.Object)
+            .AddSingleton(_localizationServiceMock.Object)
             .AddSingleton<IUserValidationService>(userValidationService)
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
             .AddSingleton<ICommand, PingCommand>()
@@ -417,9 +422,12 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
         nonTestHandler.RegisterHandler(_discordClient);
 
         var channel = await _discordClient.GetChannelAsync(_testChannelId);
+        var guild = DiscordEventArgsFactory.CreateGuild(channel.GuildId!.Value);
         var marker = $"e2e-ignore-bot-{Guid.NewGuid():N}";
         var markerMessage = await channel.SendMessageAsync($"!ping {marker}");
 
+        await nonTestHandler.HandleEventAsync(_discordClient,
+            DiscordEventArgsFactory.CreateMessageCreated(markerMessage, guild));
         await Task.Delay(1200);
 
         var recentMessages = await channel.GetMessagesAsync(10);

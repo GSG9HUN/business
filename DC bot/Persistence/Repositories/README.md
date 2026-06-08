@@ -43,6 +43,7 @@ Responsibilities:
 - mark all queued items as skipped (`MarkAllQueuedAsSkippedAsync`)
 - enforce max queued items per guild
 - atomically claim the next queued item (`ClaimNextQueuedItemAsync`): marks it as `playing` and returns it in a single operation
+- the current queue limit is 100 queued tracks per guild
 
 ### RepeatListRepository.cs
 
@@ -53,6 +54,7 @@ Responsibilities:
 - read repeat-list track identifiers for `MusicQueueService.GetRepeatableQueue()`
 - replace repeat list transactionally
 - clear repeat list
+- the current repeat-list limit is 100 tracks per guild
 
 ## Notes
 

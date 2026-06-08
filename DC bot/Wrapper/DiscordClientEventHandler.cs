@@ -13,8 +13,23 @@ public class DiscordClientEventHandler(
     IGuildDataRepository guildDataRepository,
     ILocalizationService localizationService,
     ILavaLinkService lavaLinkService)
+    : IEventHandler<SessionCreatedEventArgs>, IEventHandler<GuildAvailableEventArgs>
 {
-    public async Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
+    Task IEventHandler<SessionCreatedEventArgs>.HandleEventAsync(
+        DiscordClient sender,
+        SessionCreatedEventArgs eventArgs)
+    {
+        return OnClientReady(sender, eventArgs);
+    }
+
+    Task IEventHandler<GuildAvailableEventArgs>.HandleEventAsync(
+        DiscordClient sender,
+        GuildAvailableEventArgs eventArgs)
+    {
+        return OnGuildAvailable(sender, eventArgs);
+    }
+
+    public async Task OnClientReady(DiscordClient sender, SessionCreatedEventArgs e)
     {
         try
         {
@@ -27,7 +42,7 @@ public class DiscordClientEventHandler(
         }
     }
 
-    public async Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
+    public async Task OnGuildAvailable(DiscordClient sender, GuildAvailableEventArgs e)
     {
         try
         {

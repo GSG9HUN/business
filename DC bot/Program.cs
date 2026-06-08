@@ -9,13 +9,11 @@ internal static class Program
     {
         var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 
-        if (!File.Exists(envPath))
+        if (File.Exists(envPath))
         {
-            Console.WriteLine("Please provide .env file.");
-            return;
+            Env.NoClobber().Load(envPath);
         }
 
-        Env.Load(envPath);
         await BotApplication.RunAsync();
     }
 }

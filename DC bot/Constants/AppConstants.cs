@@ -8,6 +8,7 @@ public static class LocalizationKeys
     // Clear Command
     public const string ClearCommandDescription = "clear_command_description";
     public const string ClearCommandResponse = "clear_command_response";
+    public const string ClearCommandConfirmationRequired = "clear_command_confirmation_required";
 
     // Help Command
     public const string HelpCommandDescription = "help_command_description";
@@ -19,6 +20,7 @@ public static class LocalizationKeys
     // Language Command
     public const string LanguageCommandDescription = "language_command_description";
     public const string LanguageCommandInvalidLanguage = "language_command_invalid_language";
+    public const string LanguageCommandResponse = "language_command_response";
 
     // Leave Command
     public const string LeaveCommandDescription = "leave_command_description";
@@ -89,6 +91,12 @@ public static class LocalizationKeys
 
     // Unknown Command
     public const string UnknownCommandError = "unknown_command_error";
+
+    // Slash Commands
+    public const string SlashCommandGuildOnly = "slash_command_guild_only";
+    public const string SlashCommandDeferredAccepted = "slash_command_deferred_accepted";
+    public const string SlashCommandNotRegistered = "slash_command_not_registered";
+    public const string SlashCommandUnexpectedError = "slash_command_unexpected_error";
 }
 
 /// <summary>

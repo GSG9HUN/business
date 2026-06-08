@@ -38,6 +38,7 @@ jobs:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         DISCORD_TEST_GUILD_ID: ${{ secrets.DISCORD_TEST_GUILD_ID }}
         DISCORD_TEST_CHANNEL_ID: ${{ secrets.DISCORD_TEST_CHANNEL_ID }}
+        DISCORD_TEST_VOICE_CHANNEL_ID: ${{ secrets.DISCORD_TEST_VOICE_CHANNEL_ID }}
         LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
         LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
         LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
@@ -53,6 +54,7 @@ jobs:
           DISCORD_TOKEN
           DISCORD_TEST_GUILD_ID
           DISCORD_TEST_CHANNEL_ID
+          DISCORD_TEST_VOICE_CHANNEL_ID
           LAVALINK_HOSTNAME
           LAVALINK_PASSWORD
           LAVALINK_PORT
@@ -76,7 +78,7 @@ jobs:
           exit 1
         fi
 
-        for name in DISCORD_TEST_GUILD_ID DISCORD_TEST_CHANNEL_ID LAVALINK_PORT POSTGRES_PORT; do
+        for name in DISCORD_TEST_GUILD_ID DISCORD_TEST_CHANNEL_ID DISCORD_TEST_VOICE_CHANNEL_ID LAVALINK_PORT POSTGRES_PORT; do
           if ! [[ "${!name}" =~ ^[0-9]+$ ]]; then
             echo "$name must be an unsigned integer."
             exit 1
@@ -89,7 +91,7 @@ jobs:
         fi
 
         if [ "$LAVALINK_PORT" != "2333" ]; then
-          echo "LAVALINK_PORT must be '2333' because lavalink/application.yaml binds server.port to 2333."
+          echo "LAVALINK_PORT must be '2333' because lavalink-server/application.yaml binds server.port to 2333."
           exit 1
         fi
 
@@ -145,7 +147,7 @@ jobs:
           -e APPLE_MUSIC_API_TOKEN="$APPLE_MUSIC_API_TOKEN" \
           -e DEEZER_ARL="$DEEZER_ARL" \
           -e YANDEX_MUSIC_ACCESS_TOKEN="$YANDEX_MUSIC_ACCESS_TOKEN" \
-          -v "$PWD/lavalink/application.yaml:/opt/Lavalink/application.yml:ro" \
+          -v "$PWD/lavalink-server/application.yaml:/opt/Lavalink/application.yml:ro" \
           ghcr.io/lavalink-devs/lavalink:4-alpine
 
     - name: Wait for PostgreSQL
@@ -171,20 +173,29 @@ jobs:
       shell: bash
       env:
         LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
+        LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
         LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
       run: |
+        url="http://${LAVALINK_HOSTNAME}:${LAVALINK_PORT}/version"
+
         for attempt in {1..36}; do
+          echo "Checking Lavalink (${attempt}/36): ${url}"
+
           if docker run --rm --network dc-bot-e2e curlimages/curl:8.10.1 \
-            -fsS "http://${LAVALINK_HOSTNAME}:${LAVALINK_PORT}/version"; then
+            --fail --show-error --silent --verbose --connect-timeout 5 --max-time 10 \
+            -H "Authorization: ${LAVALINK_PASSWORD}" "$url"; then
             echo "Lavalink is ready."
             exit 0
           fi
 
-          echo "Waiting for Lavalink (${attempt}/36)..."
+          echo "Lavalink is not ready yet."
           sleep 5
         done
 
-        docker logs lavalink
+        echo "Lavalink did not become ready. Container state:"
+        docker ps -a --filter name=lavalink
+        docker inspect lavalink --format '{{json .State}}' || true
+        docker logs lavalink || true
         exit 1
 
     - name: Run E2E tests
@@ -195,6 +206,7 @@ jobs:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         DISCORD_TEST_GUILD_ID: ${{ secrets.DISCORD_TEST_GUILD_ID }}
         DISCORD_TEST_CHANNEL_ID: ${{ secrets.DISCORD_TEST_CHANNEL_ID }}
+        DISCORD_TEST_VOICE_CHANNEL_ID: ${{ secrets.DISCORD_TEST_VOICE_CHANNEL_ID }}
         LAVALINK_HOSTNAME: ${{ secrets.LAVALINK_HOSTNAME }}
         LAVALINK_PASSWORD: ${{ secrets.LAVALINK_PASSWORD }}
         LAVALINK_PORT: ${{ secrets.LAVALINK_PORT }}
@@ -215,6 +227,7 @@ jobs:
           -e DISCORD_TOKEN \
           -e DISCORD_TEST_GUILD_ID \
           -e DISCORD_TEST_CHANNEL_ID \
+          -e DISCORD_TEST_VOICE_CHANNEL_ID \
           -e LAVALINK_HOSTNAME \
           -e LAVALINK_PASSWORD \
           -e LAVALINK_PORT \

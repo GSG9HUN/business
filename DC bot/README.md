@@ -13,18 +13,22 @@ robust error handling, and comprehensive documentation.
 
 ### Setup
 
-1. **Create `.env` file** in project root:
+1. **Create `.env` file** in the repository root for local or Docker Compose runs, or provide the same keys as environment variables:
 
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
 
-LAVALINK_HOSTNAME=lavalink
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: lavalink
+LAVALINK_HOSTNAME=127.0.0.1
 LAVALINK_PASSWORD=CHANGE_ME
 LAVALINK_PORT=2333
 LAVALINK_SECURED=false
 
-POSTGRES_HOST=postgres
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: postgres
+POSTGRES_HOST=127.0.0.1
 POSTGRES_PORT=5432
 POSTGRES_DB=dc_bot
 POSTGRES_USER=postgres
@@ -40,9 +44,9 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 2. **Build and run**:
 
 ```bash
-dotnet restore
-dotnet build
-dotnet run
+dotnet restore "DC bot.sln"
+dotnet build "DC bot.sln"
+dotnet run --project "DC bot/DC bot.csproj"
 ```
 
 ---
@@ -66,23 +70,26 @@ dotnet run
 ```
 DC bot/
 ├── Commands/                      # Text and slash command implementations
-│   ├── Music/                     # Playback control (play, pause, skip, etc.)
-│   ├── Queue/                     # Queue management (shuffle, repeat, clear, etc.)
-│   ├── SlashCommands/             # Modern Discord slash commands (disabled)
-│   ├── Utility/                   # General commands (help, ping, language, tag)
+│   ├── TextCommands/              # Prefix-based text commands
+│   │   ├── Music/                 # Playback control (play, pause, skip, etc.)
+│   │   ├── Queue/                 # Queue management (shuffle, repeat, clear, etc.)
+│   │   └── Utility/               # General commands (help, ping, language, tag)
+│   ├── SlashCommands/             # Discord slash command adapters
+│   │   ├── Music/                 # Playback slash commands
+│   │   ├── Queue/                 # Queue slash commands
+│   │   └── Utility/               # General slash commands
 │   └── README.md
 │
 ├── Exceptions/                    # Custom exception types
 │   ├── Localization/              # Language file errors
 │   ├── Messaging/                 # Discord message send failures
 │   ├── Music/                     # Lavalink, queue, track loading
-│   ├── Validation/                # Validation errors (currently unused)
+│   ├── Validation/                # Validation exception type
 │   └── README.md
 │
 ├── Helper/                        # Utility classes and result types
 │   ├── Validation/                # Validation result models
 │   ├── Factory/                   # Object creation factories
-│   ├── SlashCommandResponseHelper.cs
 │   └── README.md
 │
 ├── Interface/                     # Service and wrapper contracts (abstractions)
@@ -92,7 +99,9 @@ DC bot/
 │   │   ├── IO/                    # IFileSystem
 │   │   ├── Localization/          # ILocalizationService
 │   │   ├── Music/                 # ILavaLinkService, etc.
+│   │   ├── Persistence/           # Repository contracts
 │   │   ├── Presentation/          # IResponseBuilder
+│   │   ├── SlashCommands/         # Slash command adapter contracts
 │   │   └── README.md
 │   ├── ICommand.cs
 │   ├── ILavaLinkTrack.cs
@@ -114,13 +123,15 @@ DC bot/
 │   │   ├── ProgressiveTimer/      # Now-playing message timer updates
 │   │   └── README.md
 │   ├── Presentation/              # ResponseBuilder
+│   ├── SlashCommands/             # Slash command executor
 │   └── README.md
 │
 ├── Startup/                       # Runtime composition and startup orchestration
 │   ├── BotApplication.cs          # Application runtime flow
 │   ├── BotConfigurationLoader.cs  # Environment configuration loading
-│   ├── BotHandlerRegistrar.cs     # Discord event and handler registration
+│   ├── BotHandlerRegistrar.cs     # Command/reaction handler activation
 │   ├── BotRuntimeSettings.cs      # Startup settings aggregate
+│   ├── BotServiceCollectionExtensions.cs # Domain-specific DI registration extensions
 │   ├── BotServiceProviderFactory.cs # Dependency injection composition root
 │   ├── DatabaseMigrationRunner.cs # EF Core migration execution
 │   └── README.md
@@ -132,6 +143,9 @@ DC bot/
 │   ├── DiscordClientFactory.cs
 │   ├── DiscordClientEventHandler.cs
 │   ├── LavalinkTrackWrapper.cs
+│   ├── SlashInteractionContextFactory.cs
+│   ├── SlashInteractionContextWrapper.cs
+│   ├── SlashInteractionMessageWrapper.cs
 │   └── README.md
 │
 ├── Configuration/                 # Configuration models (Options pattern)
@@ -204,7 +218,7 @@ DC bot/
 ### 🎯 Command System
 
 - **Text commands:** Traditional prefix-based (`!play`, `!pause`)
-- **Slash commands:** Modern Discord interactions (currently disabled)
+- **Slash commands:** Modern Discord interactions through DSharpPlus Commands
 - **Comprehensive validation:** User, player, connection checks
 - **Consistent error handling:** Localized error messages
 
@@ -236,10 +250,9 @@ DC bot/
                │ (Discord events)
 ┌──────────────▼──────────────────────┐
 │     Commands (Presentation Layer)   │
-│  ├─ PlayCommand                     │
-│  ├─ PauseCommand                    │
-│  ├─ SkipCommand                     │
-│  └─ ... (15 text commands)          │
+│  ├─ Text commands (15)              │
+│  ├─ Slash modules (14)              │
+│  └─ Shared command pipeline         │
 └──────────────┬──────────────────────┘
                │ (service calls)
 ┌──────────────▼──────────────────────┐
@@ -268,7 +281,7 @@ DC bot/
 | **Service Layer**        | Commands delegate to services | Separation of concerns      |
 | **Repository**           | Queue persistence abstraction | Flexible storage            |
 | **Wrapper/Adapter**      | DSharpPlus abstraction        | Library independence        |
-| **Factory**              | Discord client creation       | Centralized setup           |
+| **Factory/Adapter**      | Wrapper and message creation  | Centralized boundary setup  |
 | **Options**              | Configuration models          | Type-safe config            |
 | **Result Objects**       | Validation results            | Exception-free errors       |
 
@@ -288,11 +301,11 @@ DC bot/
 
 Startup is split between a thin process entry point and focused startup components:
 
-1. `Program.cs` verifies the `.env` file exists and delegates to `BotApplication`.
+1. `Program.cs` loads `.env` when present and delegates to `BotApplication`.
 2. `BotConfigurationLoader` reads required bot and Lavalink settings from the environment.
 3. `BotServiceProviderFactory` builds the Dependency Injection container.
 4. `DatabaseMigrationRunner` applies pending EF Core migrations.
-5. `BotHandlerRegistrar` wires Discord client events, command handling, and reaction handling.
+5. `BotHandlerRegistrar` activates command and reaction handlers.
 6. `BotService` starts the Discord client lifecycle.
 
 For detailed documentation, see **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** and **[Startup/README.md](Startup/README.md)**.
@@ -302,27 +315,27 @@ For detailed documentation, see **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)**
 ```
 Main()
   ↓
-Verify .env file and load environment variables
+Load optional .env file and validate required environment variables
   ↓
 BotApplication.RunAsync()
   ↓
 BotConfigurationLoader.LoadFromEnvironment()
   ↓
 BotServiceProviderFactory.Create()
-  ├─ Add Logging
-  ├─ Configure Lavalink
-  ├─ Add EF Core DbContext factory
-  ├─ Register Core Services
-  ├─ Register All Commands (15 text commands)
-  ├─ Register Music Services (12 specialized services)
-  ├─ Register Validation & Localization
+  ├─ AddDiscordRuntime
+  ├─ AddSlashCommandProcessor
+  ├─ AddLavalinkRuntime
+  ├─ AddBotLogging
+  ├─ AddPersistenceServices
+  ├─ AddCoreBotServices
+  ├─ AddSlashCommandServices
+  ├─ AddTextCommands (15 command implementations)
+  ├─ AddMusicServices (15 music-related services)
   └─ Build ServiceProvider
   ↓
 DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync()
   ↓
 BotHandlerRegistrar.RegisterHandlers()
-  ├─ DiscordClient.Ready += DiscordClientEventHandler.OnClientReady
-  ├─ DiscordClient.GuildAvailable += DiscordClientEventHandler.OnGuildAvailable
   ├─ CommandHandlerService.RegisterHandler(discordClient)
   └─ ReactionHandler.RegisterHandler(discordClient)
   ↓
@@ -344,8 +357,8 @@ BotService.StartAsync()
    └─ Secured = false
    └─ Password = ""
         ↓
-2. Environment Variables (.env file)
-   └─ Override defaults
+2. Environment Variables
+   └─ Provided by `.env`, Docker Compose `env_file`, CI secrets, or the host process environment
         ↓
 3. Validation
    └─ Check required: DISCORD_TOKEN, LAVALINK_HOSTNAME
@@ -362,7 +375,9 @@ DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
 
 # Lavalink Settings (Required)
-LAVALINK_HOSTNAME=lavalink
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: lavalink
+LAVALINK_HOSTNAME=127.0.0.1
 
 # Lavalink Settings (Optional)
 LAVALINK_PORT=2333
@@ -370,7 +385,9 @@ LAVALINK_SECURED=false
 LAVALINK_PASSWORD=your_lavalink_password
 
 # PostgreSQL Settings (Optional)
-POSTGRES_HOST=postgres
+# Host dotnet run/tests against docker-compose: 127.0.0.1
+# Bot running inside Docker Compose network: postgres
+POSTGRES_HOST=127.0.0.1
 POSTGRES_PORT=5432
 POSTGRES_DB=dc_bot
 POSTGRES_USER=postgres
@@ -411,9 +428,11 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ### Runtime Registrations
 
-`Startup/BotServiceProviderFactory.cs` is the composition root. It registers runtime services, commands, repositories, the EF Core `BotDbContext` factory, and Lavalink client configuration.
+`Startup/BotServiceProviderFactory.cs` is the composition root. It validates startup settings and composes runtime services through domain-specific methods in `Startup/BotServiceCollectionExtensions.cs`.
 
-`Startup/BotHandlerRegistrar.cs` performs runtime event wiring after the `DiscordClient` and its dependent services are constructed. Keeping event subscription out of `DiscordClientFactory` avoids dependency construction cycles.
+`BotServiceCollectionExtensions.cs` groups Discord runtime wiring, slash command registration, Lavalink configuration, persistence, core services, text commands, slash adapter services, and music services.
+
+`Startup/BotHandlerRegistrar.cs` activates command/reaction handlers after the `DiscordClient` and dependent services are constructed. DSharpPlus event handlers are configured by `AddDiscordRuntime`.
 
 #### Logging Configuration
 
@@ -435,12 +454,13 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - `BotService` - Bot lifecycle
 - `CommandHandlerService` - Message routing
 - `ReactionHandler` - Reaction handling
+- `IDiscordMessageFactory` - DSharpPlus message to `IDiscordMessage` wrapper boundary
 - `IFileSystem` - File operations
 
 #### Persistence Registrations
 
 - `BotDbContext` factory - EF Core/PostgreSQL context creation
-- `IGuildDataRepository` - Guild language settings
+- `IGuildDataRepository` - Guild row and premium state
 - `IPlaybackStateRepository` - Current playback state
 - `IQueueRepository` - Queue entries
 - `IRepeatListRepository` - Repeat-list entries
@@ -451,7 +471,15 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - 5 Queue commands (viewList, shuffle, repeat, repeatList, clear)
 - 4 Utility commands (help, ping, language, tag)
 
-#### All 12 Music Services
+#### Slash Commands
+
+- Music: `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
+- Queue: `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
+- Utility: `/ping`, `/help`, `/tag`, `/language`
+- Registered through `DSharpPlus.Commands` and `SlashCommandProcessor`
+- Delegate to the existing text command pipeline through `ISlashCommandExecutor`
+
+#### All 15 Music-Related Services
 
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management and repeat-list snapshot rehydration
@@ -460,7 +488,10 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - `TrackNotificationService` - Notifications
 - `TrackFormatterService` - Formatting
 - `PlayerConnectionService` - Voice connections
+- `LavalinkNodeConnectionService` - Lavalink node startup guard
 - `PlaybackEventHandlerService` - Event handling
+- `PlaybackControlService` - Pause, resume, skip, and leave orchestration
+- `PlaybackRequestService` - URL/query playback request orchestration
 - `TrackPlaybackService` - Playback control
 - `TrackEndedHandlerService` - Track end events
 - `TrackSearchResolverService` - URL/query resolution
@@ -478,7 +509,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ## Documentation Guide
 
-The project has **40+ README.md files** documenting every component:
+The project has **50+ README.md files** documenting every component:
 
 ### Start Here
 
@@ -527,7 +558,7 @@ The project has **40+ README.md files** documenting every component:
 
 ### Adding a New Text Command
 
-1. **Create command class** in `Commands/` folder:
+1. **Create command class** in the matching `Commands/TextCommands/<domain>/` folder:
 
 ```csharp
 public class MyCommand(
@@ -551,7 +582,7 @@ public class MyCommand(
 }
 ```
 
-2. **Register in `Startup/BotServiceProviderFactory.cs`:**
+2. **Register in `Startup/BotServiceCollectionExtensions.cs` inside `AddTextCommands`:**
 
 ```csharp
 .AddSingleton<ICommand, MyCommand>()
@@ -573,18 +604,28 @@ public const string MyCommandDescription = "mycommand_description";
 
 5. **Write unit tests** in `DC bot tests/`
 
+### Adding a New Slash Command
+
+1. Create the slash adapter in the matching `Commands/SlashCommands/<domain>/` folder.
+2. Delegate to the existing text command behavior through `ISlashCommandExecutor` when the command has a text command equivalent.
+3. Register the module in `Startup/BotServiceCollectionExtensions.cs` both in `AddSlashCommandProcessor` and `AddSlashCommandServices`.
+4. Add or update the slash README in that command domain.
+5. Write unit tests for module delegation, integration tests for DI/module resolution, and E2E-category pipeline tests for the slash adapter path.
+
 ### Adding a New Language
 
 1. Create `localization/xx.json` (e.g., `de.json` for German)
 2. Copy structure from `eng.json`
 3. Translate all values
-4. Test with `!language xx` command
+4. Add the language code to `LanguageCommand.AllowedLanguageCodes`
+5. Add or update the `/language` slash choices when the language should be selectable through Discord slash UX
+6. Test with `!language xx` and `/language`
 
 ### Adding a New Service
 
 1. Create interface in `Interface/Service/`
 2. Implement in `Service/`
-3. Register in `Startup/BotServiceProviderFactory.cs`:
+3. Register in the matching domain method in `Startup/BotServiceCollectionExtensions.cs`:
    ```csharp
    .AddSingleton<IMyService, MyService>()
    ```
@@ -606,7 +647,7 @@ public const string MyCommandDescription = "mycommand_description";
 - .NET 9.0 SDK
 - Lavalink server running and accessible
 - Discord bot token (from Discord Developer Portal)
-- `.env` file in project root
+- `.env` file in the repository root, or equivalent environment variables
 
 ### Build and Run
 
@@ -618,17 +659,17 @@ dotnet restore
 dotnet build
 
 # Run bot
-dotnet run
+dotnet run --project "DC bot/DC bot.csproj"
 ```
 
 ### Deployment (Release Build)
 
 ```bash
 # Publish for production
-dotnet publish -c Release
+dotnet publish "DC bot/DC bot.csproj" -c Release
 
-# Run published executable
-./bin/Release/net9.0/DC bot.exe
+# Run published output
+dotnet "DC bot/bin/Release/net9.0/publish/MelodiasMario.dll"
 ```
 
 ---
@@ -651,7 +692,12 @@ DC bot tests/
 │   ├── Commands/
 │   ├── Service/
 │   └── Model/
-└── IntegrationTests/
+├── IntegrationTests/
+│   ├── Commands/
+│   ├── Persistence/
+│   └── Service/
+└── EndToEndTests/
+    ├── Commands/
     ├── Service/
     └── Wrapper/
 ```
@@ -660,23 +706,17 @@ DC bot tests/
 
 ## Troubleshooting
 
-### "Please provide .env file."
-
-**Cause:** `.env` file not found
-
-**Solution:** Create `.env` in project root with required variables
-
 ### "DISCORD_TOKEN is not set"
 
-**Cause:** `DISCORD_TOKEN` missing or empty in `.env`
+**Cause:** `DISCORD_TOKEN` missing or empty in `.env` or the process environment
 
-**Solution:** Add `DISCORD_TOKEN=your_token` to `.env`
+**Solution:** Add `DISCORD_TOKEN=your_token` to `.env`, Docker Compose `env_file`, CI secrets, or the host environment
 
 ### "LAVALINK_HOSTNAME is not set"
 
-**Cause:** `LAVALINK_HOSTNAME` missing or empty
+**Cause:** `LAVALINK_HOSTNAME` missing or empty in `.env` or the process environment
 
-**Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env`
+**Solution:** Add `LAVALINK_HOSTNAME=your_host` to `.env`, Docker Compose `env_file`, CI secrets, or the host environment
 
 ### Bot connects but commands don't work
 
@@ -684,7 +724,7 @@ DC bot tests/
 
 **Solution:**
 
-- Verify `BOT_PREFIX` in `.env` (default: `!`)
+- Verify `BOT_PREFIX` in `.env` or the process environment (default: `!`)
 - Check bot has `MESSAGE_CONTENT` intent enabled
 - Verify bot has message permissions in Discord
 
@@ -714,7 +754,7 @@ DC bot tests/
 
 **Solution:**
 
-- Ensure PostgreSQL is running and `.env` database settings are correct
+- Ensure PostgreSQL is running and database environment settings are correct
 - Check that all EF Core migrations have been applied (bot applies them automatically on startup)
 - Check logs for database errors
 
@@ -728,17 +768,19 @@ DC bot tests/
 | Memory (per guild) | ~20MB     | With active music     |
 | CPU (idle)         | <1%       | Waiting for events    |
 | CPU (per guild)    | ~5%       | During playback       |
-| Disk I/O           | Minimal   | Queue save on changes |
+| Disk I/O           | Minimal   | Localization and guild language files |
+| Database I/O       | Moderate  | Queue, repeat, playback state, and premium data |
 
 ---
 
 ## Security
 
-- ✅ Bot token in `.env` (not in source control)
+- ✅ Bot token provided by `.env` or environment variables; `.env` is ignored by git
+- ✅ `.env.example` documents required keys without storing secrets
 - ✅ Input validation on all commands
 - ✅ Rate limiting via Discord API
 - ✅ No sensitive data in logs
-- ✅ File system sandboxing
+- ✅ File access is isolated behind `IFileSystem` for testability
 
 ---
 
@@ -750,7 +792,7 @@ DC bot tests/
 - Async methods end with `Async`
 - Interfaces start with `I`
 - Use `var` when type is obvious
-- XML comments on public APIs
+- Keep public APIs small and covered by nearby README documentation
 
 ### Documentation
 
@@ -763,11 +805,11 @@ DC bot tests/
 ## Version Information
 
 - **.NET:** 9.0
-- **DSharpPlus:** 5.0.0
-- **Lavalink4NET:** 4.2.0
+- **DSharpPlus:** 5.0.0-nightly-02574
+- **Lavalink4NET:** 4.2.1
 - **EF Core:** 9.0.10
 - **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
-- **Last Updated:** 2026-05-26
+- **Last Updated:** 2026-06-01
 
 ---
 

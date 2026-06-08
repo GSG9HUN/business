@@ -1,0 +1,30 @@
+.git/
+.github/
+.idea/
+.vs/
+.vscode/
+
+.env
+.env.*
+!.env.example
+
+**/bin/
+**/obj/
+TestResults/
+**/TestResults/
+*.trx
+coverage/
+**/coverage/
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+
+*.log
+logs/
+**/logs/
+
+docker-compose.override.yml
+docker-compose.override.yaml
+
+DC bot.sln.DotSettings.user
+DC bot/refactor walktrought.txt

@@ -54,6 +54,19 @@ Response and presentation interfaces.
 
 ---
 
+### SlashCommands/
+
+Slash command adapter contracts.
+
+**Files:**
+
+- `ISlashCommandExecutor.cs`
+- `ISlashInteractionContext.cs`
+- `ISlashInteractionContextFactory.cs`
+- `SlashCommandExecutionRequest.cs`
+
+---
+
 ## Related Components
 
 - **Service/** - Implements these interfaces

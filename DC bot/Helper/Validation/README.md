@@ -130,7 +130,7 @@ var voiceChannel = result.Member?.VoiceState?.Channel;
 
 - User is not a bot
 - User is in a voice channel
-- Bot users are ignored unless test mode is enabled
+- Bot users are invalid unless `ValidationService` is constructed in test mode
 
 **Used By:**
 
