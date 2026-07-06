@@ -1,3 +1,4 @@
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,7 +31,8 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
 
         builder.Property(entity => entity.State)
             .HasColumnName("state")
-            .HasDefaultValue((short)0)
+            .HasConversion<short>()
+            .HasDefaultValue(QueueItemState.Queued)
             .IsRequired();
 
         builder.Property(entity => entity.AddedAtUtc)

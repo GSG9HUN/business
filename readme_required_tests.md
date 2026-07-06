@@ -6,11 +6,11 @@ This file tracks which test areas are already covered and which test areas are s
 
 **Current automated test inventory from the latest local run:**
 
-- Non-E2E executed tests: **658 passed**
+- Non-E2E executed tests: **674 passed**
 - Targeted live guild/music E2E additions: **5 passed** against real Discord, PostgreSQL Testcontainers, and local Lavalink (`LAVALINK_HOSTNAME=127.0.0.1`).
 - Targeted live play/pause/resume/skip/leave music-flow E2E: **1 passed** against real Discord voice and local Lavalink.
 - Slash command targeted E2E: **16 passed**
-- Latest full E2E suite attempt before the focused additions: **68 passed, 1 failed** because Discord returned `RateLimitException: TooManyRequests` during an existing reaction-flow Discord client connect.
+- Latest full E2E suite run: **75 passed, 0 failed**.
 
 The source-method count and the `dotnet test` result count can differ because xUnit `[Theory]` tests can produce multiple executed test cases from one method.
 
@@ -51,15 +51,17 @@ dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build 
 - [x] Applies expected Discord intents.
 - [x] Throws when token is missing.
 - [x] Keeps event subscription outside the factory.
+- [x] Configures debug-level logging for directly-created/test clients.
 
 ### DiscordClientEventHandler - COMPLETE
 
-- [x] `OnClientReady` logs ready state.
+- [x] `OnClientReady` logs ready/session state and connects Lavalink.
 - [x] `OnGuildAvailable` initializes localization, Lavalink, queue, and guild data dependencies.
+- [x] Socket open/close, session resumed/zombied, voice state/server, and unknown gateway event logging paths are covered.
 - [x] Handles startup dependency calls without rethrowing unexpected null-event paths.
 - [x] Covered by both unit and integration-style tests.
 
-### ReactionHandler - COMPLETE
+### ReactionHandlerService - COMPLETE
 
 - [x] Registers reaction event handlers.
 - [x] Logs first registration.
@@ -182,7 +184,9 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `CommandHandlerService` - unknown command.
 - [x] `CommandHandlerService` - prefix validation.
 - [x] `CommandHandlerService` - command dispatch and logging.
+- [x] `CommandRegistry` - stable command lookup, single materialization, and duplicate-name failure behavior.
 - [x] `CommandValidationService` - argument parsing and validation helpers.
+- [x] `CommandValidationService` - whitespace-only command arguments are rejected.
 - [x] `ValidationService` - user, player, and connection validation.
 - [x] `ResponseBuilder` - message and embed response behavior.
 
@@ -193,19 +197,20 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `LavalinkNodeConnectionService` maps startup failures to domain exception.
 - [x] `PlaybackRequestService` handles URL and query loading.
 - [x] `PlaybackRequestService` handles track-not-found and load exceptions.
-- [x] `PlaybackControlService` handles pause, resume, skip, leave, and error paths.
-- [x] `PlayerConnectionService` handles join, existing player validation, retry, and exception paths.
+- [x] `PlaybackControlService` handles pause, resume, skip, leave, progressive timer coordination, and error paths.
+- [x] `PlayerConnectionService` handles join, stale disconnected player cleanup before join, existing connected-player validation, retry, cancellation propagation, and exception paths.
 - [x] `MusicQueueService` handles enqueue/dequeue/view/get/set/clear.
+- [x] `MusicQueueService` uses `ITrackSerializer` for persisted track identity serialization/deserialization.
 - [x] `MusicQueueService` handles invalid stored track identifiers.
 - [x] `MusicQueueService` handles repeatable queue snapshots.
 - [x] `RepeatService` handles repeat and repeat-list flags.
 - [x] `CurrentTrackService` stores/restores current track and queue item ID.
-- [x] `TrackEndedHandlerService` handles repeat, repeat-list, normal queue advance, and empty queue.
+- [x] `TrackEndedHandlerService` handles timer cleanup, repeat, repeat-list, normal queue advance, repeated-track notification, and empty queue.
 - [x] `TrackPlaybackService` handles immediate play and queue behavior.
 - [x] `TrackFormatterService` formats current and queued track output.
 - [x] `TrackNotificationService` sends now-playing notifications.
 - [x] `PlaybackEventHandlerService` registers and cleans up playback event handlers.
-- [x] `ProgressiveTimerService` covers timer start, stop, cancellation, position bounds, and message modification failures.
+- [x] `ProgressiveTimerService` covers timer start, pause, resume, stop, cancellation, position bounds, stale track mismatch, and message modification failures.
 - [x] `TrackSearchResolverService` covers URL/query source resolution and default/fallback behavior.
 
 ### Persistence - COMPLETE
@@ -343,7 +348,7 @@ Required E2E settings:
 - [x] `DiscordGuildWrapper` maps real guild ID/name, members, and member lookup.
 - [x] `DiscordMemberWrapper` maps bot flag, username, mention, and voice state.
 - [x] `DiscordMessageWrapperFactory` maps real message properties and supports respond/modify.
-- [x] `DiscordClientEventHandler` E2E-style startup dependency calls are covered.
+- [x] `DiscordClientEventHandler` E2E-style startup dependency calls and gateway/voice diagnostic handlers are covered.
 
 ### Reaction Flow E2E - COMPLETE FOR CURRENT AUTOMATED SCOPE
 
@@ -359,7 +364,7 @@ Required E2E settings:
 - [x] Bot joins voice channel with real Lavalink when `DISCORD_TEST_VOICE_CHANNEL_ID` is configured.
 - [x] `!play [query-or-url]` plays a configured track in a real voice channel when live music E2E settings are present.
 - [x] Live music-flow test publishes visible Discord chat markers for each command step.
-- [x] Live music-flow test registers the production `ReactionHandler`, sends the now-playing control message, and verifies progressive timer message updates.
+- [x] Live music-flow test registers the production `ReactionHandlerService`, sends the now-playing control message, and verifies progressive timer message updates.
 - [x] `!pause` pauses current playback in the live music-flow test.
 - [x] `!resume` resumes current playback in the live music-flow test.
 - [x] `!skip` skips/stops current playback in the live music-flow test.
@@ -412,22 +417,28 @@ Manual smoke checklist: `DC bot tests/EndToEndTests/Commands/SlashCommands/live_
 
 ## Current Verification Result
 
-Last local verification run after the targeted integration expansion:
+Last local verification run after the production refactor cleanup:
 
 ```text
-dotnet build "DC bot.sln" --configuration Debug --no-restore
+dotnet build "DC bot.sln" --configuration Debug
 
 Warnings: 0
 Errors: 0
 
+dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Unit"
+
+Passed: 633
+Failed: 0
+Skipped: 0
+
 dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category!=E2E"
 
-Passed: 658
+Passed: 674
 Failed: 0
 Skipped: 0
 ```
 
-Integration verification after adding targeted DI, command-handler, repository, music-service, track-ended, and localization coverage:
+Latest integration verification:
 
 ```text
 dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Integration"
@@ -457,20 +468,14 @@ Failed: 0
 Skipped: 0
 ```
 
-Previous full E2E suite run with real Discord configuration:
+Latest full E2E suite run with real Discord configuration:
 
 ```text
-dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=E2E"
+dotnet test "DC bot tests\DC bot tests.csproj" --filter "Category=E2E"
 
-Passed: 68
-Failed: 1
+Passed: 75
+Failed: 0
 Skipped: 0
-
-Failure:
-DC_bot_tests.EndToEndTests.Service.ReactionHandlerEndToEndTests.OnReactionAdded_WhenBotAddsReaction_AndIsTestModeFalse_DoesNotCallLavaLinkOperations(emojiName: ":track_next:")
-DSharpPlus.Exceptions.RateLimitException: Rate limited: TooManyRequests
-
-Local host execution used `LAVALINK_HOSTNAME=127.0.0.1`; `lavalink` is only resolvable from inside the Docker network.
 ```
 
 Slash command targeted verification:

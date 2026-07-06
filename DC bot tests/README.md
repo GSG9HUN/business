@@ -45,6 +45,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "FullyQualifiedName~Slas
 - `DatabaseMigrationRunner` applies pending EF Core migrations
 - slash command services, modules, and `SlashCommandProcessor` resolve from DI
 - all 15 text commands resolve from the production startup graph
+- command routing uses the injected `ICommandRegistry` from the startup graph
 
 ## Integration Coverage
 
@@ -53,6 +54,7 @@ The integration suite includes targeted coverage for:
 - command-handler routing through the real text command list with fake Discord wrapper contexts
 - direct PostgreSQL repository behavior for guild data, playback state, queue, and repeat-list storage
 - `MusicQueueService`, `RepeatService`, `CurrentTrackService`, and `TrackEndedHandlerService` with real persistence and mocked external playback edges
+- queue state assertions use the explicit `QueueItemState` contract
 - real English and Hungarian localization JSON loading for slash fallback texts
 
 ## E2E Notes

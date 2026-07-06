@@ -2,7 +2,6 @@
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Wrapper;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -10,9 +9,11 @@ namespace DC_bot.Service.Music.MusicServices;
 
 public class CurrentTrackService(
     IPlaybackStateRepository playbackStateRepository,
-    ILogger<CurrentTrackService>? logger = null) : ICurrentTrackService
+    ILogger<CurrentTrackService>? logger = null,
+    ITrackSerializer? trackSerializer = null) : ICurrentTrackService
 {
     private readonly ILogger<CurrentTrackService> _logger = logger ?? NullLogger<CurrentTrackService>.Instance;
+    private readonly ITrackSerializer _trackSerializer = trackSerializer ?? new LavalinkTrackSerializer();
 
     public async Task<ILavaLinkTrack?> GetCurrentTrackAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
@@ -25,14 +26,11 @@ public class CurrentTrackService(
 
         try
         {
-            var track = LavalinkTrack.Parse(state.CurrentTrackIdentifier, null);
+            var track = _trackSerializer.Deserialize(state.CurrentTrackIdentifier, state.QueueItemId);
             _logger.LogDebug("Current track loaded for guild {GuildId}. QueueItemId: {QueueItemId}",
                 guildId,
                 state.QueueItemId);
-            return new LavaLinkTrackWrapper(track)
-            {
-                QueueItemId = state.QueueItemId
-            };
+            return track;
         }
         catch (Exception ex)
         {
@@ -43,7 +41,7 @@ public class CurrentTrackService(
 
     public async Task SetCurrentTrackAsync(ulong guildId, ILavaLinkTrack? track, CancellationToken cancellationToken = default)
     {
-        var identifier = track?.ToString();
+        var identifier = track is null ? null : _trackSerializer.Serialize(track);
     
         long? queueItemId = null;
         if (track is LavaLinkTrackWrapper wrapper)

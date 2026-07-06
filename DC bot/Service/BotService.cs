@@ -5,15 +5,27 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DC_bot.Service;
 
-public class BotService(DiscordClient client, ILogger<BotService>? logger = null)
+public class BotService
 {
-    private readonly ILogger<BotService> _logger = logger ?? NullLogger<BotService>.Instance;
+    private readonly IBotDiscordClient _client;
+    private readonly ILogger<BotService> _logger;
 
-    public async Task StartAsync(bool isTestEnvironment = false)
+    public BotService(DiscordClient client, ILogger<BotService>? logger = null)
+        : this(new DSharpPlusBotDiscordClient(client), logger)
+    {
+    }
+
+    internal BotService(IBotDiscordClient client, ILogger<BotService>? logger = null)
+    {
+        _client = client;
+        _logger = logger ?? NullLogger<BotService>.Instance;
+    }
+
+    public async Task StartAsync(bool isTestEnvironment = false, CancellationToken cancellationToken = default)
     {
         try
         {
-            await client.ConnectAsync();
+            await _client.ConnectAsync();
         }
         catch (Exception ex)
         {
@@ -21,6 +33,22 @@ public class BotService(DiscordClient client, ILogger<BotService>? logger = null
             throw;
         }
 
-        if (!isTestEnvironment) await Task.Delay(-1);
+        if (!isTestEnvironment)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
     }
+
+    private sealed class DSharpPlusBotDiscordClient(DiscordClient client) : IBotDiscordClient
+    {
+        public Task ConnectAsync()
+        {
+            return client.ConnectAsync();
+        }
+    }
+}
+
+internal interface IBotDiscordClient
+{
+    Task ConnectAsync();
 }

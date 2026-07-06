@@ -130,6 +130,46 @@ public class CommandValidationServiceTests
     }
 
     [Fact]
+    public async Task TryGetArgumentAsync_WithWhitespaceOnlyArgument_ReturnsNull()
+    {
+        const string commandContent = "!play   ";
+        _mockMessage.Setup(x => x.Content).Returns(commandContent);
+
+        _mockResponseBuilder
+            .Setup(x => x.SendUsageAsync(_mockMessage.Object, "play"))
+            .Returns(Task.CompletedTask);
+
+        var result = await _commandValidationService.TryGetArgumentAsync(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "play");
+
+        Assert.Null(result);
+        _mockResponseBuilder.Verify(x => x.SendUsageAsync(_mockMessage.Object, "play"), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryGetArgumentAsync_WithTagWhitespaceOnlyArgument_ReturnsNull()
+    {
+        const string commandContent = "!tag   ";
+        _mockMessage.Setup(x => x.Content).Returns(commandContent);
+
+        _mockResponseBuilder
+            .Setup(x => x.SendUsageAsync(_mockMessage.Object, "tag"))
+            .Returns(Task.CompletedTask);
+
+        var result = await _commandValidationService.TryGetArgumentAsync(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "tag");
+
+        Assert.Null(result);
+        _mockResponseBuilder.Verify(x => x.SendUsageAsync(_mockMessage.Object, "tag"), Times.Once);
+    }
+
+    [Fact]
     public async Task TryGetArgumentAsync_WithMultipleWords_ReturnsEntireArgument()
     {
         const string commandContent = "!play never gonna give you up";

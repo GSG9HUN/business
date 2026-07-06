@@ -1,4 +1,4 @@
-using DC_bot.Constants;
+﻿using DC_bot.Constants;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
@@ -63,7 +63,7 @@ public class PlaybackControlServiceTests
     public async Task PauseAsync_InvalidPlayer_ReturnsWithoutSideEffects()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.PauseAsync(_messageMock.Object, _memberMock.Object);
@@ -80,7 +80,7 @@ public class PlaybackControlServiceTests
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.PauseCommandError)).Returns("No track");
         _playerMock.SetupGet(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.PauseAsync(_messageMock.Object, _memberMock.Object);
@@ -91,7 +91,7 @@ public class PlaybackControlServiceTests
     }
 
     [Fact]
-    public async Task PauseAsync_WithCurrentTrack_PausesPlayer()
+    public async Task PauseAsync_WithCurrentTrack_PausesPlayerAndProgressiveTimer()
     {
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.PauseCommandResponse)).Returns("Paused");
         _playerMock.SetupGet(p => p.CurrentTrack).Returns(new LavalinkTrack
@@ -101,12 +101,13 @@ public class PlaybackControlServiceTests
             Identifier = "id"
         });
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.PauseAsync(_messageMock.Object, _memberMock.Object);
 
         _playerMock.Verify(p => p.PauseAsync(CancellationToken.None), Times.Once);
+        _progressiveTimerServiceMock.Verify(t => t.Pause(GuildId), Times.Once);
     }
 
     [Fact]
@@ -116,7 +117,7 @@ public class PlaybackControlServiceTests
         _playerMock.Setup(p => p.PauseAsync(CancellationToken.None))
             .ThrowsAsync(new InvalidOperationException("pause fail"));
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.PauseAsync(_messageMock.Object, _memberMock.Object);
@@ -129,7 +130,7 @@ public class PlaybackControlServiceTests
     public async Task ResumeAsync_InvalidPlayer_ReturnsWithoutSideEffects()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.ResumeAsync(_messageMock.Object, _memberMock.Object);
@@ -146,7 +147,7 @@ public class PlaybackControlServiceTests
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ResumeCommandError)).Returns("No paused track");
         _playerMock.SetupGet(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.ResumeAsync(_messageMock.Object, _memberMock.Object);
@@ -157,7 +158,7 @@ public class PlaybackControlServiceTests
     }
 
     [Fact]
-    public async Task ResumeAsync_WithCurrentTrack_ResumesPlayer()
+    public async Task ResumeAsync_WithCurrentTrack_ResumesPlayerAndProgressiveTimer()
     {
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ResumeCommandResponse)).Returns("Resumed");
         _playerMock.SetupGet(p => p.CurrentTrack).Returns(new LavalinkTrack
@@ -167,12 +168,13 @@ public class PlaybackControlServiceTests
             Identifier = "id"
         });
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.ResumeAsync(_messageMock.Object, _memberMock.Object);
 
         _playerMock.Verify(p => p.ResumeAsync(CancellationToken.None), Times.Once);
+        _progressiveTimerServiceMock.Verify(t => t.ResumeAsync(GuildId), Times.Once);
     }
 
     [Fact]
@@ -182,7 +184,7 @@ public class PlaybackControlServiceTests
         _playerMock.Setup(p => p.ResumeAsync(CancellationToken.None))
             .ThrowsAsync(new InvalidOperationException("resume fail"));
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.ResumeAsync(_messageMock.Object, _memberMock.Object);
@@ -195,7 +197,7 @@ public class PlaybackControlServiceTests
     public async Task SkipAsync_InvalidPlayer_ReturnsWithoutSideEffects()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.SkipAsync(_messageMock.Object, _memberMock.Object);
@@ -213,7 +215,7 @@ public class PlaybackControlServiceTests
         _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(false);
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.SkipAsync(_messageMock.Object, _memberMock.Object);
@@ -226,20 +228,29 @@ public class PlaybackControlServiceTests
     [Fact]
     public async Task SkipAsync_WithCurrentTrack_StopsPlayerAndProgressiveTimer()
     {
+        var calls = new List<string>();
         _playerMock.SetupGet(p => p.CurrentTrack).Returns(new LavalinkTrack
         {
             Author = "Test author",
             Title = "Track",
             Identifier = "id"
         });
+        _progressiveTimerServiceMock
+            .Setup(t => t.Stop(GuildId))
+            .Callback(() => calls.Add("timer-stop"));
+        _playerMock
+            .Setup(p => p.StopAsync(CancellationToken.None))
+            .Callback(() => calls.Add("player-stop"))
+            .Returns(new ValueTask());
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.SkipAsync(_messageMock.Object, _memberMock.Object);
 
         _playerMock.Verify(p => p.StopAsync(CancellationToken.None), Times.Once);
         _progressiveTimerServiceMock.Verify(t => t.Stop(GuildId), Times.Once);
+        Assert.Equal(["timer-stop", "player-stop"], calls);
     }
 
     [Fact]
@@ -248,7 +259,7 @@ public class PlaybackControlServiceTests
         _playerMock.SetupGet(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(true);
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.SkipAsync(_messageMock.Object, _memberMock.Object);
@@ -264,7 +275,7 @@ public class PlaybackControlServiceTests
         _playerMock.Setup(p => p.StopAsync(CancellationToken.None))
             .ThrowsAsync(new InvalidOperationException("stop fail"));
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _textChannelMock.Object, GuildId, true));
 
         await _service.SkipAsync(_messageMock.Object, _memberMock.Object);
@@ -277,7 +288,7 @@ public class PlaybackControlServiceTests
     public async Task LeaveVoiceChannel_InvalidPlayer_DoesNothing()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.LeaveVoiceChannel(_messageMock.Object, _memberMock.Object);
@@ -311,7 +322,7 @@ public class PlaybackControlServiceTests
             .Returns(new ValueTask());
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         await _service.LeaveVoiceChannel(_messageMock.Object, _memberMock.Object);
@@ -328,7 +339,7 @@ public class PlaybackControlServiceTests
     {
         _playerMock.SetupGet(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         await _service.LeaveVoiceChannel(_messageMock.Object, _memberMock.Object);
@@ -346,7 +357,7 @@ public class PlaybackControlServiceTests
             .ThrowsAsync(new InvalidOperationException("disconnect fail"));
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryGetAndValidateExistingPlayerAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         await _service.LeaveVoiceChannel(_messageMock.Object, _memberMock.Object);

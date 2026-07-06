@@ -1,5 +1,5 @@
-using DC_bot.Service;
 using DC_bot.Service.Core;
+using DC_bot.Service.ReactionHandler;
 using DSharpPlus;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +11,7 @@ internal static class BotHandlerRegistrar
     {
         var discordClient = services.GetRequiredService<DiscordClient>();
         var commandHandler = services.GetRequiredService<CommandHandlerService>();
-        var reactionHandler = services.GetRequiredService<ReactionHandler>();
+        var reactionHandler = services.GetRequiredService<ReactionHandlerService>();
 
         commandHandler.RegisterHandler(discordClient);
         reactionHandler.RegisterHandler(discordClient);

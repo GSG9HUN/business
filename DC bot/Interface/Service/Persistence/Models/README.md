@@ -6,6 +6,7 @@ This folder contains immutable record models returned by persistence contracts.
 
 - `PlaybackStateRecord.cs`
 - `QueueItemRecord.cs`
+- `QueueItemState.cs`
 
 ## Purpose
 
@@ -15,4 +16,5 @@ These records decouple service logic from EF Core entities and provide stable, t
 
 - `GuildId` is represented as `ulong` at contract level.
 - `PlaybackStateRecord.QueueItemId` links current playback to a persisted queue item when available.
-- Queue item `State` is numeric and mapped by repository logic to queued, playing, played, or skipped lifecycle states.
+- Queue item `State` uses the explicit `QueueItemState` enum at contract level.
+- EF Core maps `QueueItemState` to the existing `short` database column, so repository/service code does not pass raw numeric state values.

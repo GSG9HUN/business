@@ -2,10 +2,10 @@ using System.Reflection;
 using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Service.Core;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -18,7 +18,7 @@ public class CommandHandlerServiceTests
     private readonly CommandHandlerService _commandHandlerService;
     private readonly Mock<ILocalizationService> _mockLocalization;
     private readonly Mock<ILogger<CommandHandlerService>> _mockLogger;
-    private readonly ServiceProvider _serviceProvider;
+    private readonly ICommandRegistry _commandRegistry;
 
     public CommandHandlerServiceTests()
     {
@@ -33,12 +33,10 @@ public class CommandHandlerServiceTests
         mockCommand.Setup(x => x.Description).Returns("Test command");
         mockCommand.Setup(x => x.ExecuteAsync(It.IsAny<IDiscordMessage>())).Returns(Task.CompletedTask);
 
-        var services = new ServiceCollection();
-        services.AddSingleton(mockCommand.Object);
-        _serviceProvider = services.BuildServiceProvider();
+        _commandRegistry = CreateRegistry(mockCommand.Object);
 
         _commandHandlerService = new CommandHandlerService(
-            _serviceProvider,
+            _commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings,
@@ -68,7 +66,7 @@ public class CommandHandlerServiceTests
             .Returns("Unknown command");
 
         var service = new CommandHandlerService(
-            _serviceProvider,
+            _commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings);
@@ -88,13 +86,10 @@ public class CommandHandlerServiceTests
         var cmd2 = new Mock<ICommand>();
         cmd2.Setup(x => x.Name).Returns("play");
 
-        var services = new ServiceCollection();
-        services.AddSingleton(cmd1.Object);
-        services.AddSingleton(cmd2.Object);
-        var provider = services.BuildServiceProvider();
+        var commandRegistry = CreateRegistry(cmd1.Object, cmd2.Object);
 
         Assert.Throws<ArgumentException>(() => new CommandHandlerService(
-            provider,
+            commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings));
@@ -118,7 +113,7 @@ public class CommandHandlerServiceTests
         var customSettings = new BotSettings { Prefix = "$" };
 
         var service = new CommandHandlerService(
-            _serviceProvider,
+            _commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             customSettings);
@@ -129,10 +124,10 @@ public class CommandHandlerServiceTests
     [Fact]
     public void Constructor_EmptyServiceProvider_CreatesEmptyCommandDictionary()
     {
-        var emptyServices = new ServiceCollection().BuildServiceProvider();
+        var commandRegistry = CreateRegistry();
 
         var service = new CommandHandlerService(
-            emptyServices,
+            commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings);
@@ -148,13 +143,10 @@ public class CommandHandlerServiceTests
         var mockCommand2 = new Mock<ICommand>();
         mockCommand2.Setup(x => x.Name).Returns("pause");
 
-        var services = new ServiceCollection();
-        services.AddSingleton(mockCommand1.Object);
-        services.AddSingleton(mockCommand2.Object);
-        var provider = services.BuildServiceProvider();
+        var commandRegistry = CreateRegistry(mockCommand1.Object, mockCommand2.Object);
 
         var service = new CommandHandlerService(
-            provider,
+            commandRegistry,
             _mockLogger.Object,
             _mockLocalization.Object,
             _botSettings);
@@ -385,6 +377,11 @@ public class CommandHandlerServiceTests
         Assert.NotNull(method);
 
         return (string?)method.Invoke(null, [content, prefix]);
+    }
+
+    private static ICommandRegistry CreateRegistry(params ICommand[] commands)
+    {
+        return new CommandRegistry(() => commands);
     }
 
     private static async Task InvokeHandleCommandAsync(CommandHandlerService service, object? sender, object? args)

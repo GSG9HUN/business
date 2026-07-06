@@ -14,8 +14,9 @@ public class SlashCommandInfrastructureIntegrationTests : SlashCommandRegistrati
     {
         await WithServiceProviderAsync(services =>
         {
-            Assert.NotNull(services.GetRequiredService<ISlashCommandExecutor>());
-            Assert.NotNull(services.GetRequiredService<ISlashInteractionContextFactory>());
+            services.AssertResolvesRequiredServices(
+                typeof(ISlashCommandExecutor),
+                typeof(ISlashInteractionContextFactory));
         });
     }
 

@@ -1,4 +1,4 @@
-﻿# Music Services
+# Music Services
 
 This folder contains music playback and queue management services.
 
@@ -24,7 +24,7 @@ This folder contains music playback and queue management services.
 
 **Events:**
 
-- `TrackStarted` - Fired when track begins playing. The event publishes the target text channel and embed; `ReactionHandler` captures the `DiscordClient` when it registers.
+- `TrackStarted` - Fired when track begins playing. The event publishes the target text channel and embed; `ReactionHandlerService` captures the `DiscordClient` when it registers.
 
 **Architecture:**
 
@@ -81,6 +81,7 @@ Granular music component services.
 - `CurrentTrackService.cs`
 - `LavalinkNodeConnectionService.cs`
 - `MusicQueueService.cs`
+- `LavalinkTrackSerializer.cs`
 - `PlaybackControlService.cs`
 - `PlaybackEventHandlerService.cs`
 - `PlaybackRequestService.cs`
@@ -93,12 +94,14 @@ Granular music component services.
 
 Each service implements a corresponding interface from `Interface/Service/Music/MusicServiceInterface/`.
 
+`LavalinkTrackSerializer` is the shared track identity boundary for queue, repeat-list, and current-track persistence.
+
 ---
 
 ### ProgressiveTimer/
 
 Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
-The timer is started from the reaction control message flow and stopped by skip/leave playback controls.
+The timer is started from the reaction control message flow, paused/resumed by playback controls, and stopped by skip, leave, and track-ended handling.
 
 ---
 

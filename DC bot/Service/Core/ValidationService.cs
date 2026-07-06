@@ -43,7 +43,17 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
     {
         var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
         if (player is not null)
+        {
+            logger.LogDebug(
+                "Lavalink player validation passed. Guild: {GuildId}, ConnectionState: {ConnectionState}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}, CurrentTrack: {CurrentTrack}",
+                guildId,
+                player.ConnectionState,
+                player.ConnectionState.IsConnected,
+                player.State,
+                player.VoiceChannelId,
+                player.CurrentTrack?.Identifier);
             return new PlayerValidationResult(true, string.Empty, player);
+        }
 
         logger.ValidationLavalinkNotConnected();
         return new PlayerValidationResult(false, ValidationErrorKeys.LavalinkError, player);
@@ -51,10 +61,25 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
 
     public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
     {
-        if (connection.ConnectionState.IsConnected ||
-            connection is { State: not PlayerState.Destroyed, VoiceChannelId: not 0 })
+        if (connection.ConnectionState.IsConnected)
+        {
+            logger.LogDebug(
+                "Lavalink connection validation passed. ConnectionState: {ConnectionState}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}, CurrentTrack: {CurrentTrack}",
+                connection.ConnectionState,
+                connection.ConnectionState.IsConnected,
+                connection.State,
+                connection.VoiceChannelId,
+                connection.CurrentTrack?.Identifier);
             return Task.FromResult(new ConnectionValidationResult(true, string.Empty, connection));
+        }
 
+        logger.LogDebug(
+            "Lavalink connection validation failed. ConnectionState: {ConnectionState}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}, CurrentTrack: {CurrentTrack}",
+            connection.ConnectionState,
+            connection.ConnectionState.IsConnected,
+            connection.State,
+            connection.VoiceChannelId,
+            connection.CurrentTrack?.Identifier);
         logger.ValidationBotNotConnected();
         return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
     }

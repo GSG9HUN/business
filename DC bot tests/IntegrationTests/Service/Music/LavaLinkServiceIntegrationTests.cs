@@ -1,4 +1,4 @@
-using DC_bot.Interface;
+﻿using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
@@ -119,7 +119,7 @@ public class LavaLinkServiceIntegrationTests
         await _inMemoryQueueRepository.EnqueueAsync(GuildId, ValidTrackIdentifier);
 
         _playerConnectionMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         await _service.StartPlayingQueue(_messageMock.Object, _textChannelMock.Object, _memberMock.Object);
@@ -143,7 +143,7 @@ public class LavaLinkServiceIntegrationTests
         await _service.Init(GuildId);
 
         _playerConnectionMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         await _service.StartPlayingQueue(_messageMock.Object, _textChannelMock.Object, _memberMock.Object);
@@ -173,7 +173,7 @@ public class LavaLinkServiceIntegrationTests
         public Task<IReadOnlyList<QueueItemRecord>> GetQueuedItemsAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
             var items = _items.GetValueOrDefault(guildId, [])
-                .Where(item => item.State == 0)
+                .Where(item => item.State == QueueItemState.Queued)
                 .OrderBy(item => item.Position)
                 .ToList();
 
@@ -182,14 +182,14 @@ public class LavaLinkServiceIntegrationTests
 
         public Task<bool> AnyQueuedItemsAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
-            var anyQueued = _items.GetValueOrDefault(guildId, []).Any(item => item.State == 0);
+            var anyQueued = _items.GetValueOrDefault(guildId, []).Any(item => item.State == QueueItemState.Queued);
             return Task.FromResult(anyQueued);
         }
 
         public Task<QueueItemRecord?> GetNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
             var item = _items.GetValueOrDefault(guildId, [])
-                .Where(queueItem => queueItem.State == 0)
+                .Where(queueItem => queueItem.State == QueueItemState.Queued)
                 .OrderBy(queueItem => queueItem.Position)
                 .FirstOrDefault();
 
@@ -199,7 +199,7 @@ public class LavaLinkServiceIntegrationTests
         public Task<QueueItemRecord?> GetPreviousItemAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
             var item = _items.GetValueOrDefault(guildId, [])
-                .Where(queueItem => queueItem.State == 2 || queueItem.State == 3)
+                .Where(queueItem => queueItem.State is QueueItemState.Played or QueueItemState.Skipped)
                 .OrderByDescending(queueItem => queueItem.Position)
                 .FirstOrDefault();
 
@@ -211,7 +211,7 @@ public class LavaLinkServiceIntegrationTests
             var items = _items.GetValueOrDefault(guildId, []);
             var index = items
                 .Select((item, idx) => (item, idx))
-                .Where(x => x.item.State == 0)
+                .Where(x => x.item.State == QueueItemState.Queued)
                 .OrderBy(x => x.item.Position)
                 .Select(x => x.idx)
                 .FirstOrDefault(-1);
@@ -221,7 +221,7 @@ public class LavaLinkServiceIntegrationTests
                 return Task.FromResult<QueueItemRecord?>(null);
             }
 
-            items[index] = items[index] with { State = 1 };
+            items[index] = items[index] with { State = QueueItemState.Playing };
             return Task.FromResult<QueueItemRecord?>(items[index]);
         }
 
@@ -235,7 +235,7 @@ public class LavaLinkServiceIntegrationTests
             }
 
             var nextPosition = items.Count == 0 ? 0 : items.Max(item => item.Position) + 1;
-            var record = new QueueItemRecord(_nextId++, guildId, nextPosition, trackIdentifier, 0, DateTimeOffset.UtcNow, null, null);
+            var record = new QueueItemRecord(_nextId++, guildId, nextPosition, trackIdentifier, QueueItemState.Queued, DateTimeOffset.UtcNow, null, null);
             items.Add(record);
             return Task.FromResult(record);
         }
@@ -286,19 +286,19 @@ public class LavaLinkServiceIntegrationTests
 
         public Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default)
         {
-            Update(queueItemId, item => item with { State = 1 });
+            Update(queueItemId, item => item with { State = QueueItemState.Playing });
             return Task.CompletedTask;
         }
 
         public Task MarkPlayedAsync(long queueItemId, CancellationToken cancellationToken = default)
         {
-            Update(queueItemId, item => item with { State = 2, PlayedAtUtc = DateTimeOffset.UtcNow });
+            Update(queueItemId, item => item with { State = QueueItemState.Played, PlayedAtUtc = DateTimeOffset.UtcNow });
             return Task.CompletedTask;
         }
 
         public Task MarkSkippedAsync(long queueItemId, CancellationToken cancellationToken = default)
         {
-            Update(queueItemId, item => item with { State = 3, SkippedAtUtc = DateTimeOffset.UtcNow });
+            Update(queueItemId, item => item with { State = QueueItemState.Skipped, SkippedAtUtc = DateTimeOffset.UtcNow });
             return Task.CompletedTask;
         }
 
@@ -307,9 +307,9 @@ public class LavaLinkServiceIntegrationTests
             var items = _items.GetValueOrDefault(guildId, []);
             for (var index = 0; index < items.Count; index++)
             {
-                if (items[index].State == 0)
+                if (items[index].State == QueueItemState.Queued)
                 {
-                    items[index] = items[index] with { State = 3, SkippedAtUtc = DateTimeOffset.UtcNow };
+                    items[index] = items[index] with { State = QueueItemState.Skipped, SkippedAtUtc = DateTimeOffset.UtcNow };
                 }
             }
 

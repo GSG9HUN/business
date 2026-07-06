@@ -5,7 +5,7 @@ public sealed record QueueItemRecord(
     ulong GuildId,
     int Position,
     string TrackIdentifier,
-    short State,
+    QueueItemState State,
     DateTimeOffset AddedAtUtc,
     DateTimeOffset? PlayedAtUtc,
     DateTimeOffset? SkippedAtUtc);

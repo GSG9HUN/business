@@ -5,7 +5,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Core;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -55,7 +54,6 @@ public class HelpCommandTests
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
 
-        var services = new ServiceCollection();
         var mockCommand1 = new Mock<ICommand>();
         mockCommand1.Setup(c => c.Name).Returns(CommandNamePing);
         mockCommand1.Setup(c => c.Description).Returns(CommandDescriptionPing);
@@ -64,13 +62,10 @@ public class HelpCommandTests
         mockCommand2.Setup(c => c.Name).Returns(CommandNamePlay);
         mockCommand2.Setup(c => c.Description).Returns(CommandDescriptionPlay);
 
-        services.AddSingleton(mockCommand1.Object);
-        services.AddSingleton(mockCommand2.Object);
-
-        var serviceProvider = services.BuildServiceProvider();
+        var commandRegistry = new CommandRegistry(() => [mockCommand1.Object, mockCommand2.Object]);
 
         _helpCommand = new HelpCommand(userValidationService, mockLogger.Object, _responseBuilderMock.Object,
-            localizationServiceMock.Object, serviceProvider);
+            localizationServiceMock.Object, commandRegistry);
     }
 
     [Fact]
@@ -109,11 +104,10 @@ public class HelpCommandTests
 
         var userValidationService = new ValidationService(validationLoggerMock.Object);
 
-        var services = new ServiceCollection();
-        var emptyServiceProvider = services.BuildServiceProvider();
+        var commandRegistry = new CommandRegistry(() => []);
 
         var helpCommandWithNoCommands = new HelpCommand(userValidationService, mockLogger.Object,
-            _responseBuilderMock.Object, localizationServiceMock.Object, emptyServiceProvider);
+            _responseBuilderMock.Object, localizationServiceMock.Object, commandRegistry);
 
         _discordUserMock.SetupGet(du => du.Id).Returns(123456789L);
 

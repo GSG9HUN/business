@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;
@@ -61,6 +62,28 @@ public class MusicQueueServiceTests
     }
 
     [Fact]
+    public async Task Enqueue_UsesTrackSerializer()
+    {
+        var track = CreateTrackMock("fallback-track-id");
+        var serializer = new Mock<ITrackSerializer>();
+        serializer
+            .Setup(trackSerializer => trackSerializer.Serialize(track.Object))
+            .Returns("serialized-track-id");
+        var service = new MusicQueueService(
+            _queueRepositoryMock.Object,
+            _repeatListRepositoryMock.Object,
+            Mock.Of<ILogger<MusicQueueService>>(),
+            serializer.Object);
+
+        await service.Enqueue(GuildId, track.Object);
+
+        _queueRepositoryMock.Verify(
+            repository => repository.EnqueueAsync(GuildId, "serialized-track-id", CancellationToken.None),
+            Times.Once);
+        serializer.Verify(trackSerializer => trackSerializer.Serialize(track.Object), Times.Once);
+    }
+
+    [Fact]
     public async Task EnqueueMany_DelegatesToRepository()
     {
         var track1 = CreateTrackMock("track-id-1");
@@ -101,6 +124,31 @@ public class MusicQueueServiceTests
         var result = await _service.Dequeue(GuildId);
 
         Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task Dequeue_UsesTrackSerializerWithQueueItemId()
+    {
+        var record = CreateRecord("serialized-track-id", 77);
+        var parsedTrack = CreateTrackMock("parsed-track-id");
+        var serializer = new Mock<ITrackSerializer>();
+        serializer
+            .Setup(trackSerializer => trackSerializer.Deserialize("serialized-track-id", 77))
+            .Returns(parsedTrack.Object);
+        var service = new MusicQueueService(
+            _queueRepositoryMock.Object,
+            _repeatListRepositoryMock.Object,
+            Mock.Of<ILogger<MusicQueueService>>(),
+            serializer.Object);
+
+        _queueRepositoryMock
+            .Setup(repository => repository.ClaimNextQueuedItemAsync(GuildId, CancellationToken.None))
+            .ReturnsAsync(record);
+
+        var result = await service.Dequeue(GuildId);
+
+        Assert.Same(parsedTrack.Object, result);
+        serializer.Verify(trackSerializer => trackSerializer.Deserialize("serialized-track-id", 77), Times.Once);
     }
 
     [Fact]
@@ -279,7 +327,7 @@ public class MusicQueueServiceTests
 
     private static QueueItemRecord CreateRecord(string trackIdentifier, long id = 1, int position = 0)
     {
-        return new QueueItemRecord(id, GuildId, position, trackIdentifier, 0, DateTimeOffset.UtcNow, null, null);
+        return new QueueItemRecord(id, GuildId, position, trackIdentifier, QueueItemState.Queued, DateTimeOffset.UtcNow, null, null);
     }
 
     private static Mock<ILavaLinkTrack> CreateTrackMock(string identifier)

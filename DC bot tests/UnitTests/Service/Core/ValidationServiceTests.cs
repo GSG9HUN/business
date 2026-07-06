@@ -101,7 +101,7 @@ public class ValidationServiceTests
     }
 
     [Fact]
-    public async Task ValidateConnectionAsync_PlayerHasVoiceChannelBeforeConnectionUpdate_ReturnsTrue()
+    public async Task ValidateConnectionAsync_DisconnectedPlayerWithVoiceChannel_ReturnsFalse()
     {
         var lavalinkPlayer = new Mock<ILavalinkPlayer>();
 
@@ -111,8 +111,9 @@ public class ValidationServiceTests
 
         var result = await _validationService.ValidateConnectionAsync(lavalinkPlayer.Object);
 
-        Assert.True(result.IsValid);
-        Assert.Equal(lavalinkPlayer.Object, result.Connection);
+        Assert.False(result.IsValid);
+        Assert.Null(result.Connection);
+        Assert.Equal(ValidationErrorKeys.BotIsNotConnectedError, result.ErrorKey);
     }
 
     [Fact]

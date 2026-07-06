@@ -1,4 +1,4 @@
-﻿# Music Services
+# Music Services
 
 This folder contains granular music component services.
 
@@ -24,7 +24,7 @@ These services split music functionality into focused responsibilities. Each imp
 **Persistence:**
 
 - Uses `IPlaybackStateRepository` (`guild_playback_state.current_track_identifier`, `guild_playback_state.queue_item_id`)
-- Track is stored as a Lavalink track identifier string and reconstructed via `LavalinkTrack.Parse`
+- Track is stored as a Lavalink track identifier string and reconstructed through `ITrackSerializer`
 - Invalid/unparsable identifiers are silently handled (logged as warning, returns `null`)
 
 ---
@@ -50,7 +50,8 @@ These services split music functionality into focused responsibilities. Each imp
 
 - Uses `IQueueRepository` for database-backed queue operations
 - Uses `IRepeatListRepository` to read repeat-list snapshots when queue repeat needs to restart playback
-- Queue state transitions are persisted (`queued`, `playing`, `played`, `skipped`)
+- Uses `ITrackSerializer` as the only queue/repeat track identity serialization boundary
+- Queue state transitions are persisted through `QueueItemState` (`Queued`, `Playing`, `Played`, `Skipped`)
 - Ordering updates are handled transactionally in repository layer
 - `QueueItemId` on the dequeued `LavaLinkTrackWrapper` is later used by `TrackEndedHandlerService` to mark the item as played or skipped
 - When repeat-list playback restarts, `TrackEndedHandlerService` loads tracks through `GetRepeatableQueue()` and copies them into queue storage through `EnqueueMany()`
@@ -74,6 +75,20 @@ These services split music functionality into focused responsibilities. Each imp
 
 ---
 
+### LavalinkTrackSerializer.cs
+
+**Implements:** `ITrackSerializer`
+
+**Purpose:** Centralize Lavalink track identifier serialization and parsing.
+
+**Notes:**
+
+- `Serialize()` currently delegates to the Lavalink track identifier returned by the wrapped track.
+- `Deserialize()` parses the stored identifier and returns a `LavaLinkTrackWrapper`; when a queue item ID is supplied it is copied into `QueueItemId`.
+- Queue, repeat-list, and current-track services depend on this contract instead of duplicating parse logic.
+
+---
+
 ### PlaybackControlService.cs
 
 **Implements:** `IPlaybackControlService`
@@ -82,9 +97,9 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Key Methods:**
 
-- `PauseAsync()` - Validate the existing player and pause the current track
-- `ResumeAsync()` - Validate the existing player and resume playback
-- `SkipAsync()` - Stop the current player and stop the progressive timer
+- `PauseAsync()` - Validate the existing connected player, pause the current track, and pause the progressive timer
+- `ResumeAsync()` - Validate the existing connected player, resume playback, and resume the progressive timer for the same track
+- `SkipAsync()` - Stop the progressive timer before stopping the current player so stale now-playing updates do not continue
 - `LeaveVoiceChannel()` - Stop playback if needed, clean playback handlers, stop timers, and disconnect
 
 **Notes:**
@@ -133,7 +148,10 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Key Methods:**
 
-- `TryJoinAndValidateAsync()` - Join voice channel and validate connection
+- `TryJoinAndValidateAsync()` - Destroy a stale disconnected Lavalink player if one exists, then join the voice channel and validate the new connection
+- `TryGetAndValidateExistingPlayerAsync()` - Validate an existing player and reject disconnected player state before playback controls run
+
+**Lifecycle:** Both methods accept optional `CancellationToken` values. Join cleanup, Lavalink join, and retry delay paths pass the token through so shutdown can interrupt waits instead of being swallowed as a validation error.
 
 ---
 
@@ -149,6 +167,8 @@ These services split music functionality into focused responsibilities. Each imp
 - `SetRepeatingListAsync()` - Toggle repeat-list mode and clear the saved snapshot when disabled
 - `SaveRepeatListSnapshotAsync()` - Persist the current track plus queued tracks into `IRepeatListRepository`
 
+**Persistence:** Repeat-list snapshots serialize tracks through `ITrackSerializer`.
+
 ---
 
 ### TrackEndedHandlerService.cs
@@ -161,7 +181,8 @@ These services split music functionality into focused responsibilities. Each imp
 
 - marks the current queue item as played when the track finishes normally
 - marks it as skipped for other end reasons
-- repeats the current track when single-track repeat is enabled
+- stops the progressive timer for the completed guild before deciding the next playback path
+- repeats the current track when single-track repeat is enabled and sends a fresh now-playing notification for the repeated track
 - plays the next queued track when available
 - rehydrates and plays the repeat-list snapshot when list repeat is enabled and the queue is empty
 - sends the queue-empty notification when no playback path remains

@@ -7,6 +7,13 @@ internal static class Program
 {
     private static async Task Main()
     {
+        using var shutdown = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, args) =>
+        {
+            args.Cancel = true;
+            shutdown.Cancel();
+        };
+
         var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 
         if (File.Exists(envPath))
@@ -14,6 +21,6 @@ internal static class Program
             Env.NoClobber().Load(envPath);
         }
 
-        await BotApplication.RunAsync();
+        await BotApplication.RunAsync(cancellationToken: shutdown.Token);
     }
 }

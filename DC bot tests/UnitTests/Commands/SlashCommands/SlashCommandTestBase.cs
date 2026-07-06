@@ -55,8 +55,8 @@ public abstract class SlashCommandTestBase
 
     protected static SlashCommandContext CreateDSharpContext()
     {
-        // SlashCommandContext is framework-owned; these tests mock the factory boundary.
-        return null!;
+        // SlashCommandContext is framework-owned; module tests only assert the factory boundary.
+        return (SlashCommandContext)RuntimeHelpers.GetUninitializedObject(typeof(SlashCommandContext));
     }
 
     protected static DiscordMember CreateDiscordMember(ulong id)

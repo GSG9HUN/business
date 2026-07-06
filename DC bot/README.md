@@ -1,4 +1,4 @@
-﻿# DC Bot - Discord Music Bot
+# DC Bot - Discord Music Bot
 
 A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuring queue management, multiple languages,
 robust error handling, and comprehensive documentation.
@@ -39,6 +39,7 @@ SPOTIFY_CLIENT_SECRET=
 APPLE_MUSIC_API_TOKEN=
 DEEZER_ARL=
 YANDEX_MUSIC_ACCESS_TOKEN=
+YOUTUBE_REFRESH_TOKEN=
 ```
 
 2. **Build and run**:
@@ -114,7 +115,12 @@ DC bot/
 ├── Service/                       # Business logic layer
 │   ├── BotService.cs              # Bot lifecycle management
 │   ├── LocalizationService.cs     # Multi-language support
-│   ├── ReactionHandler.cs         # Music control reactions
+│   ├── ReactionHandler/           # Music control reaction orchestration
+│   │   ├── ReactionHandlerService.cs
+│   │   ├── ReactionActionDispatcher.cs
+│   │   ├── ReactionContextFactory.cs
+│   │   ├── ReactionControlMessageService.cs
+│   │   └── ReactionControlEmojis.cs
 │   ├── Core/                      # CommandHandler, Validation
 │   ├── Music/                     # Playback orchestration
 │   │   ├── LavaLinkService.cs
@@ -131,7 +137,15 @@ DC bot/
 │   ├── BotConfigurationLoader.cs  # Environment configuration loading
 │   ├── BotHandlerRegistrar.cs     # Command/reaction handler activation
 │   ├── BotRuntimeSettings.cs      # Startup settings aggregate
-│   ├── BotServiceCollectionExtensions.cs # Domain-specific DI registration extensions
+│   ├── DependencyInjection/       # Domain-specific DI registration extensions
+│   │   ├── CommandServiceCollectionExtensions.cs
+│   │   ├── CoreServiceCollectionExtensions.cs
+│   │   ├── DiscordServiceCollectionExtensions.cs
+│   │   ├── LavalinkServiceCollectionExtensions.cs
+│   │   ├── LoggingServiceCollectionExtensions.cs
+│   │   ├── MusicServiceCollectionExtensions.cs
+│   │   ├── PersistenceServiceCollectionExtensions.cs
+│   │   └── README.md
 │   ├── BotServiceProviderFactory.cs # Dependency injection composition root
 │   ├── DatabaseMigrationRunner.cs # EF Core migration execution
 │   └── README.md
@@ -282,6 +296,8 @@ DC bot/
 | **Repository**           | Queue persistence abstraction | Flexible storage            |
 | **Wrapper/Adapter**      | DSharpPlus abstraction        | Library independence        |
 | **Factory/Adapter**      | Wrapper and message creation  | Centralized boundary setup  |
+| **Registry**             | `ICommandRegistry`            | Stable command lookup       |
+| **Serializer Boundary**  | `ITrackSerializer`            | Centralized track identity persistence |
 | **Options**              | Configuration models          | Type-safe config            |
 | **Result Objects**       | Validation results            | Exception-free errors       |
 
@@ -322,26 +338,24 @@ BotApplication.RunAsync()
 BotConfigurationLoader.LoadFromEnvironment()
   ↓
 BotServiceProviderFactory.Create()
-  ├─ AddDiscordRuntime
-  ├─ AddSlashCommandProcessor
-  ├─ AddLavalinkRuntime
-  ├─ AddBotLogging
-  ├─ AddPersistenceServices
-  ├─ AddCoreBotServices
-  ├─ AddSlashCommandServices
-  ├─ AddTextCommands (15 command implementations)
-  ├─ AddMusicServices (15 music-related services)
-  └─ Build ServiceProvider
+  |-- AddBotLogging
+  |-- AddCoreBotServices
+  |-- AddDiscordRuntime (gateway, message, reaction, and voice callbacks)
+  |-- AddLavalinkRuntime
+  |-- AddPersistenceServices
+  |-- AddCommandServices (15 text commands, slash services, slash modules, SlashCommandProcessor)
+  |-- AddMusicServices (music services plus track serializer)
+  `-- Build ServiceProvider
   ↓
 DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync()
   ↓
 BotHandlerRegistrar.RegisterHandlers()
   ├─ CommandHandlerService.RegisterHandler(discordClient)
-  └─ ReactionHandler.RegisterHandler(discordClient)
+  └─ ReactionHandlerService.RegisterHandler(discordClient)
   ↓
 BotService.StartAsync()
   ├─ Connect DiscordClient
-  └─ Run indefinitely
+  └─ Wait until shutdown cancellation
 ```
 
 ---
@@ -399,6 +413,7 @@ SPOTIFY_CLIENT_SECRET=
 APPLE_MUSIC_API_TOKEN=
 DEEZER_ARL=
 YANDEX_MUSIC_ACCESS_TOKEN=
+YOUTUBE_REFRESH_TOKEN=
 ```
 
 ### Environment Variables
@@ -421,6 +436,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 | `APPLE_MUSIC_API_TOKEN` | ❌ No | `` | Apple Music media API token for Lavalink lavasrc |
 | `DEEZER_ARL` | ❌ No | `` | Deezer ARL cookie for Lavalink lavasrc |
 | `YANDEX_MUSIC_ACCESS_TOKEN` | ❌ No | `` | Yandex Music access token for Lavalink lavasrc |
+| `YOUTUBE_REFRESH_TOKEN` | ❌ No | `` | Optional YouTube OAuth refresh token passed to Lavalink youtube-plugin |
 
 ---
 
@@ -428,11 +444,11 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ### Runtime Registrations
 
-`Startup/BotServiceProviderFactory.cs` is the composition root. It validates startup settings and composes runtime services through domain-specific methods in `Startup/BotServiceCollectionExtensions.cs`.
+`Startup/BotServiceProviderFactory.cs` is the composition root. It validates startup settings and composes runtime services through domain-specific extension methods in `Startup/DependencyInjection/`.
 
-`BotServiceCollectionExtensions.cs` groups Discord runtime wiring, slash command registration, Lavalink configuration, persistence, core services, text commands, slash adapter services, and music services.
+`Startup/DependencyInjection/` contains focused registration files for logging, core services, Discord runtime wiring, Lavalink configuration, persistence, commands, slash modules, and music services.
 
-`Startup/BotHandlerRegistrar.cs` activates command/reaction handlers after the `DiscordClient` and dependent services are constructed. DSharpPlus event handlers are configured by `AddDiscordRuntime`.
+`Startup/BotHandlerRegistrar.cs` activates command/reaction handlers after the `DiscordClient` and dependent services are constructed. DSharpPlus gateway, voice, message, and reaction callbacks are configured by `AddDiscordRuntime`.
 
 #### Logging Configuration
 
@@ -450,10 +466,11 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 #### Core Services
 
 - `DiscordClient` - Discord connection
-- `DiscordClientEventHandler` - Discord lifecycle event handling with direct constructor-injected dependencies
+- `DiscordClientEventHandler` - Discord socket/session/guild/voice diagnostics and Lavalink-ready initialization with direct constructor-injected dependencies
 - `BotService` - Bot lifecycle
 - `CommandHandlerService` - Message routing
-- `ReactionHandler` - Reaction handling
+- `ICommandRegistry` - Stable text command lookup/enumeration
+- `ReactionHandlerService` and reaction helper services - Reaction handling
 - `IDiscordMessageFactory` - DSharpPlus message to `IDiscordMessage` wrapper boundary
 - `IFileSystem` - File operations
 
@@ -479,10 +496,11 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - Registered through `DSharpPlus.Commands` and `SlashCommandProcessor`
 - Delegate to the existing text command pipeline through `ISlashCommandExecutor`
 
-#### All 15 Music-Related Services
+#### Music-Related Services
 
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management and repeat-list snapshot rehydration
+- `ITrackSerializer` / `LavalinkTrackSerializer` - Track identity serialization for queue, repeat-list, and current-track persistence
 - `RepeatService` - Repeat flags and repeat-list snapshot writes
 - `CurrentTrackService` - Track state
 - `TrackNotificationService` - Notifications
@@ -495,7 +513,9 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 - `TrackPlaybackService` - Playback control
 - `TrackEndedHandlerService` - Track end events
 - `TrackSearchResolverService` - URL/query resolution
-- `ProgressiveTimerService` - Now-playing message timer updates
+- `ProgressiveTimerService` - Now-playing message timer updates with pause/resume/stop state per guild
+
+`PlayerConnectionService` and the bot startup path accept cancellation tokens for shutdown/retry control.
 
 #### Validation & Localization (5 services)
 
@@ -509,7 +529,7 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 
 ## Documentation Guide
 
-The project has **50+ README.md files** documenting every component:
+The project has **60+ README.md files** documenting every component:
 
 ### Start Here
 
@@ -582,7 +602,7 @@ public class MyCommand(
 }
 ```
 
-2. **Register in `Startup/BotServiceCollectionExtensions.cs` inside `AddTextCommands`:**
+2. **Register in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` inside `AddCommandServices()` / `AddTextCommands()`:**
 
 ```csharp
 .AddSingleton<ICommand, MyCommand>()
@@ -608,7 +628,7 @@ public const string MyCommandDescription = "mycommand_description";
 
 1. Create the slash adapter in the matching `Commands/SlashCommands/<domain>/` folder.
 2. Delegate to the existing text command behavior through `ISlashCommandExecutor` when the command has a text command equivalent.
-3. Register the module in `Startup/BotServiceCollectionExtensions.cs` both in `AddSlashCommandProcessor` and `AddSlashCommandServices`.
+3. Register the module in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` so `AddCommandServices()` includes both DI registration and the `SlashCommandProcessor` module list.
 4. Add or update the slash README in that command domain.
 5. Write unit tests for module delegation, integration tests for DI/module resolution, and E2E-category pipeline tests for the slash adapter path.
 
@@ -617,15 +637,15 @@ public const string MyCommandDescription = "mycommand_description";
 1. Create `localization/xx.json` (e.g., `de.json` for German)
 2. Copy structure from `eng.json`
 3. Translate all values
-4. Add the language code to `LanguageCommand.AllowedLanguageCodes`
-5. Add or update the `/language` slash choices when the language should be selectable through Discord slash UX
+4. Add the language code to the allowed language set in `LanguageCommand`
+5. Add or update the `SlashLanguage` choices when the language should be selectable through Discord slash UX
 6. Test with `!language xx` and `/language`
 
 ### Adding a New Service
 
 1. Create interface in `Interface/Service/`
 2. Implement in `Service/`
-3. Register in the matching domain method in `Startup/BotServiceCollectionExtensions.cs`:
+3. Register in the matching domain extension under `Startup/DependencyInjection/`:
    ```csharp
    .AddSingleton<IMyService, MyService>()
    ```
@@ -809,7 +829,7 @@ DC bot tests/
 - **Lavalink4NET:** 4.2.1
 - **EF Core:** 9.0.10
 - **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
-- **Last Updated:** 2026-06-01
+- **Last Updated:** 2026-07-06
 
 ---
 
@@ -817,6 +837,7 @@ DC bot tests/
 
 - **[PROGRAM_CS_README.md](PROGRAM_CS_README.md)** - Program.cs and startup documentation
 - **[Startup/README.md](Startup/README.md)** - Startup composition
+- **[Startup/DependencyInjection/README.md](Startup/DependencyInjection/README.md)** - DI registration map
 - **[Commands/README.md](Commands/README.md)** - Command architecture
 - **[Service/README.md](Service/README.md)** - Service layer documentation
 - **[Interface/README.md](Interface/README.md)** - Interface abstractions

@@ -24,6 +24,10 @@ public class ConnectionValidationResult(bool isValid, string errorKey, ILavalink
 
 **Purpose:** Represents the result of validating a Lavalink player connection.
 
+**Validation Checks:**
+
+- `connection.ConnectionState.IsConnected` is true
+
 **Properties:**
 
 - `IsValid` - Whether the connection is valid
@@ -63,7 +67,11 @@ public class PlayerValidationResult(bool isValid, string errorKey, ILavalinkPlay
 }
 ```
 
-**Purpose:** Represents the result of validating a Lavalink player exists.
+**Purpose:** Represents the result of validating that a Lavalink player exists for a guild.
+
+**Validation Checks:**
+
+- `audioService.Players.GetPlayerAsync(guildId)` returns a player
 
 **Properties:**
 

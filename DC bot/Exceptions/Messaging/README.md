@@ -15,7 +15,7 @@ This folder contains exceptions for Discord message operation failures.
 ### 1. Reaction Control Message Send Failure
 
 ```csharp
-// In ReactionHandler.SendReactionControlMessageAsync()
+// In ReactionControlMessageService.SendMusicControlMessage()
 catch (Exception ex)
 {
     throw new MessageSendException("SendReactionControlMessage", "Failed to send reaction control message", ex);
@@ -34,7 +34,7 @@ catch (Exception ex)
 
 ## Usage in Code
 
-### ReactionHandler.cs
+### ReactionControlMessageService.cs
 
 - Thrown when sending reaction control messages fails
 - Wraps underlying Discord API exceptions
@@ -69,7 +69,7 @@ catch (MessageSendException ex)
 
 ## Related Files
 
-- `Service/ReactionHandler.cs` - Throws for reaction messages
+- `Service/ReactionHandler/ReactionControlMessageService.cs` - Throws for reaction messages
 - `Service/Music/MusicServices/TrackNotificationService.cs` - Throws for track notifications
 - `Wrapper/DiscordChannelWrapper.cs` - Channel abstraction used for sending
 

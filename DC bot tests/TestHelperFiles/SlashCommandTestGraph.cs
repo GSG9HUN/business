@@ -59,7 +59,8 @@ internal sealed class SlashCommandTestGraph
         return
         [
             new PingCommand(validationService, Mock.Of<ILogger<PingCommand>>(), responseBuilder, LocalizationService),
-            new HelpCommand(validationService, Mock.Of<ILogger<HelpCommand>>(), responseBuilder, LocalizationService, CreateHelpServiceProvider()),
+            new HelpCommand(validationService, Mock.Of<ILogger<HelpCommand>>(), responseBuilder, LocalizationService,
+                CreateHelpCommandRegistry()),
             new TagCommand(validationService, Mock.Of<ILogger<TagCommand>>(), responseBuilder, LocalizationService, commandHelper),
             new JoinCommand(LavaLinkServiceMock.Object, validationService, Mock.Of<ILogger<JoinCommand>>(), responseBuilder, LocalizationService, commandHelper),
             new PlayCommand(
@@ -92,7 +93,7 @@ internal sealed class SlashCommandTestGraph
         ];
     }
 
-    private static IServiceProvider CreateHelpServiceProvider()
+    private static CommandRegistry CreateHelpCommandRegistry()
     {
         var pingCommand = new Mock<ICommand>();
         pingCommand.SetupGet(command => command.Name).Returns("ping");
@@ -102,10 +103,7 @@ internal sealed class SlashCommandTestGraph
         playCommand.SetupGet(command => command.Name).Returns("play");
         playCommand.SetupGet(command => command.Description).Returns("Plays a song");
 
-        return new ServiceCollection()
-            .AddSingleton(pingCommand.Object)
-            .AddSingleton(playCommand.Object)
-            .BuildServiceProvider();
+        return new CommandRegistry(() => [pingCommand.Object, playCommand.Object]);
     }
 
     private static Mock<ILocalizationService> CreateLocalizationService(bool useSavedGuildLanguage)

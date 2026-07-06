@@ -67,7 +67,7 @@ Contains `MessageSendException` for Discord message operation failures.
 
 **Thrown by:**
 
-- `ReactionHandler` - Reaction message send failures
+- `ReactionControlMessageService` - Reaction control message send failures
 - `TrackNotificationService` - Track notification send failures
 
 **Common causes:**
@@ -85,13 +85,14 @@ Contains music playback exceptions.
 **Exception types:**
 
 - `LavalinkOperationException` - Lavalink connection failures
-- `QueueOperationException` - Queue save/load failures
+- `QueueOperationException` - Defined for queue save/load boundaries, not currently thrown
 - `TrackLoadException` - Track loading failures
 
 **Thrown by:**
 
-- `LavaLinkService` - Lavalink operations and track loading
-- `MusicQueueService` - Queue persistence
+- `LavalinkNodeConnectionService` - Lavalink connection failures
+- `PlaybackRequestService` - Track loading failures
+- `MusicQueueService` - Queue persistence currently lets repository exceptions bubble naturally
 
 ---
 
@@ -230,7 +231,7 @@ public void LoadLanguage_WhenTranslationFileIsMissing_ThrowsLocalizationExceptio
 }
 
 [Fact]
-public async Task ExecuteCommandAsync_WhenCommandThrowsBotException_LogsFailure()
+public async Task HandleEventAsync_WhenCommandThrowsBotException_LogsFailure()
 {
     // Arrange
     commandMock
@@ -238,7 +239,7 @@ public async Task ExecuteCommandAsync_WhenCommandThrowsBotException_LogsFailure(
         .ThrowsAsync(new TrackLoadException("query", "Not found"));
 
     // Act
-    await commandHandler.ExecuteCommandAsync("play", commandMock.Object, message);
+    await commandHandler.HandleEventAsync(discordClient, messageCreatedArgs);
 
     // Assert
     logger.VerifyCommandExecutionFailed("play");

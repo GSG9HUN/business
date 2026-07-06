@@ -4,8 +4,7 @@ This folder contains Discord slash command modules for the bot.
 
 ## Current Status
 
-Slash commands are active and registered from `Startup/BotServiceProviderFactory.cs` through `DSharpPlus.Commands` with
-`SlashCommandProcessor`.
+Slash commands are active and registered by `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` as part of `BotServiceProviderFactory.Create(...)`, using `DSharpPlus.Commands` with `SlashCommandProcessor`.
 
 The modules are intentionally thin adapters:
 

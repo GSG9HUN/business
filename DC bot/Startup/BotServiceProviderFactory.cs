@@ -1,4 +1,5 @@
 using DC_bot.Configuration;
+using DC_bot.Startup.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DC_bot.Startup;
@@ -19,14 +20,12 @@ internal static class BotServiceProviderFactory
         var discordToken = botSettings.Token ?? throw new Exception("DISCORD_TOKEN is not set.");
 
         return new ServiceCollection()
-            .AddDiscordRuntime(discordToken)
-            .AddSlashCommandProcessor()
-            .AddLavalinkRuntime(lavalinkSettings)
             .AddBotLogging()
-            .AddPersistenceServices(postgresConnectionString)
             .AddCoreBotServices(botSettings)
-            .AddSlashCommandServices()
-            .AddTextCommands()
+            .AddDiscordRuntime(discordToken)
+            .AddLavalinkRuntime(lavalinkSettings)
+            .AddPersistenceServices(postgresConnectionString)
+            .AddCommandServices()
             .AddMusicServices()
             .BuildServiceProvider();
     }

@@ -30,20 +30,17 @@ public class MusicFlowEndToEndTests(ITestOutputHelper testOutputHelper)
         var controlMessage = await context.WaitForMusicControlMessageAsync();
         var initialProgressDescription = controlMessage.Embeds.FirstOrDefault()?.Description ?? "";
 
-        await Task.Delay(50000);
-
-        var updatedControlMessage = await context.TextChannel.GetMessageAsync(controlMessage.Id);
+        var updatedControlMessage = await context.WaitForControlMessageDescriptionChangeAsync(
+            controlMessage.Id,
+            initialProgressDescription);
         var updatedProgressDescription = updatedControlMessage.Embeds.FirstOrDefault()?.Description ?? "";
         Assert.NotEqual(initialProgressDescription, updatedProgressDescription);
 
         await context.ExecuteCommandAsync("pause", "!pause");
-        await Task.Delay(5000);
 
         await context.ExecuteCommandAsync("resume", "!resume");
-        await Task.Delay(10000);
 
         await context.ExecuteCommandAsync("skip", "!skip");
-        await Task.Delay(3000);
 
         await context.LeaveAsync();
     }
@@ -130,12 +127,10 @@ public class MusicFlowEndToEndTests(ITestOutputHelper testOutputHelper)
         _ = await context.WaitForMusicControlMessageAsync();
 
         await context.ExecuteReactionAddedAsync(":pause_button:");
-        await Task.Delay(1000);
         Assert.DoesNotContain(context.Message.TextResponses, IsValidationFailure);
         Assert.NotNull(player.CurrentTrack);
 
         await context.ExecuteReactionAddedAsync(":arrow_forward:");
-        await Task.Delay(1000);
         Assert.DoesNotContain(context.Message.TextResponses, IsValidationFailure);
         Assert.NotNull(player.CurrentTrack);
 

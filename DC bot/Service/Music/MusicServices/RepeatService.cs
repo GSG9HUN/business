@@ -9,9 +9,11 @@ namespace DC_bot.Service.Music.MusicServices;
 public class RepeatService(
     IPlaybackStateRepository playbackStateRepository,
     IRepeatListRepository repeatListRepository,
-    ILogger<RepeatService>? logger = null) : IRepeatService
+    ILogger<RepeatService>? logger = null,
+    ITrackSerializer? trackSerializer = null) : IRepeatService
 {
     private readonly ILogger<RepeatService> _logger = logger ?? NullLogger<RepeatService>.Instance;
+    private readonly ITrackSerializer _trackSerializer = trackSerializer ?? new LavalinkTrackSerializer();
 
     public async Task InitAsync(ulong guildId)
     {
@@ -75,10 +77,10 @@ public class RepeatService(
         var trackIdentifiers = new List<string>(queuedTracks.Count + (currentTrack is null ? 0 : 1));
         if (currentTrack is not null)
         {
-            trackIdentifiers.Add(currentTrack.ToString());
+            trackIdentifiers.Add(_trackSerializer.Serialize(currentTrack));
         }
 
-        trackIdentifiers.AddRange(queuedTracks.Select(track => track.ToString()));
+        trackIdentifiers.AddRange(queuedTracks.Select(_trackSerializer.Serialize));
 
         await repeatListRepository.ReplaceAsync(guildId, trackIdentifiers);
         _logger.LogInformation(

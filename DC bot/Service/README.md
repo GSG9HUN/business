@@ -11,21 +11,30 @@ repositories.
 
 ### BotService.cs
 
-Starts and maintains the Discord client lifecycle.
+Starts and maintains the Discord client lifecycle. `StartAsync` accepts a `CancellationToken` so production shutdown can
+stop the indefinite wait cleanly.
 
 ### LocalizationService.cs
 
 Handles localization lookup and guild language persistence.
 
-### ReactionHandler.cs
+## Reaction Handler
 
-Registers message reaction handlers used for playback controls.
+`ReactionHandler/` contains message reaction handlers used for playback controls.
+
+Main reaction components:
+
+- `ReactionHandler/ReactionHandlerService.cs` - registers Discord reaction events and delegates playback-control reactions
+- `ReactionHandler/ReactionControlMessageService.cs` - builds/sends the now-playing control message and attaches playback emojis
+- `ReactionHandler/ReactionContextFactory.cs` - converts DSharpPlus reaction event payloads into Discord wrapper context
+- `ReactionHandler/ReactionActionDispatcher.cs` - maps normalized control emojis to Lavalink/repeat actions
+- `ReactionHandler/ReactionControlEmojis.cs` - central emoji constants and normalization
 
 ## Subfolders
 
 ### Core/
 
-Command dispatching and validation services.
+Command dispatching, command registry lookup, and validation services.
 
 ### Music/
 
