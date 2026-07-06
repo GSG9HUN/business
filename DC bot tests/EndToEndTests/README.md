@@ -22,7 +22,9 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=E2E"
 
 ## Configuration
 
-`EndToEndTestConfiguration.cs` reads the environment values needed by E2E tests. Missing configuration should cause tests to skip rather than fail when the external test environment is not available.
+`EndToEndTestConfiguration.cs` reads the environment values needed by E2E tests. Missing configuration is treated as a
+config-gated no-op: tests write the missing requirement to output and return without failing when the external test
+environment is not available.
 
 Commonly required values include:
 

@@ -8,6 +8,7 @@ using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Service;
 using DC_bot.Startup;
 using DC_bot_tests.IntegrationTests.Persistence;
+using DC_bot.Service.ReactionHandler;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Lavalink4NET;
@@ -25,7 +26,7 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
 {
     private readonly PostgreSqlTestDatabase _database;
     private readonly DiscordClient _client;
-    private readonly ReactionHandler _reactionHandler;
+    private readonly ReactionHandlerService _reactionHandlerService;
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly IReadOnlyCollection<string> _channelMessages;
 
@@ -35,7 +36,7 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
         PostgreSqlTestDatabase database,
         ServiceProvider provider,
         DiscordClient client,
-        ReactionHandler reactionHandler,
+        ReactionHandlerService reactionHandlerService,
         DiscordGuild guild,
         DiscordChannel textChannel,
         DiscordChannel voiceChannel,
@@ -48,7 +49,7 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
         _database = database;
         Provider = provider;
         _client = client;
-        _reactionHandler = reactionHandler;
+        _reactionHandlerService = reactionHandlerService;
         Guild = guild;
         TextChannel = textChannel;
         VoiceChannel = voiceChannel;
@@ -101,7 +102,7 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
             await provider.GetRequiredService<BotService>().StartAsync(isTestEnvironment: true);
             await provider.GetRequiredService<ILavaLinkService>().ConnectAsync();
 
-            var reactionHandler = provider.GetRequiredService<ReactionHandler>();
+            var reactionHandler = provider.GetRequiredService<ReactionHandlerService>();
             reactionHandler.RegisterHandler(client);
 
             var discordGuild = await client.GetGuildAsync(guildId);
@@ -158,83 +159,66 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
     {
         await ExecuteCommandAsync("leave", "!leave");
         _leaveExecuted = true;
-        await Task.Delay(5000);
+        await WaitForPlayerWithoutCurrentTrackAsync();
     }
 
     public async Task<ILavalinkPlayer> WaitForPlayerWithCurrentTrackAsync()
     {
         var audioService = Provider.GetRequiredService<IAudioService>();
         ILavalinkPlayer? lastPlayer = null;
-        for (var attempt = 0; attempt < 30; attempt++)
-        {
-            var player = await audioService.Players.GetPlayerAsync(GuildId);
-            lastPlayer = player;
-            if (player?.CurrentTrack is not null)
+
+        return await AsyncTestWaiter.UntilNotNullAsync(
+            async () =>
             {
-                return player;
-            }
-
-            await Task.Delay(500);
-        }
-
-        throw new TimeoutException(
-            "Lavalink player did not start a current track in time. " +
-            $"PlayerPresent={lastPlayer is not null}; " +
-            $"ConnectionState={lastPlayer?.ConnectionState.ToString() ?? "none"}; " +
-            $"TextResponses=[{string.Join(" | ", Message.TextResponses)}]; " +
-            $"ChannelMessages=[{string.Join(" | ", _channelMessages)}]");
+                var player = await audioService.Players.GetPlayerAsync(GuildId);
+                lastPlayer = player;
+                return player?.CurrentTrack is null ? null : player;
+            },
+            () => "Lavalink player did not start a current track in time. " +
+                  "PlayerPresent=" + (lastPlayer is not null) + "; " +
+                  "ConnectionState=" + (lastPlayer?.ConnectionState.ToString() ?? "none") + "; " +
+                  "TextResponses=[" + string.Join(" | ", Message.TextResponses) + "]; " +
+                  "ChannelMessages=[" + string.Join(" | ", _channelMessages) + "]");
     }
 
     public async Task WaitForPlayerWithoutCurrentTrackAsync()
     {
         var audioService = Provider.GetRequiredService<IAudioService>();
-        for (var attempt = 0; attempt < 30; attempt++)
-        {
-            var player = await audioService.Players.GetPlayerAsync(GuildId);
-            if (player?.CurrentTrack is null)
+
+        await AsyncTestWaiter.UntilAsync(
+            async () =>
             {
-                return;
-            }
-
-            await Task.Delay(500);
-        }
-
-        throw new TimeoutException("Lavalink player did not stop the current track in time.");
+                var player = await audioService.Players.GetPlayerAsync(GuildId);
+                return player?.CurrentTrack is null;
+            },
+            "Lavalink player did not stop the current track in time.");
     }
 
     public async Task<ILavaLinkTrack> WaitForStoredCurrentTrackAsync(
         Func<ILavaLinkTrack, bool>? predicate = null)
     {
         var currentTrackService = Provider.GetRequiredService<ICurrentTrackService>();
-        for (var attempt = 0; attempt < 30; attempt++)
-        {
-            var track = await currentTrackService.GetCurrentTrackAsync(GuildId);
-            if (track is not null && (predicate is null || predicate(track)))
+
+        return await AsyncTestWaiter.UntilNotNullAsync(
+            async () =>
             {
-                return track;
-            }
-
-            await Task.Delay(500);
-        }
-
-        throw new TimeoutException("Current track state was not persisted in time.");
+                var track = await currentTrackService.GetCurrentTrackAsync(GuildId);
+                return track is not null && (predicate is null || predicate(track)) ? track : null;
+            },
+            "Current track state was not persisted in time.");
     }
 
     public async Task<ILavaLinkTrack> WaitForQueuedTrackAsync()
     {
         var queueService = Provider.GetRequiredService<IMusicQueueService>();
-        for (var attempt = 0; attempt < 30; attempt++)
-        {
-            var queuedTracks = await queueService.ViewQueue(GuildId);
-            if (queuedTracks.Count > 0)
+
+        return await AsyncTestWaiter.UntilNotNullAsync(
+            async () =>
             {
-                return queuedTracks.First();
-            }
-
-            await Task.Delay(500);
-        }
-
-        throw new TimeoutException("Expected queued track was not persisted in time.");
+                var queuedTracks = await queueService.ViewQueue(GuildId);
+                return queuedTracks.Count > 0 ? queuedTracks.First() : null;
+            },
+            "Expected queued track was not persisted in time.");
     }
 
     public async Task SimulateTrackEndedAsync(TrackEndReason reason)
@@ -249,9 +233,9 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
 
     public async Task ExecuteReactionAddedAsync(string emojiName)
     {
-        var handler = new ReactionHandler(
+        var handler = new ReactionHandlerService(
             Provider.GetRequiredService<ILavaLinkService>(),
-            Provider.GetRequiredService<ILogger<ReactionHandler>>(),
+            Provider.GetRequiredService<ILogger<ReactionHandlerService>>(),
             Provider.GetRequiredService<IProgressiveTimerService>(),
             Provider.GetRequiredService<ILocalizationService>(),
             isTestMode: true);
@@ -279,27 +263,36 @@ internal sealed class LiveMusicFlowTestContext : IAsyncDisposable
 
     public async Task<DiscordMessage> WaitForMusicControlMessageAsync()
     {
-        for (var attempt = 0; attempt < 20; attempt++)
-        {
-            var messages = await TextChannel.GetMessagesAfterAsync(TestRunMarker.Id, 20);
-            var controlMessage = messages
-                .OrderBy(message => message.CreationTimestamp)
-                .FirstOrDefault(message => message.Embeds.Count > 0);
-
-            if (controlMessage is not null)
+        return await AsyncTestWaiter.UntilNotNullAsync(
+            async () =>
             {
-                return controlMessage;
-            }
+                var messages = await TextChannel.GetMessagesAfterAsync(TestRunMarker.Id, 20);
+                return messages
+                    .OrderBy(message => message.CreationTimestamp)
+                    .FirstOrDefault(message => message.Embeds.Count > 0);
+            },
+            "Music flow E2E did not publish a now-playing control message to Discord chat.");
+    }
 
-            await Task.Delay(500);
-        }
-
-        throw new TimeoutException("Music flow E2E did not publish a now-playing control message to Discord chat.");
+    public async Task<DiscordMessage> WaitForControlMessageDescriptionChangeAsync(
+        ulong messageId,
+        string initialDescription)
+    {
+        return await AsyncTestWaiter.UntilNotNullAsync(
+            async () =>
+            {
+                var updatedMessage = await TextChannel.GetMessageAsync(messageId);
+                var updatedDescription = updatedMessage.Embeds.FirstOrDefault()?.Description ?? string.Empty;
+                return string.Equals(updatedDescription, initialDescription, StringComparison.Ordinal)
+                    ? null
+                    : updatedMessage;
+            },
+            "Music flow E2E control message progress did not update in time.");
     }
 
     public async ValueTask DisposeAsync()
     {
-        _reactionHandler.UnregisterHandler(_client);
+        _reactionHandlerService.UnregisterHandler(_client);
 
         if (!_leaveExecuted)
         {

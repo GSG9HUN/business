@@ -1,6 +1,7 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET.Events.Players;
@@ -26,6 +27,7 @@ public class TrackEndedHandlerServiceTests
     private readonly Mock<IDiscordChannel> _textChannelMock = new();
     private readonly Mock<ITrackNotificationService> _trackNotificationServiceMock = new();
     private readonly Mock<ITrackPlaybackService> _trackPlaybackServiceMock = new();
+    private readonly Mock<IProgressiveTimerService> _progressiveTimerServiceMock = new();
     private readonly Mock<IQueueRepository> _queueRepositoryMock = new();
 
     public TrackEndedHandlerServiceTests()
@@ -40,6 +42,7 @@ public class TrackEndedHandlerServiceTests
             _musicQueueServiceMock.Object,
             _trackPlaybackServiceMock.Object,
             _trackNotificationServiceMock.Object,
+            _progressiveTimerServiceMock.Object,
             _queueRepositoryMock.Object,
             _loggerMock.Object);
     }
@@ -56,6 +59,30 @@ public class TrackEndedHandlerServiceTests
         _repeatServiceMock.Verify(r => r.IsRepeatingAsync(It.IsAny<ulong>()), Times.Never);
         _musicQueueServiceMock.Verify(q => q.HasTracks(It.IsAny<ulong>()), Times.Never);
         _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+        _progressiveTimerServiceMock.Verify(t => t.Stop(It.IsAny<ulong>()), Times.Never);
+    }
+
+    #endregion
+
+    #region HandleTrackEndedAsync - Stop progress timer
+
+    [Theory]
+    [InlineData(TrackEndReason.Finished)]
+    [InlineData(TrackEndReason.Stopped)]
+    [InlineData(TrackEndReason.Replaced)]
+    [InlineData(TrackEndReason.LoadFailed)]
+    [InlineData(TrackEndReason.Cleanup)]
+    public async Task HandleTrackEndedAsync_GuildIdMatches_StopsProgressTimer(TrackEndReason reason)
+    {
+        var args = CreateTrackEndedEventArgs(reason);
+
+        _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(false);
+        _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(false);
+        _repeatServiceMock.Setup(r => r.IsRepeatingListAsync(GuildId)).ReturnsAsync(false);
+
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        _progressiveTimerServiceMock.Verify(t => t.Stop(GuildId), Times.Once);
     }
 
     #endregion
@@ -147,6 +174,12 @@ public class TrackEndedHandlerServiceTests
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
 
         _playerMock.Verify(p => p.PlayAsync(track.ToLavalinkTrack(), It.IsAny<TrackPlayProperties>(), CancellationToken.None), Times.Once);
+        _trackNotificationServiceMock.Verify(n => n.NotifyNowPlayingAsync(
+                _textChannelMock.Object,
+                track,
+                TimeSpan.Zero,
+                track.Duration),
+            Times.Once);
         _musicQueueServiceMock.Verify(q => q.HasTracks(It.IsAny<ulong>()), Times.Never);
     }
 

@@ -13,14 +13,14 @@ This folder contains general-purpose bot commands.
 **Behavior:**
 
 1. Checks if user is a bot (returns early if true)
-2. Retrieves all registered `ICommand` instances from DI
+2. Retrieves the stable registered command list from `ICommandRegistry`
 3. Builds response with command names and descriptions
 4. Sends response to channel
 
 **Implementation:**
 
 ```csharp
-var commands = serviceProvider.GetServices<ICommand>();
+var commands = commandRegistry.Commands;
 var response = commands.Aggregate(string.Empty,
     (current, command) => current + $"{command.Name} : {command.Description}\n");
 ```
@@ -65,7 +65,8 @@ var response = commands.Aggregate(string.Empty,
 - `eng` - English
 - `hu` - Hungarian
 
-**Current limitation:** `LanguageCommand` saves the provided code directly. Invalid codes are not validated before `LocalizationService` tries to load the matching JSON file.
+**Supported languages:** `LanguageCommand` validates the requested code against its allowed language set before saving.
+Unsupported codes return the localized invalid-language response.
 
 ---
 
@@ -112,7 +113,7 @@ public async Task ExecuteAsync(IDiscordMessage message)
 - `IUserValidationService` - User validation
 - `IResponseBuilder` - Message sending
 - `ILocalizationService` - Language management
-- `IServiceProvider` - Command discovery (HelpCommand)
+- `ICommandRegistry` - Command discovery (HelpCommand)
 - `ILogger<T>` - Logging
 
 ## Related Components

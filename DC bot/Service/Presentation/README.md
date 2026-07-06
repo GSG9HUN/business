@@ -41,7 +41,7 @@ await responseBuilder.SendCommandResponseAsync(message, "play");
 
 **Features:**
 
-- Guild-aware localization lookup with default-language fallback
+- Guild-aware localization lookup through the wrapped message channel
 - Error handling with try-catch
 - Consistent formatting
 - Wrapped `IDiscordMessage` usage
@@ -50,10 +50,8 @@ await responseBuilder.SendCommandResponseAsync(message, "play");
 **Localization Integration:**
 
 ```csharp
-var guildId = message.Channel?.Guild?.Id;
-var text = guildId.HasValue
-    ? localization.Get(guildId.Value, key)
-    : localization.Get(key);
+var guildId = message.Channel.Guild.Id;
+var text = localization.Get(guildId, key);
 ```
 
 ---

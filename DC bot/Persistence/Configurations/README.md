@@ -22,4 +22,5 @@ Configuration classes define:
 ## Notes
 
 - Naming convention uses snake_case table and column names.
+- `GuildQueueItemConfiguration` converts `QueueItemState` to the existing `short` `state` column and defaults new rows to `Queued`.
 - When changing entity shape, update configuration and add a migration.

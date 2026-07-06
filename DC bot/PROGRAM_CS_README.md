@@ -11,6 +11,7 @@
 - preserve already-provided process environment variables when the same key also exists in `.env`
 - continue with already-provided environment variables when `.env` does not exist
 - call `BotApplication.RunAsync()`
+- create a shutdown `CancellationTokenSource` and cancel it on `Console.CancelKeyPress`
 
 ### Startup components
 
@@ -18,7 +19,7 @@
 - `BotConfigurationLoader.cs` - reads and validates required environment values
 - `BotRuntimeSettings.cs` - groups bot, Lavalink, and database startup settings
 - `BotServiceProviderFactory.cs` - builds the DI container
-- `BotServiceCollectionExtensions.cs` - groups DI registrations by Discord, slash command, persistence, core, text command, and music domains
+- `Startup/DependencyInjection/*.cs` - groups DI registrations by logging, core services, Discord runtime, Lavalink, persistence, commands, and music domains
 - `DatabaseMigrationRunner.cs` - applies pending EF Core migrations
 - `BotHandlerRegistrar.cs` - activates command and reaction handlers after the service graph is built
 
@@ -30,11 +31,11 @@
 4. `BotServiceProviderFactory.Create(...)` creates the `ServiceProvider`.
 5. `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
 6. `BotHandlerRegistrar.RegisterHandlers(...)` activates command and reaction handlers.
-7. `BotService.StartAsync()` connects the Discord client and keeps the bot running.
+7. `BotService.StartAsync()` connects the Discord client and keeps the bot running until the shutdown token is cancelled.
 
 ## Handler Registration
 
-`BotServiceProviderFactory` calls `BotServiceCollectionExtensions.AddDiscordRuntime(...)`, which registers the DSharpPlus 5 event handlers with `ConfigureEventHandlers(...)`.
+`BotServiceProviderFactory` calls `DiscordServiceCollectionExtensions.AddDiscordRuntime(...)`, which registers the DSharpPlus 5 gateway, message, reaction, and voice event handlers with `ConfigureEventHandlers(...)`.
 
 `BotHandlerRegistrar` only enables handlers that maintain their own registration state:
 
@@ -83,6 +84,7 @@ These are consumed by `lavalink-server/application.yaml` through Docker Compose,
 - `APPLE_MUSIC_API_TOKEN`
 - `DEEZER_ARL`
 - `YANDEX_MUSIC_ACCESS_TOKEN`
+- `YOUTUBE_REFRESH_TOKEN`
 
 ## Example .env
 
@@ -110,11 +112,12 @@ SPOTIFY_CLIENT_SECRET=
 APPLE_MUSIC_API_TOKEN=
 DEEZER_ARL=
 YANDEX_MUSIC_ACCESS_TOKEN=
+YOUTUBE_REFRESH_TOKEN=
 ```
 
 ## Persistence Wiring
 
-`BotServiceProviderFactory` calls `AddPersistenceServices(...)`, which registers:
+`BotServiceProviderFactory` calls `PersistenceServiceCollectionExtensions.AddPersistenceServices(...)`, which registers:
 
 - `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
 - `IGuildDataRepository -> GuildDataRepository`
@@ -146,10 +149,11 @@ dotnet run --project "DC bot/DC bot.csproj"
 ## Related Components
 
 - `Startup/README.md` - startup component details
+- `Startup/DependencyInjection/README.md` - DI registration map
 - `Configuration/BotSettings.cs` - bot configuration model
 - `Configuration/LavalinkSettings.cs` - Lavalink configuration model
 - `Service/BotService.cs` - bot lifecycle management
 - `Service/Core/CommandHandlerService.cs` - command routing
-- `Service/ReactionHandler.cs` - reaction handling
+- `Service/ReactionHandler/ReactionHandlerService.cs` - reaction handling
 - `Wrapper/DiscordClientFactory.cs` - direct/test Discord client creation outside the production DI startup path
 - `Wrapper/DiscordClientEventHandler.cs` - Discord lifecycle event handling

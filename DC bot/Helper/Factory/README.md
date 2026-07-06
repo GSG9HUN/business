@@ -82,5 +82,5 @@ await command.ExecuteAsync(wrappedMessage);
 - **Interface/Discord/IDiscordMessage.cs** - Interface returned by factory
 - **Interface/Discord/IDiscordMessageFactory.cs** - Injectable factory boundary
 - **Service/Core/CommandHandlerService.cs** - Uses the injectable factory to create wrappers
-- **Service/ReactionHandler.cs** - Uses explicit guild context when building reaction event wrappers
+- **Service/ReactionHandler/ReactionContextFactory.cs** - Uses explicit guild context when building reaction event wrappers
 

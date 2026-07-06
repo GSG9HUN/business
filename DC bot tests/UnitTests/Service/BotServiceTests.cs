@@ -50,6 +50,21 @@ public class BotServiceTests
     }
 
     [Fact]
+    public async Task StartAsync_WhenCancellationRequestedAfterConnect_StopsWaiting()
+    {
+        var client = new RecordingBotDiscordClient();
+        var service = new BotService(client);
+        using var cancellation = new CancellationTokenSource();
+
+        var startTask = service.StartAsync(cancellationToken: cancellation.Token);
+        await client.Connected.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => startTask);
+        Assert.Equal(1, client.ConnectCount);
+    }
+
+    [Fact]
     public void BotService_MultipleInstances_AreIndependent()
     {
         var client1 = TestDiscordClientFactory.Create("test_token_1");
@@ -86,5 +101,18 @@ public class BotServiceTests
         var service = new BotService(client);
 
         Assert.NotNull(service);
+    }
+
+    private sealed class RecordingBotDiscordClient : IBotDiscordClient
+    {
+        public TaskCompletionSource Connected { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public int ConnectCount { get; private set; }
+
+        public Task ConnectAsync()
+        {
+            ConnectCount++;
+            Connected.SetResult();
+            return Task.CompletedTask;
+        }
     }
 }

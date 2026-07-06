@@ -36,6 +36,7 @@ public class PlaybackControlService(
         try
         {
             await connection.PauseAsync();
+            progressiveTimerService.Pause(guildId);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
@@ -64,6 +65,7 @@ public class PlaybackControlService(
         try
         {
             await connection.ResumeAsync();
+            await progressiveTimerService.ResumeAsync(guildId);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
@@ -91,8 +93,8 @@ public class PlaybackControlService(
 
         try
         {
-            await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
+            await connection.StopAsync();
             logger.LogInformation("Skip requested for guild {GuildId}. Current playback stopped.", guildId);
         }
         catch (Exception ex)

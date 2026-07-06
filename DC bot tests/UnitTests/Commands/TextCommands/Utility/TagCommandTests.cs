@@ -92,6 +92,36 @@ public class TagCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_UserProvidedWhitespaceOnlyArgument_ShouldSendUsageAndStop()
+    {
+        _commandHelperMock
+            .Setup(h => h.TryGetArgumentAsync(
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IResponseBuilder>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<string>()))
+            .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(async (msg, rb, _, commandName) =>
+            {
+                var parts = msg.Content.Split(" ", 2);
+                if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1])) return parts[1].Trim();
+
+                await rb.SendUsageAsync(msg, commandName);
+                return null;
+            });
+
+        _discordUserMock.SetupGet(du => du.IsBot).Returns(false);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.SetupGet(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns("!tag   ");
+
+        await _tagCommand.ExecuteAsync(_messageMock.Object);
+
+        _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, TagCommandName), Times.Once);
+        _guildMock.Verify(g => g.GetAllMembersAsync(), Times.Never);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_User_Provided_Username()
     {
         var discordMemberMock = new Mock<IDiscordMember>();

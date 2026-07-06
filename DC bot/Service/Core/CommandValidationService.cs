@@ -31,7 +31,7 @@ public class CommandValidationService : ICommandHelper
         string commandName)
     {
         var args = message.Content.Split(" ", 2);
-        if (args.Length < 2)
+        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
             await responseBuilder.SendUsageAsync(message, commandName);
             logger.LogInformation("The user not provided arguments for {CommandName}", commandName);

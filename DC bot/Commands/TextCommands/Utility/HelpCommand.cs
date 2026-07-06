@@ -5,7 +5,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Utility;
@@ -15,7 +14,7 @@ public class HelpCommand(
     ILogger<HelpCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
-    IServiceProvider serviceProvider) : ICommand
+    ICommandRegistry commandRegistry) : ICommand
 {
     public string Name => "help";
     public string Description => localizationService.Get(LocalizationKeys.HelpCommandDescription);
@@ -26,7 +25,7 @@ public class HelpCommand(
         if (userValidation.IsBotUser(message)) return;
 
         var guildId = message.Channel.Guild.Id;
-        var commands = serviceProvider.GetServices<ICommand>();
+        var commands = commandRegistry.Commands;
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 

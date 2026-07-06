@@ -97,7 +97,6 @@ var player = result.Player;
 **Validation Checks:**
 
 - Player exists for guild
-- Player is connected to voice channel
 
 ---
 
@@ -124,7 +123,7 @@ if (!result.IsValid)
 
 **Validation Checks:**
 
-- Connection state reports connected, or the player has a non-zero voice channel and is not destroyed
+- Connection state reports connected
 
 ---
 

@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,6 +30,7 @@ services:
       APPLE_MUSIC_API_TOKEN: ${APPLE_MUSIC_API_TOKEN:-}
       DEEZER_ARL: ${DEEZER_ARL:-}
       YANDEX_MUSIC_ACCESS_TOKEN: ${YANDEX_MUSIC_ACCESS_TOKEN:-}
+      YOUTUBE_REFRESH_TOKEN: ${YOUTUBE_REFRESH_TOKEN:-}
     ports:
       - "127.0.0.1:2333:2333"
     volumes:
@@ -59,8 +60,13 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_CONNECTION_STRING: Host=postgres;Port=5432;Database=${POSTGRES_DB:-dc_bot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-dc_bot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       LAVALINK_HOSTNAME: lavalink
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:-nagyon_eros_jelszo}
       LAVALINK_PORT: 2333
       LAVALINK_SECURED: false
     networks:

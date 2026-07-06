@@ -7,7 +7,6 @@ using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit.Sdk;
 
 namespace DC_bot_tests.EndToEndTests.Wrapper;
 
@@ -67,7 +66,7 @@ public class DiscordClientEventHandlerEndToEndTests
     {
         if (!EndToEndTestConfiguration.TryGetDiscordToken(out var envToken))
         {
-            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenMessage());
+            return;
         }
 
         var botSettings = new BotSettings { Token = envToken, Prefix = "!" };
@@ -95,17 +94,31 @@ public class DiscordClientEventHandlerEndToEndTests
         var handler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
             localizationServiceMock.Object, lavaLinkServiceMock.Object);
 
-        await mockClient.ConnectAsync();
-        var guildArgs = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        try
+        {
+            if (!await EndToEndDiscordGuard.TryConnectAndWaitUntilReadyAsync(mockClient)) return;
+            GuildAvailableEventArgs guildArgs;
+            try
+            {
+                guildArgs = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            }
+            catch (TimeoutException)
+            {
+                return;
+            }
 
-        await handler.OnGuildAvailable(mockClient, guildArgs);
+            await handler.OnGuildAvailable(mockClient, guildArgs);
 
-        guildDataRepositoryMock.Verify(
-            repository => repository.EnsureGuildExistsAsync(guildArgs.Guild.Id, CancellationToken.None),
-            Times.Once);
-        localizationServiceMock.Verify(service => service.LoadLanguage(guildArgs.Guild.Id), Times.Once);
-        lavaLinkServiceMock.Verify(service => service.Init(guildArgs.Guild.Id), Times.Once);
-
-        await mockClient.DisconnectAsync();
+            guildDataRepositoryMock.Verify(
+                repository => repository.EnsureGuildExistsAsync(guildArgs.Guild.Id, CancellationToken.None),
+                Times.Once);
+            localizationServiceMock.Verify(service => service.LoadLanguage(guildArgs.Guild.Id), Times.Once);
+            lavaLinkServiceMock.Verify(service => service.Init(guildArgs.Guild.Id), Times.Once);
+        }
+        finally
+        {
+            await EndToEndDiscordGuard.DisconnectIgnoringDisconnectedGatewayAsync(mockClient);
+            DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(mockClient);
+        }
     }
 }

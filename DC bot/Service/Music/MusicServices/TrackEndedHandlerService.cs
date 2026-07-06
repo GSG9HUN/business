@@ -1,6 +1,7 @@
 ﻿using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Logging;
 using DC_bot.Wrapper;
@@ -17,6 +18,7 @@ public class TrackEndedHandlerService(
     IMusicQueueService musicQueueService,
     ITrackPlaybackService trackPlaybackService,
     ITrackNotificationService trackNotificationService,
+    IProgressiveTimerService progressiveTimerService,
     IQueueRepository queueRepository,
     ILogger<TrackEndedHandlerService> logger) : ITrackEndedHandlerService
 {
@@ -25,6 +27,8 @@ public class TrackEndedHandlerService(
     {
         if (player.GuildId != args.Player.GuildId) return;
         var guildId = textChannel.Guild.Id;
+        progressiveTimerService.Stop(guildId);
+
         var currentTrack = await currentTrackService.GetCurrentTrackAsync(guildId);
         if (currentTrack is LavaLinkTrackWrapper { QueueItemId: not null } wrappedTrack)
         {
@@ -46,6 +50,8 @@ public class TrackEndedHandlerService(
         if (await TryRepeatCurrentTrackAsync(guildId) is { } repeatTrack)
         {
             await player.PlayAsync(repeatTrack.ToLavalinkTrack());
+            await trackNotificationService.NotifyNowPlayingAsync(textChannel, repeatTrack, TimeSpan.Zero,
+                repeatTrack.Duration);
             logger.Repeating(repeatTrack.Author, repeatTrack.Title);
             return;
         }

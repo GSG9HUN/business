@@ -38,11 +38,12 @@ Responsibilities:
 - enqueue and query queued items
 - enqueue multiple tracks (`EnqueueManyAsync`)
 - reorder queue items transactionally
-- update queue item state (`queued`, `playing`, `played`, `skipped`)
+- update queue item state through `QueueItemState`
 - update one queue item position (`UpdateQueueItemPositionAsync`)
 - mark all queued items as skipped (`MarkAllQueuedAsSkippedAsync`)
 - enforce max queued items per guild
 - atomically claim the next queued item (`ClaimNextQueuedItemAsync`): marks it as `playing` and returns it in a single operation
+- isolate the PostgreSQL `FOR UPDATE SKIP LOCKED` claim SQL in `PostgreSqlQueueClaimSql`
 - the current queue limit is 100 queued tracks per guild
 
 ### RepeatListRepository.cs
@@ -60,3 +61,4 @@ Responsibilities:
 
 - Repositories use `IDbContextFactory<BotDbContext>` and short-lived contexts.
 - Guild IDs are converted between `ulong` (domain) and `long` (database).
+- Queue item state is represented as `QueueItemState` in repository code and converted to the `short` database value by EF configuration.

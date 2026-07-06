@@ -1,4 +1,4 @@
-﻿# Wrapper
+# Wrapper
 
 This folder contains wrapper classes that abstract the DSharpPlus Discord library.
 
@@ -112,8 +112,6 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Properties:**
 
 - `Channel` - Voice channel (nullable)
-- `IsDeafened` - Whether member is deafened
-- `IsMuted` - Whether member is muted
 
 ---
 
@@ -183,18 +181,25 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 
 ### DiscordClientEventHandler.cs
 
-**Purpose:** Handle Discord client lifecycle events.
+**Purpose:** Handle Discord gateway, lifecycle, guild, and voice diagnostics.
 
 **Methods:**
 
-- `OnClientReady()` - Connect Lavalink when Discord is ready
+- `OnSocketOpened()` - Log gateway socket open events
+- `OnSocketClosed()` - Log gateway close events, including critical logging for Discord voice disconnect close code `4014`
+- `OnClientReady()` - Log session creation and connect Lavalink when Discord is ready
+- `OnSessionResumed()` - Log resumed gateway sessions
+- `OnZombied()` - Log zombied gateway state and heartbeat failure details
 - `OnGuildAvailable()` - Ensure guild row exists, load localization, and initialize Lavalink guild state
+- `OnVoiceStateUpdated()` - Log bot voice-state changes and explicit bot voice disconnects
+- `OnVoiceServerUpdated()` - Log voice server endpoint changes without leaking the voice token
+- `OnUnknownEvent()` - Log unknown gateway events, with elevated visibility for unknown voice events and truncated payloads
 
 **Features:**
 
 - Uses direct constructor injection for `IGuildDataRepository`, `ILocalizationService`, and `ILavaLinkService`
-- Does not resolve dependencies through `IServiceProvider`
-- Is connected to DSharpPlus 5 event handlers by `Startup/BotServiceProviderFactory`
+- Does not resolve dependencies through `IServiceProvider` internally
+- Is wired to DSharpPlus 5 event callbacks by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
 
 ---
 
@@ -209,8 +214,9 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 **Configuration:**
 
 - Creates a default DSharpPlus client with `DiscordIntents.All`
-- Does not register event handlers; lifecycle/message/reaction event wiring is configured by `Startup/BotServiceProviderFactory`
-- Production startup currently creates the client through DSharpPlus DI builder APIs in `Startup/BotServiceProviderFactory`; this factory remains useful for tests and direct wrapper-level construction
+- Configures DSharpPlus logging with minimum `Debug` level for direct/test-created clients
+- Does not register event handlers; lifecycle/message/reaction/voice event wiring is configured by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
+- Production startup currently creates the client through DSharpPlus DI builder APIs; this factory remains useful for tests and direct wrapper-level construction
 
 ---
 

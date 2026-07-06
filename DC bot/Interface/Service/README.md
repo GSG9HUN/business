@@ -29,6 +29,7 @@ Music and playback service interfaces.
 - `ILavaLinkService.cs`
 - `ITrackSearchResolverService.cs`
 - `MusicServiceInterface/` - Granular music service interfaces
+- `ProgressiveTimerInterface/` - Now-playing timer service interface
 
 ---
 

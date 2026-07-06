@@ -15,6 +15,7 @@ using DC_bot.Service;
 using DC_bot.Service.Core;
 using DC_bot.Startup;
 using DC_bot_tests.IntegrationTests.Persistence;
+using DC_bot.Service.ReactionHandler;
 using DSharpPlus;
 using DC_bot.Wrapper;
 using Microsoft.EntityFrameworkCore;
@@ -145,7 +146,7 @@ public class ProgramIntegrationTests
         {
             Assert.NotNull(provider.GetService<BotService>());
             Assert.NotNull(provider.GetService<CommandHandlerService>());
-            Assert.NotNull(provider.GetService<ReactionHandler>());
+            Assert.NotNull(provider.GetService<ReactionHandlerService>());
             Assert.NotNull(provider.GetService<DiscordClientEventHandler>());
             Assert.NotNull(provider.GetService<IDbContextFactory<BotDbContext>>());
         }
@@ -176,33 +177,34 @@ public class ProgramIntegrationTests
 
         try
         {
-            Assert.NotNull(provider.GetRequiredService<DiscordClient>());
-            Assert.NotNull(provider.GetRequiredService<BotService>());
-            Assert.NotNull(provider.GetRequiredService<CommandHandlerService>());
-            Assert.NotNull(provider.GetRequiredService<ReactionHandler>());
-            Assert.NotNull(provider.GetRequiredService<DiscordClientEventHandler>());
-            Assert.NotNull(provider.GetRequiredService<IFileSystem>());
-            Assert.NotNull(provider.GetRequiredService<ILocalizationService>());
-            Assert.NotNull(provider.GetRequiredService<IResponseBuilder>());
-            Assert.NotNull(provider.GetRequiredService<ICommandHelper>());
-            Assert.NotNull(provider.GetRequiredService<IUserValidationService>());
-            Assert.NotNull(provider.GetRequiredService<IValidationService>());
-            Assert.NotNull(provider.GetRequiredService<ILavaLinkService>());
-            Assert.NotNull(provider.GetRequiredService<IMusicQueueService>());
-            Assert.NotNull(provider.GetRequiredService<IRepeatService>());
-            Assert.NotNull(provider.GetRequiredService<ICurrentTrackService>());
-            Assert.NotNull(provider.GetRequiredService<ITrackNotificationService>());
-            Assert.NotNull(provider.GetRequiredService<ITrackFormatterService>());
-            Assert.NotNull(provider.GetRequiredService<IPlayerConnectionService>());
-            Assert.NotNull(provider.GetRequiredService<IPlaybackEventHandlerService>());
-            Assert.NotNull(provider.GetRequiredService<ITrackPlaybackService>());
-            Assert.NotNull(provider.GetRequiredService<ITrackEndedHandlerService>());
-            Assert.NotNull(provider.GetRequiredService<IProgressiveTimerService>());
-            Assert.NotNull(provider.GetRequiredService<ITrackSearchResolverService>());
-            Assert.NotNull(provider.GetRequiredService<IGuildDataRepository>());
-            Assert.NotNull(provider.GetRequiredService<IPlaybackStateRepository>());
-            Assert.NotNull(provider.GetRequiredService<IQueueRepository>());
-            Assert.NotNull(provider.GetRequiredService<IRepeatListRepository>());
+            provider.AssertResolvesRequiredServices(
+                typeof(DiscordClient),
+                typeof(BotService),
+                typeof(CommandHandlerService),
+                typeof(ReactionHandlerService),
+                typeof(DiscordClientEventHandler),
+                typeof(IFileSystem),
+                typeof(ILocalizationService),
+                typeof(IResponseBuilder),
+                typeof(ICommandHelper),
+                typeof(IUserValidationService),
+                typeof(IValidationService),
+                typeof(ILavaLinkService),
+                typeof(IMusicQueueService),
+                typeof(IRepeatService),
+                typeof(ICurrentTrackService),
+                typeof(ITrackNotificationService),
+                typeof(ITrackFormatterService),
+                typeof(IPlayerConnectionService),
+                typeof(IPlaybackEventHandlerService),
+                typeof(ITrackPlaybackService),
+                typeof(ITrackEndedHandlerService),
+                typeof(IProgressiveTimerService),
+                typeof(ITrackSearchResolverService),
+                typeof(IGuildDataRepository),
+                typeof(IPlaybackStateRepository),
+                typeof(IQueueRepository),
+                typeof(IRepeatListRepository));
 
             var commandNames = provider.GetServices<ICommand>().Select(command => command.Name).ToArray();
             Assert.Contains("ping", commandNames);

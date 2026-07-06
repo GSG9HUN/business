@@ -37,15 +37,13 @@ public class CommandHandlerServiceIntegrationTests
             .Callback<IDiscordMessage>(executed.SetResult)
             .Returns(Task.CompletedTask);
 
-        await using var services = new ServiceCollection()
-            .AddSingleton(command.Object)
-            .BuildServiceProvider();
+        var commandRegistry = new CommandRegistry(() => [command.Object]);
 
         var logger = new Mock<ILogger<CommandHandlerService>>();
         logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var service = new CommandHandlerService(
-            services,
+            commandRegistry,
             logger.Object,
             Mock.Of<ILocalizationService>(),
             new BotSettings { Prefix = "!" },
@@ -66,12 +64,10 @@ public class CommandHandlerServiceIntegrationTests
         command.SetupGet(x => x.Name).Returns("fake");
         command.SetupGet(x => x.Description).Returns("Fake command");
 
-        await using var services = new ServiceCollection()
-            .AddSingleton(command.Object)
-            .BuildServiceProvider();
+        var commandRegistry = new CommandRegistry(() => [command.Object]);
 
         var service = new CommandHandlerService(
-            services,
+            commandRegistry,
             Mock.Of<ILogger<CommandHandlerService>>(),
             Mock.Of<ILocalizationService>(),
             new BotSettings { Prefix = "!" },
@@ -90,12 +86,10 @@ public class CommandHandlerServiceIntegrationTests
         command.SetupGet(x => x.Name).Returns("fake");
         command.SetupGet(x => x.Description).Returns("Fake command");
 
-        await using var services = new ServiceCollection()
-            .AddSingleton(command.Object)
-            .BuildServiceProvider();
+        var commandRegistry = new CommandRegistry(() => [command.Object]);
 
         var service = new CommandHandlerService(
-            services,
+            commandRegistry,
             Mock.Of<ILogger<CommandHandlerService>>(),
             Mock.Of<ILocalizationService>(),
             new BotSettings { Prefix = "!" });
@@ -229,7 +223,7 @@ public class CommandHandlerServiceIntegrationTests
         logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         return new CommandHandlerService(
-            services,
+            services.GetRequiredService<ICommandRegistry>(),
             logger.Object,
             localizationService,
             new BotSettings { Prefix = "!" },
@@ -254,6 +248,8 @@ public class CommandHandlerServiceIntegrationTests
             .AddSingleton<IValidationService>(validationService)
             .AddSingleton<IUserValidationService>(validationService)
             .AddSingleton<ICommandHelper, CommandValidationService>()
+            .AddSingleton<Func<IEnumerable<ICommand>>>(provider => () => provider.GetServices<ICommand>())
+            .AddSingleton<ICommandRegistry, CommandRegistry>()
             .AddSingleton(lavaLinkServiceMock.Object)
             .AddSingleton(musicQueueServiceMock.Object)
             .AddSingleton(Mock.Of<IRepeatService>())

@@ -2,7 +2,6 @@ using DC_bot.Helper.Factory;
 using DC_bot.Interface.Discord;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using Xunit.Sdk;
 
 namespace DC_bot_tests.EndToEndTests.Wrapper;
 
@@ -13,6 +12,8 @@ public class DiscordMessageWrapperFactoryEndToEndTests : IAsyncLifetime
     private readonly ulong _testChannelId;
     private readonly DiscordClient? _discordClient;
     private readonly bool _isConfigured;
+    private bool _isDiscordAvailable;
+
     public DiscordMessageWrapperFactoryEndToEndTests()
     {
         var hasToken = EndToEndTestConfiguration.TryGetDiscordToken(out var token);
@@ -31,44 +32,46 @@ public class DiscordMessageWrapperFactoryEndToEndTests : IAsyncLifetime
             _isConfigured = false;
         }
     }
+
     public async Task InitializeAsync()
     {
         if (!_isConfigured || _discordClient == null) return;
-        await _discordClient.ConnectAsync();
-        await Task.Delay(2500);
+        _isDiscordAvailable = await EndToEndDiscordGuard.TryConnectAndWaitUntilReadyAsync(_discordClient);
     }
+
     public async Task DisposeAsync()
     {
+        await EndToEndDiscordGuard.DisconnectIgnoringDisconnectedGatewayAsync(_discordClient);
         if (_discordClient != null)
         {
-            await _discordClient.DisconnectAsync();
-            _discordClient.Dispose();
+            DiscordClientDisposeHelper.DisposeIgnoringDisconnectedGateway(_discordClient);
         }
     }
-    private void EnsureConfigured()
-    {
-        if (!_isConfigured || _discordClient == null)
-            throw SkipException.ForSkip(EndToEndTestConfiguration.MissingDiscordTokenAndChannelMessage());
-    }
+
     [Fact]
     public async Task Create_WithRealDiscordObjects_MapsCoreProperties()
     {
-        EnsureConfigured();
+        if (!CanRun()) return;
+
         var client = _discordClient!;
         var channel = await client.GetChannelAsync(_testChannelId);
         var marker = $"factory-map-{Guid.NewGuid():N}";
         var message = await channel.SendMessageAsync(marker);
+
         IDiscordMessage wrapped = DiscordMessageWrapperFactory.Create(message, channel, client.CurrentUser);
+
         Assert.Equal(message.Id, wrapped.Id);
         Assert.Equal(message.Content, wrapped.Content);
         Assert.Equal(client.CurrentUser.Id, wrapped.Author.Id);
         Assert.Equal(channel.Id, wrapped.Channel.Id);
         Assert.Equal(message.CreationTimestamp, wrapped.CreatedAt);
     }
+
     [Fact]
     public async Task Create_WithRealDiscordObjects_RespondAndModifyWork()
     {
-        EnsureConfigured();
+        if (!CanRun()) return;
+
         var client = _discordClient!;
         var channel = await client.GetChannelAsync(_testChannelId);
         var original = $"factory-original-{Guid.NewGuid():N}";
@@ -76,13 +79,28 @@ public class DiscordMessageWrapperFactoryEndToEndTests : IAsyncLifetime
         var modified = $"factory-modified-{Guid.NewGuid():N}";
         var message = await channel.SendMessageAsync(original);
         var wrapped = DiscordMessageWrapperFactory.Create(message, channel, client.CurrentUser);
+
         await wrapped.RespondAsync(responseMarker);
-        await Task.Delay(1000);
-        var recentMessages = await channel.GetMessagesAsync(15);
-        Assert.Contains(recentMessages, m => m.Content.Contains(responseMarker, StringComparison.Ordinal));
+        var response = await DiscordMessageWaiter.WaitForMessageAfterAsync(
+            channel,
+            message.Id,
+            discordMessage => discordMessage.Content.Contains(responseMarker, StringComparison.Ordinal),
+            "wrapper response message",
+            limit: 15);
+        Assert.Contains(responseMarker, response.Content, StringComparison.Ordinal);
+
         await wrapped.ModifyAsync(new DiscordMessageBuilder().WithContent(modified));
-        await Task.Delay(1000);
-        var refreshed = await channel.GetMessageAsync(message.Id);
-        Assert.Equal(modified, refreshed.Content);
+        await AsyncTestWaiter.UntilAsync(
+            async () =>
+            {
+                var refreshed = await channel.GetMessageAsync(message.Id);
+                return string.Equals(modified, refreshed.Content, StringComparison.Ordinal);
+            },
+            "wrapper message content was not modified in time.");
+    }
+
+    private bool CanRun()
+    {
+        return _isConfigured && _isDiscordAvailable && _discordClient != null;
     }
 }

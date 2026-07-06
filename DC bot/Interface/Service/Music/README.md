@@ -1,4 +1,4 @@
-﻿# Music Service Interfaces
+# Music Service Interfaces
 
 This folder contains music-domain service interfaces.
 
@@ -72,6 +72,7 @@ Contains granular music service interfaces:
 - `ITrackFormatterService.cs`
 - `ITrackNotificationService.cs`
 - `ITrackPlaybackService.cs`
+- `ITrackSerializer.cs`
 
 **Implementations:** `Service/Music/MusicServices/*.cs`
 
@@ -79,7 +80,7 @@ Contains granular music service interfaces:
 
 ### ProgressiveTimerInterface/
 
-Contains `IProgressiveTimerService`, which starts/stops per-guild timer updates for the now-playing message.
+Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message.
 
 **Implementation:** `Service/Music/ProgressiveTimer/ProgressiveTimerService.cs`
 

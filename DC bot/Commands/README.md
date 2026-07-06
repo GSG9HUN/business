@@ -32,8 +32,7 @@ Slash command modules grouped to mirror the text command domains.
 - `Queue/` - `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
 - `Utility/` - `/help`, `/ping`, `/language`, `/tag`
 
-Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in
-`Startup/BotServiceCollectionExtensions.cs` through `DSharpPlus.Commands` and `SlashCommandProcessor`.
+Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` through `AddCommandServices()`, `DSharpPlus.Commands`, and `SlashCommandProcessor`.
 
 ## Text Command Contract
 
@@ -54,7 +53,7 @@ public interface ICommand
 Discord Message
     -> CommandHandlerService
     -> Parse prefix and command name
-    -> Resolve ICommand implementation
+    -> Resolve ICommand through ICommandRegistry
     -> command.ExecuteAsync(message)
     -> Validate input and user state
     -> Call domain services
@@ -111,20 +110,20 @@ Commands typically inject a subset of:
 - `IResponseBuilder` - Discord response sending
 - `ILocalizationService` - localized response text
 - `ICommandHelper` - text command argument and validation helpers
+- `ICommandRegistry` - registered text command enumeration/lookup used by help and routing
 - `ISlashCommandExecutor` - slash-to-text command adapter execution
 - `ISlashInteractionContextFactory` - slash context wrapper creation
 - `ILogger<T>` - structured logging
 
 ## Registration
 
-Commands are registered in `Startup/BotServiceCollectionExtensions.cs`:
+Commands are registered in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs`:
 
 ```csharp
-services.AddTextCommands();
-services.AddSlashCommandServices();
+services.AddCommandServices();
 ```
 
-Slash modules are also added to the DSharpPlus Commands extension from `AddSlashCommandProcessor`.
+`AddCommandServices()` also registers the slash modules with the DSharpPlus Commands extension and `SlashCommandProcessor`.
 
 ## Related Components
 

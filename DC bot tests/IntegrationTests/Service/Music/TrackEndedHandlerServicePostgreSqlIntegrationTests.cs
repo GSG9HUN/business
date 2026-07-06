@@ -1,5 +1,7 @@
-using DC_bot.Interface.Discord;
+﻿using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Persistence.Db;
 using DC_bot.Persistence.Repositories;
 using DC_bot.Service.Music.MusicServices;
@@ -44,6 +46,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             musicQueueService,
             trackPlaybackService.Object,
             trackNotificationService.Object,
+            Mock.Of<IProgressiveTimerService>(),
             queueRepository);
 
         var currentTrack = CreateTrack("ended-current", "Ended Current");
@@ -66,7 +69,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
         var previousItem = await queueRepository.GetPreviousItemAsync(guildId);
         Assert.NotNull(previousItem);
         Assert.Equal(claimedCurrentItem.Id, previousItem.Id);
-        Assert.Equal(2, previousItem.State);
+        Assert.Equal(QueueItemState.Played, previousItem.State);
         trackPlaybackService.Verify(playback => playback.PlayTrackFromQueueAsync(player.Object, channel.Object), Times.Once);
         trackNotificationService.Verify(notification => notification.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
     }
@@ -95,6 +98,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             musicQueueService,
             trackPlaybackService.Object,
             trackNotificationService.Object,
+            Mock.Of<IProgressiveTimerService>(),
             queueRepository);
 
         var first = CreateTrack("repeat-list-first", "Repeat List First");
@@ -122,6 +126,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
         IMusicQueueService musicQueueService,
         ITrackPlaybackService trackPlaybackService,
         ITrackNotificationService trackNotificationService,
+        IProgressiveTimerService progressiveTimerService,
         QueueRepository queueRepository)
     {
         return new TrackEndedHandlerService(
@@ -130,6 +135,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             musicQueueService,
             trackPlaybackService,
             trackNotificationService,
+            progressiveTimerService,
             queueRepository,
             Mock.Of<ILogger<TrackEndedHandlerService>>());
     }

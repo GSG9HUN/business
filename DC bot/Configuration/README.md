@@ -114,6 +114,7 @@ Runtime configuration comes from environment variables. `Program.cs` loads repos
    APPLE_MUSIC_API_TOKEN=
    DEEZER_ARL=
    YANDEX_MUSIC_ACCESS_TOKEN=
+   YOUTUBE_REFRESH_TOKEN=
    ```
 
 The provider secrets are consumed by `lavalink-server/application.yaml` through Docker Compose; they are not mapped to the C# configuration classes.
