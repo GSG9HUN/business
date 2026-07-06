@@ -20,7 +20,6 @@ This folder contains text commands for managing the music playback queue.
 **Error Cases:**
 
 - Empty queue → Shows error message
-- No active player → Validation error
 
 ---
 
@@ -51,7 +50,6 @@ for (var i = trackList.Count - 1; i > 0; i--)
 **Error Cases:**
 
 - Queue has 0 or 1 tracks → Error
-- No active player → Validation error
 
 ---
 
@@ -64,8 +62,9 @@ for (var i = trackList.Count - 1; i > 0; i--)
 **Behavior:**
 
 1. Validates user
-2. Calls `ILavaLinkService.Repeat()`
-3. Toggles single-track repeat on/off
+2. Checks repeat-list state through `IRepeatService.IsRepeatingListAsync(guildId)`
+3. Toggles single-track repeat through `IRepeatService.SetRepeatingAsync(guildId, value)`
+4. Uses `ICurrentTrackService.GetCurrentTrackFormattedAsync(guildId)` for the enabled response
 
 ---
 
@@ -78,9 +77,10 @@ for (var i = trackList.Count - 1; i > 0; i--)
 **Behavior:**
 
 1. Validates user
-2. Calls `ILavaLinkService.RepeatList()`
-3. When enabling, snapshots the current track plus queued tracks into repeat-list storage
-4. When playback reaches the end and repeat-list mode is still enabled, `TrackEndedHandlerService` reloads that snapshot through `IMusicQueueService.GetRepeatableQueue()` and copies it back into queue storage through `EnqueueMany()`
+2. Checks single-track repeat state through `IRepeatService.IsRepeatingAsync(guildId)`
+3. When enabling, snapshots the current track plus queued tracks through `IRepeatService.SaveRepeatListSnapshotAsync(...)`
+4. Toggles list repeat through `IRepeatService.SetRepeatingListAsync(guildId, value)`
+5. When playback reaches the end and repeat-list mode is still enabled, `TrackEndedHandlerService` reloads that snapshot through `IMusicQueueService.GetRepeatableQueue()` and copies it back into queue storage through `EnqueueMany()`
 
 ---
 
@@ -93,7 +93,7 @@ for (var i = trackList.Count - 1; i > 0; i--)
 **Behavior:**
 
 1. Validates user
-2. Calls `IMusicQueueService.Clear(guildId)`
+2. Calls `IMusicQueueService.ClearQueue(guildId)`
 3. Removes all queued tracks
 4. Currently playing track continues
 
@@ -106,16 +106,22 @@ for (var i = trackList.Count - 1; i > 0; i--)
 - `ViewQueue(guildId)` - Read-only view
 - `GetQueue(guildId)` - Mutable queue access
 - `SetQueue(guildId, queue)` - Replace entire queue
-- `Clear(guildId)` - Empty queue
+- `ClearQueue(guildId)` - Empty queue
 - `Enqueue(guildId, track)` - Add track
 - `EnqueueMany(guildId, tracks)` - Bulk add tracks, used when rehydrating repeat-list playback
 - `Dequeue(guildId)` - Remove and return next
 - `GetRepeatableQueue(guildId)` - Read the saved repeat-list snapshot and return parseable tracks
 
-### ILavaLinkService
+### IRepeatService
 
-- `Repeat()` - Single track repeat
-- `RepeatList()` - Queue repeat
+- `IsRepeatingAsync(guildId)` / `SetRepeatingAsync(guildId, value)` - Single-track repeat state
+- `IsRepeatingListAsync(guildId)` / `SetRepeatingListAsync(guildId, value)` - Queue repeat-list state
+- `SaveRepeatListSnapshotAsync(guildId, currentTrack, queuedTracks)` - Persist the repeat-list snapshot
+
+### ICurrentTrackService / ITrackFormatterService
+
+- `GetCurrentTrackFormattedAsync(guildId)` - Format the single-track repeat response
+- `FormatCurrentTrackListAsync(guildId)` - Format repeat-list enable/disable responses
 
 ## Queue Persistence
 
@@ -124,7 +130,7 @@ Queue state is persisted to:
 - **Storage:** PostgreSQL via EF Core repositories
 - **Contract:** `IQueueRepository`
 - **Implementation:** `Persistence/Repositories/QueueRepository.cs`
-- **State model:** queued/playing/played/skipped queue item lifecycle
+- **State model:** `QueueItemState` queued/playing/played/skipped queue item lifecycle
 
 Repeat-list snapshots are stored separately through `IRepeatListRepository`; they are read by `MusicQueueService.GetRepeatableQueue()` and copied back into the queue through `IQueueRepository.EnqueueManyAsync`.
 

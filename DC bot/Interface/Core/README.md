@@ -33,6 +33,24 @@ public interface ICommandHelper
 
 ---
 
+### ICommandRegistry.cs
+
+**Purpose:** Stable lookup contract for registered text commands.
+
+```csharp
+public interface ICommandRegistry
+{
+    IReadOnlyCollection<ICommand> Commands { get; }
+    bool TryGetCommand(string commandName, out ICommand command);
+}
+```
+
+**Implementation:** `Service/Core/CommandRegistry.cs`
+
+**Consumers:** `CommandHandlerService` and `HelpCommand`
+
+---
+
 ### IValidationService.cs
 
 **Purpose:** Player and connection validation.
@@ -78,6 +96,7 @@ public interface IUserValidationService
 ## Related Components
 
 - **Service/Core/ValidationService.cs** - Implements these interfaces
+- **Service/Core/CommandRegistry.cs** - Implements command lookup
 - **Helper/Validation/** - Validation result types
 - **Commands/** - Use these interfaces for validation
 

@@ -86,7 +86,7 @@ public class PlayCommandTests
             .Returns<IDiscordMessage, IResponseBuilder, ILogger, string>(async (msg, rb, _, commandName) =>
             {
                 var parts = msg.Content.Split(" ", 2);
-                if (parts.Length >= 2) return parts[1].Trim();
+                if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1])) return parts[1].Trim();
                 await rb.SendUsageAsync(msg, commandName);
                 return null;
             });
@@ -95,6 +95,21 @@ public class PlayCommandTests
         _playCommand = new PlayCommand(_lavaLinkServiceMock.Object, userValidationService, _responseBuilderMock.Object,
             loggerMock.Object, trackSearchResolverServiceMock, localizationServiceMock.Object,
             _commandHelperMock.Object);
+    }
+
+    private void ArrangeValidVoiceRequest(string content)
+    {
+        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
+        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
+
+        _discordUserMock.Setup(du => du.Id).Returns(1564123UL);
+        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
+        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
+        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
+        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
+        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
+        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
+        _messageMock.SetupGet(m => m.Content).Returns(content);
     }
 
     [Fact]
@@ -193,17 +208,25 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserNotProvided_URL_Or_Title()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
+        ArrangeValidVoiceRequest(PlayCommandContentNoArgs);
 
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentNoArgs);
+        await _playCommand.ExecuteAsync(_messageMock.Object);
+
+        _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, PlayCommandName), Times.Once);
+        _lavaLinkServiceMock.Verify(
+            l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
+            Times.Never);
+        _lavaLinkServiceMock.Verify(
+            l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
+                It.IsAny<TrackSearchMode>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UserProvidedWhitespaceOnlyQuery_ShouldSendUsageAndNotStartPlayback()
+    {
+        ArrangeValidVoiceRequest("!play   ");
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -221,17 +244,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Youtube_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTube);
+        ArrangeValidVoiceRequest(PlayCommandContentYouTube);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -247,17 +260,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_SoundCloud_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSoundCloud);
+        ArrangeValidVoiceRequest(PlayCommandContentSoundCloud);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -273,17 +276,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Spotify_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSpotify);
+        ArrangeValidVoiceRequest(PlayCommandContentSpotify);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -299,17 +292,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_AppleMusic_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentAppleMusic);
+        ArrangeValidVoiceRequest(PlayCommandContentAppleMusic);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -325,17 +308,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_Deezer_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentDeezer);
+        ArrangeValidVoiceRequest(PlayCommandContentDeezer);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -351,17 +324,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_YandexMusic_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYandex);
+        ArrangeValidVoiceRequest(PlayCommandContentYandex);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -377,17 +340,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedURL_ShouldCall_PlayAsyncURL_With_YoutubeMusic_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeMusic);
+        ArrangeValidVoiceRequest(PlayCommandContentYouTubeMusic);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -403,17 +356,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedTitle_ShouldCall_PlayAsyncQuery_With_Youtube_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSearch);
+        ArrangeValidVoiceRequest(PlayCommandContentSearch);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -437,17 +380,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedSpotifySearch_ShouldCall_PlayAsyncQuery_With_Spotify_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSpotifySearch);
+        ArrangeValidVoiceRequest(PlayCommandContentSpotifySearch);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -464,17 +397,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedSoundCloudSearch_ShouldCall_PlayAsyncQuery_With_SoundCloud_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentSoundCloudSearch);
+        ArrangeValidVoiceRequest(PlayCommandContentSoundCloudSearch);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -491,17 +414,7 @@ public class PlayCommandTests
     [Fact]
     public async Task ExecuteAsync_UserProvidedYouTubeSearch_ShouldCall_PlayAsyncQuery_With_YouTube_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeSearch);
+        ArrangeValidVoiceRequest(PlayCommandContentYouTubeSearch);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 
@@ -519,17 +432,7 @@ public class PlayCommandTests
     public async Task
         ExecuteAsync_UserProvidedYouTubeMusicSearch_ShouldCall_PlayAsyncQuery_With_YouTubeMusic_Search_Mode()
     {
-        var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
-        discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
-
-        _discordUserMock.Setup(du => du.Id).Returns(1564123L);
-        _discordMemberMock.Setup(dm => dm.IsBot).Returns(false);
-        _discordMemberMock.SetupGet(dm => dm.VoiceState).Returns(discordVoiceStateMock.Object);
-        _guildMock.Setup(g => g.GetMemberAsync(It.IsAny<ulong>())).ReturnsAsync(_discordMemberMock.Object);
-        _channelMock.SetupGet(c => c.Guild).Returns(_guildMock.Object);
-        _messageMock.SetupGet(m => m.Author).Returns(_discordUserMock.Object);
-        _messageMock.Setup(m => m.Channel).Returns(_channelMock.Object);
-        _messageMock.SetupGet(m => m.Content).Returns(PlayCommandContentYouTubeMusicSearch);
+        ArrangeValidVoiceRequest(PlayCommandContentYouTubeMusicSearch);
 
         await _playCommand.ExecuteAsync(_messageMock.Object);
 

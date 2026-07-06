@@ -59,6 +59,7 @@ Core application interfaces.
 **Files:**
 
 - `ICommandHelper.cs` - Command validation helpers
+- `ICommandRegistry.cs` - Registered text command lookup
 - `IValidationService.cs` - Player/connection validation
 - `IUserValidationService.cs` - User validation
 

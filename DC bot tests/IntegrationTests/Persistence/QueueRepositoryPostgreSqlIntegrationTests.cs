@@ -1,3 +1,4 @@
+using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Persistence.Db;
 using DC_bot.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,7 @@ public class QueueRepositoryPostgreSqlIntegrationTests
 
         Assert.NotNull(claimed);
         Assert.Equal(first.Id, claimed.Id);
-        Assert.Equal(1, claimed.State);
+        Assert.Equal(QueueItemState.Playing, claimed.State);
 
         var remaining = await repository.GetQueuedItemsAsync(42ul);
         Assert.Single(remaining);
@@ -62,6 +63,41 @@ public class QueueRepositoryPostgreSqlIntegrationTests
         Assert.Equal(expectedIds.OrderBy(id => id), claimedIds);
         Assert.Equal(claimedIds.Length, claimedIds.Distinct().Count());
         Assert.Empty(await repository.GetQueuedItemsAsync(84ul));
+    }
+
+    [Fact]
+    public async Task ClaimNextQueuedItemAsync_WithMoreParallelConsumersThanItems_ClaimsEachItemOnce()
+    {
+        var database = await PostgreSqlTestDatabase.TryCreateAsync();
+        if (database is null) return;
+        await using var _ = database;
+        await database.MigrateAsync();
+        await using var services = database.CreateServiceProvider();
+        var factory = services.GetRequiredService<IDbContextFactory<BotDbContext>>();
+        var seedRepository = new QueueRepository(factory);
+        const ulong guildId = 168ul;
+        const int queuedItemCount = 5;
+        const int consumerCount = 12;
+        var expectedTrackIdentifiers = new List<string>();
+
+        for (var index = 0; index < queuedItemCount; index++)
+        {
+            var trackIdentifier = $"track-{index}";
+            await seedRepository.EnqueueAsync(guildId, trackIdentifier);
+            expectedTrackIdentifiers.Add(trackIdentifier);
+        }
+
+        var claims = await Task.WhenAll(Enumerable.Range(0, consumerCount)
+            .Select(_ => new QueueRepository(factory).ClaimNextQueuedItemAsync(guildId)));
+        var claimed = claims.Where(item => item is not null).Select(item => item!).ToArray();
+
+        Assert.Equal(queuedItemCount, claimed.Length);
+        Assert.Equal(consumerCount - queuedItemCount, claims.Count(item => item is null));
+        Assert.Equal(claimed.Length, claimed.Select(item => item.Id).Distinct().Count());
+        Assert.Equal(
+            expectedTrackIdentifiers.OrderBy(identifier => identifier),
+            claimed.Select(item => item.TrackIdentifier).OrderBy(identifier => identifier));
+        Assert.Empty(await seedRepository.GetQueuedItemsAsync(guildId));
     }
 
     [Fact]

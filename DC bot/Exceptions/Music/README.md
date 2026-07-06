@@ -112,7 +112,8 @@ catch (BotException botEx)
 
 ## Related Files
 
-- `Service/Music/LavaLinkService.cs` - Throws LavalinkOperationException and TrackLoadException
-- `Service/Music/MusicServices/MusicQueueService.cs` - Throws QueueOperationException
+- `Service/Music/MusicServices/LavalinkNodeConnectionService.cs` - Throws `LavalinkOperationException`
+- `Service/Music/MusicServices/PlaybackRequestService.cs` - Throws `TrackLoadException`
+- `Service/Music/MusicServices/MusicQueueService.cs` - Lets repository exceptions bubble; it does not currently throw `QueueOperationException`
 - `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
 

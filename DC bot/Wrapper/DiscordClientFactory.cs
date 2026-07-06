@@ -1,5 +1,6 @@
 ﻿using DC_bot.Configuration;
 using DSharpPlus;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Wrapper;
 
@@ -12,6 +13,10 @@ public static class DiscordClientFactory
 
         return DiscordClientBuilder
             .CreateDefault(token, DiscordIntents.All)
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
             .Build();
     }
 }

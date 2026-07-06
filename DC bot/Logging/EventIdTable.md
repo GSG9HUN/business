@@ -155,7 +155,7 @@ does not currently call these methods.
 .AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
 ```
 
-This is configured in `Startup/BotServiceProviderFactory.cs`.
+This is configured in `Startup/DependencyInjection/LoggingServiceCollectionExtensions.cs`.
 
 ### In Code
 

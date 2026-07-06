@@ -1,8 +1,6 @@
 ﻿using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Persistence;
-using DC_bot.Wrapper;
-using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -11,10 +9,12 @@ namespace DC_bot.Service.Music.MusicServices;
 public class MusicQueueService(
     IQueueRepository queueRepository,
     IRepeatListRepository repeatListRepository,
-    ILogger<MusicQueueService>? logger = null) : IMusicQueueService
+    ILogger<MusicQueueService>? logger = null,
+    ITrackSerializer? trackSerializer = null) : IMusicQueueService
 {
     private const int MaxQueueSize = 100;
     private readonly ILogger<MusicQueueService> _logger = logger ?? NullLogger<MusicQueueService>.Instance;
+    private readonly ITrackSerializer _trackSerializer = trackSerializer ?? new LavalinkTrackSerializer();
 
     public async Task<bool> HasTracks(ulong guildId)
     {
@@ -25,7 +25,7 @@ public class MusicQueueService(
 
     public async Task Enqueue(ulong guildId, ILavaLinkTrack track)
     {
-        await queueRepository.EnqueueAsync(guildId, track.ToString());
+        await queueRepository.EnqueueAsync(guildId, _trackSerializer.Serialize(track));
         _logger.LogInformation("Track enqueued for guild {GuildId}: {Author} - {Title}", guildId, track.Author, track.Title);
     }
 
@@ -38,7 +38,7 @@ public class MusicQueueService(
         }
 
         var trackIdentifiers = tracks
-            .Select(track => track.ToString())
+            .Select(_trackSerializer.Serialize)
             .ToList();
 
         await queueRepository.EnqueueManyAsync(guildId, trackIdentifiers);
@@ -58,12 +58,8 @@ public class MusicQueueService(
 
             try
             {
-                var track = LavalinkTrack.Parse(queueItemRecord.TrackIdentifier, null);
-                var wrappedTrack = new LavaLinkTrackWrapper(track)
-                {
-                    QueueItemId = queueItemRecord.Id
-                };
-                _logger.LogInformation("Track dequeued for guild {GuildId}: {Title}", guildId, track.Title);
+                var wrappedTrack = _trackSerializer.Deserialize(queueItemRecord.TrackIdentifier, queueItemRecord.Id);
+                _logger.LogInformation("Track dequeued for guild {GuildId}: {Title}", guildId, wrappedTrack.Title);
                 return wrappedTrack;
             }
             catch (Exception ex)
@@ -84,8 +80,7 @@ public class MusicQueueService(
         {
             try
             {
-                var lavaLinkTrack = LavalinkTrack.Parse(track.TrackIdentifier, null);
-                lavaLinkTracks.Add(new LavaLinkTrackWrapper(lavaLinkTrack));
+                lavaLinkTracks.Add(_trackSerializer.Deserialize(track.TrackIdentifier));
             }
             catch (Exception ex)
             {
@@ -109,8 +104,7 @@ public class MusicQueueService(
         {
             try
             {
-                var track = LavalinkTrack.Parse(queueItem.TrackIdentifier, null);
-                trackQueue.Enqueue(new LavaLinkTrackWrapper(track));
+                trackQueue.Enqueue(_trackSerializer.Deserialize(queueItem.TrackIdentifier));
             }
             catch (Exception ex)
             {
@@ -135,8 +129,7 @@ public class MusicQueueService(
         {
             try
             {
-                var track = LavalinkTrack.Parse(identifier, null);
-                repeatableQueue.Add(new LavaLinkTrackWrapper(track));
+                repeatableQueue.Add(_trackSerializer.Deserialize(identifier));
             }
             catch (Exception ex)
             {
@@ -181,7 +174,7 @@ public class MusicQueueService(
         }
 
         var reorderedTrackIdentifiers = shuffledQueue
-            .Select(track => track.ToString())
+            .Select(_trackSerializer.Serialize)
             .ToList();
 
         await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);

@@ -3,19 +3,19 @@ using DC_bot.Constants;
 using DC_bot.Exceptions;
 using DC_bot.Helper.Factory;
 using DC_bot.Interface;
+using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Core;
 
 public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
 {
-    private readonly Dictionary<string, ICommand> _commands;
+    private readonly ICommandRegistry _commandRegistry;
     private readonly bool _isTestMode;
     private readonly ILocalizationService _localizationService;
     private readonly ILogger<CommandHandlerService> _logger;
@@ -23,7 +23,7 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
     private bool _isRegistered;
 
     public CommandHandlerService(
-        IServiceProvider services,
+        ICommandRegistry commandRegistry,
         ILogger<CommandHandlerService> logger,
         ILocalizationService localizationService,
         BotSettings botSettings,
@@ -31,7 +31,8 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
         IDiscordMessageFactory? messageFactory = null)
     {
         _logger = logger;
-        _commands = services.GetServices<ICommand>().ToDictionary(c => c.Name, c => c);
+        _commandRegistry = commandRegistry;
+        _ = _commandRegistry.Commands;
         _localizationService = localizationService;
         _messageFactory = messageFactory ?? new DiscordMessageWrapperFactory();
         _isTestMode = isTestMode;
@@ -79,7 +80,7 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
             var guildId = TryGetGuildId(args);
             using var scope = _logger.BeginCommandScope(commandName, args.Author.Id, args.Channel.Id, guildId);
 
-            if (_commands.TryGetValue(commandName, out var command))
+            if (_commandRegistry.TryGetCommand(commandName, out var command))
             {
                 _logger.CommandInvoked(commandName);
 

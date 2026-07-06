@@ -1,4 +1,4 @@
-using DC_bot.Constants;
+﻿using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
@@ -159,7 +159,7 @@ public class LavaLinkServiceTests
     public async Task StartPlayingQueue_InvalidJoin_DoesNothing()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.StartPlayingQueue(_messageMock.Object, _textChannelMock.Object, _memberMock.Object);
@@ -182,7 +182,7 @@ public class LavaLinkServiceTests
     public async Task StartPlayingQueue_QueueEmpty_RegistersHandlerButDoesNotPlay()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync((ILavaLinkTrack?)null);
@@ -206,7 +206,7 @@ public class LavaLinkServiceTests
         var nextTrack = TrackTestHelper.CreateTrackWrapper("Artist", "Title", "id", 120);
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(nextTrack);
@@ -231,7 +231,7 @@ public class LavaLinkServiceTests
         var nextTrack = TrackTestHelper.CreateTrackWrapper("Artist", "Title", "id", 120);
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(nextTrack);

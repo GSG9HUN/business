@@ -1,4 +1,4 @@
-using DC_bot.Constants;
+﻿using DC_bot.Constants;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -61,7 +61,7 @@ public class PlaybackRequestServiceTests
     public async Task PlayAsyncUrl_InvalidJoinOrConnection_DoesNothing()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.PlayAsyncUrl(_voiceChannelMock.Object, new Uri("https://example.com"), _messageMock.Object,
@@ -81,7 +81,7 @@ public class PlaybackRequestServiceTests
     public async Task PlayAsyncQuery_InvalidJoinOrConnection_DoesNothing()
     {
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
         await _service.PlayAsyncQuery(_voiceChannelMock.Object, "test query", _messageMock.Object,
@@ -102,7 +102,7 @@ public class PlaybackRequestServiceTests
     {
         var url = new Uri("https://example.com/test");
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _audioServiceMock
@@ -129,7 +129,7 @@ public class PlaybackRequestServiceTests
     {
         var url = new Uri("https://example.com/missing");
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _localizationServiceMock
@@ -162,7 +162,7 @@ public class PlaybackRequestServiceTests
         var track = new LavalinkTrack { Author = "Author", Title = "Title", Identifier = "id" };
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _audioServiceMock
@@ -184,7 +184,7 @@ public class PlaybackRequestServiceTests
     {
         const string query = "artist song";
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _audioServiceMock
@@ -209,7 +209,7 @@ public class PlaybackRequestServiceTests
     {
         const string query = "nincs ilyen";
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _localizationServiceMock
@@ -237,7 +237,7 @@ public class PlaybackRequestServiceTests
         var track = new LavalinkTrack { Author = "Author", Title = "Title", Identifier = "id" };
 
         _playerConnectionServiceMock
-            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object))
+            .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((_playerMock.Object, _voiceChannelMock.Object, GuildId, true));
 
         _audioServiceMock

@@ -53,6 +53,27 @@ public class PlaySlashCommandTests : SlashCommandTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithWhitespaceOnlyQuery_ShouldSendUsageAndNotStartPlayback()
+    {
+        var voiceChannel = CreateVoiceChannel();
+        var member = CreateMember("SlashUser", "<@123>", voiceChannel);
+        var context = CreateContext(member: member);
+
+        await ExecuteSlashAsync(
+            SlashCommandExecutor,
+            "play",
+            context,
+            "   ",
+            requireGuild: true,
+            defer: true,
+            ensureDeferredResponse: true);
+
+        Assert.True(context.IsDeferred);
+        Assert.Contains("play_command_usage", context.TextResponses);
+        VerifyNoPlaybackStarted();
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUrl_ShouldCallPlayAsyncUrl()
     {
         var voiceChannel = CreateVoiceChannel();

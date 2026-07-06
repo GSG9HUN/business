@@ -20,7 +20,8 @@ public class PlayerConnectionService(
     public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
         TryJoinAndValidateAsync(
             IDiscordMessage message,
-            IDiscordChannel? channel)
+            IDiscordChannel? channel,
+            CancellationToken cancellationToken = default)
     {
         if (channel is null)
         {
@@ -48,7 +49,12 @@ public class PlayerConnectionService(
         ILavalinkPlayer? connection;
         try
         {
-            connection = await audioService.Players.JoinAsync(channel.Guild.Id, channel.Id).ConfigureAwait(false);
+            await DestroyDisconnectedPlayerBeforeJoinAsync(guildId, cancellationToken).ConfigureAwait(false);
+
+            connection = await audioService.Players.JoinAsync(
+                channel.Guild.Id,
+                channel.Id,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
                 .ConfigureAwait(false);
@@ -73,7 +79,7 @@ public class PlayerConnectionService(
             {
                 validationConnectionResult = await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
                 if (validationConnectionResult.IsValid) break;
-                await Task.Delay(delayMs).ConfigureAwait(false);
+                await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
             } 
             
             if (validationConnectionResult is { IsValid: true })
@@ -91,6 +97,10 @@ public class PlayerConnectionService(
                 validationConnectionResult.ErrorKey);
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (HttpRequestException httpEx) when (httpEx.Message.Contains("400"))
         {
@@ -112,7 +122,8 @@ public class PlayerConnectionService(
     public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
         TryGetAndValidateExistingPlayerAsync(
             IDiscordMessage message,
-            IDiscordChannel? channel)
+            IDiscordChannel? channel,
+            CancellationToken cancellationToken = default)
     {
         if (channel is null)
         {
@@ -146,6 +157,18 @@ public class PlayerConnectionService(
             }
 
             var connection = validationPlayerResult.Player;
+            if (!connection.ConnectionState.IsConnected)
+            {
+                logger.LogInformation(
+                    "Existing player is not connected. Guild: {GuildId}, ConnectionState: {ConnectionState}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}",
+                    guildId,
+                    connection.ConnectionState,
+                    connection.State,
+                    connection.VoiceChannelId);
+                await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.BotIsNotConnectedError);
+                return (null, channel, guildId, false);
+            }
+
             var validationConnectionResult =
                 await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
 
@@ -162,11 +185,33 @@ public class PlayerConnectionService(
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get existing player. Guild: {GuildId}", guildId);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
+    }
+
+    private async Task DestroyDisconnectedPlayerBeforeJoinAsync(ulong guildId, CancellationToken cancellationToken)
+    {
+        var existingPlayer = await audioService.Players.GetPlayerAsync(guildId, cancellationToken).ConfigureAwait(false);
+        if (existingPlayer is null || existingPlayer.ConnectionState.IsConnected)
+        {
+            return;
+        }
+
+        logger.LogWarning(
+            "Disconnecting stale Lavalink player before join. Guild: {GuildId}, ConnectionState: {ConnectionState}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}",
+            guildId,
+            existingPlayer.ConnectionState,
+            existingPlayer.State,
+            existingPlayer.VoiceChannelId);
+
+        await existingPlayer.DisconnectAsync(cancellationToken).ConfigureAwait(false);
     }
 }

@@ -7,10 +7,12 @@ public interface IPlayerConnectionService
 {
     Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)> TryJoinAndValidateAsync(
         IDiscordMessage message,
-        IDiscordChannel? channel);
+        IDiscordChannel? channel,
+        CancellationToken cancellationToken = default);
 
     Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
         TryGetAndValidateExistingPlayerAsync(
             IDiscordMessage message,
-            IDiscordChannel? channel);
+            IDiscordChannel? channel,
+            CancellationToken cancellationToken = default);
 }

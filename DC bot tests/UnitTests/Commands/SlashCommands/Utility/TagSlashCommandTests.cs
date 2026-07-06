@@ -66,6 +66,19 @@ public class TagSlashCommandTests : SlashCommandTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithWhitespaceOnlyMemberArgument_ShouldSendUsageAfterDeferring()
+    {
+        var context = CreateContext(allMembers: []);
+
+        await ExecuteSlashAsync(SlashCommandExecutor, "tag", context, "   ", requireGuild: true, defer: true);
+
+        Assert.True(context.IsDeferred);
+        Assert.Contains("tag_command_usage", context.TextResponses);
+        Assert.DoesNotContain(context.TextResponses,
+            response => response.Contains("not found", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WhenMemberDoesNotExist_ShouldReturnNotFoundAfterDeferring()
     {
         var context = CreateContext(allMembers: []);

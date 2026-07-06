@@ -25,3 +25,10 @@ The startup-related unit coverage lives mainly in:
 - `Wrapper/DiscordClientEventHandlerTests.cs`
 
 These tests verify that client creation is independent from event handler construction and that `DiscordClientEventHandler` uses direct dependencies.
+
+## Production Refactor Coverage
+
+- `Service/Core/CommandRegistryTests.cs` covers command registry lookup, single command-list materialization, and duplicate command names.
+- `Service/Core/CommandValidationServiceTests.cs` covers missing and whitespace-only command arguments.
+- `Service/Music/MusicQueueServiceTests.cs` verifies `ITrackSerializer` is used for queue persistence boundaries.
+- `Service/Music/PlayerConnectionServiceTests.cs` covers cancellation propagation during connection retry waits.

@@ -9,7 +9,7 @@ This folder contains persistence contracts used by the service layer.
 - `IQueueRepository` - queue item lifecycle and ordering
 - `IRepeatListRepository` - repeat-list snapshot persistence used for saving repeat-list mode state and rehydrating queue playback
 
-`IQueueRepository` uses queued/playing/played/skipped item state transitions and exposes atomic claim operations through
+`IQueueRepository` uses `QueueItemState` (`Queued`, `Playing`, `Played`, `Skipped`) transitions and exposes atomic claim operations through
 `ClaimNextQueuedItemAsync`.
 
 ## Models

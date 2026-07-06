@@ -5,7 +5,10 @@ namespace DC_bot.Startup;
 
 internal static class BotApplication
 {
-    public static async Task RunAsync(TextWriter? output = null, bool isTestEnvironment = false)
+    public static async Task RunAsync(
+        TextWriter? output = null,
+        bool isTestEnvironment = false,
+        CancellationToken cancellationToken = default)
     {
         var runtimeSettings = BotConfigurationLoader.LoadFromEnvironment(output ?? Console.Out);
         if (runtimeSettings is null) return;
@@ -15,6 +18,13 @@ internal static class BotApplication
         BotHandlerRegistrar.RegisterHandlers(services);
 
         var botService = services.GetRequiredService<BotService>();
-        await botService.StartAsync(isTestEnvironment);
+        try
+        {
+            await botService.StartAsync(isTestEnvironment, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Expected shutdown path for Ctrl+C / host cancellation.
+        }
     }
 }

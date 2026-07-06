@@ -5,7 +5,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
-using DC_bot.Service;
+using DC_bot.Service.ReactionHandler;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,13 +13,13 @@ using Moq;
 namespace DC_bot_tests.UnitTests.Service;
 
 [Trait("Category", "Unit")]
-public class ReactionHandlerTests
+public class ReactionHandlerServiceTests
 {
     [Fact]
     public void RegisterHandler_WithDiscordClient_SubscribesToEvents()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
 
@@ -28,7 +28,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -55,7 +55,7 @@ public class ReactionHandlerTests
     public void RegisterHandler_ThenUnregister_UnsubscribesFromEvents()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
 
@@ -64,7 +64,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -90,7 +90,7 @@ public class ReactionHandlerTests
     public void RegisterHandler_CalledTwice_LogsAlreadyRegisteredSecondTime()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
 
@@ -99,7 +99,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -127,7 +127,7 @@ public class ReactionHandlerTests
     public void UnregisterHandler_WithoutPreviousRegister_LogsWarning()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
 
@@ -136,7 +136,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -162,7 +162,7 @@ public class ReactionHandlerTests
     public void RegisterUnregisterCycle_MaintainsConsistentState()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
 
@@ -171,7 +171,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -232,7 +232,7 @@ public class ReactionHandlerTests
     public async Task HandleReactionAddedAsync_WhenSupportedEmoji_ExecutesExpectedAction(string emoji, string expectedAction)
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -258,7 +258,7 @@ public class ReactionHandlerTests
             .Returns(Task.CompletedTask);
         messageMock.Setup(x => x.RespondAsync(It.IsAny<string>())).Returns(Task.CompletedTask);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -282,7 +282,7 @@ public class ReactionHandlerTests
     public async Task HandleReactionRemovedAsync_WhenSupportedEmoji_ExecutesExpectedAction(string emoji, string expectedAction)
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -308,7 +308,7 @@ public class ReactionHandlerTests
             .Returns(Task.CompletedTask);
         messageMock.Setup(x => x.RespondAsync(It.IsAny<string>())).Returns(Task.CompletedTask);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -331,7 +331,7 @@ public class ReactionHandlerTests
     public async Task ExecuteOnReactionAddedAsync_WhenBotExceptionThrown_LogsOperationFailedWithEventId1208()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -343,7 +343,7 @@ public class ReactionHandlerTests
             .Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .ThrowsAsync(botException);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -368,7 +368,7 @@ public class ReactionHandlerTests
     public async Task ExecuteOnReactionAddedAsync_WhenGeneralExceptionThrown_LogsOperationFailedWithEventId1208()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -380,7 +380,7 @@ public class ReactionHandlerTests
             .Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .ThrowsAsync(generalException);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -405,7 +405,7 @@ public class ReactionHandlerTests
     public async Task ExecuteOnReactionRemovedAsync_WhenBotExceptionThrown_LogsOperationFailedWithEventId1208()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -417,7 +417,7 @@ public class ReactionHandlerTests
             .Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .ThrowsAsync(botException);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -442,7 +442,7 @@ public class ReactionHandlerTests
     public async Task ExecuteOnReactionRemovedAsync_WhenGeneralExceptionThrown_LogsOperationFailedWithEventId1208()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var messageMock = new Mock<IDiscordMessage>();
@@ -454,7 +454,7 @@ public class ReactionHandlerTests
             .Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
             .ThrowsAsync(generalException);
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,
@@ -479,7 +479,7 @@ public class ReactionHandlerTests
     public async Task SendReactionControlMessage_WhenSendFails_LogsEventId1209AndThrowsMessageSendException()
     {
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
-        var loggerMock = new Mock<ILogger<ReactionHandler>>();
+        var loggerMock = new Mock<ILogger<ReactionHandlerService>>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var progressiveTimerServiceMock = new Mock<IProgressiveTimerService>();
         var channelMock = new Mock<IDiscordChannel>();
@@ -497,7 +497,7 @@ public class ReactionHandlerTests
 
         var discordClient = TestDiscordClientFactory.Create("test-token");
 
-        var reactionHandler = new ReactionHandler(
+        var reactionHandler = new ReactionHandlerService(
             lavaLinkServiceMock.Object,
             loggerMock.Object,
             progressiveTimerServiceMock.Object,

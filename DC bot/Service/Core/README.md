@@ -1,4 +1,4 @@
-﻿# Core Services
+# Core Services
 
 This folder contains core application services for command handling and validation.
 
@@ -18,12 +18,12 @@ This folder contains core application services for command handling and validati
 
 **Behavior:**
 
-1. Receives message-created events wired in `Startup/BotServiceProviderFactory.cs`
+1. Receives message-created events wired by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
 2. Ignores messages until `RegisterHandler()` has enabled processing
 3. Ignores bot authors unless the service was created in test mode
 4. Parses the configured prefix (e.g., `!play`)
 5. Extracts command name and argument text
-6. Finds the matching `ICommand` from DI
+6. Finds the matching `ICommand` through `ICommandRegistry`
 7. Wraps the DSharpPlus message with explicit guild context
 8. Executes the command and logs the result
 9. Sends a guild-localized unknown-command response when no command matches
@@ -34,7 +34,7 @@ This folder contains core application services for command handling and validati
 BotHandlerRegistrar.RegisterHandlers(services);
 ```
 
-Event routing itself is configured through DSharpPlus 5 builder APIs in `Startup/BotServiceProviderFactory.cs`.
+Event routing itself is configured through DSharpPlus 5 builder APIs in `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`.
 
 ---
 
@@ -90,7 +90,8 @@ User validation:
 Player validation:
 
 - Player exists for guild
-- Connection is considered valid when Lavalink reports an active connection, or when the player is not destroyed and still has a voice channel ID
+- `ValidatePlayerAsync()` logs Lavalink connection state, player state, voice channel ID, and current track identifier when a player is found
+- `ValidateConnectionAsync()` requires `connection.ConnectionState.IsConnected`; disconnected or destroyed players fail with `BotIsNotConnectedError` even if they still have a voice channel ID
 
 ---
 
@@ -99,6 +100,21 @@ Player validation:
 **Purpose:** Command-specific validation logic.
 
 **Details:** Used by commands for custom validation beyond standard user/player checks.
+
+Argument extraction treats missing and whitespace-only arguments as invalid. This keeps commands such as `!play   `
+from receiving an empty payload.
+
+---
+
+### CommandRegistry.cs
+
+**Purpose:** Materialize registered `ICommand` implementations once and expose name-based lookup.
+
+**Behavior:**
+
+- Injected into `CommandHandlerService` and `HelpCommand` instead of resolving commands through `IServiceProvider`.
+- Builds a stable command list and dictionary from the DI-provided `IEnumerable<ICommand>`.
+- Duplicate command names fail during lookup initialization, so ambiguous command routing is caught early.
 
 ---
 
