@@ -163,7 +163,7 @@ public class BotLifecycleEndToEndTests(ITestOutputHelper testOutputHelper)
 
     private static async Task WaitForGuildInitializationAsync(IServiceProvider provider, ulong guildId)
     {
-        var dbGuildId = checked((long)guildId);
+        var dbGuildId = guildId;
         var factory = provider.GetRequiredService<IDbContextFactory<BotDbContext>>();
 
         await AsyncTestWaiter.UntilAsync(

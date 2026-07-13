@@ -18,6 +18,7 @@ public class GuildRepeatListItemConfiguration : IEntityTypeConfiguration<GuildRe
 
 		builder.Property(entity => entity.GuildId)
 			.HasColumnName("guild_id")
+			.HasGuildIdStorage()
 			.IsRequired();
 
 		builder.Property(entity => entity.Position)

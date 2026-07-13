@@ -168,7 +168,8 @@ try
 }
 catch (ValidationException ex)
 {
-    await responseBuilder.SendErrorAsync(message, ex.Message);
+    logger.CommandExecutionFailed(ex, Name);
+    await responseBuilder.SendErrorAsync(message, LocalizationKeys.SlashCommandUnexpectedError);
 }
 ```
 

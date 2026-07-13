@@ -7,7 +7,7 @@ This folder contains the Discord command presentation layer.
 Commands handle user input from Discord and delegate business logic to services. The bot currently exposes two command
 surfaces:
 
-1. **TextCommands** - prefix-based message commands such as `!play`, `!pause`, and `!viewList`.
+1. **TextCommands** - prefix-based message commands such as `!play`, `!pause`, `!viewList`, and `!savePlaylist`.
 2. **SlashCommands** - Discord application commands such as `/play`, `/pause`, and `/queue`.
 
 Slash commands are intentionally thin adapters. They create a slash execution request and reuse the existing text command
@@ -22,6 +22,7 @@ Text command implementations grouped by domain.
 
 - `Music/` - `PlayCommand`, `PauseCommand`, `ResumeCommand`, `SkipCommand`, `JoinCommand`, `LeaveCommand`
 - `Queue/` - `ViewQueueCommand`, `ShuffleCommand`, `RepeatCommand`, `RepeatListCommand`, `ClearCommand`
+- `Playlist/` - `CreatePlaylistCommand`, `SavePlaylistCommand`, `DeletePlaylistCommand`, `AddSongToPlaylistCommand`, `RemoveSongFromPlaylistCommand`, `ListPlaylistsCommand`, `ViewPlaylistCommand`, `RenamePlaylistCommand`
 - `Utility/` - `HelpCommand`, `PingCommand`, `LanguageCommand`, `TagCommand`
 
 ### SlashCommands/
@@ -132,5 +133,6 @@ services.AddCommandServices();
 - `Service/Core/CommandHandlerService.cs` - text command routing
 - `Service/Core/CommandValidationService.cs` - command argument helpers
 - `Service/Core/ValidationService.cs` - validation services
+- `Service/Music/PlaylistService/PlaylistService.cs` - saved playlist use-cases
 - `Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
 - `Wrapper/SlashInteractionContextWrapper.cs` - slash context wrapper

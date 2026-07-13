@@ -35,8 +35,7 @@ public class RepeatListCommand(
 
         if (await repeatService.IsRepeatingAsync(guildId))
         {
-            await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get(guildId, LocalizationKeys.RepeatListCommandTrackAlreadyRepeating));
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.RepeatListCommandTrackAlreadyRepeating);
             logger.CommandExecuted(Name);
             return;
         }
@@ -44,8 +43,8 @@ public class RepeatListCommand(
         if (await repeatService.IsRepeatingListAsync(guildId))
         {
             await repeatService.SetRepeatingListAsync(guildId, false);
-            await responseBuilder.SendSuccessAsync(message,
-                $"{localizationService.Get(guildId, LocalizationKeys.RepeatListCommandRepeatingOff)}\n {await trackFormatterService.FormatCurrentTrackListAsync(guildId)}");
+            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.RepeatListCommandRepeatingOff,
+                await trackFormatterService.FormatCurrentTrackListAsync(guildId));
             logger.CommandExecuted(Name);
             return;
         }
@@ -55,8 +54,8 @@ public class RepeatListCommand(
 
         await repeatService.SaveRepeatListSnapshotAsync(guildId, track, queue);
         await repeatService.SetRepeatingListAsync(guildId, true);
-        await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(guildId, LocalizationKeys.RepeatListCommandRepeatingOn)}\n {await trackFormatterService.FormatCurrentTrackListAsync(guildId)}");
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.RepeatListCommandRepeatingOn,
+            await trackFormatterService.FormatCurrentTrackListAsync(guildId));
 
         logger.CommandExecuted(Name);
     }

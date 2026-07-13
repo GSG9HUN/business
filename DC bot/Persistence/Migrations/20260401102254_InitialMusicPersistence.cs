@@ -16,7 +16,7 @@ namespace DC_bot.Persistence.Migrations
                 name: "guild_data",
                 columns: table => new
                 {
-                    guild_id = table.Column<long>(type: "bigint", nullable: false),
+                    guild_id = table.Column<ulong>(type: "numeric(20,0)", nullable: false),
                     is_premium = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     premium_until_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     updated_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
@@ -30,7 +30,7 @@ namespace DC_bot.Persistence.Migrations
                 name: "guild_playback_state",
                 columns: table => new
                 {
-                    guild_id = table.Column<long>(type: "bigint", nullable: false),
+                    guild_id = table.Column<ulong>(type: "numeric(20,0)", nullable: false),
                     is_repeating = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     is_repeating_list = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     current_track_identifier = table.Column<string>(type: "text", nullable: true),
@@ -53,7 +53,7 @@ namespace DC_bot.Persistence.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    guild_id = table.Column<long>(type: "bigint", nullable: false),
+                    guild_id = table.Column<ulong>(type: "numeric(20,0)", nullable: false),
                     changed_by_user_id = table.Column<long>(type: "bigint", nullable: true),
                     old_is_premium = table.Column<bool>(type: "boolean", nullable: false),
                     new_is_premium = table.Column<bool>(type: "boolean", nullable: false),
@@ -77,7 +77,7 @@ namespace DC_bot.Persistence.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    GuildId = table.Column<long>(type: "bigint", nullable: false),
+                    GuildId = table.Column<ulong>(type: "numeric(20,0)", nullable: false),
                     Position = table.Column<int>(type: "integer", nullable: false),
                     TrackIdentifier = table.Column<string>(type: "text", nullable: false),
                     State = table.Column<short>(type: "smallint", nullable: false),

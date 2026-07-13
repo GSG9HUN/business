@@ -169,7 +169,7 @@ try
 catch (LocalizationException ex)
 {
     logger.CommandExecutionFailed(ex, Name);
-    await responseBuilder.SendCommandErrorResponse(message, Name);
+    await responseBuilder.SendErrorAsync(message, LocalizationKeys.LanguageCommandError);
 }
 
 // CommandHandlerService and SlashCommandExecutor catch all BotException instances.

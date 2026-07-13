@@ -24,8 +24,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildDataEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("IsPremium")
@@ -51,8 +51,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildPlaybackStateEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<string>("CurrentTrackIdentifier")
@@ -105,8 +105,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("changed_by_user_id");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("NewIsPremium")
@@ -143,8 +143,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("added_at_utc")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<DateTimeOffset?>("PlayedAtUtc")
@@ -195,8 +195,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("added_at_utc")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<int>("Position")
@@ -214,6 +214,76 @@ namespace DC_bot.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("guild_repeat_list_item", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Persistence.Entities.PlaylistEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("playlists", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Persistence.Entities.PlaylistTrackEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_number");
+
+                    b.Property<long>("PlaylistId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("playlist_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("TrackIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("track_identifier");
+
+                    b.Property<string>("TrackUri")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("track_uri");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaylistId", "OrderNumber")
+                        .IsUnique();
+
+                    b.ToTable("playlist_tracks", (string)null);
                 });
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildPlaybackStateEntity", b =>
@@ -258,6 +328,24 @@ namespace DC_bot.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("DC_bot.Persistence.Entities.PlaylistEntity", b =>
+                {
+                    b.HasOne("DC_bot.Persistence.Entities.GuildDataEntity", null)
+                        .WithMany()
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DC_bot.Persistence.Entities.PlaylistTrackEntity", b =>
+                {
+                    b.HasOne("DC_bot.Persistence.Entities.PlaylistEntity", null)
+                        .WithMany()
+                        .HasForeignKey("PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildDataEntity", b =>

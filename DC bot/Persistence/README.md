@@ -11,6 +11,7 @@ The persistence layer stores guild-related runtime state:
 - playback state (repeat flags, current track)
 - queue items and queue ordering
 - repeat-list track identifiers
+- saved playlists and ordered playlist tracks
 
 All persistence operations are exposed through interfaces in `Interface/Service/Persistence/` and implemented via repositories in this folder.
 
@@ -28,6 +29,7 @@ All persistence operations are exposed through interfaces in `Interface/Service/
 - `Startup/DatabaseMigrationRunner.cs` applies pending migrations automatically at startup.
 - PostgreSQL connection settings are read from environment variables.
 - `GuildPremiumAuditEntity` is mapped in the EF model, but there is currently no dedicated audit repository.
+- Playlist repositories expose immutable record contracts to the service layer; EF entities stay inside `Persistence/`.
 
 ## Related Components
 

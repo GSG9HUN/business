@@ -18,8 +18,7 @@ public class ShuffleCommandTests
     private const string ShuffleCommandName = "shuffle";
     private const string ShuffleCommandDescriptionValue = "Shuffle the playlist.";
     private const string ShuffleCommandResponseValue = "Queue shuffled!";
-    private const string ShuffleCommandErrorValue = "There is no music in queue.";
-    private const string ShuffleCommandNotEnoughTracksValue = "Not enough tracks to shuffle.";
+    private const string ShuffleCommandNotEnoughTracksValue = "There are not enough tracks in the queue to shuffle.";
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<ICommandHelper> _commandHelperMock;
     private readonly Mock<IDiscordGuild> _guildMock;
@@ -46,6 +45,9 @@ public class ShuffleCommandTests
 
         _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandDescription))
             .Returns(ShuffleCommandDescriptionValue);
+        _localizationServiceMock
+            .Setup(l => l.Get(It.IsAny<ulong>(), LocalizationKeys.ShuffleCommandNotEnoughTracks))
+            .Returns(ShuffleCommandNotEnoughTracksValue);
 
         _shuffleCommand = new ShuffleCommand(
             _userValidationMock.Object,
@@ -75,12 +77,9 @@ public class ShuffleCommandTests
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
             .ReturnsAsync(new Queue<ILavaLinkTrack>());
 
-        _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
-            .Returns(ShuffleCommandErrorValue);
-
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+        _responseBuilderMock.Verify(r => r.SendWarningAsync(_messageMock.Object, LocalizationKeys.ShuffleCommandNotEnoughTracks),
             Times.Once);
     }
 
@@ -119,7 +118,7 @@ public class ShuffleCommandTests
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(),
             It.Is<Queue<ILavaLinkTrack>>(q => !q.SequenceEqual(originalQueue))), Times.Once);
 
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, ShuffleCommandName),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.ShuffleCommandResponse),
             Times.Once);
     }
 
@@ -153,14 +152,11 @@ public class ShuffleCommandTests
             .Setup(m => m.GetQueue(It.IsAny<ulong>()))
             .ReturnsAsync(singleTrackQueue);
 
-        _localizationServiceMock.Setup(l => l.Get(LocalizationKeys.ShuffleCommandError))
-            .Returns(ShuffleCommandNotEnoughTracksValue);
-
         await _shuffleCommand.ExecuteAsync(_messageMock.Object);
 
         _musicQueueServiceMock.Verify(m => m.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Never);
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+        _responseBuilderMock.Verify(r => r.SendWarningAsync(_messageMock.Object, LocalizationKeys.ShuffleCommandNotEnoughTracks),
             Times.Once);
     }
 
@@ -213,9 +209,10 @@ public class ShuffleCommandTests
                 It.Is<Queue<ILavaLinkTrack>>(q => q.SequenceEqual(originalQueue))),
             Times.Once);
 
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, ShuffleCommandName),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.ShuffleCommandResponse),
             Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, ShuffleCommandName),
+        _responseBuilderMock.Verify(
+            r => r.SendErrorAsync(_messageMock.Object, It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
     }
 }

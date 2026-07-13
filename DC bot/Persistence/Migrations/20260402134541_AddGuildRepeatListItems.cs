@@ -18,7 +18,7 @@ namespace DC_bot.Persistence.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    guild_id = table.Column<long>(type: "bigint", nullable: false),
+                    guild_id = table.Column<ulong>(type: "numeric(20,0)", nullable: false),
                     position = table.Column<int>(type: "integer", nullable: false),
                     track_identifier = table.Column<string>(type: "text", nullable: false),
                     added_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")

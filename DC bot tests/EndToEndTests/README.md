@@ -37,5 +37,6 @@ Commonly required values include:
 - `Service/` - bot lifecycle and reaction flow
 - `Service/LiveMusicFlowTestContext.cs` - shared real Discord, Lavalink, PostgreSQL, reaction handler, and command execution setup for live music-flow tests
 - `Service/Core/` - real command handling through Discord messages
+- `Commands/TextCommands/Playlist/` - local text command handler pipeline for playlist command flows, including remove-song routing
 - `Commands/SlashCommands/` - local slash adapter -> executor -> text command pipeline, split by Music/Queue/Utility command domains
 - `Wrapper/` - DSharpPlus wrapper behavior against real Discord objects

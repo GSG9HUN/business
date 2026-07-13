@@ -10,8 +10,7 @@ This folder contains application-wide constants and localization keys.
 
 **Contents:**
 
-Localization keys are grouped by feature or command. Constants must match keys in `localization/*.json`, except
-`PingCommandResponse`, which is the literal response text `Pong!`.
+Localization keys are grouped by feature or command. Constants must match keys in `localization/*.json`.
 
 ```csharp
 public static class LocalizationKeys
@@ -69,7 +68,8 @@ await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.User
 
 ## Current Key Groups
 
-- Clear, Help, Join, Language, Leave, Ping, Play, Pause, Resume, Skip, Shuffle, Repeat, RepeatList, Tag, and ViewQueue command text.
+- Clear, Help, Join, Language, Leave, Ping, Play, Pause, Resume, Skip, Shuffle, Repeat, RepeatList, Tag, ViewQueue, and Playlist command text.
+- Playlist command text covers create, save, delete, add song, remove song, list, view, and rename keys.
 - Reaction handler text for the music control message and repeat toggle responses.
 - Unknown command response.
 - Slash command fallback responses for guild-only usage, deferred accepted response, unregistered command, and unexpected errors.
@@ -101,6 +101,7 @@ Keys defined here map to language files:
 - **localization/** - Language files
 - **Service/LocalizationService.cs** - Key lookup
 - **Commands/** - Use constants
+- **Commands/TextCommands/Playlist/** - Playlist command localization users
 - **Helper/Validation/** - Validation error keys
 - **Service/SlashCommands/SlashCommandExecutor.cs** - Uses slash fallback keys
 

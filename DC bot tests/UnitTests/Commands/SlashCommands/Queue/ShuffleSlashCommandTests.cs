@@ -46,7 +46,7 @@ public class ShuffleSlashCommandTests : SlashCommandTestBase
             ensureDeferredResponse: true);
 
         Assert.True(context.IsDeferred);
-        Assert.Contains("There is not enough music in queue.", context.TextResponses);
+        Assert.Contains("There are not enough tracks in the queue to shuffle.", context.TextResponses);
         MusicQueueServiceMock.Verify(
             service => service.SetQueue(It.IsAny<ulong>(), It.IsAny<Queue<ILavaLinkTrack>>()),
             Times.Never);

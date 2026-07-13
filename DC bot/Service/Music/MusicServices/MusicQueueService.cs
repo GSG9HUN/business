@@ -12,7 +12,7 @@ public class MusicQueueService(
     ILogger<MusicQueueService>? logger = null,
     ITrackSerializer? trackSerializer = null) : IMusicQueueService
 {
-    private const int MaxQueueSize = 100;
+    private const int MaxQueueSize = 50;
     private readonly ILogger<MusicQueueService> _logger = logger ?? NullLogger<MusicQueueService>.Instance;
     private readonly ITrackSerializer _trackSerializer = trackSerializer ?? new LavalinkTrackSerializer();
 

@@ -9,18 +9,17 @@ namespace DC_bot.Persistence.Repositories;
 
 public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IQueueRepository
 {
-    private const int MaxQueuedItemsPerGuild = 100;
+    private const int MaxQueuedItemsPerGuild = 50;
 
     public async Task<IReadOnlyList<QueueItemRecord>> GetQueuedItemsAsync(
         ulong guildId,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
         var entities = await dbContext.GuildQueueItems
             .AsNoTracking()
-            .Where(item => item.GuildId == id && item.State == QueueItemState.Queued)
+            .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
             .OrderBy(item => item.Position)
             .ToListAsync(cancellationToken);
 
@@ -30,20 +29,18 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     public async Task<bool> AnyQueuedItemsAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
         return await dbContext.GuildQueueItems
             .AsNoTracking()
-            .AnyAsync(item => item.GuildId == id && item.State == QueueItemState.Queued, cancellationToken);
+            .AnyAsync(item => item.GuildId == guildId && item.State == QueueItemState.Queued, cancellationToken);
     }
 
     public async Task<QueueItemRecord?> GetNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
         var entity = await dbContext.GuildQueueItems
             .AsNoTracking()
-            .Where(item => item.GuildId == id && item.State == QueueItemState.Queued)
+            .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
             .OrderBy(item => item.Position)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -53,11 +50,10 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     public async Task<QueueItemRecord?> GetPreviousItemAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
         var entity = await dbContext.GuildQueueItems
             .AsNoTracking()
-            .Where(item => item.GuildId == id &&
+            .Where(item => item.GuildId == guildId &&
                            (item.State == QueueItemState.Played || item.State == QueueItemState.Skipped))
             .OrderByDescending(item => item.Position)
             .FirstOrDefaultAsync(cancellationToken);
@@ -71,12 +67,11 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
         var queuedItemCount = await dbContext.GuildQueueItems
-            .CountAsync(item => item.GuildId == id && item.State == QueueItemState.Queued, cancellationToken);
+            .CountAsync(item => item.GuildId == guildId && item.State == QueueItemState.Queued, cancellationToken);
 
         if (queuedItemCount >= MaxQueuedItemsPerGuild)
         {
@@ -84,13 +79,13 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         var maxPosition = await dbContext.GuildQueueItems
-            .Where(item => item.GuildId == id)
+            .Where(item => item.GuildId == guildId)
             .Select(item => (int?)item.Position)
             .MaxAsync(cancellationToken) ?? -1;
 
         var entity = new GuildQueueItemEntity
         {
-            GuildId = id,
+            GuildId = guildId,
             Position = maxPosition + 1,
             TrackIdentifier = trackIdentifier,
             State = QueueItemState.Queued,
@@ -116,12 +111,11 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
         var queuedItemCount = await dbContext.GuildQueueItems
-            .CountAsync(item => item.GuildId == id && item.State == QueueItemState.Queued, cancellationToken);
+            .CountAsync(item => item.GuildId == guildId && item.State == QueueItemState.Queued, cancellationToken);
 
         if (queuedItemCount + trackIdentifiers.Count > MaxQueuedItemsPerGuild)
         {
@@ -129,7 +123,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         var maxPosition = await dbContext.GuildQueueItems
-            .Where(item => item.GuildId == id)
+            .Where(item => item.GuildId == guildId)
             .Select(item => (int?)item.Position)
             .MaxAsync(cancellationToken) ?? -1;
 
@@ -139,7 +133,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         {
             entities.Add(new GuildQueueItemEntity
             {
-                GuildId = id,
+                GuildId = guildId,
                 Position = maxPosition + index + 1,
                 TrackIdentifier = trackIdentifiers[index],
                 State = QueueItemState.Queued,
@@ -164,10 +158,9 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
         var queuedEntities = await dbContext.GuildQueueItems
-            .Where(item => item.GuildId == id && item.State == QueueItemState.Queued)
+            .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
             .OrderBy(item => item.Position)
             .ToListAsync(cancellationToken);
 
@@ -199,7 +192,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             .ToArray();
 
         var maxPosition = await dbContext.GuildQueueItems
-            .Where(item => item.GuildId == id)
+            .Where(item => item.GuildId == guildId)
             .Select(item => (int?)item.Position)
             .MaxAsync(cancellationToken) ?? -1;
 
@@ -244,11 +237,10 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     public async Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
         var now = DateTimeOffset.UtcNow;
 
         await dbContext.GuildQueueItems
-            .Where(x => x.GuildId == id && x.State == QueueItemState.Queued)
+            .Where(x => x.GuildId == guildId && x.State == QueueItemState.Queued)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(b => b.State, QueueItemState.Skipped)
                 .SetProperty(b => b.SkippedAtUtc, now),
@@ -257,13 +249,12 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     public async Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var dbGuildId = ToDbGuildId(guildId);
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var entity = await dbContext.GuildQueueItems
-                .FromSqlInterpolated(PostgreSqlQueueClaimSql.ClaimNextQueuedItem(dbGuildId))
+                .FromSqlInterpolated(PostgreSqlQueueClaimSql.ClaimNextQueuedItem(guildId))
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (entity == null) return null;
@@ -314,7 +305,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     {
         return new QueueItemRecord(
             entity.Id,
-            ToDomainGuildId(entity.GuildId),
+            entity.GuildId,
             entity.Position,
             entity.TrackIdentifier,
             entity.State,
@@ -325,7 +316,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
 
     private static async Task EnsureGuildDataExistsAsync(
         BotDbContext dbContext,
-        long guildId,
+        ulong guildId,
         CancellationToken cancellationToken)
     {
         var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
@@ -342,16 +333,6 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static long ToDbGuildId(ulong guildId)
-    {
-        return checked((long)guildId);
-    }
-
-    private static ulong ToDomainGuildId(long guildId)
-    {
-        return checked((ulong)guildId);
     }
 
     public async Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default)

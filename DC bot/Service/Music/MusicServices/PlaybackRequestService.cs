@@ -32,7 +32,7 @@ public class PlaybackRequestService(
             "LoadTracksAsyncUrl",
             "PlayAsyncUrl.NotFound",
             "Failed to load track from URL",
-            query => logger.FailedToFindMusicWithUrl(query));
+            logger.FailedToFindMusicWithUrl);
     }
 
     public Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
@@ -46,7 +46,7 @@ public class PlaybackRequestService(
             "LoadTracksAsyncQuery",
             "PlayAsyncQuery.NotFound",
             "Failed to load track from query",
-            queryText => logger.FailedToFindMusicWithQuery(queryText));
+            logger.FailedToFindMusicWithQuery);
     }
 
     private async Task PlayAsync(

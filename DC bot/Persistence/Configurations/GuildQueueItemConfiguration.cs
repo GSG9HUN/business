@@ -19,6 +19,7 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
 
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
+            .HasGuildIdStorage()
             .IsRequired();
 
         builder.Property(entity => entity.Position)

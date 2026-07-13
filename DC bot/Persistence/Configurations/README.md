@@ -18,9 +18,13 @@ Configuration classes define:
 - `GuildQueueItemConfiguration.cs`
 - `GuildRepeatListItemConfiguration.cs`
 - `GuildPremiumAuditConfiguration.cs`
+- `PlaylistConfiguration.cs`
+- `PlaylistTrackConfiguration.cs`
 
 ## Notes
 
 - Naming convention uses snake_case table and column names.
 - `GuildQueueItemConfiguration` converts `QueueItemState` to the existing `short` `state` column and defaults new rows to `Queued`.
+- `PlaylistConfiguration` enforces unique playlist names per guild.
+- `PlaylistTrackConfiguration` enforces unique order numbers inside one playlist.
 - When changing entity shape, update configuration and add a migration.

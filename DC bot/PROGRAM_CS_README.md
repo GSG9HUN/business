@@ -123,6 +123,8 @@ YOUTUBE_REFRESH_TOKEN=
 - `IGuildDataRepository -> GuildDataRepository`
 - `IPlaybackStateRepository -> PlaybackStateRepository`
 - `IQueueRepository -> QueueRepository`
+- `IPlaylistRepository -> PlaylistRepository`
+- `IPlaylistTrackRepository -> PlaylistTrackRepository`
 - `IRepeatListRepository -> RepeatListRepository`
 
 `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` checks pending migrations and runs `MigrateAsync()` when needed.

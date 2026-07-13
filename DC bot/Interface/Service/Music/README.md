@@ -78,6 +78,14 @@ Contains granular music service interfaces:
 
 ---
 
+### PlaylistServiceInterface/
+
+Contains `IPlaylistService` and playlist result/DTO models.
+
+**Implementation:** `Service/Music/PlaylistService/PlaylistService.cs`
+
+---
+
 ### ProgressiveTimerInterface/
 
 Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message.
@@ -90,6 +98,8 @@ Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops pe
 
 - **Service/Music/LavaLinkService.cs** - Main service
 - **Service/Music/MusicServices/** - Granular services
+- **Service/Music/PlaylistService/** - Saved playlist service
 - **Commands/TextCommands/Music/** - Text commands that use these interfaces
+- **Commands/TextCommands/Playlist/** - Playlist commands that use `IPlaylistService`
 - **Commands/SlashCommands/Music/** - Slash adapters that reach these interfaces through the text command pipeline
 

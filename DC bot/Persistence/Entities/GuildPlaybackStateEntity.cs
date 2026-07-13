@@ -2,7 +2,7 @@ namespace DC_bot.Persistence.Entities;
 
 public class GuildPlaybackStateEntity
 {
-	public long GuildId { get; set; }
+	public ulong GuildId { get; set; }
 	public bool IsRepeating { get; set; }
 	public bool IsRepeatingList { get; set; }
 	public string? CurrentTrackIdentifier { get; set; }
