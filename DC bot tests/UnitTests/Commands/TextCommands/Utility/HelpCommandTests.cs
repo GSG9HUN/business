@@ -20,8 +20,7 @@ public class HelpCommandTests
     private const string HelpCommandName = "help";
     private const string HelpCommandDescriptionValue = "Lists all available commands.";
     private const string HelpCommandResponseValue = "Available commands:";
-    private const string ExpectedCommandsHeader = "Available commands:\n";
-    private const string ExpectedCommandsList = "Available commands:\nping : Replies with Pong!\nplay : Plays a song\n";
+    private const string ExpectedCommandsList = "ping : Replies with Pong!\nplay : Plays a song\n";
     private readonly Mock<IDiscordChannel> _channelMock;
     private readonly Mock<IDiscordMember> _discordMemberMock;
     private readonly Mock<IDiscordUser> _discordUserMock;
@@ -84,7 +83,10 @@ public class HelpCommandTests
 
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsList), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(
+            _messageMock.Object,
+            LocalizationKeys.HelpCommandResponse,
+            It.Is<object[]>(args => args.Length == 1 && (string)args[0] == ExpectedCommandsList)), Times.Once);
     }
 
     [Fact]
@@ -122,7 +124,10 @@ public class HelpCommandTests
 
         await helpCommandWithNoCommands.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, ExpectedCommandsHeader), Times.Once);
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(
+            _messageMock.Object,
+            LocalizationKeys.HelpCommandResponse,
+            It.Is<object[]>(args => args.Length == 1 && (string)args[0] == string.Empty)), Times.Once);
     }
 
     [Fact]
@@ -140,7 +145,8 @@ public class HelpCommandTests
 
         await _helpCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
     }
 

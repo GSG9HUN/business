@@ -1,6 +1,6 @@
 # Music Services
 
-This folder contains music playback and queue management services.
+This folder contains music playback, queue management, and saved playlist services.
 
 ## Root Files
 
@@ -98,6 +98,22 @@ Each service implements a corresponding interface from `Interface/Service/Music/
 
 ---
 
+### PlaylistService/
+
+Contains `PlaylistService.cs`, which implements `IPlaylistService`.
+
+Responsibilities:
+
+- create empty guild playlists
+- save Lavalink-loaded playlist URLs into persistent playlist tracks
+- append a single loaded song to an existing playlist
+- remove a stored song from an existing playlist by track number
+- list saved playlists with track counts
+- view stored playlist tracks by deserializing saved track identifiers
+- delete and rename guild playlists
+
+---
+
 ### ProgressiveTimer/
 
 Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
@@ -110,6 +126,7 @@ The timer is started from the reaction control message flow, paused/resumed by p
 - **Interface/Service/Music/** - Service contracts
 - **Commands/TextCommands/Music/** - Text commands that use `LavaLinkService`
 - **Commands/TextCommands/Queue/** - Text commands that use `MusicQueueService`
+- **Commands/TextCommands/Playlist/** - Text commands that use `PlaylistService`
 - **Commands/SlashCommands/** - Slash adapters that reuse the same text command pipeline
 - **Service/Music/MusicServices/** - Detailed service implementations
 

@@ -1,7 +1,8 @@
-﻿using DC_bot.Commands.SlashCommands.Music;
+using DC_bot.Commands.SlashCommands.Music;
 using DC_bot.Commands.SlashCommands.Queue;
 using DC_bot.Commands.SlashCommands.Utility;
 using DC_bot.Commands.TextCommands.Music;
+using DC_bot.Commands.TextCommands.Playlist;
 using DC_bot.Commands.TextCommands.Queue;
 using DC_bot.Commands.TextCommands.Utility;
 using DC_bot.Interface;
@@ -41,6 +42,14 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, ShuffleCommand>()
             .AddSingleton<ICommand, LanguageCommand>()
             .AddSingleton<ICommand, ViewQueueCommand>()
+            .AddSingleton<ICommand, CreatePlaylistCommand>()
+            .AddSingleton<ICommand, SavePlaylistCommand>()
+            .AddSingleton<ICommand, DeletePlaylistCommand>()
+            .AddSingleton<ICommand, AddSongToPlaylistCommand>()
+            .AddSingleton<ICommand, RemoveSongFromPlaylistCommand>()
+            .AddSingleton<ICommand, ListPlaylistsCommand>()
+            .AddSingleton<ICommand, ViewPlaylistCommand>()
+            .AddSingleton<ICommand, RenamePlaylistCommand>()
             .AddSingleton<ICommand, RepeatListCommand>();
     }
 
@@ -64,7 +73,6 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<LanguageSlashCommand>()
             .AddTransient<ClearSlashCommand>();
     }
-
 
     private static IServiceCollection AddSlashCommandProcessor(this IServiceCollection services)
     {
@@ -93,6 +101,4 @@ public static class CommandServiceCollectionExtensions
             RegisterDefaultCommandProcessors = false
         });
     }
-
-    
 }

@@ -33,7 +33,7 @@ public class ViewQueueCommand(
 
         if (queue.Count == 0)
         {
-            await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.ViewListCommandError);
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewListCommandError);
             logger.QueueIsEmpty();
             return;
         }

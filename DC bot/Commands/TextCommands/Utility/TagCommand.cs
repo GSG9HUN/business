@@ -29,19 +29,16 @@ public class TagCommand(
 
         memberReference = memberReference.Trim();
         
-        var guildId = message.Channel.Guild.Id;
         var allMembers = await message.Channel.Guild.GetAllMembersAsync();
         var taggedMember = allMembers.FirstOrDefault(member => MatchesMember(member, memberReference));
 
         if (taggedMember == null)
         {
-            await responseBuilder.SendSuccessAsync(message,
-                localizationService.Get(guildId, LocalizationKeys.TagCommandUserNotExistError, memberReference));
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.TagCommandUserNotExistError, memberReference);
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message,
-            localizationService.Get(guildId, LocalizationKeys.TagCommandResponse, taggedMember.Mention));
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.TagCommandResponse, taggedMember.Mention);
 
         logger.CommandExecuted(Name);
     }

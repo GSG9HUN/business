@@ -12,14 +12,20 @@ This folder contains core application interface contracts.
 public interface ICommandHelper
 {
     Task<UserValidationResult?> TryValidateUserAsync(
-        IUserValidationService userValidation, 
-        IResponseBuilder responseBuilder, 
+        IUserValidationService userValidation,
+        IResponseBuilder responseBuilder,
         IDiscordMessage message);
-    
+
     Task<string?> TryGetArgumentAsync(
-        IDiscordMessage message, 
-        IResponseBuilder responseBuilder, 
-        ILogger logger, 
+        IDiscordMessage message,
+        IResponseBuilder responseBuilder,
+        ILogger logger,
+        string commandName);
+
+    Task<(string, string)?> TryParseSavePlaylistArguments(
+        IDiscordMessage message,
+        IResponseBuilder responseBuilder,
+        ILogger logger,
         string commandName);
 }
 ```
@@ -28,6 +34,7 @@ public interface ICommandHelper
 
 - `TryValidateUserAsync()` - Validates user and sends error if invalid
 - `TryGetArgumentAsync()` - Extracts command arguments from message
+- `TryParseSavePlaylistArguments()` - Extracts two required arguments for playlist commands that need name plus URL, track number, or another name
 
 **Implementation:** `Service/Core/CommandValidationService.cs`
 

@@ -119,8 +119,8 @@ public class RepeatListCommandTests
 
         await _repeatListCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-            _localizationServiceMock.Object.Get(LocalizationKeys.RepeatListCommandTrackAlreadyRepeating)));
+        _responseBuilderMock.Verify(r => r.SendWarningAsync(_messageMock.Object,
+            LocalizationKeys.RepeatListCommandTrackAlreadyRepeating));
     }
 
     [Fact]
@@ -154,8 +154,11 @@ public class RepeatListCommandTests
 
         _repeatServiceMock.Verify(l => l.SetRepeatingListAsync(guildId, false), Times.Once);
         _responseBuilderMock.Verify(
-            r => r.SendSuccessAsync(_messageMock.Object,
-                It.IsAny<string>()), Times.Once);
+            r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.RepeatListCommandRepeatingOff,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == TestTrackList)),
+            Times.Once);
     }
 
     [Fact]
@@ -194,8 +197,11 @@ public class RepeatListCommandTests
         _repeatServiceMock.Verify(l => l.SaveRepeatListSnapshotAsync(guildId, It.IsAny<ILavaLinkTrack>(), It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Once);
         _repeatServiceMock.Verify(l => l.SetRepeatingListAsync(guildId, true), Times.Once);
         _responseBuilderMock.Verify(
-            r => r.SendSuccessAsync(_messageMock.Object,
-                It.IsAny<string>()), Times.Once);
+            r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.RepeatListCommandRepeatingOn,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == TestTrackList)),
+            Times.Once);
     }
 
 

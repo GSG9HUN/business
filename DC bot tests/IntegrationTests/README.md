@@ -30,7 +30,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Integration"
 - the full startup graph resolves against PostgreSQL
 - `DatabaseMigrationRunner` applies pending migrations
 - DSharpPlus Commands and `SlashCommandProcessor` resolve with the slash command modules
-- the startup graph resolves all 15 text command implementations
+- the startup graph resolves all 23 registered text command implementations
 
 ## Persistence
 
@@ -42,13 +42,14 @@ Covered PostgreSQL-backed areas include:
 - guild premium state
 - playback repeat/current-track state
 - repeat-list snapshot replace/clear
+- playlist create/list/rename/delete behavior and playlist track ordering
 - `MusicQueueService` enqueue, reorder, dequeue, clear, and repeatable snapshot flow
 - `RepeatService` and `CurrentTrackService` shared playback state
 - `TrackEndedHandlerService` current-item state transition and repeat-list requeue behavior
 
 ## Command Routing
 
-`Service/Core/CommandHandlerServiceIntegrationTests.cs` covers fake Discord message events routed through the real text command list for utility, music, and queue command paths. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
+`Service/Core/CommandHandlerServiceIntegrationTests.cs` covers fake Discord message events routed through the real text command list for utility, music, and queue command paths. Playlist command registration is covered by startup/text-command registration integration tests, and playlist command-handler pipeline behavior is covered by the local E2E playlist text-command test. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
 
 ## Localization
 

@@ -4,7 +4,7 @@ This folder contains granular music service interfaces.
 
 ## Overview
 
-These interfaces split music domain responsibilities into focused contracts.
+These interfaces split playback, queue, repeat, and track formatting responsibilities into focused contracts. Saved playlist use-cases live in the sibling `PlaylistServiceInterface/` folder.
 
 ## Files
 
@@ -44,4 +44,5 @@ All implementations are in `Service/Music/MusicServices/` with matching filename
 
 - **Service/Music/MusicServices/** - Implements these interfaces
 - **Service/Music/LavaLinkService.cs** - Orchestrates these services
+- **Interface/Service/Music/PlaylistServiceInterface/** - Saved playlist service contract
 

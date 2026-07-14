@@ -8,8 +8,9 @@ This folder contains EF Core migrations and the model snapshot.
 - `20260401121744_UpdateModel_20260401`
 - `20260402134541_AddGuildRepeatListItems`
 - `20260425193122_AddPlaybackStateQueueItemId`
-- `20260425212714_AddQueueItemIdToPlaybackState` (adds `queue_item_id` column to `guild_playback_state`)
+- `20260425212714_AddQueueItemIdToPlaybackState` (renames `QueueItemId` to `queue_item_id` on `guild_playback_state`)
 - `20260521133944_FixPendingModelChanges`
+- `20260710104810_AddPlaylists`
 
 `BotDbContextModelSnapshot.cs` reflects the latest schema model.
 

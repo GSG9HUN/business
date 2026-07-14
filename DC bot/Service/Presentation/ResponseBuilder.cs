@@ -10,6 +10,9 @@ namespace DC_bot.Service.Presentation;
 public class ResponseBuilder(ILocalizationService localization, ILogger<ResponseBuilder>? logger = null)
     : IResponseBuilder
 {
+    private const string ErrorPrefixKey = "response_error_prefix";
+    private const string WarningPrefixKey = "response_warning_prefix";
+
     private readonly ILogger<ResponseBuilder> _logger = logger ?? NullLogger<ResponseBuilder>.Instance;
 
     public async Task SendValidationErrorAsync(IDiscordMessage message, string errorKey)
@@ -24,27 +27,35 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
         await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_usage"), "SendUsageAsync");
     }
 
-    public async Task SendSuccessAsync(IDiscordMessage message, string text)
+    public async Task SendSuccessAsync(IDiscordMessage message, string localizationKey, params object[] args)
     {
-        await SafeRespondAsync(message, text, "SendSuccessAsync");
+        await SafeRespondAsync(message, GetForMessage(message, localizationKey, args), "SendSuccessAsync");
     }
 
-    public async Task SendCommandResponseAsync(IDiscordMessage message, string commandName)
+    public async Task SendWarningAsync(IDiscordMessage message, string localizationKey, params object[] args)
     {
-        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_response"),
-            "SendCommandResponseAsync");
+        var text = GetForMessage(message, localizationKey, args);
+        await SafeRespondAsync(message, FormatWithPrefix(message, WarningPrefixKey, text), "SendWarningAsync");
     }
 
-    public async Task SendCommandErrorResponse(IDiscordMessage message, string commandName)
+    public async Task SendErrorAsync(IDiscordMessage message, string localizationKey, params object[] args)
     {
-        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_error"),
-            "SendCommandErrorResponse");
+        var text = GetForMessage(message, localizationKey, args);
+        await SafeRespondAsync(message, FormatWithPrefix(message, ErrorPrefixKey, text), "SendErrorAsync");
     }
 
     private string GetForMessage(IDiscordMessage message, string key, params object[] args)
     {
-        var guildId = message.Channel.Guild.Id;
-        return localization.Get(guildId, key, args);
+        var guild = message.Channel.Guild;
+        return guild is null
+            ? localization.Get(key, args)
+            : localization.Get(guild.Id, key, args);
+    }
+
+    private string FormatWithPrefix(IDiscordMessage message, string prefixKey, string text)
+    {
+        var prefix = GetForMessage(message, prefixKey);
+        return prefix == prefixKey ? text : $"{prefix}{text}";
     }
 
     private async Task SafeRespondAsync(IDiscordMessage message, string text, string operation)

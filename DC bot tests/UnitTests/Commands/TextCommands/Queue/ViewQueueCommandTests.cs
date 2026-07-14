@@ -104,7 +104,7 @@ public class ViewQueueCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_QueueIsEmpty_ShouldSendErrorMessage()
+    public async Task ExecuteAsync_QueueIsEmpty_ShouldSendWarningMessage()
     {
         var discordVoiceStateMock = new Mock<IDiscordVoiceState>();
         discordVoiceStateMock.Setup(vs => vs.Channel).Returns(_channelMock.Object);
@@ -131,7 +131,7 @@ public class ViewQueueCommandTests
         await _viewQueueCommand.ExecuteAsync(_messageMock.Object);
 
         _responseBuilderMock.Verify(
-            r => r.SendValidationErrorAsync(_messageMock.Object, LocalizationKeys.ViewListCommandError), Times.Once);
+            r => r.SendWarningAsync(_messageMock.Object, LocalizationKeys.ViewListCommandError), Times.Once);
         _musicQueueMock.Verify(l => l.ViewQueue(It.IsAny<ulong>()), Times.Once);
     }
 

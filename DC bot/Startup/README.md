@@ -57,7 +57,7 @@ Domain-specific DI registration extensions used by the composition root:
 - `LavalinkServiceCollectionExtensions.cs` - `AddLavalinkRuntime(...)` configures Lavalink4NET HTTP and WebSocket endpoints.
 - `PersistenceServiceCollectionExtensions.cs` - `AddPersistenceServices(...)` registers EF Core and repositories.
 - `CommandServiceCollectionExtensions.cs` - `AddCommandServices()` registers text commands, slash command services, slash modules, and `SlashCommandProcessor`.
-- `MusicServiceCollectionExtensions.cs` - `AddMusicServices()` registers music playback, queue, repeat, notification, and progressive timer services.
+- `MusicServiceCollectionExtensions.cs` - `AddMusicServices()` registers music playback, queue, repeat, playlist, notification, and progressive timer services.
 
 ### BotServiceProviderFactory.cs
 
@@ -73,7 +73,7 @@ The graph includes:
 - repositories
 - command handlers and commands
 - Discord message wrapper factory
-- music services
+- music and playlist services
 - localization, validation, response, and file-system services
 
 Discord event handlers are configured through DSharpPlus 5 builder APIs in `AddDiscordRuntime`. `BotHandlerRegistrar` only flips command/reaction handlers into their active state after the graph is built.

@@ -4,7 +4,7 @@ namespace DC_bot.Persistence.Repositories;
 
 internal static class PostgreSqlQueueClaimSql
 {
-    public static FormattableString ClaimNextQueuedItem(long guildId)
+    public static FormattableString ClaimNextQueuedItem(ulong guildId)
     {
         var queuedState = (short)QueueItemState.Queued;
 

@@ -17,4 +17,7 @@ public interface ICommandHelper
         IResponseBuilder responseBuilder,
         ILogger logger,
         string commandName);
+
+    Task<(string, string)?> TryParseSavePlaylistArguments(IDiscordMessage message, IResponseBuilder responseBuilder, ILogger logger,
+        string commandName);
 }

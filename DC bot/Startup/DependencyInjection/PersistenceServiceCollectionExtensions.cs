@@ -1,4 +1,4 @@
-﻿using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence;
 using DC_bot.Persistence.Db;
 using DC_bot.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,8 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IGuildDataRepository, GuildDataRepository>()
             .AddSingleton<IPlaybackStateRepository, PlaybackStateRepository>()
             .AddSingleton<IQueueRepository, QueueRepository>()
+            .AddSingleton<IPlaylistRepository, PlaylistRepository>()
+            .AddSingleton<IPlaylistTrackRepository, PlaylistTrackRepository>()
             .AddSingleton<IRepeatListRepository, RepeatListRepository>();
     }
 }

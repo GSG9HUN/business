@@ -27,7 +27,7 @@ public class TextCommandRegistrationIntegrationTests
         {
             var commands = provider.GetServices<ICommand>().ToArray();
 
-            Assert.Equal(15, commands.Length);
+            Assert.Equal(23, commands.Length);
             Assert.Equal(
                 [
                     "tag",
@@ -44,6 +44,14 @@ public class TextCommandRegistrationIntegrationTests
                     "shuffle",
                     "language",
                     "viewList",
+                    "createPlaylist",
+                    "savePlaylist",
+                    "deletePlaylist",
+                    "addSong",
+                    "removeSong",
+                    "listPlaylists",
+                    "viewPlaylist",
+                    "renamePlaylist",
                     "repeatList"
                 ],
                 commands.Select(command => command.Name));

@@ -44,7 +44,7 @@ Responsibilities:
 - enforce max queued items per guild
 - atomically claim the next queued item (`ClaimNextQueuedItemAsync`): marks it as `playing` and returns it in a single operation
 - isolate the PostgreSQL `FOR UPDATE SKIP LOCKED` claim SQL in `PostgreSqlQueueClaimSql`
-- the current queue limit is 100 queued tracks per guild
+- the current queue limit is 50 queued tracks per guild
 
 ### RepeatListRepository.cs
 
@@ -55,10 +55,35 @@ Responsibilities:
 - read repeat-list track identifiers for `MusicQueueService.GetRepeatableQueue()`
 - replace repeat list transactionally
 - clear repeat list
-- the current repeat-list limit is 100 tracks per guild
+- the current repeat-list limit is 50 tracks per guild
+
+### PlaylistRepository.cs
+
+Implements `IPlaylistRepository`.
+
+Responsibilities:
+
+- ensure the owning guild row exists before creating a playlist
+- create saved playlist metadata
+- check existence by guild and playlist name
+- get a playlist by guild and name as `PlaylistRecord`
+- list guild playlists with track counts as `PlaylistSummaryRecord`
+- delete and rename playlists by guild and name
+
+### PlaylistTrackRepository.cs
+
+Implements `IPlaylistTrackRepository`.
+
+Responsibilities:
+
+- read playlist tracks ordered by `OrderNumber`
+- append one track at the next order number
+- append multiple tracks transactionally
+- remove one track by order number and compact the remaining order numbers
+- retry retriable PostgreSQL unique/serialization failures caused by concurrent playlist changes
 
 ## Notes
 
 - Repositories use `IDbContextFactory<BotDbContext>` and short-lived contexts.
-- Guild IDs are converted between `ulong` (domain) and `long` (database).
+- Guild IDs are represented as `ulong` in repository contracts and EF entities.
 - Queue item state is represented as `QueueItemState` in repository code and converted to the `short` database value by EF configuration.

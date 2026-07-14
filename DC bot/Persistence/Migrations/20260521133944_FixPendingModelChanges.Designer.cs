@@ -27,8 +27,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildDataEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("IsPremium")
@@ -54,8 +54,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildPlaybackStateEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<string>("CurrentTrackIdentifier")
@@ -108,8 +108,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("changed_by_user_id");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("NewIsPremium")
@@ -146,8 +146,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("added_at_utc")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<DateTimeOffset?>("PlayedAtUtc")
@@ -198,8 +198,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("added_at_utc")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<int>("Position")

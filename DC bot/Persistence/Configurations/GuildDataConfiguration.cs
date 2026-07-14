@@ -14,6 +14,7 @@ public class GuildDataConfiguration : IEntityTypeConfiguration<GuildDataEntity>
 
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
+            .HasGuildIdStorage()
             .ValueGeneratedNever();
 
         builder.Property(entity => entity.IsPremium)

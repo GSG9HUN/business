@@ -14,12 +14,14 @@ This folder contains services for building and sending Discord responses.
 
 - `SendValidationErrorAsync()` - Send localized validation error
 - `SendUsageAsync()` - Send command usage instructions
-- `SendSuccessAsync()` - Send success message
-- `SendCommandResponseAsync()` - Send command-specific response
-- `SendCommandErrorResponse()` - Send command error message
+- `SendSuccessAsync()` - Send localized success message by key
+- `SendWarningAsync()` - Send localized warning message by key with optional localized warning prefix
+- `SendErrorAsync()` - Send localized error message by key with optional localized error prefix
 
 **Internal Method:**
 
+- `GetForMessage()` - Resolve a localization key using the guild from the wrapped message
+- `FormatWithPrefix()` - Add a localized warning or error prefix when configured
 - `SafeRespondAsync()` - Send message with error handling
 
 **Usage:**
@@ -33,15 +35,28 @@ if (!result.IsValid)
 }
 
 // Success
-await responseBuilder.SendSuccessAsync(message, "Track added to queue");
+await responseBuilder.SendSuccessAsync(
+    message,
+    LocalizationKeys.AddSongToPlaylistCommandAdded,
+    playlistName);
 
-// Command response
-await responseBuilder.SendCommandResponseAsync(message, "play");
+// Warning
+await responseBuilder.SendWarningAsync(
+    message,
+    LocalizationKeys.CreatePlaylistCommandAlreadyExists,
+    playlistName);
+
+// Error
+await responseBuilder.SendErrorAsync(
+    message,
+    LocalizationKeys.CreatePlaylistCommandUnknownError,
+    playlistName);
 ```
 
 **Features:**
 
 - Guild-aware localization lookup through the wrapped message channel
+- Optional `response_warning_prefix` and `response_error_prefix` localization prefixes
 - Error handling with try-catch
 - Consistent formatting
 - Wrapped `IDiscordMessage` usage
@@ -51,7 +66,7 @@ await responseBuilder.SendCommandResponseAsync(message, "play");
 
 ```csharp
 var guildId = message.Channel.Guild.Id;
-var text = localization.Get(guildId, key);
+var text = localization.Get(guildId, key, args);
 ```
 
 ---

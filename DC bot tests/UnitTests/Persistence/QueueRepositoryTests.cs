@@ -128,12 +128,12 @@ public class QueueRepositoryTests
     }
 
     [Fact]
-    public async Task EnqueueAsync_WhenQueueFullAtHundredItems_ThrowsInvalidOperationException()
+    public async Task EnqueueAsync_WhenQueueFullAtFiftyItems_ThrowsInvalidOperationException()
     {
         var factory = CreateFactory();
         var repo = new QueueRepository(factory);
 
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < 50; i++)
         {
             await repo.EnqueueAsync(1ul, $"track-{i}");
         }

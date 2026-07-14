@@ -50,11 +50,11 @@ public class LanguageCommand(
         catch (LocalizationException ex)
         {
             logger.CommandExecutionFailed(ex, Name);
-            await responseBuilder.SendCommandErrorResponse(message, Name);
+            await responseBuilder.SendErrorAsync(message, LocalizationKeys.LanguageCommandError);
             return;
         }
 
-        await responseBuilder.SendCommandResponseAsync(message, Name);
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.LanguageCommandResponse);
         logger.CommandExecuted(Name);
     }
 }

@@ -18,7 +18,7 @@ public class GuildDataRepositoryTests
 
         await using var db = factory.CreateDbContext();
         Assert.Single(db.GuildData);
-        Assert.Equal(1111L, db.GuildData.First().GuildId);
+        Assert.Equal(1111UL, db.GuildData.First().GuildId);
     }
 
     [Fact]

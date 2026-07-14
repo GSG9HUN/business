@@ -15,6 +15,8 @@ DbSets:
 - `GuildQueueItems`
 - `GuildRepeatListItems`
 - `GuildPremiumAudits`
+- `Playlists`
+- `PlaylistTracks`
 
 `OnModelCreating` applies all mappings from `Persistence/Configurations/`.
 

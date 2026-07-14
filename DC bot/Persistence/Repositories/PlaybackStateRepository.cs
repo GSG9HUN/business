@@ -11,20 +11,19 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.GuildId == id, cancellationToken);
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
 
         if (state is null)
         {
             var now = DateTimeOffset.UtcNow;
             state = new GuildPlaybackStateEntity
             {
-                GuildId = id,
+                GuildId = guildId,
                 IsRepeating = false,
                 IsRepeatingList = false,
                 CurrentTrackIdentifier = null,
@@ -51,18 +50,17 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
-            .FirstOrDefaultAsync(s => s.GuildId == id, cancellationToken);
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
 
         if (state is null)
         {
             state = new GuildPlaybackStateEntity
             {
-                GuildId = id,
+                GuildId = guildId,
                 IsRepeating = isRepeating,
                 IsRepeatingList = isRepeatingList,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -87,18 +85,17 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
-            .FirstOrDefaultAsync(s => s.GuildId == id, cancellationToken);
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
 
         if (state is null)
         {
             state = new GuildPlaybackStateEntity
             {
-                GuildId = id,
+                GuildId = guildId,
                 IsRepeating = false,
                 IsRepeatingList = false,
                 CurrentTrackIdentifier = trackIdentifier,
@@ -118,7 +115,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     }
     private static async Task EnsureGuildDataExistsAsync(
         BotDbContext dbContext,
-        long guildId,
+        ulong guildId,
         CancellationToken cancellationToken)
     {
         var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
@@ -135,10 +132,5 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static long ToDbGuildId(ulong guildId)
-    {
-        return checked((long)guildId);
     }
 }

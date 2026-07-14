@@ -42,6 +42,6 @@ public class PingSlashCommandTests : SlashCommandTestBase
 
         await ExecuteSlashAsync(SlashCommandExecutor, "ping", context);
 
-        Assert.Contains(LocalizationKeys.PingCommandResponse, context.TextResponses);
+        Assert.Contains("Pong!", context.TextResponses);
     }
 }

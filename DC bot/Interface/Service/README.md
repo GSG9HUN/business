@@ -29,6 +29,7 @@ Music and playback service interfaces.
 - `ILavaLinkService.cs`
 - `ITrackSearchResolverService.cs`
 - `MusicServiceInterface/` - Granular music service interfaces
+- `PlaylistServiceInterface/` - Saved playlist service contract and result DTOs
 - `ProgressiveTimerInterface/` - Now-playing timer service interface
 
 ---
@@ -41,6 +42,8 @@ Persistence repository contracts used by services.
 
 - `IGuildDataRepository.cs`
 - `IPlaybackStateRepository.cs`
+- `IPlaylistRepository.cs`
+- `IPlaylistTrackRepository.cs`
 - `IQueueRepository.cs`
 - `IRepeatListRepository.cs`
 - `Models/` - contract record models
