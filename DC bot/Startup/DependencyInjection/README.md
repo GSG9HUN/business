@@ -68,6 +68,8 @@ Registers EF Core and repository implementations:
 - `IGuildDataRepository -> GuildDataRepository`
 - `IPlaybackStateRepository -> PlaybackStateRepository`
 - `IQueueRepository -> QueueRepository`
+- `IPlaylistRepository -> PlaylistRepository`
+- `IPlaylistTrackRepository -> PlaylistTrackRepository`
 - `IRepeatListRepository -> RepeatListRepository`
 
 ### CommandServiceCollectionExtensions.cs
@@ -93,11 +95,13 @@ Registers the music domain services:
 - track-ended handling
 - queue management
 - progressive timer
+- saved playlist service
 - search resolver
 
 ## Change Guidance
 
 - Add new text or slash commands in `CommandServiceCollectionExtensions.cs` through `AddCommandServices()`.
 - Add new music orchestration services in `MusicServiceCollectionExtensions.cs`.
+- Add new saved playlist service contracts in `MusicServiceCollectionExtensions.cs` when they belong to the music domain.
 - Add new repositories in `PersistenceServiceCollectionExtensions.cs`.
 - Keep startup orchestration in `BotServiceProviderFactory.cs`; avoid moving runtime work into `Program.cs`.

@@ -17,13 +17,19 @@ public class ResponseBuilderTests
     public ResponseBuilderTests()
     {
         _mockLocalizationService = new Mock<ILocalizationService>();
-        _responseBuilder = new ResponseBuilder(_mockLocalizationService.Object, NullLogger<ResponseBuilder>.Instance);
         _mockMessage = new Mock<IDiscordMessage>();
 
-        SetupMessageGuild();
+        _mockLocalizationService
+            .Setup(x => x.Get(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns<string, object[]>((key, args) => args.Length == 0 ? key : string.Format(key, args));
+
         _mockLocalizationService
             .Setup(x => x.Get(GuildId, It.IsAny<string>(), It.IsAny<object[]>()))
-            .Returns<ulong, string, object[]>((_, key, _) => _mockLocalizationService.Object.Get(key));
+            .Returns<ulong, string, object[]>((_, key, args) => _mockLocalizationService.Object.Get(key, args));
+
+        _responseBuilder = new ResponseBuilder(_mockLocalizationService.Object, NullLogger<ResponseBuilder>.Instance);
+
+        SetupMessageGuild();
     }
 
     #region Exception Handling Tests
@@ -31,17 +37,17 @@ public class ResponseBuilderTests
     [Fact]
     public async Task ResponseBuilder_MessageRespondThrows_DoesNotThrowException()
     {
-        const string commandName = "test";
+        const string localizationKey = "test_command_response";
 
         _mockLocalizationService
-            .Setup(x => x.Get(It.IsAny<string>()))
+            .Setup(x => x.Get(localizationKey))
             .Returns("Test message");
 
         _mockMessage
             .Setup(x => x.RespondAsync(It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("Discord API error"));
 
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, commandName);
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, localizationKey);
     }
 
     #endregion
@@ -51,17 +57,13 @@ public class ResponseBuilderTests
     [Fact]
     public async Task ResponseBuilder_SendMultipleResponses_SendsAllMessages()
     {
-        _mockLocalizationService
-            .Setup(x => x.Get(It.IsAny<string>(), It.IsAny<object[]>()))
-            .Returns((string key, object[] _) => $"Message for {key}");
-
         _mockMessage
             .Setup(x => x.RespondAsync(It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
         await _responseBuilder.SendValidationErrorAsync(_mockMessage.Object, "error1");
-        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, "Success!");
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, "test");
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, "success_key");
+        await _responseBuilder.SendWarningAsync(_mockMessage.Object, "warning_key");
 
         _mockMessage.Verify(x => x.RespondAsync(It.IsAny<string>()), Times.Exactly(3));
     }
@@ -87,6 +89,9 @@ public class ResponseBuilderTests
         await _responseBuilder.SendValidationErrorAsync(_mockMessage.Object, errorKey);
 
         _mockMessage.Verify(x => x.RespondAsync(errorMessage), Times.Once);
+        _mockLocalizationService.Verify(
+            x => x.Get(GuildId, errorKey, It.Is<object[]>(args => args.Length == 0)),
+            Times.Once);
     }
 
     [Fact]
@@ -136,10 +141,11 @@ public class ResponseBuilderTests
     public async Task SendUsageAsync_ValidCommandName_SendsUsageMessage()
     {
         const string commandName = "play";
+        const string usageKey = "play_command_usage";
         const string usageMessage = "Usage: !play <url or search query>";
 
         _mockLocalizationService
-            .Setup(x => x.Get("play_command_usage"))
+            .Setup(x => x.Get(usageKey))
             .Returns(usageMessage);
 
         _mockMessage
@@ -149,7 +155,9 @@ public class ResponseBuilderTests
         await _responseBuilder.SendUsageAsync(_mockMessage.Object, commandName);
 
         _mockMessage.Verify(x => x.RespondAsync(usageMessage), Times.Once);
-        _mockLocalizationService.Verify(x => x.Get("play_command_usage"), Times.Once);
+        _mockLocalizationService.Verify(
+            x => x.Get(GuildId, usageKey, It.Is<object[]>(args => args.Length == 0)),
+            Times.Once);
     }
 
     [Fact]
@@ -158,9 +166,11 @@ public class ResponseBuilderTests
         var commands = new[] { "pause", "skip", "resume" };
 
         foreach (var cmd in commands)
+        {
             _mockLocalizationService
                 .Setup(x => x.Get($"{cmd}_command_usage"))
                 .Returns($"Usage: !{cmd}");
+        }
 
         foreach (var cmd in commands)
         {
@@ -181,130 +191,198 @@ public class ResponseBuilderTests
     #region SendSuccessAsync Tests
 
     [Fact]
-    public async Task SendSuccessAsync_ValidText_SendsMessage()
+    public async Task SendSuccessAsync_ValidLocalizationKey_SendsLocalizedMessage()
     {
+        const string successKey = "track_added";
         const string successMessage = "Track added to queue!";
 
-        _mockMessage
-            .Setup(x => x.RespondAsync(successMessage))
-            .Returns(Task.CompletedTask);
-
-        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successMessage);
-
-        _mockMessage.Verify(x => x.RespondAsync(successMessage), Times.Once);
-    }
-
-    [Fact]
-    public async Task SendSuccessAsync_EmptyText_SendsEmptyMessage()
-    {
-        const string successMessage = "";
+        _mockLocalizationService
+            .Setup(x => x.Get(successKey))
+            .Returns(successMessage);
 
         _mockMessage
             .Setup(x => x.RespondAsync(successMessage))
             .Returns(Task.CompletedTask);
 
-        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successMessage);
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successKey);
 
         _mockMessage.Verify(x => x.RespondAsync(successMessage), Times.Once);
     }
 
     [Fact]
-    public async Task SendSuccessAsync_LongText_SendsEntireMessage()
+    public async Task SendSuccessAsync_WithArguments_PassesArgumentsToLocalization()
     {
+        const string successKey = "playlist_saved";
+        const string playlistName = "mix";
+        const string successMessage = "Playlist 'mix' saved.";
+
+        _mockLocalizationService
+            .Setup(x => x.Get(
+                GuildId,
+                successKey,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == playlistName)))
+            .Returns(successMessage);
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(successMessage))
+            .Returns(Task.CompletedTask);
+
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successKey, playlistName);
+
+        _mockMessage.Verify(x => x.RespondAsync(successMessage), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendSuccessAsync_WhenMessageHasNoGuild_UsesDefaultLocalization()
+    {
+        const string successKey = "pong";
+        const string successMessage = "Pong!";
+
+        var channel = new Mock<IDiscordChannel>();
+        channel.SetupGet(x => x.Guild).Returns((IDiscordGuild)null!);
+        _mockMessage.SetupGet(x => x.Channel).Returns(channel.Object);
+
+        _mockLocalizationService
+            .Setup(x => x.Get(successKey))
+            .Returns(successMessage);
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(successMessage))
+            .Returns(Task.CompletedTask);
+
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successKey);
+
+        _mockMessage.Verify(x => x.RespondAsync(successMessage), Times.Once);
+        _mockLocalizationService.Verify(
+            x => x.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task SendSuccessAsync_EmptyLocalizationKey_SendsEmptyMessage()
+    {
+        const string successKey = "";
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(successKey))
+            .Returns(Task.CompletedTask);
+
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successKey);
+
+        _mockMessage.Verify(x => x.RespondAsync(successKey), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendSuccessAsync_LongLocalizedMessage_SendsEntireMessage()
+    {
+        const string successKey = "long_success";
         var longMessage = new string('x', 2000);
+
+        _mockLocalizationService
+            .Setup(x => x.Get(successKey))
+            .Returns(longMessage);
 
         _mockMessage
             .Setup(x => x.RespondAsync(longMessage))
             .Returns(Task.CompletedTask);
 
-        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, longMessage);
+        await _responseBuilder.SendSuccessAsync(_mockMessage.Object, successKey);
 
         _mockMessage.Verify(x => x.RespondAsync(longMessage), Times.Once);
     }
 
     #endregion
 
-    #region SendCommandResponseAsync Tests
+    #region SendWarningAsync Tests
 
     [Fact]
-    public async Task SendCommandResponseAsync_ValidCommandName_SendsResponse()
+    public async Task SendWarningAsync_ValidLocalizationKey_SendsPrefixedLocalizedMessage()
     {
-        const string commandName = "clear";
-        const string responseMessage = "Queue cleared successfully!";
+        const string warningPrefix = "**Warning:** ";
+        const string warningKey = "playlist_already_exists";
+        const string warningMessage = "Playlist already exists.";
+        const string expectedMessage = warningPrefix + warningMessage;
 
         _mockLocalizationService
-            .Setup(x => x.Get("clear_command_response"))
-            .Returns(responseMessage);
+            .Setup(x => x.Get("response_warning_prefix"))
+            .Returns(warningPrefix);
+        _mockLocalizationService
+            .Setup(x => x.Get(warningKey))
+            .Returns(warningMessage);
 
         _mockMessage
-            .Setup(x => x.RespondAsync(responseMessage))
+            .Setup(x => x.RespondAsync(expectedMessage))
             .Returns(Task.CompletedTask);
 
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, commandName);
+        await _responseBuilder.SendWarningAsync(_mockMessage.Object, warningKey);
 
-        _mockMessage.Verify(x => x.RespondAsync(responseMessage), Times.Once);
-        _mockLocalizationService.Verify(x => x.Get("clear_command_response"), Times.Once);
+        _mockMessage.Verify(x => x.RespondAsync(expectedMessage), Times.Once);
     }
 
     [Fact]
-    public async Task SendCommandResponseAsync_BuildsCorrectLocalizationKey()
+    public async Task SendWarningAsync_MissingPrefix_SendsLocalizedMessageWithoutPrefix()
     {
-        const string commandName = "shuffle";
-        var expectedKey = $"{commandName}_command_response";
+        const string warningKey = "playlist_already_exists";
+        const string warningMessage = "Playlist already exists.";
 
         _mockLocalizationService
-            .Setup(x => x.Get(expectedKey))
-            .Returns("Queue shuffled!");
+            .Setup(x => x.Get(warningKey))
+            .Returns(warningMessage);
 
         _mockMessage
-            .Setup(x => x.RespondAsync(It.IsAny<string>()))
+            .Setup(x => x.RespondAsync(warningMessage))
             .Returns(Task.CompletedTask);
 
-        await _responseBuilder.SendCommandResponseAsync(_mockMessage.Object, commandName);
+        await _responseBuilder.SendWarningAsync(_mockMessage.Object, warningKey);
 
-        _mockLocalizationService.Verify(x => x.Get(expectedKey), Times.Once);
+        _mockMessage.Verify(x => x.RespondAsync(warningMessage), Times.Once);
     }
 
     #endregion
 
-    #region SendCommandErrorResponse Tests
+    #region SendErrorAsync Tests
 
     [Fact]
-    public async Task SendCommandErrorResponse_ValidCommandName_SendsErrorMessage()
+    public async Task SendErrorAsync_ValidLocalizationKey_SendsPrefixedLocalizedMessage()
     {
-        const string commandName = "pause";
-        const string errorMessage = "No track is currently playing!";
+        const string errorPrefix = "**Error:** ";
+        const string errorKey = "unknown_error";
+        const string errorMessage = "Unknown error occurred.";
+        const string expectedMessage = errorPrefix + errorMessage;
 
         _mockLocalizationService
-            .Setup(x => x.Get("pause_command_error"))
+            .Setup(x => x.Get("response_error_prefix"))
+            .Returns(errorPrefix);
+        _mockLocalizationService
+            .Setup(x => x.Get(errorKey))
+            .Returns(errorMessage);
+
+        _mockMessage
+            .Setup(x => x.RespondAsync(expectedMessage))
+            .Returns(Task.CompletedTask);
+
+        await _responseBuilder.SendErrorAsync(_mockMessage.Object, errorKey);
+
+        _mockMessage.Verify(x => x.RespondAsync(expectedMessage), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendErrorAsync_MissingPrefix_SendsLocalizedMessageWithoutPrefix()
+    {
+        const string errorKey = "unknown_error";
+        const string errorMessage = "Unknown error occurred.";
+
+        _mockLocalizationService
+            .Setup(x => x.Get(errorKey))
             .Returns(errorMessage);
 
         _mockMessage
             .Setup(x => x.RespondAsync(errorMessage))
             .Returns(Task.CompletedTask);
 
-        await _responseBuilder.SendCommandErrorResponse(_mockMessage.Object, commandName);
+        await _responseBuilder.SendErrorAsync(_mockMessage.Object, errorKey);
 
         _mockMessage.Verify(x => x.RespondAsync(errorMessage), Times.Once);
-    }
-
-    [Fact]
-    public async Task SendCommandErrorResponse_BuildsCorrectErrorKey()
-    {
-        const string commandName = "skip";
-        var expectedKey = $"{commandName}_command_error";
-
-        _mockLocalizationService
-            .Setup(x => x.Get(expectedKey))
-            .Returns("Cannot skip!");
-
-        _mockMessage
-            .Setup(x => x.RespondAsync(It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        await _responseBuilder.SendCommandErrorResponse(_mockMessage.Object, commandName);
-
-        _mockLocalizationService.Verify(x => x.Get(expectedKey), Times.Once);
     }
 
     #endregion

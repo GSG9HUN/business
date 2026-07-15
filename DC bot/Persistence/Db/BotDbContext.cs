@@ -10,6 +10,8 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
     public DbSet<GuildQueueItemEntity> GuildQueueItems => Set<GuildQueueItemEntity>();
     public DbSet<GuildRepeatListItemEntity> GuildRepeatListItems => Set<GuildRepeatListItemEntity>();
     public DbSet<GuildPremiumAuditEntity> GuildPremiumAudits => Set<GuildPremiumAuditEntity>();
+    public DbSet<PlaylistEntity> Playlists => Set<PlaylistEntity>();
+    public DbSet<PlaylistTrackEntity> PlaylistTracks => Set<PlaylistTrackEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,6 +20,8 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new Configurations.GuildQueueItemConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.GuildRepeatListItemConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.GuildPremiumAuditConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PlaylistConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PlaylistTrackConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

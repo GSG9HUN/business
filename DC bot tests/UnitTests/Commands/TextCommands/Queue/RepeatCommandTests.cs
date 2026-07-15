@@ -94,8 +94,8 @@ public class RepeatCommandTests
 
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-            _localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandListAlreadyRepeating)));
+        _responseBuilderMock.Verify(r => r.SendWarningAsync(_messageMock.Object,
+            LocalizationKeys.RepeatCommandListAlreadyRepeating));
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class RepeatCommandTests
         _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, false), Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendSuccessAsync(_messageMock.Object,
-                _localizationServiceMock.Object.Get(LocalizationKeys.RepeatCommandRepeatingOff)), Times.Once);
+                LocalizationKeys.RepeatCommandRepeatingOff), Times.Once);
     }
 
     [Fact]
@@ -152,7 +152,11 @@ public class RepeatCommandTests
 
         _repeatServiceMock.Verify(l => l.SetRepeatingAsync(guildId, true), Times.Once);
         _responseBuilderMock.Verify(
-            r => r.SendSuccessAsync(_messageMock.Object, It.IsAny<string>()), Times.Once);
+            r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.RepeatCommandRepeatingOn,
+                It.Is<object[]>(args => args.Length == 1 && args[0].ToString()!.Contains(TestTrackTitle, StringComparison.Ordinal))),
+            Times.Once);
     }
 
     [Fact]
@@ -169,7 +173,8 @@ public class RepeatCommandTests
 
         await _repeatCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
     }
 

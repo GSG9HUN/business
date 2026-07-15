@@ -7,6 +7,7 @@ using DC_bot.Interface.Service.IO;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Presentation;
@@ -201,15 +202,24 @@ public class ProgramIntegrationTests
                 typeof(ITrackEndedHandlerService),
                 typeof(IProgressiveTimerService),
                 typeof(ITrackSearchResolverService),
+                typeof(ITrackSerializer),
+                typeof(IPlaylistService),
                 typeof(IGuildDataRepository),
                 typeof(IPlaybackStateRepository),
                 typeof(IQueueRepository),
+                typeof(IPlaylistRepository),
+                typeof(IPlaylistTrackRepository),
                 typeof(IRepeatListRepository));
 
             var commandNames = provider.GetServices<ICommand>().Select(command => command.Name).ToArray();
             Assert.Contains("ping", commandNames);
             Assert.Contains("help", commandNames);
             Assert.Contains("play", commandNames);
+            Assert.Contains("createPlaylist", commandNames);
+            Assert.Contains("addSong", commandNames);
+            Assert.Contains("removeSong", commandNames);
+            Assert.Contains("listPlaylists", commandNames);
+            Assert.Contains("viewPlaylist", commandNames);
             Assert.Contains("repeatList", commandNames);
 
             var factory = provider.GetRequiredService<IDbContextFactory<BotDbContext>>();

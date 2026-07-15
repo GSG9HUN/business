@@ -40,4 +40,22 @@ public class CommandValidationService : ICommandHelper
 
         return args[1].Trim();
     }
+
+    public async Task<(string, string)?> TryParseSavePlaylistArguments(
+        IDiscordMessage message,
+        IResponseBuilder responseBuilder,
+        ILogger logger,
+        string commandName)
+    {
+        var args = message.Content.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+
+        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[1]) || string.IsNullOrWhiteSpace(args[2]))
+        {
+            await responseBuilder.SendUsageAsync(message, commandName);
+            logger.LogInformation("The user has not provided arguments for {CommandName}", commandName);
+            return null;
+        }
+
+        return (args[1].Trim(), args[2].Trim());
+    }
 }

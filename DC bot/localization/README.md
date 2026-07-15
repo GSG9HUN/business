@@ -46,6 +46,8 @@ This folder contains language translation files.
 Examples:
 - play_command_description
 - pause_command_response
+- createPlaylist_command_description
+- viewPlaylist_command_response
 - skip_command_queue_is_empty
 - user_not_in_a_voice_channel
 - slash_command_unexpected_error
@@ -75,6 +77,7 @@ var message = localizationService.Get("play_command_music_playing", trackTitle);
 ## Related Components
 
 - **Constants/AppConstants.cs** - Key definitions
+- **Commands/TextCommands/Playlist/** - Playlist command keys
 - **Service/LocalizationService.cs** - Key lookup
 - **guildFiles/localization/** - Guild language preferences
 - **Interface/Service/Localization/ILocalizationService.cs** - Localization contract

@@ -104,6 +104,10 @@ Player validation:
 Argument extraction treats missing and whitespace-only arguments as invalid. This keeps commands such as `!play   `
 from receiving an empty payload.
 
+Playlist commands that need two values, such as `!savePlaylist <name> <url>`, `!addSong <name> <url>`,
+`!removeSong <name> <trackNumber>`, and `!renamePlaylist <currentName> <newName>`, use
+`TryParseSavePlaylistArguments` to validate and split the payload.
+
 ---
 
 ### CommandRegistry.cs

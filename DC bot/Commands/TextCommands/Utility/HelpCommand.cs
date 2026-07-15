@@ -24,13 +24,11 @@ public class HelpCommand(
         logger.CommandInvoked(Name);
         if (userValidation.IsBotUser(message)) return;
 
-        var guildId = message.Channel.Guild.Id;
         var commands = commandRegistry.Commands;
         var response = commands.Aggregate(string.Empty,
             (current, command) => current + $"{command.Name} : {command.Description}\n");
 
-        await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(guildId, LocalizationKeys.HelpCommandResponse)}\n{response}");
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response);
         logger.CommandExecuted(Name);
     }
 }

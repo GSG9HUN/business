@@ -105,6 +105,16 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: dotnet build "./DC bot.sln" --configuration Debug --no-restore
 
+      - name: Install EF Core CLI
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          dotnet tool install --global dotnet-ef --version 9.0.10
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Check EF migrations
+        if: steps.changes.outputs.has_changes == 'true'
+        run: dotnet ef migrations has-pending-model-changes --project "./DC bot/DC bot.csproj" --startup-project "./DC bot/DC bot.csproj" --no-build
+
       - name: Test merged result
         if: steps.changes.outputs.has_changes == 'true'
         env:

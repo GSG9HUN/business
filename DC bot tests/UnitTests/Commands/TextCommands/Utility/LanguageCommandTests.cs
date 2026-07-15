@@ -97,7 +97,7 @@ public class LanguageCommandTests
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
         _localizationServiceMock.Verify(l => l.SaveLanguage(TestGuildId, LanguageCodeHu), Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, LanguageCommandName),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.LanguageCommandResponse),
             Times.Once);
     }
 
@@ -119,7 +119,7 @@ public class LanguageCommandTests
 
         // Assert
         _localizationServiceMock.Verify(l => l.SaveLanguage(TestGuildId, LanguageCodeHu), Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(_messageMock.Object, LanguageCommandName),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object, LocalizationKeys.LanguageCommandResponse),
             Times.Once);
     }
 
@@ -148,7 +148,8 @@ public class LanguageCommandTests
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(_messageMock.Object, LocalizationKeys.LanguageCommandInvalidLanguage),
             Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
     }
 
@@ -169,9 +170,10 @@ public class LanguageCommandTests
 
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendCommandErrorResponse(_messageMock.Object, LanguageCommandName),
+        _responseBuilderMock.Verify(r => r.SendErrorAsync(_messageMock.Object, LocalizationKeys.LanguageCommandError),
             Times.Once);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
     }
 
@@ -195,7 +197,8 @@ public class LanguageCommandTests
         await _languageCommand.ExecuteAsync(_messageMock.Object);
 
         _localizationServiceMock.Verify(l => l.SaveLanguage(It.IsAny<ulong>(), It.IsAny<string>()), Times.Never);
-        _responseBuilderMock.Verify(r => r.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
             Times.Never);
         _responseBuilderMock.Verify(r => r.SendUsageAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
             Times.Never);

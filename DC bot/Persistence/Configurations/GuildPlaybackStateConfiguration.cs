@@ -14,6 +14,7 @@ public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPla
 
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
+            .HasGuildIdStorage()
             .ValueGeneratedNever();
 
         builder.Property(entity => entity.IsRepeating)

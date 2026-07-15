@@ -1,7 +1,7 @@
 # DC Bot - Discord Music Bot
 
-A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuring queue management, multiple languages,
-robust error handling, and comprehensive documentation.
+A feature-rich Discord music bot built with DSharpPlus and Lavalink4NET, featuring queue management, saved playlists,
+multiple languages, robust error handling, and comprehensive documentation.
 
 ## Quick Start
 
@@ -74,6 +74,7 @@ DC bot/
 │   ├── TextCommands/              # Prefix-based text commands
 │   │   ├── Music/                 # Playback control (play, pause, skip, etc.)
 │   │   ├── Queue/                 # Queue management (shuffle, repeat, clear, etc.)
+│   │   ├── Playlist/              # Saved playlist commands
 │   │   └── Utility/               # General commands (help, ping, language, tag)
 │   ├── SlashCommands/             # Discord slash command adapters
 │   │   ├── Music/                 # Playback slash commands
@@ -99,7 +100,7 @@ DC bot/
 │   ├── Service/                   # Service contracts
 │   │   ├── IO/                    # IFileSystem
 │   │   ├── Localization/          # ILocalizationService
-│   │   ├── Music/                 # ILavaLinkService, etc.
+│   │   ├── Music/                 # ILavaLinkService, playlist service, etc.
 │   │   ├── Persistence/           # Repository contracts
 │   │   ├── Presentation/          # IResponseBuilder
 │   │   ├── SlashCommands/         # Slash command adapter contracts
@@ -126,6 +127,7 @@ DC bot/
 │   │   ├── LavaLinkService.cs
 │   │   ├── TrackSearchResolverService.cs
 │   │   ├── MusicServices/         # Granular music services
+│   │   ├── PlaylistService/       # Saved playlist use-cases
 │   │   ├── ProgressiveTimer/      # Now-playing message timer updates
 │   │   └── README.md
 │   ├── Presentation/              # ResponseBuilder
@@ -186,10 +188,6 @@ DC bot/
 │   ├── Migrations/                # DB schema migrations
 │   └── README.md
 │
-├── Model/                         # Data models
-│   ├── SerializedTrack.cs         # Lightweight track identity model
-│   └── README.md
-│
 ├── Properties/                    # Assembly metadata
 │   ├── AssemblyInfo.cs
 │   └── README.md
@@ -218,6 +216,7 @@ DC bot/
 
 - **Multiple sources:** YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music, Bandcamp
 - **Queue management:** Persistent queue storage per guild via PostgreSQL
+- **Saved playlists:** Create, save from URL, append songs, list with track counts, view tracks, rename, and delete playlists
 - **Repeat modes:** Single track repeat, queue repeat
 - **Playback controls:** Play, pause, resume, skip
 - **Voice channel management:** Auto-join, disconnect, state tracking
@@ -264,7 +263,7 @@ DC bot/
                │ (Discord events)
 ┌──────────────▼──────────────────────┐
 │     Commands (Presentation Layer)   │
-│  ├─ Text commands (15)              │
+│  ├─ Text commands (22)              │
 │  ├─ Slash modules (14)              │
 │  └─ Shared command pipeline         │
 └──────────────┬──────────────────────┘
@@ -293,7 +292,7 @@ DC bot/
 |--------------------------|-------------------------------|-----------------------------|
 | **Dependency Injection** | Constructor injection         | Loose coupling, testability |
 | **Service Layer**        | Commands delegate to services | Separation of concerns      |
-| **Repository**           | Queue persistence abstraction | Flexible storage            |
+| **Repository**           | Queue and playlist persistence abstraction | Flexible storage            |
 | **Wrapper/Adapter**      | DSharpPlus abstraction        | Library independence        |
 | **Factory/Adapter**      | Wrapper and message creation  | Centralized boundary setup  |
 | **Registry**             | `ICommandRegistry`            | Stable command lookup       |
@@ -343,8 +342,8 @@ BotServiceProviderFactory.Create()
   |-- AddDiscordRuntime (gateway, message, reaction, and voice callbacks)
   |-- AddLavalinkRuntime
   |-- AddPersistenceServices
-  |-- AddCommandServices (15 text commands, slash services, slash modules, SlashCommandProcessor)
-  |-- AddMusicServices (music services plus track serializer)
+  |-- AddCommandServices (23 text commands, slash services, slash modules, SlashCommandProcessor)
+  |-- AddMusicServices (music services, playlist service, and track serializer)
   `-- Build ServiceProvider
   ↓
 DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync()
@@ -480,12 +479,15 @@ YOUTUBE_REFRESH_TOKEN=
 - `IGuildDataRepository` - Guild row and premium state
 - `IPlaybackStateRepository` - Current playback state
 - `IQueueRepository` - Queue entries
+- `IPlaylistRepository` - Saved playlist metadata
+- `IPlaylistTrackRepository` - Saved playlist tracks
 - `IRepeatListRepository` - Repeat-list entries
 
-#### All 15 Text Commands
+#### All 23 Text Commands
 
 - 6 Music commands (play, pause, resume, skip, join, leave)
 - 5 Queue commands (viewList, shuffle, repeat, repeatList, clear)
+- 8 Playlist commands (createPlaylist, savePlaylist, deletePlaylist, addSong, removeSong, listPlaylists, viewPlaylist, renamePlaylist)
 - 4 Utility commands (help, ping, language, tag)
 
 #### Slash Commands
@@ -500,6 +502,7 @@ YOUTUBE_REFRESH_TOKEN=
 
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management and repeat-list snapshot rehydration
+- `PlaylistService` - Saved playlist creation, saving, listing, viewing, renaming, deletion, and track append behavior
 - `ITrackSerializer` / `LavalinkTrackSerializer` - Track identity serialization for queue, repeat-list, and current-track persistence
 - `RepeatService` - Repeat flags and repeat-list snapshot writes
 - `CurrentTrackService` - Track state
@@ -568,7 +571,8 @@ The project has **60+ README.md files** documenting every component:
 - **Configuration/** - Configuration models
 - **Constants/** - Localization keys
 - **Logging/** - Structured logging
-- **Model/** - Data models
+- **Persistence/** - Database entities, configurations, migrations, and repositories
+- **Interface/Service/Music/PlaylistServiceInterface/** - Saved playlist service contracts
 - **localization/** - Language files
 - **guildFiles/** - Persistent data structure
 
@@ -789,7 +793,7 @@ DC bot tests/
 | CPU (idle)         | <1%       | Waiting for events    |
 | CPU (per guild)    | ~5%       | During playback       |
 | Disk I/O           | Minimal   | Localization and guild language files |
-| Database I/O       | Moderate  | Queue, repeat, playback state, and premium data |
+| Database I/O       | Moderate  | Queue, repeat, playback state, playlist, and premium data |
 
 ---
 
@@ -829,7 +833,7 @@ DC bot tests/
 - **Lavalink4NET:** 4.2.1
 - **EF Core:** 9.0.10
 - **PostgreSQL provider:** Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
-- **Last Updated:** 2026-07-06
+- **Last Updated:** 2026-07-13
 
 ---
 

@@ -19,7 +19,7 @@ This folder contains text commands for managing the music playback queue.
 
 **Error Cases:**
 
-- Empty queue → Shows error message
+- Empty queue -> warning response
 
 ---
 
@@ -49,7 +49,7 @@ for (var i = trackList.Count - 1; i > 0; i--)
 
 **Error Cases:**
 
-- Queue has 0 or 1 tracks → Error
+- Queue has 0 or 1 tracks -> warning response
 
 ---
 

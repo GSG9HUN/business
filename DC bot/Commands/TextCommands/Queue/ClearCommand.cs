@@ -30,8 +30,7 @@ public class ClearCommand(
         var guildId = message.Channel.Guild.Id;
         await musicQueueService.ClearQueue(guildId);
 
-        await responseBuilder.SendSuccessAsync(message,
-            $"{localizationService.Get(guildId, LocalizationKeys.ClearCommandResponse)}\n");
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ClearCommandResponse);
         logger.CommandExecuted(Name);
     }
 }

@@ -122,16 +122,19 @@ public class CommandHandlerServiceIntegrationTests
         graph.ResponseBuilderMock.Verify(
             response => response.SendSuccessAsync(
                 It.IsAny<IDiscordMessage>(),
-                It.Is<string>(text =>
-                    text.Contains("Available commands:", StringComparison.Ordinal) &&
-                    text.Contains("ping", StringComparison.Ordinal) &&
-                    text.Contains("play", StringComparison.Ordinal))),
+                LocalizationKeys.HelpCommandResponse,
+                It.Is<object[]>(args =>
+                    args.Length == 1 &&
+                    args[0].ToString()!.Contains("ping", StringComparison.Ordinal) &&
+                    args[0].ToString()!.Contains("play", StringComparison.Ordinal))),
             Times.Once);
         graph.LocalizationServiceMock.Verify(
             localization => localization.SaveLanguage(456UL, "hu"),
             Times.Once);
         graph.ResponseBuilderMock.Verify(
-            response => response.SendCommandResponseAsync(It.IsAny<IDiscordMessage>(), "language"),
+            response => response.SendSuccessAsync(
+                It.IsAny<IDiscordMessage>(),
+                LocalizationKeys.LanguageCommandResponse),
             Times.Once);
         graph.ResponseBuilderMock.Verify(
             response => response.SendUsageAsync(It.IsAny<IDiscordMessage>(), "tag"),

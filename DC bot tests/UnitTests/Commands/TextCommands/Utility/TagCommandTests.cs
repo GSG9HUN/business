@@ -118,7 +118,9 @@ public class TagCommandTests
 
         _responseBuilderMock.Verify(r => r.SendUsageAsync(_messageMock.Object, TagCommandName), Times.Once);
         _guildMock.Verify(g => g.GetAllMembersAsync(), Times.Never);
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+        _responseBuilderMock.Verify(
+            r => r.SendSuccessAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>(), It.IsAny<object[]>()),
+            Times.Never);
     }
 
     [Fact]
@@ -139,8 +141,10 @@ public class TagCommandTests
 
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.TagCommandResponse,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == discordMemberMock.Object.Mention)),
             Times.Once);
     }
 
@@ -169,7 +173,8 @@ public class TagCommandTests
 
         _responseBuilderMock.Verify(r => r.SendSuccessAsync(
                 _messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+                LocalizationKeys.TagCommandResponse,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == discordMemberMock.Object.Mention)),
             Times.Once);
     }
 
@@ -192,8 +197,9 @@ public class TagCommandTests
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         _responseBuilderMock.Verify(
-            r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, TestUserLower)}"),
+            r => r.SendWarningAsync(_messageMock.Object,
+                LocalizationKeys.TagCommandUserNotExistError,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == TestUserLower)),
             Times.Once);
     }
 
@@ -233,8 +239,10 @@ public class TagCommandTests
 
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.TagCommandResponse,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == discordMemberMock.Object.Mention)),
             Times.Once);
     }
 
@@ -256,8 +264,10 @@ public class TagCommandTests
 
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
-        _responseBuilderMock.Verify(r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandResponse, discordMemberMock.Object.Mention)}"),
+        _responseBuilderMock.Verify(r => r.SendSuccessAsync(
+                _messageMock.Object,
+                LocalizationKeys.TagCommandResponse,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == discordMemberMock.Object.Mention)),
             Times.Once);
     }
 
@@ -275,8 +285,9 @@ public class TagCommandTests
         await _tagCommand.ExecuteAsync(_messageMock.Object);
 
         _responseBuilderMock.Verify(
-            r => r.SendSuccessAsync(_messageMock.Object,
-                $"{_localizationServiceMock.Object.Get(LocalizationKeys.TagCommandUserNotExistError, "test")}"),
+            r => r.SendWarningAsync(_messageMock.Object,
+                LocalizationKeys.TagCommandUserNotExistError,
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == "test")),
             Times.Once);
     }
 

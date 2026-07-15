@@ -138,26 +138,37 @@ internal sealed class SlashCommandTestGraph
         {
             return key switch
             {
-                LocalizationKeys.LanguageCommandResponse => "A nyelv sikeresen megvaltozott.",
-                _ => FormatLocalization(key, args, "eng")
+            LocalizationKeys.LanguageCommandResponse => "A nyelv sikeresen megvaltozott.",
+            LocalizationKeys.PingCommandResponse => "Pong!",
+            _ => FormatLocalization(key, args, "eng")
             };
         }
 
         return key switch
         {
-            LocalizationKeys.HelpCommandResponse => "Available commands:",
+            LocalizationKeys.HelpCommandResponse => args.Length > 0
+                ? $"Available commands:{Environment.NewLine}{args[0]}"
+                : "Available commands:",
+            LocalizationKeys.PingCommandResponse => "Pong!",
             LocalizationKeys.TagCommandResponse => $"Tagged: {args[0]}",
             LocalizationKeys.TagCommandUserNotExistError => $"User {args[0]} not found.",
             LocalizationKeys.ViewListCommandEmbedTitle => "Playlist",
             LocalizationKeys.ViewListCommandError => "Queue is empty.",
             LocalizationKeys.ShuffleCommandError => "There is not enough music in queue.",
+            LocalizationKeys.ShuffleCommandNotEnoughTracks => "There are not enough tracks in the queue to shuffle.",
             LocalizationKeys.ShuffleCommandResponse => "The list has been shuffled.",
             LocalizationKeys.RepeatCommandListAlreadyRepeating => "The list is already repeating.",
-            LocalizationKeys.RepeatCommandRepeatingOn => "Repeat is on for :",
+            LocalizationKeys.RepeatCommandRepeatingOn => args.Length > 0
+                ? $"Repeat is on for : {args[0]}"
+                : "Repeat is on for :",
             LocalizationKeys.RepeatCommandRepeatingOff => "Repeating is off.",
             LocalizationKeys.RepeatListCommandTrackAlreadyRepeating => "This track is already repeating.",
-            LocalizationKeys.RepeatListCommandRepeatingOn => "Repeat is on for current list:",
-            LocalizationKeys.RepeatListCommandRepeatingOff => "Repeating is off for the list:",
+            LocalizationKeys.RepeatListCommandRepeatingOn => args.Length > 0
+                ? $"Repeat is on for current list:{Environment.NewLine}{args[0]}"
+                : "Repeat is on for current list:",
+            LocalizationKeys.RepeatListCommandRepeatingOff => args.Length > 0
+                ? $"Repeating is off for the list:{Environment.NewLine}{args[0]}"
+                : "Repeating is off for the list:",
             LocalizationKeys.LanguageCommandResponse => "The language changed successfully.",
             LocalizationKeys.ClearCommandResponse => "Playlist cleared.",
             LocalizationKeys.ClearCommandConfirmationRequired => "Set confirm to true to clear the playlist.",

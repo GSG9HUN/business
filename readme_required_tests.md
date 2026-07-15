@@ -6,19 +6,22 @@ This file tracks which test areas are already covered and which test areas are s
 
 **Current automated test inventory from the latest local run:**
 
-- Non-E2E executed tests: **674 passed**
+- Non-E2E executed tests: **769 passed**
+- Playlist-focused tests: **84 passed**.
+- Playlist text command unit tests: **46 passed**.
+- Playlist local text command E2E pipeline: **1 passed**.
 - Targeted live guild/music E2E additions: **5 passed** against real Discord, PostgreSQL Testcontainers, and local Lavalink (`LAVALINK_HOSTNAME=127.0.0.1`).
 - Targeted live play/pause/resume/skip/leave music-flow E2E: **1 passed** against real Discord voice and local Lavalink.
 - Slash command targeted E2E: **16 passed**
-- Latest full E2E suite run: **75 passed, 0 failed**.
+- Latest full suite attempt: **808 passed, 1 failed** because a pre-existing live Discord E2E hit `TooManyRequests` rate limiting.
 
 The source-method count and the `dotnet test` result count can differ because xUnit `[Theory]` tests can produce multiple executed test cases from one method.
 
 **Current status:**
 
-- COMPLETE: Core text commands, music services, persistence, startup composition, wrappers, validation, localization, logging/error paths.
-- COMPLETE: PostgreSQL persistence integration coverage through Testcontainers.
-- COMPLETE: Targeted integration coverage now includes text command DI, command-handler routing through the real text command list, direct PostgreSQL repositories, queue/repeat/current-track services, track-ended persistence orchestration, and real localization JSON loading.
+- COMPLETE: Core text commands, playlist commands, music services, persistence, startup composition, wrappers, validation, localization, logging/error paths.
+- COMPLETE: PostgreSQL persistence integration coverage through Testcontainers, including saved playlists.
+- COMPLETE: Targeted integration coverage now includes text command DI, command-handler routing through the real text command list, direct PostgreSQL repositories, playlist repositories, queue/repeat/current-track services, track-ended persistence orchestration, and real localization JSON loading.
 - COMPLETE FOR CURRENT AUTOMATED SCOPE: E2E coverage exists for Discord lifecycle, command messages, reaction handling, wrappers, guild initialization, and live music flows.
 - COMPLETE: Slash command unit, integration, and E2E-category pipeline coverage.
 - COMPLETE: BotApplication E2E startup coverage with real Discord, Lavalink settings, and PostgreSQL Testcontainers.
@@ -177,6 +180,17 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `ViewQueueCommand` - displays queue items.
 - [x] `ViewQueueCommand` - displays footer when queue has more than 10 tracks.
 
+### Commands - Playlist - COMPLETE FOR IMPLEMENTED COMMANDS
+
+- [x] `CreatePlaylistCommand` - handles created, already-exists, invalid-name, and unknown-error responses.
+- [x] `SavePlaylistCommand` - handles saved, already-exists, no-tracks-found, and unknown-error responses.
+- [x] `DeletePlaylistCommand` - handles deleted, missing playlist, and unknown-error responses.
+- [x] `AddSongToPlaylistCommand` - handles added, missing playlist, invalid URL, no tracks found, and unknown-error responses.
+- [x] `ListPlaylistsCommand` - formats playlist names with track counts and handles empty/error outcomes.
+- [x] `ViewPlaylistCommand` - formats the first 10 tracks, overflow count, empty/missing playlist, and error outcomes.
+- [x] `RenamePlaylistCommand` - handles renamed, missing playlist, duplicate name, invalid name, and unknown-error responses.
+- [x] `RemoveSongFromPlaylistCommand` - handles removed, missing playlist, missing track, invalid playlist name, invalid track number, and unknown-error responses.
+
 ### Core Services - COMPLETE
 
 - [x] `CommandHandlerService` - register/unregister handler.
@@ -212,6 +226,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `PlaybackEventHandlerService` registers and cleans up playback event handlers.
 - [x] `ProgressiveTimerService` covers timer start, pause, resume, stop, cancellation, position bounds, stale track mismatch, and message modification failures.
 - [x] `TrackSearchResolverService` covers URL/query source resolution and default/fallback behavior.
+- [x] `PlaylistService` covers create, save, list, view, delete, add song, rename, invalid names, missing playlists, and unknown-error mappings.
 
 ### Persistence - COMPLETE
 
@@ -219,12 +234,14 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `PlaybackStateRepository`
 - [x] `QueueRepository`
 - [x] `RepeatListRepository`
+- [x] `PlaylistRepository`
+- [x] `PlaylistTrackRepository`
 - [x] `GuildPremiumAuditEntity`
 
 ### IO, Models, Helpers, Wrappers - COMPLETE
 
 - [x] `PhysicalFileSystem`
-- [x] `SerializedTrack`
+- [x] playlist DTO, record, enum, and entity contracts
 - [x] validation result models
 - [x] `DiscordChannelWrapper`
 - [x] `DiscordGuildWrapper`
@@ -245,7 +262,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `BotApplication.RunAsync` reports missing `DISCORD_TOKEN`.
 - [x] `BotApplication.RunAsync` reports missing `LAVALINK_HOSTNAME`.
 - [x] `BotServiceProviderFactory` registers core services.
-- [x] Startup graph resolves all 15 text command implementations.
+- [x] Startup graph resolves all 23 registered text command implementations.
 - [x] Full startup graph resolves against PostgreSQL.
 - [x] `DatabaseMigrationRunner` rejects in-memory migration provider.
 - [x] `DatabaseMigrationRunner` applies pending PostgreSQL migrations.
@@ -259,6 +276,8 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `QueueRepository.ClaimNextQueuedItemAsync` claims the lowest queued item.
 - [x] Concurrent claim does not claim the same queued item twice.
 - [x] Reorder works against PostgreSQL unique position index without constraint collision.
+- [x] `PlaylistRepository` creates, lists with track counts, renames, deletes, and cascade-deletes tracks.
+- [x] `PlaylistTrackRepository` appends, bulk-adds, removes, and compacts order numbers.
 
 ### CommandHandlerService Integration - COMPLETE
 
@@ -267,6 +286,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] DI command resolution.
 - [x] Prefix validation and logging.
 - [x] Fake Discord message events route through the real text command list for `ping`, `help`, `language`, `tag`, one music command, and one queue command.
+- [x] Registered playlist commands resolve through startup/text-command registration integration tests.
 
 ### SlashCommand Integration - COMPLETE
 
@@ -341,6 +361,7 @@ Required E2E settings:
 - [x] Bot-authored command is ignored outside test mode.
 - [x] Null prefix logs the expected error.
 - [x] Register, unregister, duplicate register, and unregister-before-register logging paths are covered.
+- [x] Local playlist text command pipeline covers create, list, view, rename, and delete through `CommandHandlerService`.
 
 ### Discord Wrapper E2E - COMPLETE
 
@@ -409,7 +430,7 @@ Manual smoke checklist: `DC bot tests/EndToEndTests/Commands/SlashCommands/live_
 
 ### Low Priority
 
-1. Add exact coverage reports if required by branch policy.
+1. Keep generated coverage reports under `coverage/current/` refreshed when coverage is requested.
 2. Split very large unit suites if they become hard to maintain.
 3. Replace manual status counts with generated reporting if the checklist becomes stale again.
 
@@ -417,7 +438,7 @@ Manual smoke checklist: `DC bot tests/EndToEndTests/Commands/SlashCommands/live_
 
 ## Current Verification Result
 
-Last local verification run after the production refactor cleanup:
+Last local verification run after the remove-song playlist implementation and test updates:
 
 ```text
 dotnet build "DC bot.sln" --configuration Debug
@@ -425,27 +446,54 @@ dotnet build "DC bot.sln" --configuration Debug
 Warnings: 0
 Errors: 0
 
-dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Unit"
+dotnet test "DC bot tests\DC bot tests.csproj" --no-restore --filter "Category!=E2E"
 
-Passed: 633
+Passed: 769
 Failed: 0
 Skipped: 0
 
-dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category!=E2E"
+dotnet test "DC bot tests\DC bot tests.csproj" --no-restore --filter "FullyQualifiedName~Playlist"
 
-Passed: 674
+Passed: 84
+Failed: 0
+Skipped: 0
+
+dotnet test "DC bot tests\DC bot tests.csproj" --no-restore --filter "FullyQualifiedName~Commands.TextCommands.Playlist"
+
+Passed: 46
+Failed: 0
+Skipped: 0
+
+dotnet test "DC bot tests\DC bot tests.csproj" --no-restore --filter "FullyQualifiedName~PlaylistTextCommandEndToEndTests"
+
+Passed: 1
 Failed: 0
 Skipped: 0
 ```
 
-Latest integration verification:
+Latest coverage report:
 
 ```text
-dotnet test "DC bot tests\DC bot tests.csproj" --configuration Debug --no-build --filter "Category=Integration"
+coverage/current/report/index.html
+coverage/current/report-no-migrations/index.html
+coverage/current/file-coverage.md
+coverage/current/file-coverage-no-migrations.md
 
-Passed: 41
-Failed: 0
+Raw coverage: 57.7% line, 80.1% branch
+No migrations/designer/obj coverage: 87.2% line, 80.1% branch
+```
+
+Latest full-suite attempt:
+
+```text
+dotnet test "DC bot tests\DC bot tests.csproj" --no-restore
+
+Passed: 808
+Failed: 1
 Skipped: 0
+
+Failure: ReactionHandlerEndToEndTests.ReactionContextFactory_WithRealDiscordObjects_ReturnsExpectedGuildId
+Reason: DSharpPlus.Exceptions.RateLimitException: TooManyRequests
 ```
 
 Focused live E2E verification for the newly automated gaps:
@@ -468,7 +516,7 @@ Failed: 0
 Skipped: 0
 ```
 
-Latest full E2E suite run with real Discord configuration:
+Previous full E2E suite run with real Discord configuration before the latest Discord rate-limit attempt:
 
 ```text
 dotnet test "DC bot tests\DC bot tests.csproj" --filter "Category=E2E"

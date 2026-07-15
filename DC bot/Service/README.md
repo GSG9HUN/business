@@ -38,13 +38,14 @@ Command dispatching, command registry lookup, and validation services.
 
 ### Music/
 
-Playback orchestration and queue behavior.
+Playback orchestration, queue behavior, repeat state, and saved playlist use-cases.
 
 Main entry service: `LavaLinkService.cs`
 
 Subcomponents:
 
 - `MusicServices/` - focused music playback, queue, repeat, notification, and connection services
+- `PlaylistService/` - saved playlist creation, saving, listing, viewing, renaming, deletion, and track append behavior
 - `ProgressiveTimer/` - now-playing message update timer
 
 ### Presentation/
@@ -77,7 +78,7 @@ Core Services
    ↓
 Music Services / Localization Services
    ↓
-ILavaLinkService / Repository Interfaces
+ILavaLinkService / IPlaylistService / Repository Interfaces
    ↓
 Lavalink / PostgreSQL / Discord
 ```

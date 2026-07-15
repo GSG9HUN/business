@@ -238,7 +238,7 @@ jobs:
           -e POSTGRES_USER \
           -e POSTGRES_PASSWORD \
           mcr.microsoft.com/dotnet/sdk:9.0 \
-          bash -lc "dotnet restore './DC bot.sln' && dotnet build './DC bot.sln' --configuration Debug --no-restore && dotnet test './DC bot tests/DC bot tests.csproj' --configuration Debug --no-build --filter '$TEST_FILTER' --logger trx --results-directory TestResults"
+          bash -lc "dotnet tool install --global dotnet-ef --version 9.0.10 && dotnet restore './DC bot.sln' && dotnet build './DC bot.sln' --configuration Debug --no-restore && /root/.dotnet/tools/dotnet-ef migrations has-pending-model-changes --project './DC bot/DC bot.csproj' --startup-project './DC bot/DC bot.csproj' --no-build && dotnet test './DC bot tests/DC bot tests.csproj' --configuration Debug --no-build --filter '$TEST_FILTER' --logger trx --results-directory TestResults"
 
     - name: Upload E2E test results
       if: always()

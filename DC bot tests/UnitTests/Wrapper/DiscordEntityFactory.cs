@@ -25,6 +25,52 @@ internal static class DiscordEntityFactory
         field.SetValue(obj, value);
     }
 
+    private static bool TrySetMember(object obj, string name, object? value)
+    {
+        var type = obj.GetType();
+        while (type is not null)
+        {
+            var backingField = type.GetField($"<{name}>k__BackingField",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (backingField is not null)
+            {
+                backingField.SetValue(obj, value);
+                return true;
+            }
+
+            var underscored = type.GetField($"_{char.ToLowerInvariant(name[0])}{name[1..]}",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (underscored is not null)
+            {
+                underscored.SetValue(obj, value);
+                return true;
+            }
+
+            var matchingField = type
+                .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .FirstOrDefault(field =>
+                    string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(field.Name.TrimStart('_'), name, StringComparison.OrdinalIgnoreCase));
+            if (matchingField is not null)
+            {
+                matchingField.SetValue(obj, value);
+                return true;
+            }
+
+            var property = type.GetProperty(name,
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (property?.SetMethod is not null)
+            {
+                property.SetValue(obj, value);
+                return true;
+            }
+
+            type = type.BaseType;
+        }
+
+        return false;
+    }
+
     public static DiscordUser CreateUser(ulong id = 1ul, string username = "TestUser", bool isBot = false)
     {
         var user = Create<DiscordUser>();
@@ -34,12 +80,34 @@ internal static class DiscordEntityFactory
         return user;
     }
 
-    public static DiscordChannel CreateChannel(ulong id = 1ul, string name = "test-channel")
+    public static DiscordChannel CreateChannel(ulong id = 1ul, string name = "test-channel", DiscordGuild? guild = null)
     {
         var channel = Create<DiscordChannel>();
         SetField(channel, "<Id>k__BackingField", id);
         SetField(channel, "<Name>k__BackingField", name);
+        if (guild is not null)
+        {
+            TrySetMember(channel, "Guild", guild);
+        }
+
         return channel;
+    }
+
+    public static DiscordMessage CreateMessage(
+        ulong id = 1ul,
+        string content = "test message",
+        DiscordChannel? channel = null,
+        DiscordUser? author = null)
+    {
+        var message = Create<DiscordMessage>();
+        TrySetMember(message, "Id", id);
+        TrySetMember(message, "Content", content);
+        TrySetMember(message, "Channel", channel ?? CreateChannel());
+        TrySetMember(message, "Author", author ?? CreateUser());
+        TrySetMember(message, "CreationTimestamp", DateTimeOffset.UtcNow);
+        TrySetMember(message, "embeds", new List<DiscordEmbed>());
+        TrySetMember(message, "Embeds", new List<DiscordEmbed>());
+        return message;
     }
 
     public static DiscordMember CreateMember(ulong id = 1ul, string username = "TestUser", bool isBot = false)

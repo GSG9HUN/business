@@ -27,8 +27,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildDataEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("IsPremium")
@@ -54,8 +54,8 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Persistence.Entities.GuildPlaybackStateEntity", b =>
                 {
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<string>("CurrentTrackIdentifier")
@@ -104,8 +104,8 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("changed_by_user_id");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint")
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
                     b.Property<bool>("NewIsPremium")
@@ -138,8 +138,8 @@ namespace DC_bot.Persistence.Migrations
                     b.Property<DateTimeOffset>("AddedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint");
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset?>("PlayedAtUtc")
                         .HasColumnType("timestamp with time zone");

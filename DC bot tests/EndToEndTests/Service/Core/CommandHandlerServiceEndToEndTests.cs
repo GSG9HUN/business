@@ -62,6 +62,18 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
             .Returns("Available commands:");
         _localizationServiceMock.Setup(ls => ls.Get(It.IsAny<ulong>(), LocalizationKeys.HelpCommandResponse))
             .Returns("Available commands:");
+        _localizationServiceMock
+            .Setup(ls => ls.Get(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns<string, object[]>(FormatLocalization);
+        _localizationServiceMock
+            .Setup(ls => ls.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns<ulong, string, object[]>((_, key, args) => FormatLocalization(key, args));
+        _localizationServiceMock
+            .Setup(ls => ls.Get(
+                It.IsAny<ulong>(),
+                LocalizationKeys.HelpCommandResponse,
+                It.IsAny<object[]>()))
+            .Returns<ulong, string, object[]>((_, key, args) => FormatLocalization(key, args));
         var userValidationService = new ValidationService(_validationLoggerMock.Object, true);
 
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
@@ -470,6 +482,21 @@ public class CommandHandlerServiceEndToEndTests : IAsyncLifetime
     private bool CanRun()
     {
         return _isConfigured && _isDiscordAvailable;
+    }
+
+    private static string FormatLocalization(string key, object[] args)
+    {
+        return key switch
+        {
+            LocalizationKeys.UnknownCommandError => "Unknown command. Use `!help` to see available commands.",
+            LocalizationKeys.PingCommandDescription => "Replies with Pong.",
+            LocalizationKeys.PingCommandResponse => "Pong!",
+            LocalizationKeys.HelpCommandDescription => "Lists the available commands.",
+            LocalizationKeys.HelpCommandResponse => args.Length > 0
+                ? $"Available commands:{Environment.NewLine}{args[0]}"
+                : "Available commands:",
+            _ => args.Length == 0 ? key : string.Format(key, args)
+        };
     }
 }
 

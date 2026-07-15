@@ -10,9 +10,8 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
     public async Task EnsureGuildExistsAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == id, cancellationToken);
+        var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
         if (exists)
         {
             return;
@@ -20,7 +19,7 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
 
         dbContext.GuildData.Add(new GuildDataEntity
         {
-            GuildId = id,
+            GuildId = guildId,
             IsPremium = false,
             PremiumUntilUtc = null,
             UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -33,11 +32,10 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        var id = ToDbGuildId(guildId);
         var now = DateTimeOffset.UtcNow;
 
         return await dbContext.GuildData
-            .AnyAsync(g => g.GuildId == id && g.IsPremium && (g.PremiumUntilUtc == null || g.PremiumUntilUtc > now),
+            .AnyAsync(g => g.GuildId == guildId && g.IsPremium && (g.PremiumUntilUtc == null || g.PremiumUntilUtc > now),
                 cancellationToken);
     }
 
@@ -48,15 +46,14 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var id = ToDbGuildId(guildId);
 
-        var guild = await dbContext.GuildData.FirstOrDefaultAsync(g => g.GuildId == id, cancellationToken);
+        var guild = await dbContext.GuildData.FirstOrDefaultAsync(g => g.GuildId == guildId, cancellationToken);
 
         if (guild is null)
         {
             guild = new GuildDataEntity
             {
-                GuildId = id,
+                GuildId = guildId,
                 IsPremium = isPremium,
                 PremiumUntilUtc = premiumUntilUtc,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -72,10 +69,5 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static long ToDbGuildId(ulong guildId)
-    {
-        return checked((long)guildId);
     }
 }

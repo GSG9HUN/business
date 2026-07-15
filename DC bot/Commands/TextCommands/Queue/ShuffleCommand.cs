@@ -32,7 +32,7 @@ public class ShuffleCommand(
 
         if (queue.Count is 0 or < 2)
         {
-            await responseBuilder.SendCommandErrorResponse(message, Name);
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.ShuffleCommandNotEnoughTracks);
             return;
         }
 
@@ -40,7 +40,7 @@ public class ShuffleCommand(
 
         await musicQueueService.SetQueue(guildId, shuffledQueue);
 
-        await responseBuilder.SendCommandResponseAsync(message, Name);
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ShuffleCommandResponse);
         logger.CommandExecuted(Name);
     }
 

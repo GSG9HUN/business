@@ -7,18 +7,17 @@ namespace DC_bot.Persistence.Repositories;
 
 public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IRepeatListRepository
 {
-	private const int MaxRepeatListItemsPerGuild = 100;
+	private const int MaxRepeatListItemsPerGuild = 50;
 
 	public async Task<IReadOnlyList<string>> GetTrackIdentifiersAsync(
 		ulong guildId,
 		CancellationToken cancellationToken = default)
 	{
 		await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-		var id = ToDbGuildId(guildId);
 
 		return await dbContext.GuildRepeatListItems
 			.AsNoTracking()
-			.Where(item => item.GuildId == id)
+			.Where(item => item.GuildId == guildId)
 			.OrderBy(item => item.Position)
 			.Select(item => item.TrackIdentifier)
 			.ToListAsync(cancellationToken);
@@ -37,12 +36,11 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 		}
 
 		await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-		var id = ToDbGuildId(guildId);
 
-		await EnsureGuildDataExistsAsync(dbContext, id, cancellationToken);
+		await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
 
 		var existingItems = await dbContext.GuildRepeatListItems
-			.Where(item => item.GuildId == id)
+			.Where(item => item.GuildId == guildId)
 			.ToListAsync(cancellationToken);
 
 		await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -56,7 +54,7 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 			var newItems = trackIdentifiers
 				.Select((trackIdentifier, index) => new GuildRepeatListItemEntity
 				{
-					GuildId = id,
+					GuildId = guildId,
 					Position = index,
 					TrackIdentifier = trackIdentifier,
 					AddedAtUtc = now
@@ -73,10 +71,9 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 	public async Task ClearAsync(ulong guildId, CancellationToken cancellationToken = default)
 	{
 		await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-		var id = ToDbGuildId(guildId);
 
 		var existingItems = await dbContext.GuildRepeatListItems
-			.Where(item => item.GuildId == id)
+			.Where(item => item.GuildId == guildId)
 			.ToListAsync(cancellationToken);
 
 		if (existingItems.Count == 0)
@@ -90,7 +87,7 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 
 	private static async Task EnsureGuildDataExistsAsync(
 		BotDbContext dbContext,
-		long guildId,
+		ulong guildId,
 		CancellationToken cancellationToken)
 	{
 		var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
@@ -108,10 +105,4 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 
 		await dbContext.SaveChangesAsync(cancellationToken);
 	}
-
-	private static long ToDbGuildId(ulong guildId)
-	{
-		return checked((long)guildId);
-	}
-
 }
