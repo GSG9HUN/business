@@ -37,7 +37,7 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 
 		await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-		await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
+		await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
 		var existingItems = await dbContext.GuildRepeatListItems
 			.Where(item => item.GuildId == guildId)
@@ -85,24 +85,4 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 		await dbContext.SaveChangesAsync(cancellationToken);
 	}
 
-	private static async Task EnsureGuildDataExistsAsync(
-		BotDbContext dbContext,
-		ulong guildId,
-		CancellationToken cancellationToken)
-	{
-		var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
-		if (exists)
-		{
-			return;
-		}
-
-		dbContext.GuildData.Add(new GuildDataEntity
-		{
-			GuildId = guildId,
-			IsPremium = false,
-			UpdatedAtUtc = DateTimeOffset.UtcNow
-		});
-
-		await dbContext.SaveChangesAsync(cancellationToken);
-	}
 }

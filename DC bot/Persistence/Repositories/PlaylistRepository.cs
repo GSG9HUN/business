@@ -87,7 +87,7 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var playlist = new PlaylistEntity
         {
@@ -109,24 +109,4 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
             entity.Name);
     }
 
-    private static async Task EnsureGuildDataExistsAsync(
-        BotDbContext dbContext,
-        ulong guildId,
-        CancellationToken cancellationToken)
-    {
-        var exists = await dbContext.GuildData.AnyAsync(guild => guild.GuildId == guildId, cancellationToken);
-        if (exists)
-        {
-            return;
-        }
-
-        dbContext.GuildData.Add(new GuildDataEntity
-        {
-            GuildId = guildId,
-            IsPremium = false,
-            UpdatedAtUtc = DateTimeOffset.UtcNow
-        });
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-    }
 }

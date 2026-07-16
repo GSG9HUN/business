@@ -1,4 +1,4 @@
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using Lavalink4NET.Protocol.Payloads.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;

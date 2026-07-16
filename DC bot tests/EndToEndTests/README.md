@@ -35,8 +35,10 @@ Commonly required values include:
 ## Related Tests
 
 - `Service/` - bot lifecycle and reaction flow
-- `Service/LiveMusicFlowTestContext.cs` - shared real Discord, Lavalink, PostgreSQL, reaction handler, and command execution setup for live music-flow tests
-- `Service/Core/` - real command handling through Discord messages
+- `Service/MusicFlowEndToEndTests.cs` and `Service/ReactionHandlerEndToEndTests.cs` - live music-flow and reaction-control scenarios
+- `Service/LiveMusicFlowTestContext.cs` - live music-flow facade that composes real Discord, Lavalink, command driver, message probe, and cleanup helpers
+- `Service/DiscordE2EClientFixture.cs`, `Service/MusicFlowDriver.cs`, `Service/LavalinkE2EFixture.cs`, `Service/LiveDiscordMessageProbe.cs` - split helpers behind the live music-flow facade
+- `Service/Core/` - real command handling split into registration, live-message, and guard E2E tests with `CommandHandlerEndToEndTestBase`
 - `Commands/TextCommands/Playlist/` - local text command handler pipeline for playlist command flows, including remove-song routing
 - `Commands/SlashCommands/` - local slash adapter -> executor -> text command pipeline, split by Music/Queue/Utility command domains
 - `Wrapper/` - DSharpPlus wrapper behavior against real Discord objects

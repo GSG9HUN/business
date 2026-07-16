@@ -1,4 +1,4 @@
-﻿using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 
 namespace DC_bot.Service.Music.MusicServices;
 

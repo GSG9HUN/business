@@ -10,10 +10,17 @@ This folder contains the now-playing message update timer.
 
 **Purpose:** Keep the now-playing Discord message updated while a Lavalink track is active.
 
+### SystemProgressTicker.cs
+
+**Implements:** `IProgressTicker`
+
+**Purpose:** Provide the production stopwatch/delay session used by `ProgressiveTimerService`.
+
 ## Behavior
 
 - Starts one active timer per guild and replaces any previous active timer for the same guild.
 - Reads the active Lavalink player and current track for the guild.
+- Starts a fresh `IProgressTickerSession` for each timer run.
 - Rebuilds the now-playing embed through `ITrackNotificationService.BuildNowPlayingEmbed()`.
 - Updates the original control message with the current playback position.
 - Tracks the last known position so pause/resume can continue the displayed progress instead of resetting to zero.
@@ -26,7 +33,8 @@ This folder contains the now-playing message update timer.
 - Active timers are tracked as per-guild timer state, not just raw cancellation tokens.
 - Paused timers keep the original message, track identifier, and paused position.
 - `ResumeAsync()` is a no-op when there is no paused state or the current Lavalink track no longer matches the paused track identifier.
-- The timer updates every second and compensates for update duration before the next delay.
+- The production ticker updates every second and compensates for update duration before the next delay.
+- Unit tests inject a fake `IProgressTicker` so timer progress can be advanced without real `Task.Delay` waits.
 - Message update failures are logged and do not escape the background timer task.
 
 ## Related Components

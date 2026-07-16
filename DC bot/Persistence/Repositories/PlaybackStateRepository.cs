@@ -12,7 +12,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
             .AsNoTracking()
@@ -51,7 +51,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
             .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
@@ -86,7 +86,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        await EnsureGuildDataExistsAsync(dbContext, guildId, cancellationToken);
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var state = await dbContext.GuildPlaybackStates
             .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
@@ -110,26 +110,6 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
             state.QueueItemId = queueItemId;
             state.UpdatedAtUtc = DateTimeOffset.UtcNow;
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-    }
-    private static async Task EnsureGuildDataExistsAsync(
-        BotDbContext dbContext,
-        ulong guildId,
-        CancellationToken cancellationToken)
-    {
-        var exists = await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId, cancellationToken);
-        if (exists)
-        {
-            return;
-        }
-
-        dbContext.GuildData.Add(new GuildDataEntity
-        {
-            GuildId = guildId,
-            IsPremium = false,
-            UpdatedAtUtc = DateTimeOffset.UtcNow
-        });
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

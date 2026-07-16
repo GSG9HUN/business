@@ -1,4 +1,4 @@
-﻿# Service Interfaces
+# Service Interfaces
 
 This folder contains service abstraction contracts grouped by domain.
 
@@ -28,7 +28,7 @@ Music and playback service interfaces.
 
 - `ILavaLinkService.cs`
 - `ITrackSearchResolverService.cs`
-- `MusicServiceInterface/` - Granular music service interfaces
+- `Music/` - Granular music service interfaces
 - `PlaylistServiceInterface/` - Saved playlist service contract and result DTOs
 - `ProgressiveTimerInterface/` - Now-playing timer service interface
 

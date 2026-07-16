@@ -127,6 +127,8 @@ YOUTUBE_REFRESH_TOKEN=
 - `IPlaylistTrackRepository -> PlaylistTrackRepository`
 - `IRepeatListRepository -> RepeatListRepository`
 
+`QueueRepository` keeps the public `IQueueRepository` contract, while the PostgreSQL atomic claim transaction is delegated internally to `QueueClaimService`.
+
 `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` checks pending migrations and runs `MigrateAsync()` when needed.
 
 The runtime PostgreSQL connection string is built from the `POSTGRES_*` variables by `BotConfigurationLoader.BuildPostgresConnectionString()`. The current C# startup path does not read `POSTGRES_CONNECTION_STRING` directly.
