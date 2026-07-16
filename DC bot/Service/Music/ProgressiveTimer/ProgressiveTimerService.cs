@@ -1,14 +1,11 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using DC_bot.Interface;
+using System.Collections.Concurrent;
 using DC_bot.Interface.Discord;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Logging;
 using DC_bot.Wrapper;
 using DSharpPlus.Entities;
 using Lavalink4NET;
-using Lavalink4NET.Players;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Music.ProgressiveTimer;
@@ -16,10 +13,12 @@ namespace DC_bot.Service.Music.ProgressiveTimer;
 public class ProgressiveTimerService(
     IAudioService audioService,
     ILogger<ProgressiveTimerService> logger,
-    ITrackNotificationService trackNotificationService) : IProgressiveTimerService
+    ITrackNotificationService trackNotificationService,
+    IProgressTicker? progressTicker = null) : IProgressiveTimerService
 {
     private readonly ConcurrentDictionary<ulong, TimerState> _timers = new();
     private readonly ConcurrentDictionary<ulong, PausedTimerState> _pausedTimers = new();
+    private readonly IProgressTicker _progressTicker = progressTicker ?? new SystemProgressTicker();
 
     public Task StartAsync(IDiscordMessage message, ulong guildId)
     {
@@ -121,16 +120,16 @@ public class ProgressiveTimerService(
     {
         const int intervalMs = 1000;
         var ct = timer.Cancellation.Token;
-        var sw = Stopwatch.StartNew();
+        var ticker = _progressTicker.StartSession();
         try
         {
             while (!ct.IsCancellationRequested)
             {
-                var loopStart = sw.ElapsedMilliseconds;
+                var loopStart = ticker.ElapsedMilliseconds;
 
                 if (timer.Player.CurrentTrack is null) break;
 
-                var elapsed = TimeSpan.FromMilliseconds(sw.ElapsedMilliseconds);
+                var elapsed = TimeSpan.FromMilliseconds(ticker.ElapsedMilliseconds);
                 var pos = timer.StartPosition + elapsed;
                 var dur = timer.Track.Duration;
 
@@ -143,10 +142,10 @@ public class ProgressiveTimerService(
 
                 if (pos >= dur) break;
 
-                var elapsed2 = sw.ElapsedMilliseconds - loopStart;
+                var elapsed2 = ticker.ElapsedMilliseconds - loopStart;
                 var delay = Math.Max(0, intervalMs - (int)elapsed2);
 
-                await Task.Delay(delay, ct);
+                await ticker.DelayAsync(TimeSpan.FromMilliseconds(delay), ct);
             }
         }
         catch (TaskCanceledException)
@@ -176,29 +175,4 @@ public class ProgressiveTimerService(
             .Remove(new KeyValuePair<ulong, TimerState>(guildId, timer));
     }
 
-    private sealed class TimerState(
-        CancellationTokenSource cancellation,
-        IDiscordMessage message,
-        ILavaLinkTrack track,
-        ILavalinkPlayer player,
-        string trackIdentifier,
-        TimeSpan startPosition)
-    {
-        private long _lastPositionTicks = startPosition.Ticks;
-
-        public CancellationTokenSource Cancellation { get; } = cancellation;
-        public IDiscordMessage Message { get; } = message;
-        public ILavaLinkTrack Track { get; } = track;
-        public ILavalinkPlayer Player { get; } = player;
-        public string TrackIdentifier { get; } = trackIdentifier;
-        public TimeSpan StartPosition { get; } = startPosition;
-        public TimeSpan LastPosition => TimeSpan.FromTicks(Interlocked.Read(ref _lastPositionTicks));
-
-        public void SetLastPosition(TimeSpan position)
-        {
-            Interlocked.Exchange(ref _lastPositionTicks, position.Ticks);
-        }
-    }
-
-    private sealed record PausedTimerState(IDiscordMessage Message, string TrackIdentifier, TimeSpan Position);
 }

@@ -71,6 +71,23 @@ internal static class DiscordEntityFactory
         return false;
     }
 
+    private static void SetAssignableFields<TValue>(object obj, TValue value)
+    {
+        var type = obj.GetType();
+        while (type is not null)
+        {
+            foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+            {
+                if (field.FieldType.IsAssignableFrom(typeof(TValue)))
+                {
+                    field.SetValue(obj, value);
+                }
+            }
+
+            type = type.BaseType;
+        }
+    }
+
     public static DiscordUser CreateUser(ulong id = 1ul, string username = "TestUser", bool isBot = false)
     {
         var user = Create<DiscordUser>();
@@ -127,6 +144,8 @@ internal static class DiscordEntityFactory
 
         if (userField != null)
             userField.SetValue(member, internalUser);
+        TrySetMember(member, "User", internalUser);
+        SetAssignableFields(member, internalUser);
 
         var guild = Create<DiscordGuild>();
         SetField(guild, "<Id>k__BackingField", 0ul);
@@ -137,6 +156,8 @@ internal static class DiscordEntityFactory
 
         if (guildField != null)
             guildField.SetValue(member, guild);
+        TrySetMember(member, "Guild", guild);
+        SetAssignableFields(member, guild);
 
         return member;
     }

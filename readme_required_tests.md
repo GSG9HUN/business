@@ -6,7 +6,7 @@ This file tracks which test areas are already covered and which test areas are s
 
 **Current automated test inventory from the latest local run:**
 
-- Non-E2E executed tests: **769 passed**
+- Unit + Integration coverage run: **801 passed**
 - Playlist-focused tests: **84 passed**.
 - Playlist text command unit tests: **46 passed**.
 - Playlist local text command E2E pipeline: **1 passed**.
@@ -72,6 +72,8 @@ dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build 
 - [x] Unregisters after registration.
 - [x] Logs warning when unregister is called before register.
 - [x] Covers test-mode reaction add/remove behavior.
+- [x] Split regression coverage lives in `ReactionHandlerServiceRegistrationTests.cs`, `ReactionHandlerServiceDispatchTests.cs`, `ReactionHandlerServiceExceptionLoggingTests.cs`, `ReactionHandlerServiceControlMessageTests.cs`, and shared `ReactionHandlerServiceTestBase.cs`.
+- [x] Extracted reaction helpers are covered by `ReactionActionDispatcherTests.cs`, `ReactionContextFactoryTests.cs`, `ReactionContextTests.cs`, `ReactionControlMessageServiceTests.cs`, and `ReactionControlEmojisTests.cs`.
 
 ### LocalizationService - COMPLETE
 
@@ -80,6 +82,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --configuration Debug --no-build 
 - [x] Handles JSON deserialization failure paths.
 - [x] Returns the key when translation is missing.
 - [x] Persists and resolves guild language values.
+- [x] Split coverage lives in `LocalizationServiceDefaultTranslationTests.cs`, `LocalizationServiceGuildLanguageTests.cs`, `LocalizationServiceDirectoryTests.cs`, `LocalizationServiceFormattingTests.cs`, `LocalizationServiceErrorHandlingTests.cs`, and shared `LocalizationServiceTestBase.cs`.
 
 ### Configuration Models - COMPLETE
 
@@ -161,6 +164,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `PlayCommand` - plays search-query inputs.
 - [x] `PlayCommand` - covers YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, and Yandex Music modes.
 - [x] `PlayCommand` - ignores bot users.
+- [x] `PlayCommand` split coverage lives in `PlayCommandMetadataTests.cs`, `PlayCommandValidationTests.cs`, `PlayCommandUrlPlaybackTests.cs`, `PlayCommandQueryPlaybackTests.cs`, and shared `PlayCommandTestBase.cs`.
 
 ### Commands - Queue - COMPLETE
 
@@ -211,7 +215,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `LavalinkNodeConnectionService` maps startup failures to domain exception.
 - [x] `PlaybackRequestService` handles URL and query loading.
 - [x] `PlaybackRequestService` handles track-not-found and load exceptions.
-- [x] `PlaybackControlService` handles pause, resume, skip, leave, progressive timer coordination, and error paths.
+- [x] `PlaybackControlService` handles pause, resume, skip, leave, progressive timer coordination, and error paths through `PlaybackControlServicePauseTests.cs`, `PlaybackControlServiceResumeTests.cs`, `PlaybackControlServiceSkipTests.cs`, `PlaybackControlServiceLeaveTests.cs`, and shared `PlaybackControlServiceTestBase.cs`.
 - [x] `PlayerConnectionService` handles join, stale disconnected player cleanup before join, existing connected-player validation, retry, cancellation propagation, and exception paths.
 - [x] `MusicQueueService` handles enqueue/dequeue/view/get/set/clear.
 - [x] `MusicQueueService` uses `ITrackSerializer` for persisted track identity serialization/deserialization.
@@ -224,7 +228,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] `TrackFormatterService` formats current and queued track output.
 - [x] `TrackNotificationService` sends now-playing notifications.
 - [x] `PlaybackEventHandlerService` registers and cleans up playback event handlers.
-- [x] `ProgressiveTimerService` covers timer start, pause, resume, stop, cancellation, position bounds, stale track mismatch, and message modification failures.
+- [x] `ProgressiveTimerService` covers timer start, pause, resume, stop, cancellation, position bounds, stale track mismatch, and message modification failures with deterministic fake `IProgressTicker` sessions through `ProgressiveTimerServiceStartTests.cs`, `ProgressiveTimerServiceLifecycleTests.cs`, and shared `ProgressiveTimerServiceTestBase.cs`.
 - [x] `TrackSearchResolverService` covers URL/query source resolution and default/fallback behavior.
 - [x] `PlaylistService` covers create, save, list, view, delete, add song, rename, invalid names, missing playlists, and unknown-error mappings.
 
@@ -232,7 +236,7 @@ Slash commands are tested through the framework-facing modules and the shared `I
 
 - [x] `GuildDataRepository`
 - [x] `PlaybackStateRepository`
-- [x] `QueueRepository`
+- [x] `QueueRepository` public contract plus internal `QueueClaimService` claim workflow and `PostgreSqlQueueClaimSql` SQL boundary
 - [x] `RepeatListRepository`
 - [x] `PlaylistRepository`
 - [x] `PlaylistTrackRepository`
@@ -286,7 +290,13 @@ Slash commands are tested through the framework-facing modules and the shared `I
 - [x] DI command resolution.
 - [x] Prefix validation and logging.
 - [x] Fake Discord message events route through the real text command list for `ping`, `help`, `language`, `tag`, one music command, and one queue command.
+- [x] Command routing integration is split across `CommandHandlerServiceMessageRoutingIntegrationTests.cs`, `CommandHandlerServiceUtilityRoutingIntegrationTests.cs`, `CommandHandlerServiceMusicRoutingIntegrationTests.cs`, and `CommandHandlerServiceQueueRoutingIntegrationTests.cs`, using `CommandHandlerIntegrationFixture.cs`, `FakeDiscordMessageBuilder.cs`, and `CommandHandlerFakeMessageFactory.cs`.
 - [x] Registered playlist commands resolve through startup/text-command registration integration tests.
+
+### ReactionHandler Integration - COMPLETE
+
+- [x] `ReactionHandlerDependencyInjectionIntegrationTests.cs` verifies production DI wiring for the split reaction services.
+- [x] `ReactionHandlerDispatchIntegrationTests.cs` verifies dispatch behavior through the production reaction handler, context factory, and action dispatcher.
 
 ### SlashCommand Integration - COMPLETE
 
@@ -379,6 +389,7 @@ Required E2E settings:
 - [x] Bot-authored reactions are ignored outside test mode.
 - [x] Real Discord object context builds expected guild ID.
 - [x] Full reaction flow with real Lavalink playback state.
+- [x] Live reaction coverage is split into `ReactionHandlerEndToEndTests.cs` and the live music-flow helpers behind `LiveMusicFlowTestContext.cs`.
 
 ### Music Flow E2E - CONFIG-GATED
 
@@ -386,6 +397,7 @@ Required E2E settings:
 - [x] `!play [query-or-url]` plays a configured track in a real voice channel when live music E2E settings are present.
 - [x] Live music-flow test publishes visible Discord chat markers for each command step.
 - [x] Live music-flow test registers the production `ReactionHandlerService`, sends the now-playing control message, and verifies progressive timer message updates.
+- [x] Live music-flow orchestration is split across `MusicFlowEndToEndTests.cs`, `LiveMusicFlowTestContext.cs`, `DiscordE2EClientFixture.cs`, `MusicFlowDriver.cs`, `LavalinkE2EFixture.cs`, and `LiveDiscordMessageProbe.cs`.
 - [x] `!pause` pauses current playback in the live music-flow test.
 - [x] `!resume` resumes current playback in the live music-flow test.
 - [x] `!skip` skips/stops current playback in the live music-flow test.

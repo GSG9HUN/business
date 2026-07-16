@@ -1,5 +1,5 @@
 using DC_bot.Interface;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Service.Music.MusicServices;

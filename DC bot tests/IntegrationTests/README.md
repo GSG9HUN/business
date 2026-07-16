@@ -49,7 +49,11 @@ Covered PostgreSQL-backed areas include:
 
 ## Command Routing
 
-`Service/Core/CommandHandlerServiceIntegrationTests.cs` covers fake Discord message events routed through the real text command list for utility, music, and queue command paths. Playlist command registration is covered by startup/text-command registration integration tests, and playlist command-handler pipeline behavior is covered by the local E2E playlist text-command test. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
+`Service/Core/CommandHandlerIntegrationFixture.cs`, `FakeDiscordMessageBuilder.cs`, and `CommandHandlerFakeMessageFactory.cs` provide the shared command-routing harness. The routing cases are split into `CommandHandlerServiceMessageRoutingIntegrationTests.cs`, `CommandHandlerServiceUtilityRoutingIntegrationTests.cs`, `CommandHandlerServiceMusicRoutingIntegrationTests.cs`, and `CommandHandlerServiceQueueRoutingIntegrationTests.cs`. Playlist command registration is covered by startup/text-command registration integration tests, and playlist command-handler pipeline behavior is covered by the local E2E playlist text-command test. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
+
+## Reaction Handler
+
+`Service/ReactionHandler/ReactionHandlerDependencyInjectionIntegrationTests.cs` verifies the DI graph for the split reaction services. `Service/ReactionHandler/ReactionHandlerDispatchIntegrationTests.cs` verifies dispatch behavior across the production reaction handler, context factory, and action dispatcher wiring.
 
 ## Localization
 

@@ -1,8 +1,7 @@
-﻿﻿using DC_bot.Constants;
-using DC_bot.Helper.Validation;
+using DC_bot.Constants;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Presentation;
 using Lavalink4NET;
 using Lavalink4NET.Extensions;
@@ -17,6 +16,9 @@ public class PlayerConnectionService(
     IResponseBuilder responseBuilder,
     ILogger<PlayerConnectionService> logger) : IPlayerConnectionService
 {
+    private readonly PlayerConnectionRetryPolicy _connectionRetryPolicy = new(validationService);
+    private readonly StalePlayerCleanupService _stalePlayerCleanupService = new(audioService, logger);
+
     public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
         TryJoinAndValidateAsync(
             IDiscordMessage message,
@@ -49,7 +51,7 @@ public class PlayerConnectionService(
         ILavalinkPlayer? connection;
         try
         {
-            await DestroyDisconnectedPlayerBeforeJoinAsync(guildId, cancellationToken).ConfigureAwait(false);
+            await _stalePlayerCleanupService.DisconnectBeforeJoinAsync(guildId, cancellationToken).ConfigureAwait(false);
 
             connection = await audioService.Players.JoinAsync(
                 channel.Guild.Id,
@@ -71,16 +73,9 @@ public class PlayerConnectionService(
                     validationPlayerResult.ErrorKey);
             }
 
-            const int maxAttempts = 5;
-            const int delayMs = 200;
-
-            ConnectionValidationResult validationConnectionResult = null!;
-            for (int attempt = 0; attempt < maxAttempts; attempt++)
-            {
-                validationConnectionResult = await validationService.ValidateConnectionAsync(connection).ConfigureAwait(false);
-                if (validationConnectionResult.IsValid) break;
-                await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
-            } 
+            var validationConnectionResult = await _connectionRetryPolicy
+                .ValidateAsync(connection, cancellationToken)
+                .ConfigureAwait(false);
             
             if (validationConnectionResult is { IsValid: true })
             {
@@ -197,21 +192,4 @@ public class PlayerConnectionService(
         }
     }
 
-    private async Task DestroyDisconnectedPlayerBeforeJoinAsync(ulong guildId, CancellationToken cancellationToken)
-    {
-        var existingPlayer = await audioService.Players.GetPlayerAsync(guildId, cancellationToken).ConfigureAwait(false);
-        if (existingPlayer is null || existingPlayer.ConnectionState.IsConnected)
-        {
-            return;
-        }
-
-        logger.LogWarning(
-            "Disconnecting stale Lavalink player before join. Guild: {GuildId}, ConnectionState: {ConnectionState}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}",
-            guildId,
-            existingPlayer.ConnectionState,
-            existingPlayer.State,
-            existingPlayer.VoiceChannelId);
-
-        await existingPlayer.DisconnectAsync(cancellationToken).ConfigureAwait(false);
-    }
 }

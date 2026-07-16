@@ -1,4 +1,4 @@
-﻿# Queue Commands
+# Queue Commands
 
 This folder contains text commands for managing the music playback queue.
 
@@ -130,6 +130,7 @@ Queue state is persisted to:
 - **Storage:** PostgreSQL via EF Core repositories
 - **Contract:** `IQueueRepository`
 - **Implementation:** `Persistence/Repositories/QueueRepository.cs`
+- **Claim workflow:** `Persistence/Repositories/QueueClaimService.cs` is used internally by `QueueRepository.ClaimNextQueuedItemAsync`
 - **State model:** `QueueItemState` queued/playing/played/skipped queue item lifecycle
 
 Repeat-list snapshots are stored separately through `IRepeatListRepository`; they are read by `MusicQueueService.GetRepeatableQueue()` and copied back into the queue through `IQueueRepository.EnqueueManyAsync`.
@@ -138,8 +139,9 @@ Repeat-list snapshots are stored separately through `IRepeatListRepository`; the
 
 - `Service/Music/MusicServices/MusicQueueService.cs` - Queue state management
 - `Service/Music/MusicServices/RepeatService.cs` - Repeat flags and repeat-list snapshot writes
-- `Interface/Service/Music/MusicServiceInterface/IMusicQueueService.cs` - Queue contract
+- `Interface/Service/Music/IMusicQueueService.cs` - Queue contract
 - `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
 - `Interface/Service/Persistence/IRepeatListRepository.cs` - Repeat-list snapshot persistence contract
 - `Persistence/Repositories/QueueRepository.cs` - Queue persistence implementation
+- `Persistence/Repositories/QueueClaimService.cs` - Queue claim transaction helper
 

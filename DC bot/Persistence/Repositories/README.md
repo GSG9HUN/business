@@ -43,8 +43,20 @@ Responsibilities:
 - mark all queued items as skipped (`MarkAllQueuedAsSkippedAsync`)
 - enforce max queued items per guild
 - atomically claim the next queued item (`ClaimNextQueuedItemAsync`): marks it as `playing` and returns it in a single operation
+- delegate the PostgreSQL claim workflow to `QueueClaimService`
 - isolate the PostgreSQL `FOR UPDATE SKIP LOCKED` claim SQL in `PostgreSqlQueueClaimSql`
 - the current queue limit is 50 queued tracks per guild
+
+### QueueClaimService.cs
+
+Internal helper used by `QueueRepository`.
+
+Responsibilities:
+
+- open the short-lived DB context and transaction for queue claims
+- execute `PostgreSqlQueueClaimSql.ClaimNextQueuedItem()`
+- mark the claimed row as `Playing`
+- commit or roll back the claim transaction without changing the public `IQueueRepository` contract
 
 ### RepeatListRepository.cs
 
