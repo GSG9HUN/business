@@ -8,6 +8,20 @@ namespace DC_bot_tests.UnitTests.Service.Music.Playlist;
 public class PlaylistServiceMutationTests : PlaylistServiceTestBase
 {
     [Fact]
+    public async Task DeletePlaylistAsync_WhenPlaylistNameIsInvalid_ReturnsInvalidPlaylistName()
+    {
+        var context = CreateContext();
+
+        var result = await context.Service.DeletePlaylistAsync(GuildId, string.Empty);
+
+        Assert.Equal(DeletePlaylistResult.InvalidPlaylistName, result);
+        context.PlaylistRepository.Verify(repository => repository.GetByGuildAndNameAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task DeletePlaylistAsync_WhenPlaylistDoesNotExist_ReturnsDoesNotExist()
     {
         var context = CreateContext();

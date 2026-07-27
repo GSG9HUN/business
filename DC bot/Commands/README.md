@@ -8,7 +8,7 @@ Commands handle user input from Discord and delegate business logic to services.
 surfaces:
 
 1. **TextCommands** - prefix-based message commands such as `!play`, `!pause`, `!viewList`, and `!savePlaylist`.
-2. **SlashCommands** - Discord application commands such as `/play`, `/pause`, and `/queue`.
+2. **SlashCommands** - Discord application commands such as `/play`, `/pause`, `/queue`, and `/playlist`.
 
 Slash commands are intentionally thin adapters. They create a slash execution request and reuse the existing text command
 pipeline through `ISlashCommandExecutor`, so validation, localization, playback, persistence, and response behavior stay
@@ -31,6 +31,7 @@ Slash command modules grouped to mirror the text command domains.
 
 - `Music/` - `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
 - `Queue/` - `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
+- `Playlist/` - `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
 - `Utility/` - `/help`, `/ping`, `/language`, `/tag`
 
 Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` through `AddCommandServices()`, `DSharpPlus.Commands`, and `SlashCommandProcessor`.

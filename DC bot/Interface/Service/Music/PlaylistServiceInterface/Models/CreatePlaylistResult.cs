@@ -5,5 +5,6 @@ public enum CreatePlaylistResult
     Created,
     PlaylistAlreadyExists,
     InvalidPlaylistName,
+    PlaylistLimitReached,
     UnknownError
 }

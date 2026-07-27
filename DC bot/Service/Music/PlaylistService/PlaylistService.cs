@@ -1,9 +1,11 @@
+using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence;
 using Lavalink4NET;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DC_bot.Service.Music.PlaylistService;
 
@@ -19,8 +21,10 @@ public class PlaylistService : IPlaylistService
         IPlaylistTrackRepository playlistTrackRepository,
         ITrackSearchResolverService trackSearchResolverService,
         ITrackSerializer trackSerializer,
+        IOptions<PlaylistOptions> playlistOptions,
         ILogger<PlaylistService> logger)
     {
+        var options = playlistOptions.Value;
         var trackLoader = new PlaylistTrackLoader(audioService, logger);
         var trackDisplayMapper = new PlaylistTrackDisplayMapper(trackSerializer, logger);
 
@@ -29,13 +33,14 @@ public class PlaylistService : IPlaylistService
             playlistTrackRepository,
             trackDisplayMapper,
             logger);
-        _mutationService = new PlaylistMutationService(playlistRepository, logger);
+        _mutationService = new PlaylistMutationService(playlistRepository, options, logger);
         _trackMutationService = new PlaylistTrackMutationService(
             playlistRepository,
             playlistTrackRepository,
             trackSearchResolverService,
             trackSerializer,
             trackLoader,
+            options,
             logger);
     }
 

@@ -2,6 +2,9 @@
 
 This folder contains text commands for saved playlist management.
 
+Playlist names are normalized and validated by the playlist service for every service entrypoint. Text commands that
+need two values support quoted playlist names, for example `!addSong "road trip" madeon imperium`.
+
 ## Commands
 
 ### CreatePlaylistCommand.cs
@@ -21,6 +24,7 @@ This folder contains text commands for saved playlist management.
 
 - Playlist already exists -> warning.
 - Playlist name is empty, too long, or contains line breaks -> warning.
+- Guild playlist limit reached -> warning.
 - Unexpected service failure -> error.
 
 ---
@@ -41,8 +45,14 @@ This folder contains text commands for saved playlist management.
 **Error Cases:**
 
 - Playlist already exists -> warning.
-- No tracks found from the provided URL -> warning.
+- No tracks were found from the provided URL -> warning.
+- Playlist name is invalid -> warning.
+- Guild playlist limit reached -> warning.
+- Loaded playlist exceeds the configured import or per-playlist track limit -> warning.
 - Unexpected service failure -> error.
+
+The service serializes loaded tracks before creating the playlist and deletes the just-created playlist if track insert
+fails, so an `UnknownError` does not leave an empty saved playlist behind.
 
 ---
 
@@ -57,15 +67,15 @@ This folder contains text commands for saved playlist management.
 1. Validates the user.
 2. Reads the playlist name.
 3. Calls `IPlaylistService.DeletePlaylistAsync(guildId, playlistName)`.
-4. Sends a localized response for deleted, missing, or unknown-error outcomes.
+4. Sends a localized response for deleted, missing, invalid-name, or unknown-error outcomes.
 
 ---
 
 ### AddSongToPlaylistCommand.cs
 
-**Command:** `!addSong <playlistName> <songUrl>`
+**Command:** `!addSong <playlistName> <songUrlOrQuery>`
 
-**Description:** Load a single song URL and append it to an existing saved playlist.
+**Description:** Load a single song URL or search query and append the first loaded track to an existing saved playlist.
 
 **Behavior:**
 
@@ -77,9 +87,14 @@ This folder contains text commands for saved playlist management.
 **Error Cases:**
 
 - Playlist does not exist -> warning.
-- URL cannot be loaded -> warning.
+- URL or query cannot be loaded -> warning.
 - No tracks found -> warning.
+- Playlist name is invalid -> warning.
+- Playlist track limit reached -> warning.
 - Unexpected service failure -> error.
+
+The add-song path handles Lavalink single-track fallback results the same way as save, so a valid single track does not
+produce a false `NoTracksFound` response.
 
 ---
 
@@ -115,6 +130,7 @@ This folder contains text commands for saved playlist management.
 
 - Playlist does not exist -> warning.
 - Playlist exists but has no tracks -> warning.
+- Playlist name is invalid -> warning.
 - Stored tracks cannot be deserialized for display -> error.
 
 ---
@@ -162,6 +178,15 @@ This folder contains text commands for saved playlist management.
 - `IResponseBuilder` - success, warning, and error responses.
 - `ILocalizationService` - localized command text.
 - `IUserValidationService` - user/voice validation boundary.
+
+## Safety and Limits
+
+- Playlist command responses escape Discord mass/user/role mentions in playlist names and track metadata before sending
+  text responses.
+- `PlaylistOptions` controls `MaxPlaylistsPerGuild`, `MaxTracksPerPlaylist`, and `MaxImportedTracks`; defaults are used
+  unless tests or startup code override the options.
+- Slash commands reuse these text commands. The slash adapter quotes playlist-name arguments when needed so names with
+  spaces survive the text parser.
 
 ## Persistence
 

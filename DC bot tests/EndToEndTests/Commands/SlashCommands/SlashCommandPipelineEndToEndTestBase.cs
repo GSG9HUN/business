@@ -2,6 +2,7 @@ using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.SlashCommands;
 using Moq;
 
@@ -16,6 +17,7 @@ public abstract class SlashCommandPipelineEndToEndTestBase
     protected Mock<IMusicQueueService> MusicQueueServiceMock => _graph.MusicQueueServiceMock;
     protected Mock<IRepeatService> RepeatServiceMock => _graph.RepeatServiceMock;
     protected Mock<ITrackFormatterService> TrackFormatterServiceMock => _graph.TrackFormatterServiceMock;
+    protected Mock<IPlaylistService> PlaylistServiceMock => _graph.PlaylistServiceMock;
     protected Mock<ILocalizationService> LocalizationServiceMock => _graph.LocalizationServiceMock;
     protected ISlashCommandExecutor SlashCommandExecutor => _graph.Executor;
 

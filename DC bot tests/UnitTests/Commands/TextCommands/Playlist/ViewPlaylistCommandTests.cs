@@ -44,6 +44,7 @@ public class ViewPlaylistCommandTests : PlaylistCommandTestBase
     [Theory]
     [InlineData(ViewPlaylistStatus.PlaylistDoesNotExist, "warning", LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist)]
     [InlineData(ViewPlaylistStatus.EmptyPlaylist, "warning", LocalizationKeys.ViewPlaylistCommandEmptyPlaylist)]
+    [InlineData(ViewPlaylistStatus.InvalidPlaylistName, "warning", LocalizationKeys.ViewPlaylistCommandInvalidPlaylistName)]
     [InlineData(ViewPlaylistStatus.UnknownError, "error", LocalizationKeys.ViewPlaylistCommandUnknownError)]
     public async Task ExecuteAsync_SendsExpectedNonSuccessResponse(
         ViewPlaylistStatus status,
@@ -57,6 +58,28 @@ public class ViewPlaylistCommandTests : PlaylistCommandTestBase
         await command.ExecuteAsync(MessageMock.Object);
 
         VerifyResponse(responseKind, expectedKey);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenViewed_EscapesDangerousMentionsInTrackDisplay()
+    {
+        PlaylistServiceMock.Setup(service => service.ViewPlaylistAsync(GuildId, PlaylistName))
+            .ReturnsAsync(new ViewPlaylistResult(
+                ViewPlaylistStatus.Viewed,
+                "@everyone",
+                [new PlaylistViewTrackDto(1, "<@123>", "<@&456>", TimeSpan.FromSeconds(61), "uri")]));
+        var command = CreateCommand();
+
+        await command.ExecuteAsync(MessageMock.Object);
+
+        ResponseBuilderMock.Verify(response => response.SendSuccessAsync(
+            MessageMock.Object,
+            LocalizationKeys.ViewPlaylistCommandResponse,
+            It.Is<object[]>(args =>
+                args[0].ToString()!.Contains("@\u200Beveryone", StringComparison.Ordinal) &&
+                args[2].ToString()!.Contains("<@\u200B&456>", StringComparison.Ordinal) &&
+                args[2].ToString()!.Contains("<@\u200B123>", StringComparison.Ordinal))),
+            Times.Once);
     }
 
     [Fact]

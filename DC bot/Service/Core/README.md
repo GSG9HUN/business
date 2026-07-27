@@ -108,6 +108,10 @@ Playlist commands that need two values, such as `!savePlaylist <name> <url>`, `!
 `!removeSong <name> <trackNumber>`, and `!renamePlaylist <currentName> <newName>`, use
 `TryParseSavePlaylistArguments` to validate and split the payload.
 
+The first argument can be quoted when it contains spaces, for example `!savePlaylist "road trip" https://example.com`.
+Slash playlist adapters always quote playlist-name arguments for these two-value commands before they enter the text
+command parser.
+
 ---
 
 ### CommandRegistry.cs

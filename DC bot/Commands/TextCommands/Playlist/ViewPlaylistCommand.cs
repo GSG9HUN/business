@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -36,27 +37,32 @@ public class ViewPlaylistCommand(
 
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.ViewPlaylistAsync(guildId, playlistName);
+        var safePlaylistName = DiscordTextSanitizer.EscapeMentions((result.PlaylistName ?? playlistName).Trim());
 
         switch (result.Status)
         {
             case ViewPlaylistStatus.Viewed:
                 await responseBuilder.SendSuccessAsync(message,
                     LocalizationKeys.ViewPlaylistCommandResponse,
-                    result.PlaylistName,
+                    safePlaylistName,
                     result.Tracks.Count,
                     FormatTracks(guildId, result.Tracks));
                 break;
             case ViewPlaylistStatus.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist, playlistName);
+                    LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
                 break;
             case ViewPlaylistStatus.EmptyPlaylist:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandEmptyPlaylist,
-                    result.PlaylistName);
+                    safePlaylistName);
+                break;
+            case ViewPlaylistStatus.InvalidPlaylistName:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandInvalidPlaylistName,
+                    safePlaylistName);
                 break;
             case ViewPlaylistStatus.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.ViewPlaylistCommandUnknownError,
-                    playlistName);
+                    safePlaylistName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result.Status, null);
@@ -72,8 +78,8 @@ public class ViewPlaylistCommand(
             .Select(track => localizationService.Get(guildId,
                 LocalizationKeys.ViewPlaylistCommandTrack,
                 track.OrderNumber,
-                track.Author,
-                track.Title,
+                DiscordTextSanitizer.EscapeMentions(track.Author),
+                DiscordTextSanitizer.EscapeMentions(track.Title),
                 FormatDuration(track.Duration)))
             .ToList();
 

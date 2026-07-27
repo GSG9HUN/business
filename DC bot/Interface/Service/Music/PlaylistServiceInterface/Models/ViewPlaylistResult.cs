@@ -5,6 +5,7 @@ public enum ViewPlaylistStatus
     Viewed,
     PlaylistDoesNotExist,
     EmptyPlaylist,
+    InvalidPlaylistName,
     UnknownError
 }
 

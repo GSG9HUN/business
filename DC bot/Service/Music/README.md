@@ -106,11 +106,12 @@ Responsibilities:
 
 - create empty guild playlists
 - save Lavalink-loaded playlist URLs into persistent playlist tracks
-- append a single loaded song to an existing playlist
+- append the first loaded song to an existing playlist, including single-track fallback loads
 - remove a stored song from an existing playlist by track number
 - list saved playlists with track counts
 - view stored playlist tracks by deserializing saved track identifiers
 - delete and rename guild playlists
+- enforce `PlaylistOptions` saved playlist and track limits
 
 ---
 
@@ -127,6 +128,6 @@ The timer is started from the reaction control message flow, paused/resumed by p
 - **Commands/TextCommands/Music/** - Text commands that use `LavaLinkService`
 - **Commands/TextCommands/Queue/** - Text commands that use `MusicQueueService`
 - **Commands/TextCommands/Playlist/** - Text commands that use `PlaylistService`
-- **Commands/SlashCommands/** - Slash adapters that reuse the same text command pipeline
+- **Commands/SlashCommands/Playlist/** - Slash adapters that reuse the same text command pipeline
 - **Service/Music/MusicServices/** - Detailed service implementations
 

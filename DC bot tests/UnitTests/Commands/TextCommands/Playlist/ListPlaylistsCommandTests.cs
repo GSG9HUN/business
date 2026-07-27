@@ -34,6 +34,24 @@ public class ListPlaylistsCommandTests : PlaylistCommandTestBase
             Times.Once);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WhenListed_EscapesDangerousMentionsInPlaylistNames()
+    {
+        PlaylistServiceMock.Setup(service => service.ListPlaylistsAsync(GuildId))
+            .ReturnsAsync(new ListPlaylistsResult(
+                ListPlaylistsStatus.Listed,
+                [new PlaylistSummaryDto("@everyone", 1)]));
+        var command = CreateCommand();
+
+        await command.ExecuteAsync(MessageMock.Object);
+
+        ResponseBuilderMock.Verify(response => response.SendSuccessAsync(
+            MessageMock.Object,
+            LocalizationKeys.ListPlaylistsCommandResponse,
+            It.Is<object[]>(args => args[0].ToString()!.Contains("@\u200Beveryone", StringComparison.Ordinal))),
+            Times.Once);
+    }
+
     [Theory]
     [InlineData(ListPlaylistsStatus.NoPlaylists, "warning", LocalizationKeys.ListPlaylistsCommandNoPlaylists)]
     [InlineData(ListPlaylistsStatus.UnknownError, "error", LocalizationKeys.ListPlaylistsCommandUnknownError)]

@@ -1,3 +1,4 @@
+using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence;
 using Microsoft.Extensions.Logging;
@@ -6,11 +7,15 @@ namespace DC_bot.Service.Music.PlaylistService;
 
 internal sealed class PlaylistMutationService(
     IPlaylistRepository playlistRepository,
+    PlaylistOptions options,
     ILogger<PlaylistService> logger)
 {
     internal async Task<DeletePlaylistResult> DeletePlaylistAsync(ulong guildId, string playlistName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistName);
+        if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
+        {
+            return DeletePlaylistResult.InvalidPlaylistName;
+        }
 
         try
         {
@@ -34,10 +39,8 @@ internal sealed class PlaylistMutationService(
 
     internal async Task<RenamePlaylistResult> RenamePlaylistAsync(ulong guildId, string currentName, string newName)
     {
-        currentName = currentName.Trim();
-        newName = newName.Trim();
-
-        if (!PlaylistNameValidator.IsValid(currentName) || !PlaylistNameValidator.IsValid(newName))
+        if (!PlaylistNameValidator.TryNormalize(currentName, out currentName) ||
+            !PlaylistNameValidator.TryNormalize(newName, out newName))
         {
             return RenamePlaylistResult.InvalidPlaylistName;
         }
@@ -78,9 +81,7 @@ internal sealed class PlaylistMutationService(
 
     internal async Task<CreatePlaylistResult> CreatePlaylistAsync(ulong guildId, string playlistName)
     {
-        playlistName = playlistName.Trim();
-
-        if (!PlaylistNameValidator.IsValid(playlistName))
+        if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
         {
             return CreatePlaylistResult.InvalidPlaylistName;
         }
@@ -95,6 +96,16 @@ internal sealed class PlaylistMutationService(
                 return CreatePlaylistResult.PlaylistAlreadyExists;
             }
 
+            if (await IsPlaylistLimitReachedAsync(guildId))
+            {
+                var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
+                logger.LogWarning(
+                    "Playlist limit reached for guild {GuildId}. MaxPlaylistsPerGuild: {MaxPlaylistsPerGuild}",
+                    guildId,
+                    maxPlaylists);
+                return CreatePlaylistResult.PlaylistLimitReached;
+            }
+
             await playlistRepository.CreatePlaylistAsync(guildId, playlistName);
             logger.LogInformation("Created new playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
             return CreatePlaylistResult.Created;
@@ -104,5 +115,12 @@ internal sealed class PlaylistMutationService(
             logger.LogError(ex, "Failed to create playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
             return CreatePlaylistResult.UnknownError;
         }
+    }
+
+    private async Task<bool> IsPlaylistLimitReachedAsync(ulong guildId)
+    {
+        var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
+        var playlists = await playlistRepository.GetByGuildAsync(guildId);
+        return playlists.Count >= maxPlaylists;
     }
 }

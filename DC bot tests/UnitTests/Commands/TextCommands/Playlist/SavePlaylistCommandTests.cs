@@ -14,6 +14,9 @@ public class SavePlaylistCommandTests : PlaylistCommandTestBase
     [InlineData(SavePlaylistResult.Saved, "success", LocalizationKeys.SavePlaylistCommandSaved)]
     [InlineData(SavePlaylistResult.AlreadyExists, "warning", LocalizationKeys.SavePlaylistCommandAlreadyExists)]
     [InlineData(SavePlaylistResult.NoTracksFound, "warning", LocalizationKeys.SavePlaylistCommandNoTracksFound)]
+    [InlineData(SavePlaylistResult.InvalidPlaylistName, "warning", LocalizationKeys.SavePlaylistCommandInvalidPlaylistName)]
+    [InlineData(SavePlaylistResult.PlaylistLimitReached, "warning", LocalizationKeys.SavePlaylistCommandPlaylistLimitReached)]
+    [InlineData(SavePlaylistResult.TrackLimitExceeded, "warning", LocalizationKeys.SavePlaylistCommandTrackLimitExceeded)]
     [InlineData(SavePlaylistResult.UnknownError, "error", LocalizationKeys.SavePlaylistCommandUnknownError)]
     public async Task ExecuteAsync_SendsExpectedResponse(
         SavePlaylistResult result,

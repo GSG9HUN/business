@@ -238,6 +238,75 @@ public class CommandValidationServiceTests
 
     #endregion
 
+    #region TryParseSavePlaylistArguments Tests
+
+    [Fact]
+    public async Task TryParseSavePlaylistArguments_WithUnquotedName_ReturnsFirstTokenAndRemainingPayload()
+    {
+        _mockMessage.Setup(x => x.Content).Returns("!addSong mix madeon imperium");
+
+        var result = await _commandValidationService.TryParseSavePlaylistArguments(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "addSong");
+
+        Assert.NotNull(result);
+        Assert.Equal("mix", result.Value.Item1);
+        Assert.Equal("madeon imperium", result.Value.Item2);
+    }
+
+    [Fact]
+    public async Task TryParseSavePlaylistArguments_WithQuotedName_ReturnsNameWithSpaces()
+    {
+        _mockMessage.Setup(x => x.Content).Returns("!savePlaylist \"road trip\" https://example.com/playlist");
+
+        var result = await _commandValidationService.TryParseSavePlaylistArguments(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "savePlaylist");
+
+        Assert.NotNull(result);
+        Assert.Equal("road trip", result.Value.Item1);
+        Assert.Equal("https://example.com/playlist", result.Value.Item2);
+    }
+
+    [Fact]
+    public async Task TryParseSavePlaylistArguments_WithQuotedSecondArgument_ReturnsSecondArgumentWithoutQuotes()
+    {
+        _mockMessage.Setup(x => x.Content).Returns("!renamePlaylist mix \"new mix\"");
+
+        var result = await _commandValidationService.TryParseSavePlaylistArguments(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "renamePlaylist");
+
+        Assert.NotNull(result);
+        Assert.Equal("mix", result.Value.Item1);
+        Assert.Equal("new mix", result.Value.Item2);
+    }
+
+    [Fact]
+    public async Task TryParseSavePlaylistArguments_WithUnclosedQuotedName_ReturnsNullAndSendsUsage()
+    {
+        _mockMessage.Setup(x => x.Content).Returns("!savePlaylist \"road trip https://example.com/playlist");
+
+        var result = await _commandValidationService.TryParseSavePlaylistArguments(
+            _mockMessage.Object,
+            _mockResponseBuilder.Object,
+            _mockLogger,
+            "savePlaylist");
+
+        Assert.Null(result);
+        _mockResponseBuilder.Verify(
+            response => response.SendUsageAsync(_mockMessage.Object, "savePlaylist"),
+            Times.Once);
+    }
+
+    #endregion
+
     #region Integration Tests
 
     [Fact]
