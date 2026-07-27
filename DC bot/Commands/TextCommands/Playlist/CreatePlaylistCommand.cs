@@ -1,4 +1,5 @@
 ﻿using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -34,25 +35,30 @@ public class CreatePlaylistCommand(
         if (playlistName is null) return;
 
         var guildId = message.Channel.Guild.Id;
+        var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
 
         var result = await playlistService.CreatePlaylistAsync(guildId, playlistName);
         switch (result)
         {
             case CreatePlaylistResult.Created:
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.CreatePlaylistCommandCreated,
-                    playlistName);
+                    safePlaylistName);
                 break;
             case CreatePlaylistResult.PlaylistAlreadyExists:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.CreatePlaylistCommandAlreadyExists,
-                    playlistName);
+                    safePlaylistName);
                 break;
             case CreatePlaylistResult.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.CreatePlaylistCommandUnknownError,
-                    playlistName);
+                    safePlaylistName);
                 break;
             case CreatePlaylistResult.InvalidPlaylistName:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.CreatePlaylistCommandInvalidPlaylistName,
-                    playlistName);
+                    safePlaylistName);
+                break;
+            case CreatePlaylistResult.PlaylistLimitReached:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.CreatePlaylistCommandPlaylistLimitReached,
+                    safePlaylistName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);

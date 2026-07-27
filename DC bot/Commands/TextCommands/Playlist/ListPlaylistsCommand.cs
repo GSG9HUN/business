@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -54,7 +55,8 @@ public class ListPlaylistsCommand(
     private string FormatPlaylists(ulong guildId, IReadOnlyList<PlaylistSummaryDto> playlists)
     {
         return string.Join(Environment.NewLine, playlists.Select((playlist, index) =>
-            localizationService.Get(guildId, LocalizationKeys.ListPlaylistsCommandItem, index + 1, playlist.Name,
+            localizationService.Get(guildId, LocalizationKeys.ListPlaylistsCommandItem, index + 1,
+                DiscordTextSanitizer.EscapeMentions(playlist.Name),
                 playlist.TrackCount)));
     }
 }

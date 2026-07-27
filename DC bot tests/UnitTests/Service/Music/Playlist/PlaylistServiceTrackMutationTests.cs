@@ -1,5 +1,6 @@
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Models;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music.Playlist;
@@ -20,6 +21,71 @@ public class PlaylistServiceTrackMutationTests : PlaylistServiceTestBase
         var result = await context.Service.AddSongToPlaylistAsync(GuildId, PlaylistName, "https://example.com/song");
 
         Assert.Equal(AddSongResult.PlaylistDoesNotExist, result);
+    }
+
+    [Fact]
+    public async Task AddSongToPlaylistAsync_WhenPlaylistNameIsInvalid_ReturnsInvalidPlaylistName()
+    {
+        var context = CreateContext();
+
+        var result = await context.Service.AddSongToPlaylistAsync(GuildId, string.Empty, "https://example.com/song");
+
+        Assert.Equal(AddSongResult.InvalidPlaylistName, result);
+        context.PlaylistRepository.Verify(repository => repository.GetByGuildAndNameAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddSongToPlaylistAsync_WhenTrackLimitReached_ReturnsTrackLimitReached()
+    {
+        var context = CreateContext(new() { MaxTracksPerPlaylist = 1 });
+        context.PlaylistRepository.Setup(repository => repository.GetByGuildAndNameAsync(
+                GuildId,
+                PlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PlaylistRecord(PlaylistId, GuildId, PlaylistName));
+        context.PlaylistTrackRepository.Setup(repository => repository.GetByPlaylistIdOrderedAsync(
+                PlaylistId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new PlaylistTrackRecord(10, PlaylistId, 1, "YouTube", "track-a", "https://example.com/a")]);
+
+        var result = await context.Service.AddSongToPlaylistAsync(GuildId, PlaylistName, "https://example.com/song");
+
+        Assert.Equal(AddSongResult.TrackLimitReached, result);
+        context.TrackSearchResolver.Verify(resolver => resolver.ResolveSearchMode(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddSongToPlaylistAsync_WhenSingleTrackFallbackIsReturned_AddsTrack()
+    {
+        var context = CreateContext();
+        var track = CreateLavalinkTrack();
+        context.PlaylistRepository.Setup(repository => repository.GetByGuildAndNameAsync(
+                GuildId,
+                PlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PlaylistRecord(PlaylistId, GuildId, PlaylistName));
+        context.PlaylistTrackRepository.Setup(repository => repository.GetByPlaylistIdOrderedAsync(
+                PlaylistId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        context.AudioService
+            .Setup(service => service.Tracks.LoadTracksAsync(
+                "https://example.com/song",
+                TrackSearchMode.YouTube,
+                default,
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<TrackLoadResult>(new TrackLoadResult(track, null)));
+
+        var result = await context.Service.AddSongToPlaylistAsync(GuildId, PlaylistName, "https://example.com/song");
+
+        Assert.Equal(AddSongResult.Added, result);
+        context.PlaylistTrackRepository.Verify(repository => repository.AddTrackAsync(
+            PlaylistId,
+            It.IsAny<PlaylistTrackCreateRecord>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

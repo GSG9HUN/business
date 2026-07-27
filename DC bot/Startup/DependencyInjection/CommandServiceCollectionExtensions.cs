@@ -1,4 +1,5 @@
 using DC_bot.Commands.SlashCommands.Music;
+using DC_bot.Commands.SlashCommands.Playlist;
 using DC_bot.Commands.SlashCommands.Queue;
 using DC_bot.Commands.SlashCommands.Utility;
 using DC_bot.Commands.TextCommands.Music;
@@ -71,7 +72,8 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<ShuffleSlashCommand>()
             .AddTransient<RepeatSlashCommand>()
             .AddTransient<LanguageSlashCommand>()
-            .AddTransient<ClearSlashCommand>();
+            .AddTransient<ClearSlashCommand>()
+            .AddTransient<PlaylistSlashCommand>();
     }
 
     private static IServiceCollection AddSlashCommandProcessor(this IServiceCollection services)
@@ -93,7 +95,8 @@ public static class CommandServiceCollectionExtensions
                 typeof(ShuffleSlashCommand),
                 typeof(RepeatSlashCommand),
                 typeof(LanguageSlashCommand),
-                typeof(ClearSlashCommand)
+                typeof(ClearSlashCommand),
+                typeof(PlaylistSlashCommand)
             ]);
             extension.AddProcessor(new SlashCommandProcessor());
         }, new CommandsConfiguration

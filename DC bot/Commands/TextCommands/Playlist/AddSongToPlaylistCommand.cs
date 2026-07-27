@@ -1,4 +1,5 @@
 ﻿using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -32,6 +33,7 @@ public class AddSongToPlaylistCommand(
         if (parsed is null) return;
 
         var (playlistName, songUrl) = parsed.Value;
+        var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.AddSongToPlaylistAsync(guildId, playlistName, songUrl);
 
@@ -39,23 +41,31 @@ public class AddSongToPlaylistCommand(
         {
             case AddSongResult.Added:
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.AddSongToPlaylistCommandAdded,
-                    playlistName);
+                    safePlaylistName);
                 break;
             case AddSongResult.InvalidSongUrl:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.AddSongToPlaylistCommandInvalidSongUrl,
-                    playlistName);
+                    safePlaylistName);
                 break;
             case AddSongResult.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.AddSongToPlaylistCommandPlaylistDoesNotExist, playlistName);
+                    LocalizationKeys.AddSongToPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
                 break;
             case AddSongResult.NoTracksFound:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.AddSongToPlaylistCommandNoTracksFound,
-                    playlistName);
+                    safePlaylistName);
+                break;
+            case AddSongResult.InvalidPlaylistName:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.AddSongToPlaylistCommandInvalidPlaylistName,
+                    safePlaylistName);
+                break;
+            case AddSongResult.TrackLimitReached:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.AddSongToPlaylistCommandTrackLimitReached,
+                    safePlaylistName);
                 break;
             case AddSongResult.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.AddSongToPlaylistCommandUnknownError,
-                    playlistName);
+                    safePlaylistName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);

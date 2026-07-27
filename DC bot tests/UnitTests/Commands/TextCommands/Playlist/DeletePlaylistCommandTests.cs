@@ -13,6 +13,7 @@ public class DeletePlaylistCommandTests : PlaylistCommandTestBase
     [Theory]
     [InlineData(DeletePlaylistResult.Deleted, "success", LocalizationKeys.DeletePlaylistCommandDeleted)]
     [InlineData(DeletePlaylistResult.DoesNotExist, "warning", LocalizationKeys.DeletePlaylistCommandDoesNotExist)]
+    [InlineData(DeletePlaylistResult.InvalidPlaylistName, "warning", LocalizationKeys.DeletePlaylistCommandInvalidPlaylistName)]
     [InlineData(DeletePlaylistResult.UnknownError, "error", LocalizationKeys.DeletePlaylistCommandUnknownError)]
     public async Task ExecuteAsync_SendsExpectedResponse(
         DeletePlaylistResult result,

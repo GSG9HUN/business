@@ -6,5 +6,7 @@ public enum AddSongResult
     PlaylistDoesNotExist,
     NoTracksFound,
     InvalidSongUrl,
+    InvalidPlaylistName,
+    TrackLimitReached,
     UnknownError
 }

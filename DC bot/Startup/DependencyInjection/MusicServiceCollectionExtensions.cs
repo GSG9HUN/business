@@ -1,3 +1,4 @@
+using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
@@ -13,6 +14,8 @@ public static class MusicServiceCollectionExtensions
 {
     public static IServiceCollection AddMusicServices(this IServiceCollection services)
     {
+        services.AddOptions<PlaylistOptions>();
+
         return services
             .AddSingleton<ITrackSerializer, LavalinkTrackSerializer>()
             .AddSingleton<IRepeatService, RepeatService>()

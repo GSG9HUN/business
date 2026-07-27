@@ -79,6 +79,7 @@ DC bot/
 │   ├── SlashCommands/             # Discord slash command adapters
 │   │   ├── Music/                 # Playback slash commands
 │   │   ├── Queue/                 # Queue slash commands
+│   │   ├── Playlist/              # Saved playlist slash commands
 │   │   └── Utility/               # General slash commands
 │   └── README.md
 │
@@ -494,6 +495,7 @@ YOUTUBE_REFRESH_TOKEN=
 
 - Music: `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
 - Queue: `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
+- Playlist: `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
 - Utility: `/ping`, `/help`, `/tag`, `/language`
 - Registered through `DSharpPlus.Commands` and `SlashCommandProcessor`
 - Delegate to the existing text command pipeline through `ISlashCommandExecutor`

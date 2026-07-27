@@ -11,13 +11,13 @@ public class PlaylistModelTests
     public void ResultEnums_ShouldContainExpectedContractValues()
     {
         Assert.Equal(
-            ["Added", "PlaylistDoesNotExist", "NoTracksFound", "InvalidSongUrl", "UnknownError"],
+            ["Added", "PlaylistDoesNotExist", "NoTracksFound", "InvalidSongUrl", "InvalidPlaylistName", "TrackLimitReached", "UnknownError"],
             Enum.GetNames<AddSongResult>());
         Assert.Equal(
-            ["Created", "PlaylistAlreadyExists", "InvalidPlaylistName", "UnknownError"],
+            ["Created", "PlaylistAlreadyExists", "InvalidPlaylistName", "PlaylistLimitReached", "UnknownError"],
             Enum.GetNames<CreatePlaylistResult>());
         Assert.Equal(
-            ["Deleted", "DoesNotExist", "UnknownError"],
+            ["Deleted", "DoesNotExist", "InvalidPlaylistName", "UnknownError"],
             Enum.GetNames<DeletePlaylistResult>());
         Assert.Equal(
             ["Listed", "NoPlaylists", "UnknownError"],
@@ -29,10 +29,10 @@ public class PlaylistModelTests
             ["Renamed", "PlaylistDoesNotExist", "PlaylistAlreadyExists", "InvalidPlaylistName", "UnknownError"],
             Enum.GetNames<RenamePlaylistResult>());
         Assert.Equal(
-            ["Saved", "AlreadyExists", "NoTracksFound", "UnknownError"],
+            ["Saved", "AlreadyExists", "NoTracksFound", "InvalidPlaylistName", "PlaylistLimitReached", "TrackLimitExceeded", "UnknownError"],
             Enum.GetNames<SavePlaylistResult>());
         Assert.Equal(
-            ["Viewed", "PlaylistDoesNotExist", "EmptyPlaylist", "UnknownError"],
+            ["Viewed", "PlaylistDoesNotExist", "EmptyPlaylist", "InvalidPlaylistName", "UnknownError"],
             Enum.GetNames<ViewPlaylistStatus>());
     }
 

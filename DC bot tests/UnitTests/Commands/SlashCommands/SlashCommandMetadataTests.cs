@@ -1,4 +1,5 @@
 using DC_bot.Commands.SlashCommands.Music;
+using DC_bot.Commands.SlashCommands.Playlist;
 using DC_bot.Commands.SlashCommands.Utility;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
@@ -9,6 +10,41 @@ namespace DC_bot_tests.UnitTests.Commands.SlashCommands;
 [Trait("Category", "Unit")]
 public class SlashCommandMetadataTests
 {
+    [Fact]
+    public void PlaylistSlashCommand_ShouldExposeGroupMetadata()
+    {
+        var command = Assert.Single(
+            typeof(PlaylistSlashCommand)
+                .GetCustomAttributes(typeof(CommandAttribute), inherit: false)
+                .Cast<CommandAttribute>());
+        var description = Assert.Single(
+            typeof(PlaylistSlashCommand)
+                .GetCustomAttributes(typeof(DescriptionAttribute), inherit: false)
+                .Cast<DescriptionAttribute>());
+
+        Assert.Equal("playlist", command.Name);
+        Assert.Equal("Manage saved playlists", description.Description);
+    }
+
+    [Fact]
+    public void PlaylistAddSongMethod_ShouldExposeHyphenatedSubCommandMetadata()
+    {
+        var method = typeof(PlaylistSlashCommand).GetMethod(nameof(PlaylistSlashCommand.AddSong));
+
+        Assert.NotNull(method);
+        var command = Assert.Single(
+            method.GetCustomAttributes(typeof(CommandAttribute), inherit: false).Cast<CommandAttribute>());
+        var parameters = method.GetParameters();
+
+        Assert.Equal("add-song", command.Name);
+        Assert.Collection(
+            parameters.Skip(1),
+            parameter => Assert.Equal("name", Assert.Single(
+                parameter.GetCustomAttributes(typeof(ParameterAttribute), inherit: false).Cast<ParameterAttribute>()).Name),
+            parameter => Assert.Equal("url", Assert.Single(
+                parameter.GetCustomAttributes(typeof(ParameterAttribute), inherit: false).Cast<ParameterAttribute>()).Name));
+    }
+
     [Theory]
     [InlineData(
         typeof(PlaySlashCommand),

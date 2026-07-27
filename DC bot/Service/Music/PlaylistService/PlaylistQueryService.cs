@@ -12,7 +12,10 @@ internal sealed class PlaylistQueryService(
 {
     internal async Task<PlaylistDto?> LoadPlaylistAsync(ulong guildId, string playlistName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistName);
+        if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
+        {
+            return null;
+        }
 
         var playlist = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName);
         if (playlist is null)
@@ -54,7 +57,10 @@ internal sealed class PlaylistQueryService(
 
     internal async Task<ViewPlaylistResult> ViewPlaylistAsync(ulong guildId, string playlistName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistName);
+        if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
+        {
+            return new ViewPlaylistResult(ViewPlaylistStatus.InvalidPlaylistName, playlistName, []);
+        }
 
         try
         {
