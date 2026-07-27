@@ -98,10 +98,11 @@ internal sealed class PlaylistMutationService(
 
             if (await IsPlaylistLimitReachedAsync(guildId))
             {
+                var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
                 logger.LogWarning(
                     "Playlist limit reached for guild {GuildId}. MaxPlaylistsPerGuild: {MaxPlaylistsPerGuild}",
                     guildId,
-                    options.MaxPlaylistsPerGuild);
+                    maxPlaylists);
                 return CreatePlaylistResult.PlaylistLimitReached;
             }
 
