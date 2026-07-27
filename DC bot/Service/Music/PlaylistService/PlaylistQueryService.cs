@@ -10,25 +10,39 @@ internal sealed class PlaylistQueryService(
     PlaylistTrackDisplayMapper trackDisplayMapper,
     ILogger<PlaylistService> logger)
 {
-    internal async Task<PlaylistDto?> LoadPlaylistAsync(ulong guildId, string playlistName)
+    internal async Task<LoadPlaylistResult> LoadPlaylistAsync(ulong guildId, string playlistName)
     {
-        if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
+        try
         {
-            return null;
-        }
+            if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
+            {
+                return new LoadPlaylistResult(LoadPlaylistStatus.InvalidPlaylistName, null);
+            }
 
-        var playlist = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName);
-        if (playlist is null)
+            var playlist = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName);
+            if (playlist is null)
+            {
+                logger.LogInformation("Playlist {PlaylistName} was not found for guild {GuildId}", playlistName, guildId);
+                return new LoadPlaylistResult(LoadPlaylistStatus.NotFound, null);
+            }
+
+            var tracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id);
+            if (tracks.Count == 0)
+            {
+                logger.LogInformation("Playlist {PlaylistName} is empty for guild {GuildId}", playlistName, guildId);
+                return new LoadPlaylistResult(LoadPlaylistStatus.EmptyPlaylist, null);
+            }
+
+            return new LoadPlaylistResult(LoadPlaylistStatus.Loaded, new PlaylistDto(
+                playlist.Name,
+                tracks.Select(PlaylistTrackDisplayMapper.MapToDto).ToList()));
+        }
+        catch (Exception ex)
         {
-            logger.LogInformation("Playlist {PlaylistName} was not found for guild {GuildId}", playlistName, guildId);
-            return null;
+            logger.LogError(ex, "Failed to load playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
+            return new LoadPlaylistResult(LoadPlaylistStatus.UnknownError, null);
         }
-
-        var tracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id);
-
-        return new PlaylistDto(
-            playlist.Name,
-            tracks.Select(PlaylistTrackDisplayMapper.MapToDto).ToList());
+      
     }
 
     internal async Task<ListPlaylistsResult> ListPlaylistsAsync(ulong guildId)

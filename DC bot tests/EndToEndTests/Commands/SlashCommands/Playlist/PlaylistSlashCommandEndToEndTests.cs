@@ -1,4 +1,5 @@
 using DC_bot.Commands.SlashCommands.Playlist;
+using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.SlashCommands;
 using Moq;
@@ -36,6 +37,13 @@ public class PlaylistSlashCommandEndToEndTests : SlashCommandPipelineEndToEndTes
                 PlaylistName,
                 [new PlaylistViewTrackDto(1, "Song", "Artist", TimeSpan.FromSeconds(95), SongUrl)]));
         PlaylistServiceMock
+            .Setup(service => service.LoadPlaylistAsync(GuildId, PlaylistName))
+            .ReturnsAsync(new LoadPlaylistResult(
+                LoadPlaylistStatus.Loaded,
+                new PlaylistDto(PlaylistName, [new PlaylistTrackDto(1, "youtube", "track-id", SongUrl)])));
+        var loadedTrack = CreateTrack("Song", "Artist");
+        TrackSerializerMock.Setup(serializer => serializer.Deserialize("track-id", null)).Returns(loadedTrack);
+        PlaylistServiceMock
             .Setup(service => service.AddSongToPlaylistAsync(GuildId, PlaylistName, SongUrl))
             .ReturnsAsync(AddSongResult.Added);
         PlaylistServiceMock
@@ -58,6 +66,7 @@ public class PlaylistSlashCommandEndToEndTests : SlashCommandPipelineEndToEndTes
         await command.ExecuteSaveAsync(context, PlaylistName, PlaylistUrl);
         await command.ExecuteListAsync(context);
         await command.ExecuteViewAsync(context, PlaylistName);
+        await command.ExecuteLoadAsync(context, PlaylistName);
         await command.ExecuteAddSongAsync(context, PlaylistName, SongUrl);
         await command.ExecuteRemoveSongAsync(context, PlaylistName, 1);
         await command.ExecuteRenameAsync(context, PlaylistName, RenamedPlaylistName);
@@ -72,10 +81,18 @@ public class PlaylistSlashCommandEndToEndTests : SlashCommandPipelineEndToEndTes
         Assert.Contains(context.TextResponses, response =>
             response.Contains("Playlist 'road trip' (1 tracks):", StringComparison.Ordinal) &&
             response.Contains("1. Artist - Song (1:35)", StringComparison.Ordinal));
+        Assert.Contains("Playlist 'road trip' loaded into the queue with 1 tracks.", context.TextResponses);
         Assert.Contains("Song added to playlist 'road trip'.", context.TextResponses);
         Assert.Contains("Track 1 removed from playlist 'road trip'.", context.TextResponses);
         Assert.Contains("Playlist 'road trip' renamed to 'renamed mix'.", context.TextResponses);
         Assert.Contains("Playlist 'renamed mix' deleted.", context.TextResponses);
+        MusicQueueServiceMock.Verify(service => service.EnqueueMany(
+            GuildId,
+            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == loadedTrack)), Times.Once);
+        TrackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
+            It.IsAny<Lavalink4NET.Players.ILavalinkPlayer>(),
+            context.Channel,
+            GuildId), Times.Once);
     }
 
     [Fact]

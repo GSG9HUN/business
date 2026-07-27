@@ -86,6 +86,12 @@ public static class LocalizationKeys
     public const string ViewPlaylistCommandEmptyPlaylist = "viewPlaylist_command_empty_playlist";
     public const string ViewPlaylistCommandInvalidPlaylistName = "viewPlaylist_command_invalid_playlist_name";
     public const string ViewPlaylistCommandUnknownError = "viewPlaylist_command_unknown_error";
+    public const string LoadPlaylistCommandDescription = "loadPlaylist_command_description";
+    public const string LoadPlaylistCommandLoaded = "loadPlaylist_command_loaded";
+    public const string LoadPlaylistCommandNotFound = "loadPlaylist_command_not_found";
+    public const string LoadPlaylistCommandEmptyPlaylist = "loadPlaylist_command_empty_playlist";
+    public const string LoadPlaylistCommandInvalidPlaylistName = "loadPlaylist_command_invalid_playlist_name";
+    public const string LoadPlaylistCommandUnknownError = "loadPlaylist_command_unknown_error";
     public const string RenamePlaylistCommandDescription = "renamePlaylist_command_description";
     public const string RenamePlaylistCommandRenamed = "renamePlaylist_command_renamed";
     public const string RenamePlaylistCommandPlaylistDoesNotExist = "renamePlaylist_command_playlist_does_not_exist";

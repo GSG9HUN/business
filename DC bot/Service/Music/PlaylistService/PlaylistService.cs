@@ -49,7 +49,7 @@ public class PlaylistService : IPlaylistService
         return await _trackMutationService.SavePlaylistAsync(guildId, playlistName, playlistUrl);
     }
 
-    public async Task<PlaylistDto?> LoadPlaylistAsync(ulong guildId, string playlistName)
+    public async Task<LoadPlaylistResult> LoadPlaylistAsync(ulong guildId, string playlistName)
     {
         return await _queryService.LoadPlaylistAsync(guildId, playlistName);
     }

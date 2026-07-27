@@ -77,7 +77,7 @@ var message = localizationService.Get("play_command_music_playing", trackTitle);
 ## Related Components
 
 - **Constants/AppConstants.cs** - Key definitions
-- **Commands/TextCommands/Playlist/** - Playlist command keys, including invalid-name and limit responses
+- **Commands/TextCommands/Playlist/** - Playlist command keys, including invalid-name, load, and limit responses
 - **Commands/SlashCommands/Playlist/** - Delete confirmation text for `/playlist delete confirm:false`
 - **Service/LocalizationService.cs** - Key lookup
 - **guildFiles/localization/** - Guild language preferences

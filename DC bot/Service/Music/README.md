@@ -109,6 +109,7 @@ Responsibilities:
 - append the first loaded song to an existing playlist, including single-track fallback loads
 - remove a stored song from an existing playlist by track number
 - list saved playlists with track counts
+- load saved playlist track identities for queue rehydration
 - view stored playlist tracks by deserializing saved track identifiers
 - delete and rename guild playlists
 - enforce `PlaylistOptions` saved playlist and track limits

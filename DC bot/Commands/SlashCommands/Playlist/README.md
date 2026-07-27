@@ -13,14 +13,15 @@ pipeline through `ISlashCommandExecutor`.
 - `/playlist save name:<name> url:<playlist-url>` -> `savePlaylist "<name>" <playlist-url>`
 - `/playlist list` -> `listPlaylists`
 - `/playlist view name:<name>` -> `viewPlaylist <name>`
+- `/playlist load name:<name>` -> `loadPlaylist <name>`
 - `/playlist add-song name:<name> url:<song-url-or-query>` -> `addSong "<name>" <song-url-or-query>`
 - `/playlist remove-song name:<name> track-number:<number>` -> `removeSong "<name>" <number>`
 - `/playlist rename current-name:<name> new-name:<name>` -> `renamePlaylist "<current-name>" "<new-name>"`
 - `/playlist delete name:<name> confirm:<true>` -> `deletePlaylist <name>`
 
-`save` and `add-song` set `EnsureDeferredResponse` because they may wait on Lavalink track loading. Commands that pass two
-playlist values quote playlist names before creating the text-command payload so names with spaces are preserved by
-`CommandValidationService.TryParseSavePlaylistArguments`.
+`save`, `load`, and `add-song` set `EnsureDeferredResponse` because they may wait on Lavalink track loading, voice join,
+or playback startup. Commands that pass two playlist values quote playlist names before creating the text-command payload
+so names with spaces are preserved by `CommandValidationService.TryParseSavePlaylistArguments`.
 
 ## Safety
 

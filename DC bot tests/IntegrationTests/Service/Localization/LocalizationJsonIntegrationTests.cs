@@ -10,7 +10,7 @@ namespace DC_bot_tests.IntegrationTests.Service.Localization;
 public class LocalizationJsonIntegrationTests
 {
     [Fact]
-    public void LocalizationService_WithRealJsonFiles_LoadsEnglishAndHungarianSlashFallbacks()
+    public void LocalizationService_WithRealJsonFiles_LoadsEnglishAndHungarianCommandTexts()
     {
         using var fileSystem = new RepositoryLocalizationFileSystem();
         var service = new LocalizationService(NullLogger<LocalizationService>.Instance, fileSystem);
@@ -23,6 +23,12 @@ public class LocalizationJsonIntegrationTests
         Assert.Equal(
             "An unexpected error occurred while executing the command.",
             service.Get(LocalizationKeys.SlashCommandUnexpectedError));
+        Assert.Equal(
+            "Playlist 'mix' loaded into the queue with 2 tracks.",
+            service.Get(LocalizationKeys.LoadPlaylistCommandLoaded, "mix", 2));
+        Assert.Equal(
+            "Playlist 'mix' could not be loaded because an unknown error occurred.",
+            service.Get(LocalizationKeys.LoadPlaylistCommandUnknownError, "mix"));
 
         service.SaveLanguage(hungarianGuildId, "hu");
 
@@ -31,6 +37,8 @@ public class LocalizationJsonIntegrationTests
         Assert.Contains("elfogadva", service.Get(hungarianGuildId, LocalizationKeys.SlashCommandDeferredAccepted));
         Assert.Contains("play", service.Get(hungarianGuildId, LocalizationKeys.SlashCommandNotRegistered, "play"));
         Assert.Contains("hiba", service.Get(hungarianGuildId, LocalizationKeys.SlashCommandUnexpectedError));
+        Assert.Contains("betöltve", service.Get(hungarianGuildId, LocalizationKeys.LoadPlaylistCommandLoaded, "mix", 2));
+        Assert.Contains("nem tölthető be", service.Get(hungarianGuildId, LocalizationKeys.LoadPlaylistCommandUnknownError, "mix"));
     }
 
     private sealed class RepositoryLocalizationFileSystem : IFileSystem, IDisposable

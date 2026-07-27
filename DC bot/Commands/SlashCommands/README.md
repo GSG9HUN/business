@@ -50,12 +50,13 @@ Each subfolder has its own README with command-specific behavior.
 - `/playlist save name:<name> url:<playlist-url>` -> `SavePlaylistCommand`
 - `/playlist list` -> `ListPlaylistsCommand`
 - `/playlist view name:<name>` -> `ViewPlaylistCommand`
+- `/playlist load name:<name>` -> `LoadPlaylistCommand`
 - `/playlist add-song name:<name> url:<song-url-or-query>` -> `AddSongToPlaylistCommand`
 - `/playlist remove-song name:<name> track-number:<number>` -> `RemoveSongFromPlaylistCommand`
 - `/playlist rename current-name:<name> new-name:<name>` -> `RenamePlaylistCommand`
 - `/playlist delete name:<name> confirm:<true>` -> `DeletePlaylistCommand`
 
-`save` and `add-song` defer the interaction because Lavalink loading can take longer than a simple command response.
+`save`, `load`, and `add-song` defer the interaction because Lavalink loading, voice join, or playback startup can take longer than a simple command response.
 `delete` requires `confirm:true`; without it the module returns a localized confirmation warning and does not call the text
 command pipeline.
 

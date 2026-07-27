@@ -1,4 +1,5 @@
 using DC_bot.Commands.SlashCommands.Playlist;
+using DC_bot.Interface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.SlashCommands;
 using Moq;
@@ -92,6 +93,27 @@ public class PlaylistSlashCommandTests : SlashCommandTestBase
             PlaylistName,
             requireGuild: true,
             defer: true);
+    }
+
+    [Fact]
+    public async Task Load_ShouldDelegateToExecutorAndRequireDeferredResponse()
+    {
+        var dsharpContext = CreateDSharpContext();
+        var slashContext = new Mock<ISlashInteractionContext>();
+        var executor = CreateModuleExecutor();
+        var contextFactory = CreateContextFactory(dsharpContext, slashContext.Object);
+        var command = new PlaylistSlashCommand(executor.Object, contextFactory.Object, LocalizationService);
+
+        await command.Load(dsharpContext, PlaylistName);
+
+        VerifyRequest(
+            executor,
+            "loadPlaylist",
+            slashContext.Object,
+            PlaylistName,
+            requireGuild: true,
+            defer: true,
+            ensureDeferredResponse: true);
     }
 
     [Fact]
@@ -226,5 +248,31 @@ public class PlaylistSlashCommandTests : SlashCommandTestBase
         PlaylistServiceMock.Verify(
             service => service.AddSongToPlaylistAsync(123UL, PlaylistName, SongUrl),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteLoadAsync_ShouldRouteThroughTextPipelineAndStartIdleQueue()
+    {
+        var context = CreateContext();
+        var track = CreateTrack("Song", "Artist");
+        var command = new PlaylistSlashCommand(SlashCommandExecutor, Mock.Of<ISlashInteractionContextFactory>(), LocalizationService);
+        PlaylistServiceMock
+            .Setup(service => service.LoadPlaylistAsync(123UL, PlaylistName))
+            .ReturnsAsync(new LoadPlaylistResult(
+                LoadPlaylistStatus.Loaded,
+                new PlaylistDto(PlaylistName, [new PlaylistTrackDto(1, "youtube", "track-id", SongUrl)])));
+        TrackSerializerMock.Setup(serializer => serializer.Deserialize("track-id", null)).Returns(track);
+
+        await command.ExecuteLoadAsync(context, PlaylistName);
+
+        Assert.True(context.IsDeferred);
+        Assert.Contains("Playlist 'road trip' loaded into the queue with 1 tracks.", context.TextResponses);
+        MusicQueueServiceMock.Verify(service => service.EnqueueMany(
+            123UL,
+            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == track)), Times.Once);
+        TrackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
+            It.IsAny<Lavalink4NET.Players.ILavalinkPlayer>(),
+            context.Channel,
+            123UL), Times.Once);
     }
 }

@@ -62,6 +62,21 @@ public class PlaylistSlashCommand(
         return ExecuteAsync("viewPlaylist", contextFactory.Create(context), name.Trim());
     }
 
+    [Command("load")]
+    [Description("Load a saved playlist into the queue")]
+    public Task Load(
+        SlashCommandContext context,
+        [Parameter("name")]
+        [Description("Playlist name")]
+        string name)
+    {
+        return ExecuteAsync(
+            "loadPlaylist",
+            contextFactory.Create(context),
+            name.Trim(),
+            ensureDeferredResponse: true);
+    }
+
     [Command("add-song")]
     [Description("Add a song to a saved playlist")]
     public Task AddSong(
@@ -158,6 +173,15 @@ public class PlaylistSlashCommand(
     public Task ExecuteViewAsync(ISlashInteractionContext context, string name)
     {
         return ExecuteAsync("viewPlaylist", context, name.Trim());
+    }
+
+    public Task ExecuteLoadAsync(ISlashInteractionContext context, string name)
+    {
+        return ExecuteAsync(
+            "loadPlaylist",
+            context,
+            name.Trim(),
+            ensureDeferredResponse: true);
     }
 
     public Task ExecuteAddSongAsync(ISlashInteractionContext context, string name, string url)

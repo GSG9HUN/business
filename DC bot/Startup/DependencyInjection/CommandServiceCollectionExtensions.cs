@@ -51,6 +51,7 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, ListPlaylistsCommand>()
             .AddSingleton<ICommand, ViewPlaylistCommand>()
             .AddSingleton<ICommand, RenamePlaylistCommand>()
+            .AddSingleton<ICommand, LoadPlaylistCommand>()
             .AddSingleton<ICommand, RepeatListCommand>();
     }
 
