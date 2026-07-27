@@ -1,17 +1,21 @@
 using DC_bot.Commands.TextCommands.Music;
+using DC_bot.Commands.TextCommands.Playlist;
 using DC_bot.Commands.TextCommands.Queue;
 using DC_bot.Commands.TextCommands.Utility;
 using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
+using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Service.Core;
 using DC_bot.Service.Music;
 using DC_bot.Service.Presentation;
 using DC_bot.Service.SlashCommands;
+using Lavalink4NET.Players;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,6 +28,12 @@ internal sealed class SlashCommandTestGraph
     public SlashCommandTestGraph(bool useSavedGuildLanguage = false)
     {
         LocalizationServiceMock = CreateLocalizationService(useSavedGuildLanguage);
+        PlayerConnectionServiceMock
+            .Setup(service => service.TryJoinAndValidateAsync(
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IDiscordChannel?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PlayerMock.Object, Mock.Of<IDiscordChannel>(), 123UL, true));
         Executor = CreateExecutor(CreateCommands());
     }
 
@@ -32,6 +42,12 @@ internal sealed class SlashCommandTestGraph
     public Mock<IMusicQueueService> MusicQueueServiceMock { get; } = new();
     public Mock<IRepeatService> RepeatServiceMock { get; } = new();
     public Mock<ITrackFormatterService> TrackFormatterServiceMock { get; } = new();
+    public Mock<ITrackSerializer> TrackSerializerMock { get; } = new();
+    public Mock<IPlayerConnectionService> PlayerConnectionServiceMock { get; } = new();
+    public Mock<IPlaybackEventHandlerService> PlaybackEventHandlerServiceMock { get; } = new();
+    public Mock<ITrackPlaybackService> TrackPlaybackServiceMock { get; } = new();
+    public Mock<ILavalinkPlayer> PlayerMock { get; } = new();
+    public Mock<IPlaylistService> PlaylistServiceMock { get; } = new();
     public Mock<ILocalizationService> LocalizationServiceMock { get; }
     public ILocalizationService LocalizationService => LocalizationServiceMock.Object;
     public ISlashCommandExecutor Executor { get; }
@@ -89,7 +105,75 @@ internal sealed class SlashCommandTestGraph
                 LocalizationService,
                 commandHelper),
             new LanguageCommand(Mock.Of<ILogger<LanguageCommand>>(), validationService, responseBuilder, LocalizationService, commandHelper),
-            new ClearCommand(validationService, MusicQueueServiceMock.Object, Mock.Of<ILogger<ClearCommand>>(), responseBuilder, LocalizationService, commandHelper)
+            new ClearCommand(validationService, MusicQueueServiceMock.Object, Mock.Of<ILogger<ClearCommand>>(), responseBuilder, LocalizationService, commandHelper),
+            new CreatePlaylistCommand(
+                Mock.Of<ILogger<CreatePlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new SavePlaylistCommand(
+                Mock.Of<ILogger<SavePlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new ListPlaylistsCommand(
+                Mock.Of<ILogger<ListPlaylistsCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new ViewPlaylistCommand(
+                Mock.Of<ILogger<ViewPlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new LoadPlaylistCommand(
+                Mock.Of<ILogger<LoadPlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                MusicQueueServiceMock.Object,
+                TrackSerializerMock.Object,
+                PlayerConnectionServiceMock.Object,
+                PlaybackEventHandlerServiceMock.Object,
+                TrackPlaybackServiceMock.Object,
+                commandHelper),
+            new AddSongToPlaylistCommand(
+                Mock.Of<ILogger<AddSongToPlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new RemoveSongFromPlaylistCommand(
+                Mock.Of<ILogger<RemoveSongFromPlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new RenamePlaylistCommand(
+                Mock.Of<ILogger<RenamePlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper),
+            new DeletePlaylistCommand(
+                Mock.Of<ILogger<DeletePlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                commandHelper)
         ];
     }
 
@@ -172,6 +256,57 @@ internal sealed class SlashCommandTestGraph
             LocalizationKeys.LanguageCommandResponse => "The language changed successfully.",
             LocalizationKeys.ClearCommandResponse => "Playlist cleared.",
             LocalizationKeys.ClearCommandConfirmationRequired => "Set confirm to true to clear the playlist.",
+            LocalizationKeys.CreatePlaylistCommandCreated => $"Playlist '{args[0]}' created.",
+            LocalizationKeys.CreatePlaylistCommandAlreadyExists => $"Playlist '{args[0]}' already exists.",
+            LocalizationKeys.CreatePlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.CreatePlaylistCommandPlaylistLimitReached => "Playlist limit reached.",
+            LocalizationKeys.CreatePlaylistCommandUnknownError => $"Could not create playlist '{args[0]}'.",
+            LocalizationKeys.SavePlaylistCommandSaved => $"Playlist '{args[0]}' saved.",
+            LocalizationKeys.SavePlaylistCommandAlreadyExists => $"Playlist '{args[0]}' already exists.",
+            LocalizationKeys.SavePlaylistCommandNoTracksFound => $"No tracks found for playlist '{args[0]}'.",
+            LocalizationKeys.SavePlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.SavePlaylistCommandPlaylistLimitReached => "Playlist limit reached.",
+            LocalizationKeys.SavePlaylistCommandTrackLimitExceeded => "Track limit exceeded.",
+            LocalizationKeys.SavePlaylistCommandUnknownError => $"Could not save playlist '{args[0]}'.",
+            LocalizationKeys.ListPlaylistsCommandResponse => $"Saved playlists:{Environment.NewLine}{args[0]}",
+            LocalizationKeys.ListPlaylistsCommandItem => $"{args[0]}. {args[1]} - {args[2]} tracks",
+            LocalizationKeys.ListPlaylistsCommandNoPlaylists => "No saved playlists.",
+            LocalizationKeys.ListPlaylistsCommandUnknownError => "Could not list playlists.",
+            LocalizationKeys.ViewPlaylistCommandResponse => $"Playlist '{args[0]}' ({args[1]} tracks):{Environment.NewLine}{args[2]}",
+            LocalizationKeys.ViewPlaylistCommandTrack => $"{args[0]}. {args[1]} - {args[2]} ({args[3]})",
+            LocalizationKeys.ViewPlaylistCommandMoreTracks => $"... and {args[0]} more tracks",
+            LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.ViewPlaylistCommandEmptyPlaylist => $"Playlist '{args[0]}' is empty.",
+            LocalizationKeys.ViewPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.ViewPlaylistCommandUnknownError => $"Could not view playlist '{args[0]}'.",
+            LocalizationKeys.LoadPlaylistCommandLoaded => $"Playlist '{args[0]}' loaded into the queue with {args[1]} tracks.",
+            LocalizationKeys.LoadPlaylistCommandNotFound => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.LoadPlaylistCommandEmptyPlaylist => $"Playlist '{args[0]}' is empty.",
+            LocalizationKeys.LoadPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.LoadPlaylistCommandUnknownError => $"Could not load playlist '{args[0]}'.",
+            LocalizationKeys.AddSongToPlaylistCommandAdded => $"Song added to playlist '{args[0]}'.",
+            LocalizationKeys.AddSongToPlaylistCommandInvalidSongUrl => $"Song URL is invalid for playlist '{args[0]}'.",
+            LocalizationKeys.AddSongToPlaylistCommandPlaylistDoesNotExist => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.AddSongToPlaylistCommandNoTracksFound => $"No tracks found for playlist '{args[0]}'.",
+            LocalizationKeys.AddSongToPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.AddSongToPlaylistCommandTrackLimitReached => "Playlist track limit reached.",
+            LocalizationKeys.AddSongToPlaylistCommandUnknownError => $"Could not add song to playlist '{args[0]}'.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandRemoved => $"Track {args[1]} removed from playlist '{args[0]}'.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandPlaylistDoesNotExist => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandSongNotFound => $"Track {args[1]} was not found in playlist '{args[0]}'.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandInvalidTrackNumber => $"Track number '{args[1]}' is invalid for playlist '{args[0]}'.",
+            LocalizationKeys.RemoveSongFromPlaylistCommandUnknownError => $"Could not remove track {args[1]} from playlist '{args[0]}'.",
+            LocalizationKeys.RenamePlaylistCommandRenamed => $"Playlist '{args[0]}' renamed to '{args[1]}'.",
+            LocalizationKeys.RenamePlaylistCommandPlaylistDoesNotExist => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.RenamePlaylistCommandPlaylistAlreadyExists => $"Playlist '{args[0]}' already exists.",
+            LocalizationKeys.RenamePlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.RenamePlaylistCommandUnknownError => $"Could not rename playlist '{args[0]}' to '{args[1]}'.",
+            LocalizationKeys.DeletePlaylistCommandDeleted => $"Playlist '{args[0]}' deleted.",
+            LocalizationKeys.DeletePlaylistCommandDoesNotExist => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.DeletePlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.DeletePlaylistCommandConfirmationRequired => $"Set confirm to true to delete playlist '{args[0]}'.",
+            LocalizationKeys.DeletePlaylistCommandUnknownError => $"Could not delete playlist '{args[0]}'.",
             LocalizationKeys.SlashCommandGuildOnly => "This command can only be used in a server.",
             LocalizationKeys.SlashCommandDeferredAccepted => "Request accepted.",
             LocalizationKeys.SlashCommandNotRegistered => $"Command '{args[0]}' is not registered.",

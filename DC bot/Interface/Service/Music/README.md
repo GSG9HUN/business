@@ -56,9 +56,9 @@ public interface ILavaLinkService
 
 ---
 
-### MusicServiceInterface/
+### Granular Music Service Interfaces
 
-Contains granular music service interfaces:
+The music contract files live directly in this folder:
 
 - `ICurrentTrackService.cs`
 - `ILavalinkNodeConnectionService.cs`
@@ -81,6 +81,7 @@ Contains granular music service interfaces:
 ### PlaylistServiceInterface/
 
 Contains `IPlaylistService` and playlist result/DTO models.
+`LoadPlaylistAsync` returns stored track identity DTOs used by playlist commands to refill the queue and start idle playback.
 
 **Implementation:** `Service/Music/PlaylistService/PlaylistService.cs`
 
@@ -88,7 +89,7 @@ Contains `IPlaylistService` and playlist result/DTO models.
 
 ### ProgressiveTimerInterface/
 
-Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message.
+Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message. It also contains `IProgressTicker`, the internal timing boundary used by `ProgressiveTimerService`.
 
 **Implementation:** `Service/Music/ProgressiveTimer/ProgressiveTimerService.cs`
 
@@ -101,5 +102,6 @@ Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops pe
 - **Service/Music/PlaylistService/** - Saved playlist service
 - **Commands/TextCommands/Music/** - Text commands that use these interfaces
 - **Commands/TextCommands/Playlist/** - Playlist commands that use `IPlaylistService`
-- **Commands/SlashCommands/Music/** - Slash adapters that reach these interfaces through the text command pipeline
+- **Commands/SlashCommands/Music/** - Music slash adapters that reach these interfaces through the text command pipeline
+- **Commands/SlashCommands/Playlist/** - Playlist slash adapters that reach `IPlaylistService` through the text command pipeline
 

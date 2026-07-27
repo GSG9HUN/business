@@ -82,6 +82,7 @@ Current slash command modules are registered from:
 
 - `Commands/SlashCommands/Music/`
 - `Commands/SlashCommands/Queue/`
+- `Commands/SlashCommands/Playlist/`
 - `Commands/SlashCommands/Utility/`
 
 ### DatabaseMigrationRunner.cs

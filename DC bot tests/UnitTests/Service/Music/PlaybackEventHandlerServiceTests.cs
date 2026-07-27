@@ -1,5 +1,5 @@
 using DC_bot.Interface.Discord;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET;
 using Lavalink4NET.Events;

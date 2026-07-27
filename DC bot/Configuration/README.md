@@ -78,6 +78,32 @@ provide an `IOptions<SearchResolverOptions>` value. There is no environment vari
 
 ---
 
+### PlaylistOptions.cs
+
+**Purpose:** Saved playlist safety limits.
+
+```csharp
+public sealed class PlaylistOptions
+{
+    public int MaxPlaylistsPerGuild { get; set; } = 50;
+    public int MaxTracksPerPlaylist { get; set; } = 250;
+    public int MaxImportedTracks { get; set; } = 100;
+}
+```
+
+**Properties:**
+
+- `MaxPlaylistsPerGuild` - Maximum saved playlists one guild can own.
+- `MaxTracksPerPlaylist` - Maximum stored tracks in one saved playlist.
+- `MaxImportedTracks` - Maximum tracks accepted from one save/import request.
+
+`PlaylistService` clamps these values to at least `1` before enforcing them.
+
+**Current runtime note:** `PlaylistOptions` currently uses its code defaults unless tests or future startup code provide an
+`IOptions<PlaylistOptions>` value. There is no environment variable mapping for this option yet.
+
+---
+
 ## Configuration Sources
 
 Runtime configuration comes from environment variables. `Program.cs` loads repository-root `.env` values through DotNetEnv when the file exists; Docker Compose, CI, and production can provide the same keys directly.
@@ -124,5 +150,6 @@ The provider secrets are consumed by `lavalink-server/application.yaml` through 
 - **Startup/BotConfigurationLoader.cs** - Configuration loading
 - **Startup/BotServiceProviderFactory.cs** - Configuration injection
 - **Service/Music/TrackSearchResolverService.cs** - Uses `SearchResolverOptions`
+- **Service/Music/PlaylistService/PlaylistService.cs** - Uses `PlaylistOptions`
 - **Service/Core/CommandHandlerService.cs** - Uses `BotSettings`
 

@@ -92,7 +92,7 @@ Granular music component services.
 - `TrackNotificationService.cs`
 - `TrackPlaybackService.cs`
 
-Each service implements a corresponding interface from `Interface/Service/Music/MusicServiceInterface/`.
+Each service implements a corresponding interface from `Interface/Service/Music/`.
 
 `LavalinkTrackSerializer` is the shared track identity boundary for queue, repeat-list, and current-track persistence.
 
@@ -106,17 +106,19 @@ Responsibilities:
 
 - create empty guild playlists
 - save Lavalink-loaded playlist URLs into persistent playlist tracks
-- append a single loaded song to an existing playlist
+- append the first loaded song to an existing playlist, including single-track fallback loads
 - remove a stored song from an existing playlist by track number
 - list saved playlists with track counts
+- load saved playlist track identities for queue rehydration
 - view stored playlist tracks by deserializing saved track identifiers
 - delete and rename guild playlists
+- enforce `PlaylistOptions` saved playlist and track limits
 
 ---
 
 ### ProgressiveTimer/
 
-Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
+Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active. `SystemProgressTicker.cs` implements `IProgressTicker` for production elapsed-time and delay behavior.
 The timer is started from the reaction control message flow, paused/resumed by playback controls, and stopped by skip, leave, and track-ended handling.
 
 ---
@@ -127,6 +129,6 @@ The timer is started from the reaction control message flow, paused/resumed by p
 - **Commands/TextCommands/Music/** - Text commands that use `LavaLinkService`
 - **Commands/TextCommands/Queue/** - Text commands that use `MusicQueueService`
 - **Commands/TextCommands/Playlist/** - Text commands that use `PlaylistService`
-- **Commands/SlashCommands/** - Slash adapters that reuse the same text command pipeline
+- **Commands/SlashCommands/Playlist/** - Slash adapters that reuse the same text command pipeline
 - **Service/Music/MusicServices/** - Detailed service implementations
 

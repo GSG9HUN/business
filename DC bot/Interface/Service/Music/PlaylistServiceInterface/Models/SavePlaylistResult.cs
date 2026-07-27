@@ -5,5 +5,8 @@ public enum SavePlaylistResult
     Saved,
     AlreadyExists,
     NoTracksFound,
+    InvalidPlaylistName,
+    PlaylistLimitReached,
+    TrackLimitExceeded,
     UnknownError
 }

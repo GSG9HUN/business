@@ -79,6 +79,7 @@ DC bot/
 │   ├── SlashCommands/             # Discord slash command adapters
 │   │   ├── Music/                 # Playback slash commands
 │   │   ├── Queue/                 # Queue slash commands
+│   │   ├── Playlist/              # Saved playlist slash commands
 │   │   └── Utility/               # General slash commands
 │   └── README.md
 │
@@ -216,7 +217,7 @@ DC bot/
 
 - **Multiple sources:** YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music, Bandcamp
 - **Queue management:** Persistent queue storage per guild via PostgreSQL
-- **Saved playlists:** Create, save from URL, append songs, list with track counts, view tracks, rename, and delete playlists
+- **Saved playlists:** Create, save from URL, load into the queue, append songs, list with track counts, view tracks, rename, and delete playlists
 - **Repeat modes:** Single track repeat, queue repeat
 - **Playback controls:** Play, pause, resume, skip
 - **Voice channel management:** Auto-join, disconnect, state tracking
@@ -263,8 +264,8 @@ DC bot/
                │ (Discord events)
 ┌──────────────▼──────────────────────┐
 │     Commands (Presentation Layer)   │
-│  ├─ Text commands (22)              │
-│  ├─ Slash modules (14)              │
+│  ├─ Text commands (24)              │
+│  ├─ Slash modules (15)              │
 │  └─ Shared command pipeline         │
 └──────────────┬──────────────────────┘
                │ (service calls)
@@ -342,7 +343,7 @@ BotServiceProviderFactory.Create()
   |-- AddDiscordRuntime (gateway, message, reaction, and voice callbacks)
   |-- AddLavalinkRuntime
   |-- AddPersistenceServices
-  |-- AddCommandServices (23 text commands, slash services, slash modules, SlashCommandProcessor)
+  |-- AddCommandServices (24 text commands, slash services, slash modules, SlashCommandProcessor)
   |-- AddMusicServices (music services, playlist service, and track serializer)
   `-- Build ServiceProvider
   ↓
@@ -478,22 +479,23 @@ YOUTUBE_REFRESH_TOKEN=
 - `BotDbContext` factory - EF Core/PostgreSQL context creation
 - `IGuildDataRepository` - Guild row and premium state
 - `IPlaybackStateRepository` - Current playback state
-- `IQueueRepository` - Queue entries
+- `IQueueRepository` / `QueueRepository` - Queue entries; atomic queued-item claim is handled internally by `QueueClaimService`
 - `IPlaylistRepository` - Saved playlist metadata
 - `IPlaylistTrackRepository` - Saved playlist tracks
 - `IRepeatListRepository` - Repeat-list entries
 
-#### All 23 Text Commands
+#### All 24 Text Commands
 
 - 6 Music commands (play, pause, resume, skip, join, leave)
 - 5 Queue commands (viewList, shuffle, repeat, repeatList, clear)
-- 8 Playlist commands (createPlaylist, savePlaylist, deletePlaylist, addSong, removeSong, listPlaylists, viewPlaylist, renamePlaylist)
+- 9 Playlist commands (createPlaylist, savePlaylist, loadPlaylist, deletePlaylist, addSong, removeSong, listPlaylists, viewPlaylist, renamePlaylist)
 - 4 Utility commands (help, ping, language, tag)
 
 #### Slash Commands
 
 - Music: `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
 - Queue: `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
+- Playlist: `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist load`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
 - Utility: `/ping`, `/help`, `/tag`, `/language`
 - Registered through `DSharpPlus.Commands` and `SlashCommandProcessor`
 - Delegate to the existing text command pipeline through `ISlashCommandExecutor`
@@ -502,7 +504,7 @@ YOUTUBE_REFRESH_TOKEN=
 
 - `LavaLinkService` - Playback orchestration
 - `MusicQueueService` - Queue management and repeat-list snapshot rehydration
-- `PlaylistService` - Saved playlist creation, saving, listing, viewing, renaming, deletion, and track append behavior
+- `PlaylistService` - Saved playlist creation, saving, loading, listing, viewing, renaming, deletion, and track append behavior
 - `ITrackSerializer` / `LavalinkTrackSerializer` - Track identity serialization for queue, repeat-list, and current-track persistence
 - `RepeatService` - Repeat flags and repeat-list snapshot writes
 - `CurrentTrackService` - Track state
@@ -516,6 +518,7 @@ YOUTUBE_REFRESH_TOKEN=
 - `TrackPlaybackService` - Playback control
 - `TrackEndedHandlerService` - Track end events
 - `TrackSearchResolverService` - URL/query resolution
+- `IProgressTicker` / `SystemProgressTicker` - Production elapsed-time and delay boundary for timer sessions
 - `ProgressiveTimerService` - Now-playing message timer updates with pause/resume/stop state per guild
 
 `PlayerConnectionService` and the bot startup path accept cancellation tokens for shutdown/retry control.

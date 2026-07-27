@@ -5,7 +5,7 @@ This folder contains granular music component services.
 ## Overview
 
 These services split music functionality into focused responsibilities. Each implements a corresponding interface from
-`Interface/Service/Music/MusicServiceInterface/`.
+`Interface/Service/Music/`.
 
 ## Services
 
@@ -230,7 +230,8 @@ These services split music functionality into focused responsibilities. Each imp
 
 ## Related Components
 
-- **Interface/Service/Music/MusicServiceInterface/** - Service contracts
+- **Interface/Service/Music/** - Service contracts
 - **Service/Music/LavaLinkService.cs** - Orchestrates these services
 - **Interface/Service/Persistence/** - Persistence contracts
 - **Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
+- **Persistence/Repositories/QueueClaimService.cs** - Internal atomic claim transaction used by `QueueRepository`

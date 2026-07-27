@@ -15,6 +15,8 @@ public class AddSongToPlaylistCommandTests : PlaylistCommandTestBase
     [InlineData(AddSongResult.PlaylistDoesNotExist, "warning", LocalizationKeys.AddSongToPlaylistCommandPlaylistDoesNotExist)]
     [InlineData(AddSongResult.NoTracksFound, "warning", LocalizationKeys.AddSongToPlaylistCommandNoTracksFound)]
     [InlineData(AddSongResult.InvalidSongUrl, "warning", LocalizationKeys.AddSongToPlaylistCommandInvalidSongUrl)]
+    [InlineData(AddSongResult.InvalidPlaylistName, "warning", LocalizationKeys.AddSongToPlaylistCommandInvalidPlaylistName)]
+    [InlineData(AddSongResult.TrackLimitReached, "warning", LocalizationKeys.AddSongToPlaylistCommandTrackLimitReached)]
     [InlineData(AddSongResult.UnknownError, "error", LocalizationKeys.AddSongToPlaylistCommandUnknownError)]
     public async Task ExecuteAsync_SendsExpectedResponse(
         AddSongResult result,

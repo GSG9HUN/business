@@ -7,6 +7,7 @@ using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Presentation;
@@ -16,6 +17,7 @@ using DC_bot_tests.TestHelperFiles;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Lavalink4NET.Players;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -47,12 +49,30 @@ public class PlaylistTextCommandEndToEndTests
                 ViewPlaylistStatus.Viewed,
                 PlaylistName,
                 [new PlaylistViewTrackDto(1, "Song", "Artist", TimeSpan.FromSeconds(95), "https://example.com/song")]));
+        playlistService.Setup(service => service.LoadPlaylistAsync(GuildId, PlaylistName))
+            .ReturnsAsync(new LoadPlaylistResult(
+                LoadPlaylistStatus.Loaded,
+                new PlaylistDto(PlaylistName, [new PlaylistTrackDto(1, "youtube", "track-id", "https://example.com/song")])));
         playlistService.Setup(service => service.RemoveSongFromPlaylistAsync(GuildId, PlaylistName, 1))
             .ReturnsAsync(RemoveSongResult.Removed);
         playlistService.Setup(service => service.RenamePlaylistAsync(GuildId, PlaylistName, RenamedPlaylistName))
             .ReturnsAsync(RenamePlaylistResult.Renamed);
         playlistService.Setup(service => service.DeletePlaylistAsync(GuildId, RenamedPlaylistName))
             .ReturnsAsync(DeletePlaylistResult.Deleted);
+        var loadedTrack = Mock.Of<ILavaLinkTrack>();
+        var trackSerializer = new Mock<ITrackSerializer>();
+        trackSerializer.Setup(serializer => serializer.Deserialize("track-id", null)).Returns(loadedTrack);
+        var player = new Mock<ILavalinkPlayer>();
+        var playerConnectionService = new Mock<IPlayerConnectionService>();
+        playerConnectionService
+            .Setup(service => service.TryJoinAndValidateAsync(
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IDiscordChannel?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((player.Object, Mock.Of<IDiscordChannel>(), GuildId, true));
+        var playbackEventHandlerService = new Mock<IPlaybackEventHandlerService>();
+        var trackPlaybackService = new Mock<ITrackPlaybackService>();
+        var musicQueueService = new Mock<IMusicQueueService>();
 
         await using var services = new ServiceCollection()
             .AddLogging()
@@ -61,11 +81,17 @@ public class PlaylistTextCommandEndToEndTests
             .AddSingleton<IUserValidationService>(_ => new ValidationService(Mock.Of<ILogger<ValidationService>>()))
             .AddSingleton<ICommandHelper, CommandValidationService>()
             .AddSingleton(playlistService.Object)
+            .AddSingleton(musicQueueService.Object)
+            .AddSingleton(trackSerializer.Object)
+            .AddSingleton(playerConnectionService.Object)
+            .AddSingleton(playbackEventHandlerService.Object)
+            .AddSingleton(trackPlaybackService.Object)
             .AddSingleton<Func<IEnumerable<ICommand>>>(provider => () => provider.GetServices<ICommand>())
             .AddSingleton<ICommandRegistry, CommandRegistry>()
             .AddSingleton<ICommand, CreatePlaylistCommand>()
             .AddSingleton<ICommand, ListPlaylistsCommand>()
             .AddSingleton<ICommand, ViewPlaylistCommand>()
+            .AddSingleton<ICommand, LoadPlaylistCommand>()
             .AddSingleton<ICommand, RemoveSongFromPlaylistCommand>()
             .AddSingleton<ICommand, RenamePlaylistCommand>()
             .AddSingleton<ICommand, DeletePlaylistCommand>()
@@ -89,6 +115,7 @@ public class PlaylistTextCommandEndToEndTests
             await handler.HandleEventAsync(client, CreateMessageCreated("!createPlaylist e2e"));
             await handler.HandleEventAsync(client, CreateMessageCreated("!listPlaylists"));
             await handler.HandleEventAsync(client, CreateMessageCreated("!viewPlaylist e2e"));
+            await handler.HandleEventAsync(client, CreateMessageCreated("!loadPlaylist e2e"));
             await handler.HandleEventAsync(client, CreateMessageCreated("!removeSong e2e 1"));
             await handler.HandleEventAsync(client, CreateMessageCreated("!renamePlaylist e2e renamed-e2e"));
             await handler.HandleEventAsync(client, CreateMessageCreated("!deletePlaylist renamed-e2e"));
@@ -106,9 +133,17 @@ public class PlaylistTextCommandEndToEndTests
         Assert.Contains(responses, response =>
             response.Contains("Playlist 'e2e' (1 tracks):", StringComparison.Ordinal) &&
             response.Contains("1. Artist - Song (1:35)", StringComparison.Ordinal));
+        Assert.Contains("Playlist 'e2e' loaded into the queue with 1 tracks.", responses);
         Assert.Contains("Track 1 removed from playlist 'e2e'.", responses);
         Assert.Contains("Playlist 'e2e' renamed to 'renamed-e2e'.", responses);
         Assert.Contains("Playlist 'renamed-e2e' deleted.", responses);
+        musicQueueService.Verify(service => service.EnqueueMany(
+            GuildId,
+            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == loadedTrack)), Times.Once);
+        trackPlaybackService.Verify(service => service.TryPlayNextTrackAsync(
+            player.Object,
+            It.IsAny<IDiscordChannel>(),
+            GuildId), Times.Once);
     }
 
     private static ILocalizationService CreateLocalizationService()
@@ -133,6 +168,7 @@ public class PlaylistTextCommandEndToEndTests
             LocalizationKeys.ViewPlaylistCommandResponse => $"Playlist '{args[0]}' ({args[1]} tracks):{Environment.NewLine}{args[2]}",
             LocalizationKeys.ViewPlaylistCommandTrack => $"{args[0]}. {args[1]} - {args[2]} ({args[3]})",
             LocalizationKeys.ViewPlaylistCommandMoreTracks => $"... and {args[0]} more tracks",
+            LocalizationKeys.LoadPlaylistCommandLoaded => $"Playlist '{args[0]}' loaded into the queue with {args[1]} tracks.",
             LocalizationKeys.RemoveSongFromPlaylistCommandRemoved => $"Track {args[1]} removed from playlist '{args[0]}'.",
             LocalizationKeys.RenamePlaylistCommandRenamed => $"Playlist '{args[0]}' renamed to '{args[1]}'.",
             LocalizationKeys.DeletePlaylistCommandDeleted => $"Playlist '{args[0]}' deleted.",

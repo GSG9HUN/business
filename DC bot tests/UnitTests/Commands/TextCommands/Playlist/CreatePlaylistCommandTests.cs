@@ -14,6 +14,7 @@ public class CreatePlaylistCommandTests : PlaylistCommandTestBase
     [InlineData(CreatePlaylistResult.Created, "success", LocalizationKeys.CreatePlaylistCommandCreated)]
     [InlineData(CreatePlaylistResult.PlaylistAlreadyExists, "warning", LocalizationKeys.CreatePlaylistCommandAlreadyExists)]
     [InlineData(CreatePlaylistResult.InvalidPlaylistName, "warning", LocalizationKeys.CreatePlaylistCommandInvalidPlaylistName)]
+    [InlineData(CreatePlaylistResult.PlaylistLimitReached, "warning", LocalizationKeys.CreatePlaylistCommandPlaylistLimitReached)]
     [InlineData(CreatePlaylistResult.UnknownError, "error", LocalizationKeys.CreatePlaylistCommandUnknownError)]
     public async Task ExecuteAsync_SendsExpectedResponse(
         CreatePlaylistResult result,

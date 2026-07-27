@@ -78,7 +78,7 @@ Registers EF Core and repository implementations:
 
 - text command implementations as `ICommand`
 - slash executor/context services
-- slash command modules
+- slash command modules for music, queue, playlist, and utility commands
 - DSharpPlus `SlashCommandProcessor`
 
 The internal `AddTextCommands`, `AddSlashCommandServices`, and `AddSlashCommandProcessor` helpers are private so callers use one command registration entry point.
@@ -94,8 +94,10 @@ Registers the music domain services:
 - playback event/control/request services
 - track-ended handling
 - queue management
-- progressive timer
+- `IProgressTicker -> SystemProgressTicker`
+- `IProgressiveTimerService -> ProgressiveTimerService`
 - saved playlist service
+- `PlaylistOptions` defaults for saved playlist limits
 - search resolver
 
 ## Change Guidance

@@ -1,4 +1,5 @@
 ﻿using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -33,12 +34,13 @@ public class RemoveSongFromPlaylistCommand(
         if (parsed is null) return;
 
         var (playlistName, trackNumberText) = parsed.Value;
+        var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
 
         if (!int.TryParse(trackNumberText, out var trackNumber) || trackNumber <= 0)
         {
             await responseBuilder.SendWarningAsync(message,
-                LocalizationKeys.RemoveSongFromPlaylistCommandInvalidTrackNumber, playlistName, trackNumberText);
+                LocalizationKeys.RemoveSongFromPlaylistCommandInvalidTrackNumber, safePlaylistName, trackNumberText);
             return;
         }
 
@@ -48,27 +50,27 @@ public class RemoveSongFromPlaylistCommand(
         {
             case RemoveSongResult.Removed:
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.RemoveSongFromPlaylistCommandRemoved,
-                    playlistName, trackNumber);
+                    safePlaylistName, trackNumber);
                 break;
             case RemoveSongResult.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.RemoveSongFromPlaylistCommandPlaylistDoesNotExist, playlistName);
+                    LocalizationKeys.RemoveSongFromPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
                 break;
             case RemoveSongResult.SongNotFound:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.RemoveSongFromPlaylistCommandSongNotFound,
-                    playlistName, trackNumber);
+                    safePlaylistName, trackNumber);
                 break;
             case RemoveSongResult.InvalidPlaylistName:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.RemoveSongFromPlaylistCommandInvalidPlaylistName, playlistName);
+                    LocalizationKeys.RemoveSongFromPlaylistCommandInvalidPlaylistName, safePlaylistName);
                 break;
             case RemoveSongResult.InvalidTrackNumber:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.RemoveSongFromPlaylistCommandInvalidTrackNumber, playlistName, trackNumber);
+                    LocalizationKeys.RemoveSongFromPlaylistCommandInvalidTrackNumber, safePlaylistName, trackNumber);
                 break;
             case RemoveSongResult.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.RemoveSongFromPlaylistCommandUnknownError,
-                    playlistName, trackNumber);
+                    safePlaylistName, trackNumber);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);

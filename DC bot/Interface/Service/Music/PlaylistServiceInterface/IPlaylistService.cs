@@ -5,7 +5,7 @@ namespace DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 public interface IPlaylistService
 {
     Task<SavePlaylistResult> SavePlaylistAsync(ulong guildId, string playlistName, string playlistUrl);
-    Task<PlaylistDto?> LoadPlaylistAsync(ulong guildId, string playlistName);
+    Task<LoadPlaylistResult> LoadPlaylistAsync(ulong guildId, string playlistName);
     Task<ListPlaylistsResult> ListPlaylistsAsync(ulong guildId);
     Task<ViewPlaylistResult> ViewPlaylistAsync(ulong guildId, string playlistName);
     Task<DeletePlaylistResult> DeletePlaylistAsync(ulong guildId, string playlistName);

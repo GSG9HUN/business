@@ -27,7 +27,7 @@ public class TextCommandRegistrationIntegrationTests
         {
             var commands = provider.GetServices<ICommand>().ToArray();
 
-            Assert.Equal(23, commands.Length);
+            Assert.Equal(24, commands.Length);
             Assert.Equal(
                 [
                     "tag",
@@ -52,6 +52,7 @@ public class TextCommandRegistrationIntegrationTests
                     "listPlaylists",
                     "viewPlaylist",
                     "renamePlaylist",
+                    "loadPlaylist",
                     "repeatList"
                 ],
                 commands.Select(command => command.Name));

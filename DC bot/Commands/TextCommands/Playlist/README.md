@@ -2,6 +2,9 @@
 
 This folder contains text commands for saved playlist management.
 
+Playlist names are normalized and validated by the playlist service for every service entrypoint. Text commands that
+need two values support quoted playlist names, for example `!addSong "road trip" madeon imperium`.
+
 ## Commands
 
 ### CreatePlaylistCommand.cs
@@ -21,6 +24,7 @@ This folder contains text commands for saved playlist management.
 
 - Playlist already exists -> warning.
 - Playlist name is empty, too long, or contains line breaks -> warning.
+- Guild playlist limit reached -> warning.
 - Unexpected service failure -> error.
 
 ---
@@ -41,8 +45,14 @@ This folder contains text commands for saved playlist management.
 **Error Cases:**
 
 - Playlist already exists -> warning.
-- No tracks found from the provided URL -> warning.
+- No tracks were found from the provided URL -> warning.
+- Playlist name is invalid -> warning.
+- Guild playlist limit reached -> warning.
+- Loaded playlist exceeds the configured import or per-playlist track limit -> warning.
 - Unexpected service failure -> error.
+
+The service serializes loaded tracks before creating the playlist and deletes the just-created playlist if track insert
+fails, so an `UnknownError` does not leave an empty saved playlist behind.
 
 ---
 
@@ -57,15 +67,15 @@ This folder contains text commands for saved playlist management.
 1. Validates the user.
 2. Reads the playlist name.
 3. Calls `IPlaylistService.DeletePlaylistAsync(guildId, playlistName)`.
-4. Sends a localized response for deleted, missing, or unknown-error outcomes.
+4. Sends a localized response for deleted, missing, invalid-name, or unknown-error outcomes.
 
 ---
 
 ### AddSongToPlaylistCommand.cs
 
-**Command:** `!addSong <playlistName> <songUrl>`
+**Command:** `!addSong <playlistName> <songUrlOrQuery>`
 
-**Description:** Load a single song URL and append it to an existing saved playlist.
+**Description:** Load a single song URL or search query and append the first loaded track to an existing saved playlist.
 
 **Behavior:**
 
@@ -77,9 +87,14 @@ This folder contains text commands for saved playlist management.
 **Error Cases:**
 
 - Playlist does not exist -> warning.
-- URL cannot be loaded -> warning.
+- URL or query cannot be loaded -> warning.
 - No tracks found -> warning.
+- Playlist name is invalid -> warning.
+- Playlist track limit reached -> warning.
 - Unexpected service failure -> error.
+
+The add-song path handles Lavalink single-track fallback results the same way as save, so a valid single track does not
+produce a false `NoTracksFound` response.
 
 ---
 
@@ -115,7 +130,38 @@ This folder contains text commands for saved playlist management.
 
 - Playlist does not exist -> warning.
 - Playlist exists but has no tracks -> warning.
+- Playlist name is invalid -> warning.
 - Stored tracks cannot be deserialized for display -> error.
+
+---
+
+### LoadPlaylistCommand.cs
+
+**Command:** `!loadPlaylist <playlistName>`
+
+**Description:** Load a saved playlist into the persistent queue and start playback when the player is idle.
+
+**Behavior:**
+
+1. Validates the user and voice-channel state.
+2. Reads the playlist name through `ICommandHelper.TryGetArgumentAsync`.
+3. Calls `IPlaylistService.LoadPlaylistAsync(guildId, playlistName)`.
+4. Deserializes stored track identities through `ITrackSerializer`.
+5. Joins/validates the user's voice channel through `IPlayerConnectionService`.
+6. Registers the playback-finished handler and enqueues the loaded tracks with `IMusicQueueService.EnqueueMany`.
+7. Starts the first queued track through `ITrackPlaybackService.TryPlayNextTrackAsync` only when the player is idle.
+
+**Error Cases:**
+
+- Playlist does not exist -> warning.
+- Playlist exists but has no tracks -> warning.
+- Playlist name is invalid -> warning.
+- Stored track identity cannot be deserialized -> error.
+- Unexpected service failure -> error.
+
+The command does not call `ILavaLinkService.StartPlayingQueue` directly, because that method starts the next queued track
+without checking whether a track is already playing. `loadPlaylist` preserves active playback and only fills the queue
+when the player is busy.
 
 ---
 
@@ -158,10 +204,22 @@ This folder contains text commands for saved playlist management.
 ## Service Dependencies
 
 - `IPlaylistService` - playlist use-cases and result mapping.
+- `IMusicQueueService` - queue persistence for loaded playlist tracks.
+- `ITrackSerializer` - stored track identity deserialization.
+- `IPlayerConnectionService` / `IPlaybackEventHandlerService` / `ITrackPlaybackService` - voice join and idle playback start for `loadPlaylist`.
 - `ICommandHelper` - user validation and argument parsing.
 - `IResponseBuilder` - success, warning, and error responses.
 - `ILocalizationService` - localized command text.
 - `IUserValidationService` - user/voice validation boundary.
+
+## Safety and Limits
+
+- Playlist command responses escape Discord mass/user/role mentions in playlist names and track metadata before sending
+  text responses.
+- `PlaylistOptions` controls `MaxPlaylistsPerGuild`, `MaxTracksPerPlaylist`, and `MaxImportedTracks`; defaults are used
+  unless tests or startup code override the options.
+- Slash commands reuse these text commands. The slash adapter quotes playlist-name arguments when needed so names with
+  spaces survive the text parser.
 
 ## Persistence
 

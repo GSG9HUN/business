@@ -29,8 +29,8 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Integration"
 - `BotServiceProviderFactory` resolves the core services
 - the full startup graph resolves against PostgreSQL
 - `DatabaseMigrationRunner` applies pending migrations
-- DSharpPlus Commands and `SlashCommandProcessor` resolve with the slash command modules
-- the startup graph resolves all 23 registered text command implementations
+- DSharpPlus Commands and `SlashCommandProcessor` resolve with the music, queue, playlist, and utility slash command modules
+- the startup graph resolves all 24 registered text command implementations
 
 ## Persistence
 
@@ -49,8 +49,12 @@ Covered PostgreSQL-backed areas include:
 
 ## Command Routing
 
-`Service/Core/CommandHandlerServiceIntegrationTests.cs` covers fake Discord message events routed through the real text command list for utility, music, and queue command paths. Playlist command registration is covered by startup/text-command registration integration tests, and playlist command-handler pipeline behavior is covered by the local E2E playlist text-command test. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
+`Service/Core/CommandHandlerIntegrationFixture.cs`, `FakeDiscordMessageBuilder.cs`, and `CommandHandlerFakeMessageFactory.cs` provide the shared command-routing harness. The routing cases are split into `CommandHandlerServiceMessageRoutingIntegrationTests.cs`, `CommandHandlerServiceUtilityRoutingIntegrationTests.cs`, `CommandHandlerServiceMusicRoutingIntegrationTests.cs`, and `CommandHandlerServiceQueueRoutingIntegrationTests.cs`. Playlist text command registration is covered by startup/text-command registration integration tests, playlist slash command registration is covered by `Commands/SlashCommands/Playlist/PlaylistSlashCommandRegistrationIntegrationTests.cs`, and playlist command-handler pipeline behavior is covered by local E2E playlist text and slash command tests. The command handler uses an injectable `IDiscordMessageFactory` boundary so tests can provide stable Discord wrapper contexts without relying on DSharpPlus internal cache state.
+
+## Reaction Handler
+
+`Service/ReactionHandler/ReactionHandlerDependencyInjectionIntegrationTests.cs` verifies the DI graph for the split reaction services. `Service/ReactionHandler/ReactionHandlerDispatchIntegrationTests.cs` verifies dispatch behavior across the production reaction handler, context factory, and action dispatcher wiring.
 
 ## Localization
 
-`Service/Localization/LocalizationJsonIntegrationTests.cs` reads the real `localization/eng.json` and `localization/hu.json` files and verifies key slash-command fallback strings are present in both languages.
+`Service/Localization/LocalizationJsonIntegrationTests.cs` reads the real `localization/eng.json` and `localization/hu.json` files and verifies key command and slash fallback strings are present in both languages.

@@ -69,7 +69,7 @@ await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.User
 ## Current Key Groups
 
 - Clear, Help, Join, Language, Leave, Ping, Play, Pause, Resume, Skip, Shuffle, Repeat, RepeatList, Tag, ViewQueue, and Playlist command text.
-- Playlist command text covers create, save, delete, add song, remove song, list, view, and rename keys.
+- Playlist command text covers create, save, load, delete, add song, remove song, list, view, rename, invalid-name, limit, and delete-confirmation keys.
 - Reaction handler text for the music control message and repeat toggle responses.
 - Unknown command response.
 - Slash command fallback responses for guild-only usage, deferred accepted response, unregistered command, and unexpected errors.

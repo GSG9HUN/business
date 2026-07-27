@@ -1,5 +1,5 @@
 using DC_bot.Exceptions.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Logging;
 using Lavalink4NET;
 using Microsoft.Extensions.Logging;

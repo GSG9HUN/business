@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -33,6 +34,8 @@ public class RenamePlaylistCommand(
         if (parsed is null) return;
 
         var (currentName, newName) = parsed.Value;
+        var safeCurrentName = DiscordTextSanitizer.EscapeMentions(currentName.Trim());
+        var safeNewName = DiscordTextSanitizer.EscapeMentions(newName.Trim());
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.RenamePlaylistAsync(guildId, currentName, newName);
 
@@ -40,15 +43,15 @@ public class RenamePlaylistCommand(
         {
             case RenamePlaylistResult.Renamed:
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.RenamePlaylistCommandRenamed,
-                    currentName, newName);
+                    safeCurrentName, safeNewName);
                 break;
             case RenamePlaylistResult.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.RenamePlaylistCommandPlaylistDoesNotExist, currentName);
+                    LocalizationKeys.RenamePlaylistCommandPlaylistDoesNotExist, safeCurrentName);
                 break;
             case RenamePlaylistResult.PlaylistAlreadyExists:
                 await responseBuilder.SendWarningAsync(message,
-                    LocalizationKeys.RenamePlaylistCommandPlaylistAlreadyExists, newName);
+                    LocalizationKeys.RenamePlaylistCommandPlaylistAlreadyExists, safeNewName);
                 break;
             case RenamePlaylistResult.InvalidPlaylistName:
                 await responseBuilder.SendWarningAsync(message,
@@ -56,7 +59,7 @@ public class RenamePlaylistCommand(
                 break;
             case RenamePlaylistResult.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.RenamePlaylistCommandUnknownError,
-                    currentName, newName);
+                    safeCurrentName, safeNewName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);
