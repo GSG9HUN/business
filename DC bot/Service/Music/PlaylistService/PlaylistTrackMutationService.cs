@@ -79,14 +79,16 @@ internal sealed class PlaylistTrackMutationService(
                 return SavePlaylistResult.NoTracksFound;
             }
 
+            var maxImportedTracks = GetMaxImportedTracks();
             var trackLimit = GetMaxTracksPerPlaylist();
-            if (tracks.Count > GetMaxImportedTracks() || tracks.Count > trackLimit)
+            if (tracks.Count > maxImportedTracks || tracks.Count > trackLimit)
             {
                 logger.LogWarning(
-                    "Playlist {PlaylistName} for guild {GuildId} has {TrackCount} tracks, exceeding the limit {TrackLimit}",
+                    "Playlist {PlaylistName} for guild {GuildId} has {TrackCount} tracks, exceeding limits. MaxImportedTracks: {MaxImportedTracks}, MaxTracksPerPlaylist: {MaxTracksPerPlaylist}",
                     playlistName,
                     guildId,
                     tracks.Count,
+                    maxImportedTracks,
                     trackLimit);
                 return SavePlaylistResult.TrackLimitExceeded;
             }
