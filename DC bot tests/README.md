@@ -51,7 +51,8 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "FullyQualifiedName~Slas
 
 The integration suite includes targeted coverage for:
 
-- command-handler routing through the real text command list with fake Discord wrapper contexts
+- command-handler routing through the real text command list with fake Discord wrapper contexts, split into message, utility, music, and queue routing integration files
+- reaction handler DI and dispatch wiring across the split reaction services
 - direct PostgreSQL repository behavior for guild data, playback state, queue, repeat-list storage, and saved playlists
 - `MusicQueueService`, `RepeatService`, `CurrentTrackService`, and `TrackEndedHandlerService` with real persistence and mocked external playback edges
 - `PlaylistService` and playlist repositories with mocked Lavalink edges or PostgreSQL-backed storage
@@ -73,7 +74,7 @@ The slash command E2E pipeline tests do not invoke Discord as a user. They valid
 
 Playlist text-command E2E tests validate the local message command handler pipeline for create, list, view, remove-song, rename, and delete playlist flows without relying on live Discord.
 
-Live music-flow E2E tests use `EndToEndTests/Service/LiveMusicFlowTestContext.cs` to keep real Discord, Lavalink, PostgreSQL, reaction handler, and command execution setup outside the scenario tests.
+Live music-flow E2E tests use `EndToEndTests/Service/LiveMusicFlowTestContext.cs` as a scenario-facing facade. `MusicFlowEndToEndTests.cs` and `ReactionHandlerEndToEndTests.cs` contain the live scenarios; `DiscordE2EClientFixture.cs`, `MusicFlowDriver.cs`, `LavalinkE2EFixture.cs`, and `LiveDiscordMessageProbe.cs` hold the focused setup, command driver, Lavalink wait, and Discord message probing responsibilities.
 
 ## Related Documentation
 

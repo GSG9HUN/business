@@ -92,7 +92,7 @@ Granular music component services.
 - `TrackNotificationService.cs`
 - `TrackPlaybackService.cs`
 
-Each service implements a corresponding interface from `Interface/Service/Music/MusicServiceInterface/`.
+Each service implements a corresponding interface from `Interface/Service/Music/`.
 
 `LavalinkTrackSerializer` is the shared track identity boundary for queue, repeat-list, and current-track persistence.
 
@@ -116,7 +116,7 @@ Responsibilities:
 
 ### ProgressiveTimer/
 
-Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active.
+Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active. `SystemProgressTicker.cs` implements `IProgressTicker` for production elapsed-time and delay behavior.
 The timer is started from the reaction control message flow, paused/resumed by playback controls, and stopped by skip, leave, and track-ended handling.
 
 ---

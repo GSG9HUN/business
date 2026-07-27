@@ -94,7 +94,8 @@ Registers the music domain services:
 - playback event/control/request services
 - track-ended handling
 - queue management
-- progressive timer
+- `IProgressTicker -> SystemProgressTicker`
+- `IProgressiveTimerService -> ProgressiveTimerService`
 - saved playlist service
 - search resolver
 

@@ -56,9 +56,9 @@ public interface ILavaLinkService
 
 ---
 
-### MusicServiceInterface/
+### Granular Music Service Interfaces
 
-Contains granular music service interfaces:
+The music contract files live directly in this folder:
 
 - `ICurrentTrackService.cs`
 - `ILavalinkNodeConnectionService.cs`
@@ -88,7 +88,7 @@ Contains `IPlaylistService` and playlist result/DTO models.
 
 ### ProgressiveTimerInterface/
 
-Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message.
+Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message. It also contains `IProgressTicker`, the internal timing boundary used by `ProgressiveTimerService`.
 
 **Implementation:** `Service/Music/ProgressiveTimer/ProgressiveTimerService.cs`
 

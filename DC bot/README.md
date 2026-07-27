@@ -478,7 +478,7 @@ YOUTUBE_REFRESH_TOKEN=
 - `BotDbContext` factory - EF Core/PostgreSQL context creation
 - `IGuildDataRepository` - Guild row and premium state
 - `IPlaybackStateRepository` - Current playback state
-- `IQueueRepository` - Queue entries
+- `IQueueRepository` / `QueueRepository` - Queue entries; atomic queued-item claim is handled internally by `QueueClaimService`
 - `IPlaylistRepository` - Saved playlist metadata
 - `IPlaylistTrackRepository` - Saved playlist tracks
 - `IRepeatListRepository` - Repeat-list entries
@@ -516,6 +516,7 @@ YOUTUBE_REFRESH_TOKEN=
 - `TrackPlaybackService` - Playback control
 - `TrackEndedHandlerService` - Track end events
 - `TrackSearchResolverService` - URL/query resolution
+- `IProgressTicker` / `SystemProgressTicker` - Production elapsed-time and delay boundary for timer sessions
 - `ProgressiveTimerService` - Now-playing message timer updates with pause/resume/stop state per guild
 
 `PlayerConnectionService` and the bot startup path accept cancellation tokens for shutdown/retry control.

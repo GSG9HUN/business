@@ -6,7 +6,6 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Service.IO;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;

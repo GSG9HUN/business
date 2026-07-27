@@ -6,7 +6,6 @@ using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Service.Core;
 using DC_bot.Service.Music;

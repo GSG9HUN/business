@@ -1,5 +1,4 @@
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.MusicServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Service.Music;
@@ -29,6 +28,7 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<ITrackEndedHandlerService, TrackEndedHandlerService>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService, MusicQueueService>()
+            .AddSingleton<IProgressTicker, SystemProgressTicker>()
             .AddSingleton<IProgressiveTimerService, ProgressiveTimerService>()
             .AddSingleton<IPlaylistService, PlaylistService>()
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>();
