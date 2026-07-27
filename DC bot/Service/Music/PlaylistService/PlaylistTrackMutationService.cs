@@ -87,7 +87,22 @@ internal sealed class PlaylistTrackMutationService(
 
     internal async Task<AddSongResult> AddSongToPlaylistAsync(ulong guildId, string playlistName, string songUrl)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistName);
+        playlistName = playlistName.Trim();
+        songUrl = songUrl.Trim();
+
+        if (!PlaylistNameValidator.IsValid(playlistName))
+        {
+            logger.LogWarning(
+                "Invalid AddSongToPlaylist request. GuildId: {GuildId}, PlaylistName: {PlaylistName}",
+                guildId,
+                playlistName);
+            return AddSongResult.UnknownError;
+        }
+
+        if (string.IsNullOrWhiteSpace(songUrl))
+        {
+            return AddSongResult.InvalidSongUrl;
+        }
 
         try
         {
