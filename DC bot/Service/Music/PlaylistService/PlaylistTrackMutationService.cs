@@ -17,8 +17,18 @@ internal sealed class PlaylistTrackMutationService(
 {
     internal async Task<SavePlaylistResult> SavePlaylistAsync(ulong guildId, string playlistName, string playlistUrl)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(playlistUrl);
+        playlistName = playlistName.Trim();
+        playlistUrl = playlistUrl.Trim();
+
+        if (!PlaylistNameValidator.IsValid(playlistName) || string.IsNullOrWhiteSpace(playlistUrl))
+        {
+            logger.LogWarning(
+                "Invalid SavePlaylist request. GuildId: {GuildId}, PlaylistName: {PlaylistName}, PlaylistUrl: {PlaylistUrl}",
+                guildId,
+                playlistName,
+                playlistUrl);
+            return SavePlaylistResult.UnknownError;
+        }
 
         try
         {
