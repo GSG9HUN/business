@@ -30,7 +30,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Integration"
 - the full startup graph resolves against PostgreSQL
 - `DatabaseMigrationRunner` applies pending migrations
 - DSharpPlus Commands and `SlashCommandProcessor` resolve with the music, queue, playlist, and utility slash command modules
-- the startup graph resolves all 23 registered text command implementations
+- the startup graph resolves all 24 registered text command implementations
 
 ## Persistence
 
@@ -57,4 +57,4 @@ Covered PostgreSQL-backed areas include:
 
 ## Localization
 
-`Service/Localization/LocalizationJsonIntegrationTests.cs` reads the real `localization/eng.json` and `localization/hu.json` files and verifies key slash-command fallback strings are present in both languages.
+`Service/Localization/LocalizationJsonIntegrationTests.cs` reads the real `localization/eng.json` and `localization/hu.json` files and verifies key command and slash fallback strings are present in both languages.

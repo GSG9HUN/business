@@ -81,6 +81,7 @@ The music contract files live directly in this folder:
 ### PlaylistServiceInterface/
 
 Contains `IPlaylistService` and playlist result/DTO models.
+`LoadPlaylistAsync` returns stored track identity DTOs used by playlist commands to refill the queue and start idle playback.
 
 **Implementation:** `Service/Music/PlaylistService/PlaylistService.cs`
 

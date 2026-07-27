@@ -18,6 +18,7 @@ This folder contains saved playlist business logic.
 - Append the first loaded song to an existing playlist, including Lavalink single-track fallback results.
 - Remove a stored song from an existing playlist by track number.
 - List saved playlists with track counts.
+- Load saved playlists as ordered stored track DTOs for queue rehydration.
 - View playlist tracks by deserializing stored track identifiers.
 - Delete and rename saved playlists.
 - Enforce saved playlist limits from `PlaylistOptions`.
@@ -46,6 +47,7 @@ Examples:
 - `RemoveSongResult`
 - `RenamePlaylistResult`
 - `ListPlaylistsResult`
+- `LoadPlaylistResult`
 - `ViewPlaylistResult`
 
 ## Persistence Boundary

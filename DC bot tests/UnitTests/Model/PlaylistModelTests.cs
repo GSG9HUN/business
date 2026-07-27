@@ -23,6 +23,9 @@ public class PlaylistModelTests
             ["Listed", "NoPlaylists", "UnknownError"],
             Enum.GetNames<ListPlaylistsStatus>());
         Assert.Equal(
+            ["Loaded", "NotFound", "EmptyPlaylist", "InvalidPlaylistName", "UnknownError"],
+            Enum.GetNames<LoadPlaylistStatus>());
+        Assert.Equal(
             ["Removed", "PlaylistDoesNotExist", "SongNotFound", "InvalidPlaylistName", "InvalidTrackNumber", "UnknownError"],
             Enum.GetNames<RemoveSongResult>());
         Assert.Equal(
@@ -43,6 +46,7 @@ public class PlaylistModelTests
         var playlist = new PlaylistDto("roadtrip", [playlistTrack]);
         var summary = new PlaylistSummaryDto("roadtrip", 1);
         var listResult = new ListPlaylistsResult(ListPlaylistsStatus.Listed, [summary]);
+        var loadResult = new LoadPlaylistResult(LoadPlaylistStatus.Loaded, playlist);
         var viewTrack = new PlaylistViewTrackDto(
             1,
             "Track title",
@@ -61,6 +65,9 @@ public class PlaylistModelTests
         Assert.Equal(ListPlaylistsStatus.Listed, listResult.Status);
         Assert.Equal("roadtrip", listResult.Playlists.Single().Name);
         Assert.Equal(1, listResult.Playlists.Single().TrackCount);
+
+        Assert.Equal(LoadPlaylistStatus.Loaded, loadResult.Status);
+        Assert.Same(playlist, loadResult.Playlist);
 
         Assert.Equal(ViewPlaylistStatus.Viewed, viewResult.Status);
         Assert.Equal("roadtrip", viewResult.PlaylistName);

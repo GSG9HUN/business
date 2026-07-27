@@ -5,6 +5,7 @@ using DC_bot.Commands.TextCommands.Utility;
 using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Interface;
+using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
@@ -14,6 +15,7 @@ using DC_bot.Service.Core;
 using DC_bot.Service.Music;
 using DC_bot.Service.Presentation;
 using DC_bot.Service.SlashCommands;
+using Lavalink4NET.Players;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,6 +28,12 @@ internal sealed class SlashCommandTestGraph
     public SlashCommandTestGraph(bool useSavedGuildLanguage = false)
     {
         LocalizationServiceMock = CreateLocalizationService(useSavedGuildLanguage);
+        PlayerConnectionServiceMock
+            .Setup(service => service.TryJoinAndValidateAsync(
+                It.IsAny<IDiscordMessage>(),
+                It.IsAny<IDiscordChannel?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PlayerMock.Object, Mock.Of<IDiscordChannel>(), 123UL, true));
         Executor = CreateExecutor(CreateCommands());
     }
 
@@ -34,6 +42,11 @@ internal sealed class SlashCommandTestGraph
     public Mock<IMusicQueueService> MusicQueueServiceMock { get; } = new();
     public Mock<IRepeatService> RepeatServiceMock { get; } = new();
     public Mock<ITrackFormatterService> TrackFormatterServiceMock { get; } = new();
+    public Mock<ITrackSerializer> TrackSerializerMock { get; } = new();
+    public Mock<IPlayerConnectionService> PlayerConnectionServiceMock { get; } = new();
+    public Mock<IPlaybackEventHandlerService> PlaybackEventHandlerServiceMock { get; } = new();
+    public Mock<ITrackPlaybackService> TrackPlaybackServiceMock { get; } = new();
+    public Mock<ILavalinkPlayer> PlayerMock { get; } = new();
     public Mock<IPlaylistService> PlaylistServiceMock { get; } = new();
     public Mock<ILocalizationService> LocalizationServiceMock { get; }
     public ILocalizationService LocalizationService => LocalizationServiceMock.Object;
@@ -120,6 +133,18 @@ internal sealed class SlashCommandTestGraph
                 responseBuilder,
                 LocalizationService,
                 PlaylistServiceMock.Object,
+                commandHelper),
+            new LoadPlaylistCommand(
+                Mock.Of<ILogger<LoadPlaylistCommand>>(),
+                validationService,
+                responseBuilder,
+                LocalizationService,
+                PlaylistServiceMock.Object,
+                MusicQueueServiceMock.Object,
+                TrackSerializerMock.Object,
+                PlayerConnectionServiceMock.Object,
+                PlaybackEventHandlerServiceMock.Object,
+                TrackPlaybackServiceMock.Object,
                 commandHelper),
             new AddSongToPlaylistCommand(
                 Mock.Of<ILogger<AddSongToPlaylistCommand>>(),
@@ -254,6 +279,11 @@ internal sealed class SlashCommandTestGraph
             LocalizationKeys.ViewPlaylistCommandEmptyPlaylist => $"Playlist '{args[0]}' is empty.",
             LocalizationKeys.ViewPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
             LocalizationKeys.ViewPlaylistCommandUnknownError => $"Could not view playlist '{args[0]}'.",
+            LocalizationKeys.LoadPlaylistCommandLoaded => $"Playlist '{args[0]}' loaded into the queue with {args[1]} tracks.",
+            LocalizationKeys.LoadPlaylistCommandNotFound => $"Playlist '{args[0]}' does not exist.",
+            LocalizationKeys.LoadPlaylistCommandEmptyPlaylist => $"Playlist '{args[0]}' is empty.",
+            LocalizationKeys.LoadPlaylistCommandInvalidPlaylistName => "Playlist name is invalid.",
+            LocalizationKeys.LoadPlaylistCommandUnknownError => $"Could not load playlist '{args[0]}'.",
             LocalizationKeys.AddSongToPlaylistCommandAdded => $"Song added to playlist '{args[0]}'.",
             LocalizationKeys.AddSongToPlaylistCommandInvalidSongUrl => $"Song URL is invalid for playlist '{args[0]}'.",
             LocalizationKeys.AddSongToPlaylistCommandPlaylistDoesNotExist => $"Playlist '{args[0]}' does not exist.",

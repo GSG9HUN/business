@@ -27,6 +27,7 @@ This folder contains the saved playlist service contract.
 - Returns explicit result enums for command-level branching.
 - Exposes invalid-name and limit statuses so commands can respond without parsing exceptions.
 - Returns DTOs for service-facing read models.
+- `LoadPlaylistAsync` returns stored track identity DTOs so commands can rehydrate the queue through `ITrackSerializer`.
 - Removes playlist tracks by stored order number so command users can use `viewPlaylist` output directly.
 - Keeps EF Core entities out of command and service contracts.
 

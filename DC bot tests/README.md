@@ -44,7 +44,7 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "FullyQualifiedName~Slas
 - the full startup service graph resolves against PostgreSQL
 - `DatabaseMigrationRunner` applies pending EF Core migrations
 - slash command services, modules, and `SlashCommandProcessor` resolve from DI
-- all 23 registered text commands resolve from the production startup graph
+- all 24 registered text commands resolve from the production startup graph
 - command routing uses the injected `ICommandRegistry` from the startup graph
 
 ## Integration Coverage
@@ -57,7 +57,7 @@ The integration suite includes targeted coverage for:
 - `MusicQueueService`, `RepeatService`, `CurrentTrackService`, and `TrackEndedHandlerService` with real persistence and mocked external playback edges
 - `PlaylistService` and playlist repositories with mocked Lavalink edges or PostgreSQL-backed storage
 - queue state assertions use the explicit `QueueItemState` contract
-- real English and Hungarian localization JSON loading for slash fallback texts
+- real English and Hungarian localization JSON loading for command and slash fallback texts
 
 ## E2E Notes
 
@@ -72,8 +72,8 @@ Required values depend on the specific test, but generally include:
 
 The slash command E2E pipeline tests do not invoke Discord as a user. They validate the local slash adapter/executor/text-command path for music, queue, playlist, and utility commands because bots cannot self-invoke application commands.
 
-Playlist text-command E2E tests validate the local message command handler pipeline for create, list, view, remove-song, rename, and delete playlist flows without relying on live Discord.
-Playlist slash-command E2E tests validate `/playlist create/save/list/view/add-song/remove-song/rename/delete` through the same text command pipeline, including delete confirmation.
+Playlist text-command E2E tests validate the local message command handler pipeline for create, list, view, load, remove-song, rename, and delete playlist flows without relying on live Discord.
+Playlist slash-command E2E tests validate `/playlist create/save/list/view/load/add-song/remove-song/rename/delete` through the same text command pipeline, including delete confirmation.
 
 Live music-flow E2E tests use `EndToEndTests/Service/LiveMusicFlowTestContext.cs` as a scenario-facing facade. `MusicFlowEndToEndTests.cs` and `ReactionHandlerEndToEndTests.cs` contain the live scenarios; `DiscordE2EClientFixture.cs`, `MusicFlowDriver.cs`, `LavalinkE2EFixture.cs`, and `LiveDiscordMessageProbe.cs` hold the focused setup, command driver, Lavalink wait, and Discord message probing responsibilities.
 

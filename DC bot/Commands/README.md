@@ -22,7 +22,7 @@ Text command implementations grouped by domain.
 
 - `Music/` - `PlayCommand`, `PauseCommand`, `ResumeCommand`, `SkipCommand`, `JoinCommand`, `LeaveCommand`
 - `Queue/` - `ViewQueueCommand`, `ShuffleCommand`, `RepeatCommand`, `RepeatListCommand`, `ClearCommand`
-- `Playlist/` - `CreatePlaylistCommand`, `SavePlaylistCommand`, `DeletePlaylistCommand`, `AddSongToPlaylistCommand`, `RemoveSongFromPlaylistCommand`, `ListPlaylistsCommand`, `ViewPlaylistCommand`, `RenamePlaylistCommand`
+- `Playlist/` - `CreatePlaylistCommand`, `SavePlaylistCommand`, `DeletePlaylistCommand`, `AddSongToPlaylistCommand`, `RemoveSongFromPlaylistCommand`, `ListPlaylistsCommand`, `ViewPlaylistCommand`, `LoadPlaylistCommand`, `RenamePlaylistCommand`
 - `Utility/` - `HelpCommand`, `PingCommand`, `LanguageCommand`, `TagCommand`
 
 ### SlashCommands/
@@ -31,7 +31,7 @@ Slash command modules grouped to mirror the text command domains.
 
 - `Music/` - `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
 - `Queue/` - `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
-- `Playlist/` - `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
+- `Playlist/` - `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist load`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
 - `Utility/` - `/help`, `/ping`, `/language`, `/tag`
 
 Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` through `AddCommandServices()`, `DSharpPlus.Commands`, and `SlashCommandProcessor`.

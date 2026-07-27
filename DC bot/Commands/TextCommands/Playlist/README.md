@@ -135,6 +135,36 @@ produce a false `NoTracksFound` response.
 
 ---
 
+### LoadPlaylistCommand.cs
+
+**Command:** `!loadPlaylist <playlistName>`
+
+**Description:** Load a saved playlist into the persistent queue and start playback when the player is idle.
+
+**Behavior:**
+
+1. Validates the user and voice-channel state.
+2. Reads the playlist name through `ICommandHelper.TryGetArgumentAsync`.
+3. Calls `IPlaylistService.LoadPlaylistAsync(guildId, playlistName)`.
+4. Deserializes stored track identities through `ITrackSerializer`.
+5. Joins/validates the user's voice channel through `IPlayerConnectionService`.
+6. Registers the playback-finished handler and enqueues the loaded tracks with `IMusicQueueService.EnqueueMany`.
+7. Starts the first queued track through `ITrackPlaybackService.TryPlayNextTrackAsync` only when the player is idle.
+
+**Error Cases:**
+
+- Playlist does not exist -> warning.
+- Playlist exists but has no tracks -> warning.
+- Playlist name is invalid -> warning.
+- Stored track identity cannot be deserialized -> error.
+- Unexpected service failure -> error.
+
+The command does not call `ILavaLinkService.StartPlayingQueue` directly, because that method starts the next queued track
+without checking whether a track is already playing. `loadPlaylist` preserves active playback and only fills the queue
+when the player is busy.
+
+---
+
 ### RenamePlaylistCommand.cs
 
 **Command:** `!renamePlaylist <currentName> <newName>`
@@ -174,6 +204,9 @@ produce a false `NoTracksFound` response.
 ## Service Dependencies
 
 - `IPlaylistService` - playlist use-cases and result mapping.
+- `IMusicQueueService` - queue persistence for loaded playlist tracks.
+- `ITrackSerializer` - stored track identity deserialization.
+- `IPlayerConnectionService` / `IPlaybackEventHandlerService` / `ITrackPlaybackService` - voice join and idle playback start for `loadPlaylist`.
 - `ICommandHelper` - user validation and argument parsing.
 - `IResponseBuilder` - success, warning, and error responses.
 - `ILocalizationService` - localized command text.

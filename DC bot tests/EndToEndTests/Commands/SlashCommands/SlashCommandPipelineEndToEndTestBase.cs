@@ -17,6 +17,8 @@ public abstract class SlashCommandPipelineEndToEndTestBase
     protected Mock<IMusicQueueService> MusicQueueServiceMock => _graph.MusicQueueServiceMock;
     protected Mock<IRepeatService> RepeatServiceMock => _graph.RepeatServiceMock;
     protected Mock<ITrackFormatterService> TrackFormatterServiceMock => _graph.TrackFormatterServiceMock;
+    protected Mock<ITrackSerializer> TrackSerializerMock => _graph.TrackSerializerMock;
+    protected Mock<ITrackPlaybackService> TrackPlaybackServiceMock => _graph.TrackPlaybackServiceMock;
     protected Mock<IPlaylistService> PlaylistServiceMock => _graph.PlaylistServiceMock;
     protected Mock<ILocalizationService> LocalizationServiceMock => _graph.LocalizationServiceMock;
     protected ISlashCommandExecutor SlashCommandExecutor => _graph.Executor;
