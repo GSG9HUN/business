@@ -1,4 +1,4 @@
-using DC_bot.Persistence.Entities;
+using DC_bot.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot_tests.UnitTests.Persistence;

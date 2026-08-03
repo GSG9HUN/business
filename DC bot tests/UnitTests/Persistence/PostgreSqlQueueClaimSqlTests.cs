@@ -1,5 +1,5 @@
 using DC_bot.Interface.Service.Persistence.Models;
-using DC_bot.Persistence.Repositories;
+using DC_bot.Repositories;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 

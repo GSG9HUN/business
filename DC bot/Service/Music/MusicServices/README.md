@@ -232,6 +232,6 @@ These services split music functionality into focused responsibilities. Each imp
 
 - **Interface/Service/Music/** - Service contracts
 - **Service/Music/LavaLinkService.cs** - Orchestrates these services
-- **Interface/Service/Persistence/** - Persistence contracts
-- **Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
-- **Persistence/Repositories/QueueClaimService.cs** - Internal atomic claim transaction used by `QueueRepository`
+- **DC bot.Contracts/Interface/Service/Persistence/** - Persistence contracts
+- **DC bot.Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
+- **DC bot.Persistence/Repositories/QueueClaimService.cs** - Internal atomic claim transaction used by `QueueRepository`

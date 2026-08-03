@@ -1,0 +1,14 @@
+namespace DC_bot.Entities;
+
+public class GuildPremiumAuditEntity
+{
+    public long Id { get; set; }
+    public ulong GuildId { get; set; }
+    public long? ChangedByUserId { get; set; }
+    public bool OldIsPremium { get; set; }
+    public bool NewIsPremium { get; set; }
+    public DateTimeOffset ChangedAtUtc { get; set; }
+    public string? Note { get; set; }
+
+    public GuildDataEntity Guild { get; set; } = null!;
+}

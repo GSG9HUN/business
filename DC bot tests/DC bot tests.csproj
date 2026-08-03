@@ -50,6 +50,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\DC bot.Contracts\DC bot.Contracts.csproj" />
+        <ProjectReference Include="..\DC bot.Persistence\DC bot.Persistence.csproj" />
         <ProjectReference Include="..\DC bot\DC bot.csproj" />
     </ItemGroup>
 

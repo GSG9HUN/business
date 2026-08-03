@@ -1,4 +1,5 @@
 using DC_bot.Configuration;
+using DC_bot.DependencyInjection;
 using DC_bot.Startup.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 

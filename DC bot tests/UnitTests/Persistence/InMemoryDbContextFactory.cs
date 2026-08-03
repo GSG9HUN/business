@@ -1,4 +1,4 @@
-﻿using DC_bot.Persistence.Db;
+﻿using DC_bot.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
