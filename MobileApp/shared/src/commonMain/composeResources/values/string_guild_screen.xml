@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="is_online">A bot elerheto</string>
+    <string name="is_offline">A bot nem elerheto</string>
+    <string name="bot_status_unknown">Bot allapot ismeretlen</string>
+    <string name="in_voice_channel">ember hangcsatornaban</string>
+    <string name="select_guild">Guild valasztasa</string>
+    <string name="available_guilds">Elerheto guildek: </string>
+    <string name="search_placeholder">Guild keresese</string>
+</resources>

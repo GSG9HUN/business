@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_lead">Discord fiókkal jelentkezel be. A Discord code az API callbackre megy, az API saját sessiont ad vissza az appnak.</string>
+    <string name="login_button">Bejelentkezés Discorddal</string>
+    <string name="login_again_button">Új bejelentkezés Discorddal</string>
+    <string name="logout_button">Kijelentkezés</string>
+    <string name="login_signed_out_status">Nincs aktív session</string>
+    <string name="login_signed_out_detail">Indítsd a Discord bejelentkezést. Siker után az API handoff linkkel visszanyitja az appot.</string>
+    <string name="login_starting_status">Discord login indítása</string>
+    <string name="login_starting_detail">Az app elkéri az authorize URL-t a saját API-tól.</string>
+    <string name="login_browser_status">Böngésző megnyitva</string>
+    <string name="login_browser_detail">A Discord belépés után az API visszairányít az appba.</string>
+    <string name="login_exchange_status">Session csere folyamatban</string>
+    <string name="login_exchange_detail">Az egyszer használható handoff kódból saját access/refresh session készül.</string>
+    <string name="login_success_status">Bejelentkezve</string>
+    <string name="login_success_detail">%1$s session aktív. Access token lejárat: %2$s.</string>
+    <string name="login_success_detail_no_expiry">%1$s session aktív. Az API nem adott access token lejáratot.</string>
+    <string name="login_error_status">Bejelentkezési hiba</string>
+    <string name="login_start_failed">Nem sikerült elindítani a Discord logint: %1$s</string>
+    <string name="login_exchange_failed">Nem sikerült saját sessionre cserélni a handoff kódot: %1$s</string>
+    <string name="login_redirect_error">A redirect hibával tért vissza: %1$s</string>
+    <string name="login_missing_code">A visszatérő link nem tartalmaz handoff kódot.</string>
+    <string name="session_read_failed">A mentett session nem olvasható, ezért törölve lett: %1$s</string>
+    <string name="unknown_user">Ismeretlen felhasználó</string>
+</resources>
