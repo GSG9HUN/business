@@ -1,8 +1,5 @@
-using API.Errors;
 using API.Handlers;
 using API.Validation;
-using DC_bot.Interface.Service.Persistence;
-using static Microsoft.AspNetCore.Http.Results;
 
 namespace API.Endpoints;
 

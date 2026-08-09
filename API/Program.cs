@@ -29,5 +29,6 @@ api.MapGuildEndpoints()
     .MapPlayerEndpoints()
     .MapPlaybackEndpoints()
     .MapPlaylistEndpoints()
+    .MapStatusEndpoints()
     .MapQueueEndpoints();
 app.Run();

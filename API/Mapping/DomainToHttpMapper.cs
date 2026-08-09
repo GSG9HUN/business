@@ -15,6 +15,8 @@ public static class DomainToHttpMapper
                 ApiErrorCode.Validation => HttpResults.BadRequest(new { result.ErrorMessage }),
                 ApiErrorCode.NotConnected => HttpResults.Problem(result.ErrorMessage, statusCode: 503),
                 ApiErrorCode.NoActivePlayer => HttpResults.Problem(result.ErrorMessage, statusCode: 409),
+                ApiErrorCode.Forbidden => HttpResults.Problem(result.ErrorMessage, statusCode: 403),
+                ApiErrorCode.DbUnavailable => HttpResults.Problem(result.ErrorMessage, statusCode: 503),
                 _ => HttpResults.Problem(result.ErrorMessage ?? "Unknown error")
             };
 

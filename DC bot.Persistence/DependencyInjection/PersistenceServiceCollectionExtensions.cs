@@ -20,6 +20,7 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IPlaylistRepository, PlaylistRepository>()
             .AddSingleton<IPlaylistTrackRepository, PlaylistTrackRepository>()
             .AddSingleton<IRepeatListRepository, RepeatListRepository>()
+            .AddSingleton<IDbStatusCheck, DbStatusCheck>()
             .AddSingleton<IBotControlCommandsRepository, BotControlCommandsRepository>();
     }
 }
