@@ -2,6 +2,8 @@ using DC_bot.Interface;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playback;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Service.Music.MusicServices;
 using Moq;
 

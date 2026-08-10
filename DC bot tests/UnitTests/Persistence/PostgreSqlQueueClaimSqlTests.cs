@@ -1,5 +1,7 @@
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Repositories;
+using DC_bot.Repositories.Queue;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 

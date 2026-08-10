@@ -1,6 +1,18 @@
 using DC_bot.Db;
-using DC_bot.Interface.Service.Persistence;
-using DC_bot.Repositories;
+using DC_bot.Interface.Service.Persistence.BotControl;
+using DC_bot.Interface.Service.Persistence.Guilds;
+using DC_bot.Interface.Service.Persistence.MobileApps;
+using DC_bot.Interface.Service.Persistence.Playback;
+using DC_bot.Interface.Service.Persistence.Playlists;
+using DC_bot.Interface.Service.Persistence.Queue;
+using DC_bot.Interface.Service.Persistence.Status;
+using DC_bot.Repositories.BotControl;
+using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.MobileApps;
+using DC_bot.Repositories.Playback;
+using DC_bot.Repositories.Playlists;
+using DC_bot.Repositories.Queue;
+using DC_bot.Repositories.Status;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +33,8 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IPlaylistTrackRepository, PlaylistTrackRepository>()
             .AddSingleton<IRepeatListRepository, RepeatListRepository>()
             .AddSingleton<IDbStatusCheck, DbStatusCheck>()
+            .AddSingleton<IMobileAppUserRepository, MobileAppUserRepository>()
+            .AddSingleton<IMobileAppSessionRepository, MobileAppSessionRepository>()
             .AddSingleton<IBotControlCommandsRepository, BotControlCommandsRepository>();
     }
 }

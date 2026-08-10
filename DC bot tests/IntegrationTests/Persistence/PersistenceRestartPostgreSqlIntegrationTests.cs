@@ -1,5 +1,7 @@
 using DC_bot.Db;
 using DC_bot.Repositories;
+using DC_bot.Repositories.Playback;
+using DC_bot.Repositories.Queue;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

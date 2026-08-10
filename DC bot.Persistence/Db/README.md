@@ -2,6 +2,12 @@
 
 This folder contains EF Core context types for the database layer.
 
+## Why This Folder Exists
+
+This folder is the database entry point for EF Core. It contains the runtime context used by repositories, the design-time context factory used by EF tooling, and the migration runner used during startup.
+
+Keeping these pieces together makes it clear where database startup and schema application are configured.
+
 ## Files
 
 ### BotDbContext.cs
@@ -18,6 +24,9 @@ DbSets:
 - `Playlists`
 - `PlaylistTracks`
 - `BotControlCommands`
+- `MobileAppUsers`
+- `UserGuilds`
+- `MobileAppSessions`
 
 `OnModelCreating` applies all mappings from `../Configurations/`.
 
@@ -40,3 +49,4 @@ Runtime migration helper used by the bot startup flow.
 
 - Context is consumed via `IDbContextFactory<BotDbContext>` in repository implementations.
 - Use this folder when changing DB schema bootstrap behavior.
+- Do not put repository query logic in `BotDbContext`; keep behavior in repositories.

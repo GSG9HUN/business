@@ -1,5 +1,7 @@
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Repositories;
+using DC_bot.Repositories.Playlists;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 

@@ -1,5 +1,6 @@
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music.Playlist;

@@ -1,5 +1,15 @@
-using DC_bot.Configurations;
-using DC_bot.Entities;
+using DC_bot.Configurations.BotControl;
+using DC_bot.Configurations.Guilds;
+using DC_bot.Configurations.MobileApps;
+using DC_bot.Configurations.Playback;
+using DC_bot.Configurations.Playlists;
+using DC_bot.Configurations.Queue;
+using DC_bot.Entities.BotControl;
+using DC_bot.Entities.Guilds;
+using DC_bot.Entities.MobileApps;
+using DC_bot.Entities.Playback;
+using DC_bot.Entities.Playlists;
+using DC_bot.Entities.Queue;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Db;
@@ -14,7 +24,10 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
     public DbSet<PlaylistEntity> Playlists => Set<PlaylistEntity>();
     public DbSet<PlaylistTrackEntity> PlaylistTracks => Set<PlaylistTrackEntity>();
     public DbSet<BotControlCommandEntity> BotControlCommands => Set<BotControlCommandEntity>();
-
+    public DbSet<MobileAppUserEntity> MobileAppUsers => Set<MobileAppUserEntity>();
+    public DbSet<UserGuildEntity> UserGuilds => Set<UserGuildEntity>();
+    public DbSet<MobileAppSessionEntity> MobileAppSessions => Set<MobileAppSessionEntity>();
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new GuildDataConfiguration());
@@ -25,6 +38,9 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new PlaylistConfiguration());
         modelBuilder.ApplyConfiguration(new PlaylistTrackConfiguration());
         modelBuilder.ApplyConfiguration(new BotControlCommandsConfiguration());
+        modelBuilder.ApplyConfiguration(new MobileAppUsersConfiguration());
+        modelBuilder.ApplyConfiguration(new MobileAppSessionsConfiguration());
+        modelBuilder.ApplyConfiguration(new UserGuildsConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

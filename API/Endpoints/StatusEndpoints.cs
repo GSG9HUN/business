@@ -1,4 +1,4 @@
-﻿using API.Handlers;
+using API.Handlers.Status;
 
 namespace API.Endpoints;
 

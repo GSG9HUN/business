@@ -1,4 +1,5 @@
 using DC_bot.Entities;
+using DC_bot.Entities.Guilds;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot_tests.UnitTests.Persistence;

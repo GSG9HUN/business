@@ -3,6 +3,7 @@ using DC_bot.Wrapper;
 using DC_bot_tests.IntegrationTests.Persistence;
 using DC_bot.Db;
 using DC_bot.Repositories;
+using DC_bot.Repositories.Playback;
 using Lavalink4NET.Tracks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

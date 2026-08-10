@@ -22,11 +22,27 @@ namespace DC_bot.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DC_bot.Entities.BotControlCommandEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.BotControl.BotControlCommandEntity", b =>
                 {
                     b.Property<string>("CommandId")
                         .HasColumnType("text")
                         .HasColumnName("command_id");
+
+                    b.Property<DateTimeOffset?>("ClaimedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("claimed_at_utc");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at_utc");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
 
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
@@ -47,10 +63,12 @@ namespace DC_bot.Persistence.Migrations
 
                     b.HasKey("CommandId");
 
+                    b.HasIndex("Status");
+
                     b.ToTable("bot_control_commands", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildDataEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Guilds.GuildDataEntity", b =>
                 {
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
@@ -77,44 +95,7 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("guild_data", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildPlaybackStateEntity", b =>
-                {
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<string>("CurrentTrackIdentifier")
-                        .HasColumnType("text")
-                        .HasColumnName("current_track_identifier");
-
-                    b.Property<bool>("IsRepeating")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_repeating");
-
-                    b.Property<bool>("IsRepeatingList")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_repeating_list");
-
-                    b.Property<long?>("QueueItemId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("queue_item_id");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at_utc")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("GuildId");
-
-                    b.ToTable("guild_playback_state", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.GuildPremiumAuditEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Guilds.GuildPremiumAuditEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -156,7 +137,269 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("guild_premium_audit", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildQueueItemEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppSessionEntity", b =>
+                {
+                    b.Property<Guid>("SessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("discord_user_id");
+
+                    b.Property<DateTimeOffset>("LastRefreshedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_refreshed_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset>("RefreshTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("refresh_token_expires_at_utc");
+
+                    b.Property<string>("RefreshTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("refresh_token_hash");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at_utc");
+
+                    b.HasKey("SessionId");
+
+                    b.HasIndex("DiscordUserId");
+
+                    b.HasIndex("RefreshTokenHash")
+                        .IsUnique();
+
+                    b.ToTable("mobile_app_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppUserEntity", b =>
+                {
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("discord_user_id");
+
+                    b.Property<string>("AvatarHash")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("avatar_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("GlobalName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("global_name");
+
+                    b.Property<DateTimeOffset>("LastLoginAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("username");
+
+                    b.HasKey("DiscordUserId");
+
+                    b.ToTable("mobile_app_users", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.UserGuildEntity", b =>
+                {
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("discord_user_id");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<bool>("IsOwner")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_owner");
+
+                    b.Property<DateTimeOffset>("LastSeenAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<decimal>("Permissions")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("permissions");
+
+                    b.HasKey("DiscordUserId", "GuildId");
+
+                    b.HasIndex("GuildId");
+
+                    b.ToTable("user_guilds", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.GuildPlaybackStateEntity", b =>
+                {
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<string>("CurrentTrackIdentifier")
+                        .HasColumnType("text")
+                        .HasColumnName("current_track_identifier");
+
+                    b.Property<bool>("IsRepeating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_repeating");
+
+                    b.Property<bool>("IsRepeatingList")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_repeating_list");
+
+                    b.Property<long?>("QueueItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("queue_item_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("GuildId");
+
+                    b.ToTable("guild_playback_state", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.GuildRepeatListItemEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("AddedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<string>("TrackIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("track_identifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("guild_repeat_list_item", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("playlists", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistTrackEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_number");
+
+                    b.Property<long>("PlaylistId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("playlist_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("TrackIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("track_identifier");
+
+                    b.Property<string>("TrackUri")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("track_uri");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaylistId", "OrderNumber")
+                        .IsUnique();
+
+                    b.ToTable("playlist_tracks", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Queue.GuildQueueItemEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -208,126 +451,9 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("guild_queue_item", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildRepeatListItemEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Guilds.GuildPremiumAuditEntity", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("AddedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("added_at_utc")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("integer")
-                        .HasColumnName("position");
-
-                    b.Property<string>("TrackIdentifier")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("track_identifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GuildId", "Position")
-                        .IsUnique();
-
-                    b.ToTable("guild_repeat_list_item", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.PlaylistEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GuildId", "Name")
-                        .IsUnique();
-
-                    b.ToTable("playlists", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.PlaylistTrackEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("order_number");
-
-                    b.Property<long>("PlaylistId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("playlist_id");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("source");
-
-                    b.Property<string>("TrackIdentifier")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("track_identifier");
-
-                    b.Property<string>("TrackUri")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("track_uri");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlaylistId", "OrderNumber")
-                        .IsUnique();
-
-                    b.ToTable("playlist_tracks", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.GuildPlaybackStateEntity", b =>
-                {
-                    b.HasOne("DC_bot.Entities.GuildDataEntity", "Guild")
-                        .WithOne("PlaybackState")
-                        .HasForeignKey("DC_bot.Entities.GuildPlaybackStateEntity", "GuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Guild");
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.GuildPremiumAuditEntity", b =>
-                {
-                    b.HasOne("DC_bot.Entities.GuildDataEntity", "Guild")
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
                         .WithMany("PremiumAuditEntries")
                         .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -336,20 +462,50 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("Guild");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildQueueItemEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppSessionEntity", b =>
                 {
-                    b.HasOne("DC_bot.Entities.GuildDataEntity", "Guild")
-                        .WithMany("QueueItems")
+                    b.HasOne("DC_bot.Entities.MobileApps.MobileAppUserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("DiscordUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.UserGuildEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.MobileApps.MobileAppUserEntity", "User")
+                        .WithMany("Guilds")
+                        .HasForeignKey("DiscordUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
+                        .WithMany("UserGuilds")
                         .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.GuildPlaybackStateEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
+                        .WithOne("PlaybackState")
+                        .HasForeignKey("DC_bot.Entities.Playback.GuildPlaybackStateEntity", "GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Guild");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildRepeatListItemEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Playback.GuildRepeatListItemEntity", b =>
                 {
-                    b.HasOne("DC_bot.Entities.GuildDataEntity", "Guild")
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
                         .WithMany("RepeatListItems")
                         .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -358,9 +514,9 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("Guild");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.PlaylistEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>
                 {
-                    b.HasOne("DC_bot.Entities.GuildDataEntity", "Guild")
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
                         .WithMany("Playlists")
                         .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -369,9 +525,9 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("Guild");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.PlaylistTrackEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistTrackEntity", b =>
                 {
-                    b.HasOne("DC_bot.Entities.PlaylistEntity", "Playlist")
+                    b.HasOne("DC_bot.Entities.Playlists.PlaylistEntity", "Playlist")
                         .WithMany("Tracks")
                         .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -380,7 +536,18 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("Playlist");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildDataEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.Queue.GuildQueueItemEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
+                        .WithMany("QueueItems")
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Guilds.GuildDataEntity", b =>
                 {
                     b.Navigation("PlaybackState");
 
@@ -391,9 +558,16 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("QueueItems");
 
                     b.Navigation("RepeatListItems");
+
+                    b.Navigation("UserGuilds");
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.PlaylistEntity", b =>
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppUserEntity", b =>
+                {
+                    b.Navigation("Guilds");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>
                 {
                     b.Navigation("Tracks");
                 });

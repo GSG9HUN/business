@@ -1,29 +1,51 @@
 # Persistence Interface Models
 
-This folder contains immutable record models returned by persistence contracts.
+This folder contains immutable record models and enums used by persistence contracts.
 
-## Files
+## Why This Folder Exists
 
-- `PlaybackStateRecord.cs`
-- `BotControlCommandRecord.cs`
-- `BotControlCommandState.cs`
-- `PlaylistRecord.cs`
-- `PlaylistSummaryRecord.cs`
-- `PlaylistTrackCreateRecord.cs`
-- `PlaylistTrackRecord.cs`
-- `QueueItemRecord.cs`
-- `QueueItemState.cs`
+Repository methods should not return EF Core entities directly. Entities carry database mapping concerns, navigation properties, and persistence behavior that service code should not depend on.
 
-## Purpose
+The records in this folder are the safer boundary shape:
 
-These records decouple service logic from EF Core entities and provide stable, test-friendly data contracts.
+- immutable by default
+- easy to assert in tests
+- independent from EF Core table configuration
+- stable for bot/API service code
 
-## Notes
+They also keep API response DTOs separate from persistence results. A handler can map a persistence record into an API response without exposing database naming or internal columns to clients.
 
-- `GuildId` is represented as `ulong` at contract level.
-- `PlaybackStateRecord.QueueItemId` links current playback to a persisted queue item when available.
-- Playlist records are used by `PlaylistService` so EF Core entities do not leak into service or command code.
-- `PlaylistSummaryRecord.TrackCount` supports `listPlaylists` responses without loading every track.
+## Subfolders
+
+### Playback
+
+Playback state records.
+
+### Queue
+
+Queue item records and queue state enum.
+
+### Playlists
+
+Saved playlist metadata and track records.
+
+### MobileApps
+
+Mobile app user, user-guild, and refresh session records.
+
+### BotControlCommand
+
+Bot command bridge records and command state enum.
+
+## How To Choose The Right Model
+
+Use these records when data crosses the persistence contract boundary. Do not use EF entities outside `DC bot.Persistence`, and do not reuse API response DTOs as repository return types.
+
+If a method needs input data for persistence and that input is not an HTTP request payload, create a small contract input record here. `MobileAppUserUpsertRecord` is an example of that pattern.
+
+## Maintenance Notes
+
+- `GuildId` and Discord user IDs are represented as `ulong` at contract level.
 - Queue item `State` uses the explicit `QueueItemState` enum at contract level.
 - Bot control command state uses `BotControlCommandState` for the API-to-bot command bridge.
-- EF Core maps `QueueItemState` to the existing `short` database column, so repository/service code does not pass raw numeric state values.
+- EF Core entities stay in `DC bot.Persistence/Entities`.

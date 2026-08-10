@@ -2,15 +2,37 @@
 
 This folder contains EF Core entity classes mapped to PostgreSQL tables.
 
-## Entities
+## Why This Folder Exists
 
-- `GuildDataEntity` - guild-level premium state and root navigation
-- `GuildPlaybackStateEntity` - repeat flags, current track identifier, and current queue item ID (`QueueItemId`)
-- `GuildQueueItemEntity` - queue entries with state and timestamps
-- `GuildRepeatListItemEntity` - repeat-list entries and ordering
-- `GuildPremiumAuditEntity` - premium status change history table entity
-- `PlaylistEntity` - saved playlist metadata owned by a guild
-- `PlaylistTrackEntity` - ordered tracks stored inside a saved playlist
+Entities are the persistence project's in-memory representation of database rows. Repository implementations use them to read and write data through EF Core.
+
+They are intentionally not exposed through `DC bot.Contracts`. Service code should consume immutable contract records instead, because entity navigation properties and EF tracking behavior are implementation details.
+
+## Subfolders
+
+### Guilds
+
+Guild data and premium audit entities.
+
+### Playback
+
+Playback state and repeat-list entities.
+
+### Queue
+
+Guild queue item entities.
+
+### Playlists
+
+Saved playlist and playlist track entities.
+
+### MobileApps
+
+Mobile app user, user-guild link, and refresh session entities.
+
+### BotControl
+
+API-to-bot command bridge entities.
 
 ## Mapping Notes
 
@@ -19,6 +41,13 @@ This folder contains EF Core entity classes mapped to PostgreSQL tables.
 - Navigation properties are configured in `../Configurations/`.
 - `GuildPremiumAuditEntity` is part of the EF model; active repository code currently updates premium state through `GuildDataRepository`.
 - Playlist tracks are cascade-deleted when their parent playlist is deleted.
+- Mobile app refresh session entities store token hashes only.
+
+## When To Add An Entity
+
+Add an entity when the database needs a new table or an existing table needs new persisted columns. Also add or update the matching configuration and migration in the same change.
+
+Do not add computed API-only or display-only fields here. Those belong in API response DTOs or service-level projections.
 
 ## Related
 

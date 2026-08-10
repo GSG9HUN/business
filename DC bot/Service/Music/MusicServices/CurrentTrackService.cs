@@ -1,6 +1,7 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

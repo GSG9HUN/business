@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Playlists;
 using Lavalink4NET;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

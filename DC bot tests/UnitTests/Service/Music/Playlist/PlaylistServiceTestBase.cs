@@ -2,6 +2,7 @@ using DC_bot.Configuration;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Service.Music.PlaylistService;
 using Lavalink4NET;
 using Lavalink4NET.Rest.Entities.Tracks;

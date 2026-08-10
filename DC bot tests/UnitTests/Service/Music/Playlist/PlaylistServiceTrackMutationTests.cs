@@ -1,5 +1,6 @@
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Moq;
 

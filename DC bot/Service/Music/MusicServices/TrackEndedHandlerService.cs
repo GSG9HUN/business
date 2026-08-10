@@ -3,6 +3,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Logging;
 using DC_bot.Wrapper;
 using Lavalink4NET.Events.Players;

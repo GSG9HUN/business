@@ -9,5 +9,7 @@ public enum ApiErrorCode
     NotConnected = 4,       // e.g., Lavalink not connected
     NoActivePlayer = 5,     // e.g., no active player
     Forbidden = 6,          // e.g., forbidden action
-    DbUnavailable = 7       // e.g., database unavailable
+    DbUnavailable = 7,      // e.g., database unavailable
+    InvalidInput = 8,       // e.g., invalid input provided
+    Unauthorized = 9,
 }

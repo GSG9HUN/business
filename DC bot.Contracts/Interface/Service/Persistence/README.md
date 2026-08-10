@@ -1,27 +1,81 @@
 # Persistence Service Interfaces
 
-This folder contains persistence contracts used by the service layer.
+This folder contains persistence contracts used by the bot and API service layers.
 
-## Interfaces
+## Why This Folder Exists
 
-- `IGuildDataRepository` - guild row creation and premium state operations
-- `IPlaybackStateRepository` - current track and repeat flags
-- `IPlaylistRepository` - saved playlist metadata operations
-- `IPlaylistTrackRepository` - saved playlist track ordering and mutation operations
-- `IQueueRepository` - queue item lifecycle and ordering
-- `IRepeatListRepository` - repeat-list snapshot persistence used for saving repeat-list mode state and rehydrating queue playback
-- `IBotControlCommandsRepository` - bot command bridge used by the API and bot worker processes
+Persistence is shared by both running processes:
 
-`IQueueRepository` uses `QueueItemState` (`Queued`, `Playing`, `Played`, `Skipped`) transitions and exposes atomic claim operations through
-`ClaimNextQueuedItemAsync`.
+- the Discord bot reads and mutates queue, playback, playlist, and command state
+- the API reads mobile app access and writes bot-control commands
+- tests need to replace persistence with predictable fakes
 
-## Models
+This folder defines the repository contracts that make those interactions possible without leaking database implementation details into the bot or API.
 
-See `Models/` for immutable record types used in interface method signatures.
+Implementations live in `../../../../DC bot.Persistence/Repositories/`.
 
-## Design Intent
+## How The Boundary Works
 
-- service layer depends on these abstractions, not EF Core details
-- implementations live in `../../../../DC bot.Persistence/Repositories/`
-- contracts use `ulong` guild identifiers to match Discord domain objects
-- playlist repositories return immutable record models instead of EF entities
+Callers depend on interfaces from this folder. They receive immutable model records from `Models/`. The persistence project translates between those records and EF Core entities.
+
+That gives the codebase three separate shapes:
+
+- API DTOs describe HTTP payloads
+- contract records describe cross-project data
+- EF entities describe database tables
+
+Keeping those shapes separate avoids accidental coupling. A database column rename should not force API clients to change, and an API response change should not require entity changes.
+
+## Subfolders
+
+### Guilds
+
+Guild row creation and premium state contracts. Other persistence areas depend on guild rows existing before child records are inserted.
+
+### Playback
+
+Playback state and repeat-list persistence contracts. These are used by the music services to resume and control guild playback behavior.
+
+### Queue
+
+Queue item lifecycle, ordering, state transitions, and atomic queue claim contracts. Queue claim operations are important because the bot worker must not start the same queued item twice.
+
+### Playlists
+
+Saved playlist metadata and playlist track mutation contracts. Playlist metadata and ordered tracks are split because the operations and constraints are different.
+
+### MobileApps
+
+Mobile app user, user-guild access, and refresh session contracts. These support the Discord login to app-session flow.
+
+### BotControl
+
+API-to-bot command bridge contracts. The API writes commands here; the bot process claims and executes them.
+
+### Status
+
+Database connectivity/status contracts used by health/status endpoints.
+
+### Models
+
+Immutable record models and enums used in persistence contract method signatures.
+
+## What Belongs Here
+
+- repository interfaces
+- contract records used by those interfaces
+- enums needed to describe repository state
+
+## What Does Not Belong Here
+
+- EF Core configuration
+- SQL or migrations
+- ASP.NET Core endpoint responses
+- Discord client types
+
+## Maintenance Notes
+
+- Contracts use `ulong` guild/user identifiers to match Discord domain objects.
+- Repository methods should return contract records, not EF Core entities.
+- Keep this layer free of database provider and ASP.NET Core dependencies.
+- Physical folders are feature-scoped, while namespaces remain stable for existing consumers.

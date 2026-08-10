@@ -13,6 +13,8 @@ public static class DomainToHttpMapper
                 ApiErrorCode.NotFound => HttpResults.NotFound(new { result.ErrorMessage }),
                 ApiErrorCode.Conflict => HttpResults.Conflict(new { result.ErrorMessage }),
                 ApiErrorCode.Validation => HttpResults.BadRequest(new { result.ErrorMessage }),
+                ApiErrorCode.InvalidInput => HttpResults.BadRequest(new { result.ErrorMessage }),
+                ApiErrorCode.Unauthorized => HttpResults.Unauthorized(),
                 ApiErrorCode.NotConnected => HttpResults.Problem(result.ErrorMessage, statusCode: 503),
                 ApiErrorCode.NoActivePlayer => HttpResults.Problem(result.ErrorMessage, statusCode: 409),
                 ApiErrorCode.Forbidden => HttpResults.Problem(result.ErrorMessage, statusCode: 403),
@@ -27,9 +29,7 @@ public static class DomainToHttpMapper
             var dto = mapFunc(result.Value!);
             return ApiResult<TDto>.Ok(dto);
         }
-        else
-        {
-            return ApiResult<TDto>.Fail(result.ErrorCode!.Value, result.ErrorMessage!);
-        }
+
+        return ApiResult<TDto>.Fail(result.ErrorCode!.Value, result.ErrorMessage!);
     }
 }

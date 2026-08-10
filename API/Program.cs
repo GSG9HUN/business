@@ -1,5 +1,9 @@
+using System.Text;
 using API.Endpoints;
+using API.Services.Auth;
 using DC_bot.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +18,38 @@ var postgresConnectionString =
 
 builder.Services.AddOpenApi();
 builder.Services.AddPersistenceServices(postgresConnectionString);
+builder.Services.AddMemoryCache();
+
+builder.Services.AddHttpClient<DiscordOAuthService>();
+builder.Services.AddSingleton<AppTokenService>()
+    .AddSingleton<OAuthStateStore>()
+    .AddSingleton<AuthTicketStore>();
+
+var jwtKey = builder.Configuration["AppAuth:SigningKey"]
+             ?? throw new InvalidOperationException("Missing AppAuth:SigningKey.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AppAuth:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AppAuth:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -23,12 +57,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 var api = app.MapGroup("/api");
 api.MapGuildEndpoints()
+    .MapAuthEndpoints()
     .MapPlayerEndpoints()
     .MapPlaybackEndpoints()
     .MapPlaylistEndpoints()
     .MapStatusEndpoints()
     .MapQueueEndpoints();
+
 app.Run();
