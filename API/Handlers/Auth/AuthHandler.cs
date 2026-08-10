@@ -57,7 +57,7 @@ public static class AuthHandler
         var guildRecords = discordGuilds
             .Select(guild => new MobileAppUserGuildUpsertRecord(
                 ulong.Parse(guild.Id),
-                ulong.Parse(guild.Permissions),
+                guild.Permissions,
                 guild.Owner))
             .ToList();
 

@@ -9,6 +9,7 @@ public static class PlaybackEndpoints
     {
         var playback = group
             .MapGroup("/guilds/{guildId}/playback")
+            .RequireAuthorization()
             .AddEndpointFilter<GuildIdValidationFilter>();
         
         playback.MapPost("/{commandName}", PlaybackHandlers.ExecuteAsync)

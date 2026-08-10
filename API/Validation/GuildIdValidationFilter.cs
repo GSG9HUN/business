@@ -7,9 +7,9 @@ public sealed class GuildIdValidationFilter: IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var routValues = context.HttpContext.Request.RouteValues;
+        var routeValues = context.HttpContext.Request.RouteValues;
 
-        var guildIdString = routValues["guildId"]?.ToString();
+        var guildIdString = routeValues["guildId"]?.ToString();
         if (string.IsNullOrEmpty(guildIdString) ||
             !ulong.TryParse(guildIdString, out var guildId) || 
             guildId == 0)

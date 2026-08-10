@@ -20,7 +20,8 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
                 GuildId = guildId,
                 Type = type,
                 UserId = userId,
-                Status = BotControlCommandState.Pending
+                Status = BotControlCommandState.Pending,
+                CreatedAtUtc = DateTimeOffset.UtcNow
             };
         
             dbContext.BotControlCommands.Add(botCommand);

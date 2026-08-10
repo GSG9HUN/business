@@ -64,6 +64,7 @@ Contains endpoint filters and helper validation used by minimal API routes.
 
 Application entry point.
 Registers services, configures JWT authentication, enables authorization, and maps endpoint groups.
+Loads the repository root `.env` file before building the application configuration.
 
 ### API.csproj
 
@@ -84,6 +85,27 @@ Development-only API configuration.
 ### Dockerfile
 
 Container build definition for the API service.
+
+## Environment Configuration
+
+The API reads runtime configuration from environment variables. For local development, `Program.cs` loads the repository root `.env` file before creating the web application builder.
+
+Required keys:
+
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `DISCORD_OAUTH_CLIENT_ID`
+- `DISCORD_OAUTH_CLIENT_SECRET`
+- `DISCORD_OAUTH_REDIRECT_URI`
+- `DISCORD_OAUTH_ANDROID_REDIRECT_URI`
+- `APP_AUTH_SIGNING_KEY`
+- `APP_AUTH_ISSUER`
+- `APP_AUTH_AUDIENCE`
+
+The uppercase `.env` keys are mapped into the internal .NET configuration keys used by the auth services, such as `DiscordOAuth:ClientId` and `AppAuth:SigningKey`.
 
 ## Notes
 

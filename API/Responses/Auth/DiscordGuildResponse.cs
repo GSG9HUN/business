@@ -11,5 +11,6 @@ public sealed class DiscordGuildResponse
     public bool Owner { get; set; }
 
     [JsonPropertyName("permissions")]
-    public string Permissions { get; set; } = string.Empty;
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+    public ulong Permissions { get; set; }
 }
