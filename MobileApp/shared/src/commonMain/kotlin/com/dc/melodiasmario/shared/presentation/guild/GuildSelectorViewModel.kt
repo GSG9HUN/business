@@ -3,6 +3,7 @@ package com.dc.melodiasmario.shared.presentation.guild
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.shared.core.Resource
+import com.dc.melodiasmario.shared.domain.guild.model.Guild
 import com.dc.melodiasmario.shared.domain.guild.usecase.GetGuildUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +21,29 @@ class GuildSelectorViewModel(
     // TODO profileId should come from the authenticated session.
     private val _uiState = MutableStateFlow(GuildSelectorUiState(profileId = "1"))
     val uiState: StateFlow<GuildSelectorUiState> = _uiState.asStateFlow()
-
+    private val events = MutableSharedFlow<GuildSelectorEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<GuildSelectorEffect>()
     val effect = _effect.asSharedFlow()
 
+    init {
+        collectEvents()
+    }
+
     fun onEvent(event: GuildSelectorEvent) {
+        viewModelScope.launch {
+            events.emit(event)
+        }
+    }
+
+    private fun collectEvents() {
+        viewModelScope.launch {
+            events.collect { event ->
+                handleEvent(event)
+            }
+        }
+    }
+
+    private suspend fun handleEvent(event: GuildSelectorEvent) {
         when (event) {
             GuildSelectorEvent.GetGuilds -> getGuilds()
             GuildSelectorEvent.RefreshClicked -> getGuilds()
@@ -34,34 +53,14 @@ class GuildSelectorViewModel(
         }
     }
 
-    private fun getGuilds() {
-        viewModelScope.launch {
-            getGuildUseCase().collect { result ->
-                when (result) {
-                    Resource.Loading -> {
-                        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-                    }
+    private suspend fun getGuilds() {
+        getGuildUseCase().collect { result ->
+            when (result) {
+                Resource.Loading -> onGetGuildsLoading()
 
-                    is Resource.Success -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                guilds = result.data,
-                                filteredGuilds = filterGuilds(result.data, it.searchQuery),
-                                errorMessage = null,
-                            )
-                        }
-                    }
+                is Resource.Success -> onGetGuildsSuccess(result.data)
 
-                    is Resource.Error -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.error.message,
-                            )
-                        }
-                    }
-                }
+                is Resource.Error -> onGetGuildsError(result.error)
             }
         }
     }
@@ -75,24 +74,49 @@ class GuildSelectorViewModel(
         }
     }
 
-    private fun navigateToPlaylists(guildId: String) {
-        viewModelScope.launch {
-            _effect.emit(GuildSelectorEffect.NavigateToPlaylists(guildId))
-        }
+    private suspend fun navigateToPlaylists(guildId: String) {
+        _effect.emit(GuildSelectorEffect.NavigateToPlaylists(guildId))
     }
 
-    private fun navigateToProfile() {
-        viewModelScope.launch {
-            _effect.emit(GuildSelectorEffect.NavigateToProfile(profileId = uiState.value.profileId))
-        }
+    private suspend fun navigateToProfile() {
+        _effect.emit(GuildSelectorEffect.NavigateToProfile(profileId = uiState.value.profileId))
     }
 
     private fun filterGuilds(
-        guilds: List<com.dc.melodiasmario.shared.domain.guild.model.Guild>,
+        guilds: List<Guild>,
         query: String,
     ) = if (query.isBlank()) {
         guilds
     } else {
         guilds.filter { it.name.contains(query, ignoreCase = true) }
+    }
+
+    private fun onGetGuildsLoading() {
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                errorMessage = null,
+            )
+        }
+    }
+
+    private fun onGetGuildsSuccess(guilds: List<Guild>) {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                guilds = guilds,
+                filteredGuilds = filterGuilds(guilds, it.searchQuery),
+                errorMessage = null,
+            )
+        }
+    }
+
+    private fun onGetGuildsError(error: Throwable) {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = error.message,
+            )
+        }
     }
 }
