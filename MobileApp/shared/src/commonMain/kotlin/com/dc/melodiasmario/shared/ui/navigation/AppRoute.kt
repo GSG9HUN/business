@@ -1,19 +1,32 @@
 package com.dc.melodiasmario.shared.ui.navigation
 
-object AppRoute {
-    const val Login = "login"
-    const val GuildSelector = "guild_selector"
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 
-    const val Profile = "profile/{profileId}"
-    const val Playlists = "playlists/{guildId}"
+@Serializable
+sealed interface AppRoute : NavKey {
+    @Serializable
+    data object Login : AppRoute
 
-    fun profile(profileId: String) = "profile/$profileId"
-    fun playlists(guildId: String) = "playlists/$guildId"
+    @Serializable
+    data object GuildSelector : AppRoute
 
-    const val PlaylistSongs = "playlist_songs"
-    const val Queue = "queue"
-    const val CurrentMusic = "current_music"
-    const val AddSong = "add_song"
-    const val RemoveSong = "remove_song"
-    const val Settings = "settings"
+    @Serializable
+    data class Profile(val profileId: String) : AppRoute
+
+    @Serializable
+    data class Playlists(val guildId: String) : AppRoute
+
+    @Serializable
+    data object PlaylistSongs : AppRoute
+    @Serializable
+    data object Queue : AppRoute
+    @Serializable
+    data object CurrentMusic : AppRoute
+    @Serializable
+    data object AddSong : AppRoute
+    @Serializable
+    data object RemoveSong : AppRoute
+    @Serializable
+    data object Settings : AppRoute
 }

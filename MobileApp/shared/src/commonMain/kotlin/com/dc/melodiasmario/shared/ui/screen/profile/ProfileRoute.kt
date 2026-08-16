@@ -13,7 +13,7 @@ fun ProfileRoute(
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     EmptyRouteScreen(
-        text = viewModel.emptyText(),
+        text = viewModel.emptyText()+" $profileId",
         modifier = modifier,
     )
 }
