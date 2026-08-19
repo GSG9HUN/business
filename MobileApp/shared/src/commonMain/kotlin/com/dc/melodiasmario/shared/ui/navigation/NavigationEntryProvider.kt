@@ -2,16 +2,16 @@ package com.dc.melodiasmario.shared.ui.navigation
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.entryProvider
-import com.dc.melodiasmario.shared.ui.screen.addsong.AddSongRoute
-import com.dc.melodiasmario.shared.ui.screen.auth.LoginRoute
-import com.dc.melodiasmario.shared.ui.screen.currentmusic.CurrentMusicRoute
-import com.dc.melodiasmario.shared.ui.screen.guild.GuildSelectorRoute
-import com.dc.melodiasmario.shared.ui.screen.playlists.PlaylistSongsRoute
-import com.dc.melodiasmario.shared.ui.screen.playlists.PlaylistsRoute
-import com.dc.melodiasmario.shared.ui.screen.profile.ProfileRoute
-import com.dc.melodiasmario.shared.ui.screen.queue.QueueRoute
-import com.dc.melodiasmario.shared.ui.screen.removesong.RemoveSongRoute
-import com.dc.melodiasmario.shared.ui.screen.settings.SettingsRoute
+import com.dc.melodiasmario.feature.addsong.ui.AddSongRoute
+import com.dc.melodiasmario.feature.login.ui.LoginRoute
+import com.dc.melodiasmario.feature.currentmusic.ui.CurrentMusicRoute
+import com.dc.melodiasmario.feature.guild.ui.GuildSelectorRoute
+import com.dc.melodiasmario.feature.playlists.ui.PlaylistSongsRoute
+import com.dc.melodiasmario.feature.playlists.ui.PlaylistsRoute
+import com.dc.melodiasmario.feature.profile.ui.ProfileRoute
+import com.dc.melodiasmario.feature.queue.ui.QueueRoute
+import com.dc.melodiasmario.feature.removesong.ui.RemoveSongRoute
+import com.dc.melodiasmario.feature.settings.ui.SettingsRoute
 
 fun navigationEntryProvider(
     backStack: SnapshotStateList<AppRoute>,

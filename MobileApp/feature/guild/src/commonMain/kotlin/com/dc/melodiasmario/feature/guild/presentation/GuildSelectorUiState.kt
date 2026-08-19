@@ -1,0 +1,12 @@
+package com.dc.melodiasmario.feature.guild.presentation
+
+import com.dc.melodiasmario.feature.guild.domain.model.Guild
+
+data class GuildSelectorUiState(
+    val profileId: String,
+    val guilds: List<Guild> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val searchQuery: String = "",
+    val filteredGuilds: List<Guild> = emptyList(),
+)

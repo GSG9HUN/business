@@ -2,13 +2,14 @@ package com.dc.melodiasmario.shared.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 
 @Composable
 fun Navigation() {
-    val backStack = remember { mutableStateListOf<AppRoute>(AppRoute.Login) }
+    val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
+        mutableStateListOf(AppRoute.Login) }
 
     NavDisplay(
         backStack = backStack,

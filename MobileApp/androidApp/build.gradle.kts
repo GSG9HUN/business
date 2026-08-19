@@ -12,6 +12,9 @@ kotlin {
 }
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":core:common"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:auth"))
 
     implementation(libs.androidx.activity.compose)
 
