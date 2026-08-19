@@ -33,16 +33,42 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
     private val _effect = MutableSharedFlow<LoginEffect>()
     val effect = _effect.asSharedFlow()
+    private val events = MutableSharedFlow<LoginEvent>(extraBufferCapacity = 64)
     private var pollingJob: Job? = null
 
     init {
         observeAuthTickets()
+        collectEvents()
     }
 
     override fun onCleared() {
         stopStatusPolling()
         super.onCleared()
     }
+
+    fun onEvent(event: LoginEvent) {
+        viewModelScope.launch {
+            events.emit(event)
+        }
+    }
+
+    private fun collectEvents() {
+        viewModelScope.launch {
+            events.collect { event ->
+                handleEvent(event)
+            }
+        }
+    }
+
+    private suspend fun handleEvent(event: LoginEvent) {
+        when (event) {
+            LoginEvent.StartStatusPolling -> startStatusPolling()
+            LoginEvent.StopStatusPolling -> stopStatusPolling()
+            LoginEvent.DiscordLoginClicked -> onDiscordLoginClicked()
+            is LoginEvent.AuthTicketReceived -> onAuthTicketReceived(event.ticket)
+        }
+    }
+
     private fun observeAuthTickets() {
         viewModelScope.launch {
             authDeepLinkDispatcher.tickets.collect { ticket ->
@@ -50,68 +76,14 @@ class LoginViewModel(
             }
         }
     }
+    private suspend fun onDiscordLoginClicked() {
+        startDiscordLoginUseCase().collect { result ->
+            when (result) {
+                is Resource.Loading -> setLoading()
 
-    fun onEvent(event: LoginEvent){
-        when(event){
-            LoginEvent.StartStatusPolling -> startStatusPolling()
-            LoginEvent.StopStatusPolling -> stopStatusPolling()
-            LoginEvent.DiscordLoginClicked -> {
-                viewModelScope.launch {
-                    startDiscordLoginUseCase().collect { result ->
-                        when (result) {
-                            is Resource.Loading -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(isLoading = true)
-                                }
-                            }
-                            is Resource.Success -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(isLoading = false)
-                                }
-                                _effect.emit(OpenExternalUrl(result.data.authorizeUrl))
-                            }
-                            is Resource.Error -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(
-                                        isLoading = false,
-                                        errorMessage = result.error.message
-                                    )
-                                }
-                                _effect.emit(ShowError(result.error.message ?: "Login failed"))
-                            }
-                        }
-                    }
-                }
-            }
+                is Resource.Success -> onDiscordLoginClickedSuccess(result.data.authorizeUrl)
 
-            is LoginEvent.AuthTicketReceived -> {
-                viewModelScope.launch {
-                    exchangeAuthTicketUseCase(event.ticket).collect { result ->
-                        when (result) {
-                            is Resource.Loading -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(isLoading = true)
-                                }
-                            }
-                            is Resource.Success -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(isLoading = false)
-                                }
-                                stopStatusPolling()
-                                _effect.emit(NavigateToGuildSelector)
-                            }
-                            is Resource.Error -> {
-                                _uiState.update { currentState ->
-                                    currentState.copy(
-                                        isLoading = false,
-                                        errorMessage = result.error.message
-                                    )
-                                }
-                                _effect.emit(ShowError(result.error.message ?: "Login failed"))
-                            }
-                        }
-                    }
-                }
+                is Resource.Error -> setError(result.error)
             }
         }
     }
@@ -123,38 +95,87 @@ class LoginViewModel(
 
         pollingJob = viewModelScope.launch {
             while (isActive) {
-                checkApiStatusUseCase().collect { status ->
-                    when (status) {
-                        is Resource.Loading -> {
-                            _uiState.update { currentState ->
-                                currentState.copy(isLoading = true)
-                            }
-                        }
-                        is Resource.Success -> {
-                            _uiState.update { currentState ->
-                                currentState.copy(
-                                    isLoading = false,
-                                    apiConnectionStatus = status.data
-                                )
-                            }
-                        }
-                        is Resource.Error -> {
-                            _uiState.update { currentState ->
-                                currentState.copy(
-                                    apiConnectionStatus = ApiConnectionStatus.Offline,
-                                    isLoading = false,
-                                    errorMessage = status.error.message
-                                )
-                            }
-                        }
-                    }
-                }
+                checkApiStatus()
                 delay(PollingIntervalMs.milliseconds)
             }
         }
     }
+
     private fun stopStatusPolling() {
         pollingJob?.cancel()
         pollingJob = null
+    }
+
+    private suspend fun checkApiStatus() {
+        checkApiStatusUseCase().collect { status ->
+            when (status) {
+                is Resource.Loading -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoading = true)
+                    }
+                }
+
+                is Resource.Success -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoading = false,
+                            apiConnectionStatus = status.data
+                        )
+                    }
+                }
+
+                is Resource.Error -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            apiConnectionStatus = ApiConnectionStatus.Offline,
+                            isLoading = false,
+                            errorMessage = status.error.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun onAuthTicketReceived(ticket: String) {
+        exchangeAuthTicketUseCase(ticket).collect { result ->
+            when (result) {
+                is Resource.Loading -> setLoading()
+                is Resource.Success -> authTicketReceivedSuccess()
+
+                is Resource.Error -> setError(result.error)
+            }
+        }
+    }
+
+    private suspend fun onDiscordLoginClickedSuccess(authorizeUrl: String) {
+        _uiState.update { currentState ->
+            currentState.copy(isLoading = false)
+        }
+        _effect.emit(OpenExternalUrl(authorizeUrl))
+    }
+
+    private suspend fun authTicketReceivedSuccess() {
+        _uiState.update { currentState ->
+            currentState.copy(isLoading = false)
+        }
+        stopStatusPolling()
+        _effect.emit(NavigateToGuildSelector)
+    }
+
+    private suspend fun setError(error: Throwable) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                errorMessage = error.message
+            )
+        }
+        _effect.emit(ShowError(error.message ?: "Login failed"))
+    }
+
+    private fun setLoading() {
+        _uiState.update { currentState ->
+            currentState.copy(isLoading = true)
+        }
     }
 }
