@@ -1,6 +1,6 @@
 namespace API.Responses.Playlists;
 
-public sealed class PlaylistDetailResponse
+public sealed record PlaylistDetailResponse
 {
     //TODO create properties
 }

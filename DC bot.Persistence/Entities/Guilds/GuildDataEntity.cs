@@ -1,3 +1,4 @@
+using DC_bot.Entities.GuildBotStatus;
 using DC_bot.Entities.MobileApps;
 using DC_bot.Entities.Playback;
 using DC_bot.Entities.Playlists;
@@ -13,6 +14,7 @@ public class GuildDataEntity
 	public DateTimeOffset UpdatedAtUtc { get; set; }
 
 	public GuildPlaybackStateEntity? PlaybackState { get; set; }
+	public GuildBotStatusEntity? BotStatus { get; set; }
 	public ICollection<GuildQueueItemEntity> QueueItems { get; set; } = new List<GuildQueueItemEntity>();
 	public ICollection<GuildRepeatListItemEntity> RepeatListItems { get; set; } = new List<GuildRepeatListItemEntity>();
 	public ICollection<GuildPremiumAuditEntity> PremiumAuditEntries { get; set; } = new List<GuildPremiumAuditEntity>();

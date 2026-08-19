@@ -1,8 +1,8 @@
 ﻿namespace DC_bot.Entities.BotRuntimeStatus;
 
-public class BotStatusRuntimeEntity
+public class BotRuntimeStatusEntity
 {
     public int Id { get; set; } 
     public DateTimeOffset LastHeartbeatAtUtc { get; set; }
-    public DateTimeOffset LastStatusChangeAtUtc { get; set; }
+    public DateTimeOffset StartedAtUtc { get; set; }
 }

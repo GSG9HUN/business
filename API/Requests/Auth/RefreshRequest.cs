@@ -1,6 +1,3 @@
 namespace API.Requests.Auth;
 
-public sealed class RefreshRequest
-{
-    public string RefreshToken { get; init; } = string.Empty;
-}
+public sealed record RefreshRequest(string RefreshToken);

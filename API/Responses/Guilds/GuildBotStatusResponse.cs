@@ -1,6 +1,6 @@
 ﻿namespace API.Responses.Guilds;
 
-public class GuildBotStatusResponse
-{
-    
-}
+public sealed record GuildBotStatusResponse(
+    bool IsOnline,
+    string? ConnectedVoiceChannelName,
+    int ConnectedVoiceUserCount);

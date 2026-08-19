@@ -1,5 +1,5 @@
 using System.Text.Json;
-using API.Responses.Auth;
+using API.Services.Auth.Discord.Response;
 
 namespace API.Services.Auth;
 

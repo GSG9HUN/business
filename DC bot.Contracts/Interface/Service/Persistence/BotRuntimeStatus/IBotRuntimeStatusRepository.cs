@@ -1,6 +1,9 @@
-﻿namespace DC_bot.Interface.Service.Persistence.BotRuntimeStatus;
+﻿using DC_bot.Interface.Service.Persistence.Models.BotRuntimeStatus;
 
-public class IBotRuntimeStatusRepository
+namespace DC_bot.Interface.Service.Persistence.BotRuntimeStatus;
+
+public interface IBotRuntimeStatusRepository
 {
-    
+    Task UpsertHeartbeatAsync(DateTimeOffset heartbeatAtUtc, CancellationToken ct = default);
+    Task<BotRuntimeStatusRecord?> GetCurrentAsync(CancellationToken ct = default);
 }

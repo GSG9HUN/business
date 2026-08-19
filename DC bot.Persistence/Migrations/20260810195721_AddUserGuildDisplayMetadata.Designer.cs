@@ -3,6 +3,7 @@ using System;
 using DC_bot.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DC_bot.Persistence.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    partial class BotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810195721_AddUserGuildDisplayMetadata")]
+    partial class AddUserGuildDisplayMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,51 +69,6 @@ namespace DC_bot.Persistence.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("bot_control_commands", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.BotRuntimeStatus.BotRuntimeStatusEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("LastHeartbeatAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_heartbeat_at_utc");
-
-                    b.Property<DateTimeOffset>("StartedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at_utc");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("bot_runtime_status", (string)null);
-                });
-
-            modelBuilder.Entity("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", b =>
-                {
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<string>("ConnectedVoiceChannelName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("connected_voice_channel_name");
-
-                    b.Property<int>("ConnectedVoiceUserCount")
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("connected_voice_user_count");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at_utc")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("GuildId");
-
-                    b.ToTable("guild_bot_status", (string)null);
                 });
 
             modelBuilder.Entity("DC_bot.Entities.Guilds.GuildDataEntity", b =>
@@ -507,17 +465,6 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("guild_queue_item", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", b =>
-                {
-                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
-                        .WithOne("BotStatus")
-                        .HasForeignKey("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", "GuildId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Guild");
-                });
-
             modelBuilder.Entity("DC_bot.Entities.Guilds.GuildPremiumAuditEntity", b =>
                 {
                     b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
@@ -616,8 +563,6 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Entities.Guilds.GuildDataEntity", b =>
                 {
-                    b.Navigation("BotStatus");
-
                     b.Navigation("PlaybackState");
 
                     b.Navigation("Playlists");

@@ -98,6 +98,8 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
                 row.Permissions = update.Permissions;
                 row.IsOwner = update.IsOwner;
                 row.LastSeenAtUtc = now;
+                row.Name = update.Name;
+                row.IconHash = update.IconHash;
             }
 
             var existingIds = existing.Select(x => x.GuildId).ToHashSet();
@@ -112,6 +114,8 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
                     GuildId = guildId,
                     Permissions = update.Permissions,
                     IsOwner = update.IsOwner,
+                    Name = update.Name,
+                    IconHash = update.IconHash,
                     LastSeenAtUtc = now
                 };
                 dbContext.UserGuilds.Add(newRow);
@@ -155,6 +159,8 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
             .OrderBy(g => g.GuildId)
             .Select(g => new MobileAppUserGuildRecord(
                 g.GuildId,
+                g.Name,
+                g.IconHash,
                 g.Permissions,
                 g.IsOwner,
                 g.LastSeenAtUtc

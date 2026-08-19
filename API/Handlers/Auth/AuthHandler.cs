@@ -7,6 +7,7 @@ using API.Services.Auth;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Models.MobileApps;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
+
 namespace API.Handlers.Auth;
 
 public static class AuthHandler
@@ -18,7 +19,7 @@ public static class AuthHandler
         var state = stateStore.Create();
         var authorizeUrl = discordOAuthService.CreateAuthorizeUrl(state);
         ApiResult<object> result = ApiResult<object>.Ok(new { AuthorizeUrl = authorizeUrl });
-        
+
         return Task.FromResult(DomainToHttpMapper.ToHttpResult(result));
     }
 
@@ -33,7 +34,7 @@ public static class AuthHandler
         CancellationToken ct)
     {
         ApiResult<object> result;
-        
+
         if (!stateStore.Consume(state))
         {
             result = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid OAuth state.");
@@ -57,6 +58,8 @@ public static class AuthHandler
         var guildRecords = discordGuilds
             .Select(guild => new MobileAppUserGuildUpsertRecord(
                 ulong.Parse(guild.Id),
+                guild.Name,
+                guild.Icon,
                 guild.Permissions,
                 guild.Owner))
             .ToList();
@@ -65,7 +68,7 @@ public static class AuthHandler
 
         var ticket = ticketStore.Create(discordUserId);
         var androidRedirectUri = configuration["DiscordOAuth:AndroidRedirectUri"] ?? "myapp://auth";
-        
+
         return HttpResults.Redirect($"{androidRedirectUri}?ticket={Uri.EscapeDataString(ticket)}");
     }
 
@@ -87,15 +90,16 @@ public static class AuthHandler
         var refreshToken = tokenService.CreateRefreshToken();
         var refreshTokenHash = tokenService.HashRefreshToken(refreshToken);
         var refreshExpiresAt = DateTimeOffset.UtcNow.AddDays(30);
-
+        var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds)
+            .ToUnixTimeMilliseconds();
         await sessionRepository.CreateAsync(sessionId, discordUserId, refreshTokenHash, refreshExpiresAt, ct);
 
-        result = ApiResult<object>.Ok(new AuthSessionResponse
-        {
-            AccessToken = tokenService.CreateAccessToken(sessionId, discordUserId),
-            RefreshToken = refreshToken,
-            ExpiresInSeconds = AppTokenService.AccessTokenExpiresInSeconds
-        });
+        result = ApiResult<object>.Ok(new AuthSessionResponse(
+            tokenService.CreateAccessToken(sessionId, discordUserId),
+            refreshToken,
+            AppTokenService.AccessTokenExpiresInSeconds,
+            expiresAtMillis
+        ));
         return DomainToHttpMapper.ToHttpResult(result);
     }
 
@@ -109,7 +113,8 @@ public static class AuthHandler
         var oldHash = tokenService.HashRefreshToken(request.RefreshToken);
         var session = await sessionRepository.GetByRefreshTokenHashAsync(oldHash, ct);
 
-        if (session is null || session.RevokedAtUtc is not null || session.RefreshTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
+        if (session is null || session.RevokedAtUtc is not null ||
+            session.RefreshTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
         {
             result = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized.");
             return DomainToHttpMapper.ToHttpResult(result);
@@ -118,15 +123,15 @@ public static class AuthHandler
         var newRefreshToken = tokenService.CreateRefreshToken();
         var newHash = tokenService.HashRefreshToken(newRefreshToken);
         var newRefreshExpiresAt = DateTimeOffset.UtcNow.AddDays(30);
-
+        var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds).ToUnixTimeMilliseconds();
+            
         await sessionRepository.RotateRefreshTokenAsync(session.SessionId, newHash, newRefreshExpiresAt, ct);
-        result = ApiResult<object>.Ok(new AuthSessionResponse
-        {
-            AccessToken = tokenService.CreateAccessToken(session.SessionId, session.DiscordUserId),
-            RefreshToken = newRefreshToken,
-            ExpiresInSeconds = AppTokenService.AccessTokenExpiresInSeconds
-        });
-        
+        result = ApiResult<object>.Ok(new AuthSessionResponse(
+            tokenService.CreateAccessToken(session.SessionId, session.DiscordUserId),
+            newRefreshToken,
+            AppTokenService.AccessTokenExpiresInSeconds,
+            expiresAtMillis));
+
         return DomainToHttpMapper.ToHttpResult(result);
     }
 

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace API.Responses.Auth;
+namespace API.Services.Auth.Discord.Response;
 
 public sealed class DiscordTokenResponse
 {

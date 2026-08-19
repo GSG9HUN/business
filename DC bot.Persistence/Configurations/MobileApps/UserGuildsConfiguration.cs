@@ -21,6 +21,15 @@ public class UserGuildsConfiguration: IEntityTypeConfiguration<UserGuildEntity>
             .HasColumnName("guild_id")
             .HasGuildIdStorage()
             .ValueGeneratedNever();
+        
+        builder.Property(entity => entity.Name)
+            .HasColumnName("name")
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Property(entity => entity.IconHash)
+            .HasColumnName("icon_hash")
+            .HasMaxLength(100);
 
         builder.Property(entity => entity.Permissions)
             .HasColumnName("permissions")
