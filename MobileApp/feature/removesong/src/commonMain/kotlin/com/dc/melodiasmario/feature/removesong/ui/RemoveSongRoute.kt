@@ -10,6 +10,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RemoveSongRoute(
     modifier: Modifier = Modifier,
     viewModel: RemoveSongViewModel = koinViewModel(),
+    guildId: String,
 ) {
     EmptyRouteScreen(
         text = viewModel.emptyText(),

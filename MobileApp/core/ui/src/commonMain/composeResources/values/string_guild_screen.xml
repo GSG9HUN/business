@@ -7,4 +7,7 @@
     <string name="select_guild">Guild valasztasa</string>
     <string name="available_guilds">Elerheto guildek: </string>
     <string name="search_placeholder">Guild keresese</string>
+    <string name="guild_placeholder_title">Guild lista</string>
+    <string name="guild_loading_message">Guildek betoltese...</string>
+    <string name="guild_empty_message">Nincs elerheto guild</string>
 </resources>

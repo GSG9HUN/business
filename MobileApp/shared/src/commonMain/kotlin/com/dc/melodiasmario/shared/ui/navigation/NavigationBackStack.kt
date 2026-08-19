@@ -3,6 +3,7 @@ package com.dc.melodiasmario.shared.ui.navigation
 import androidx.compose.runtime.snapshots.SnapshotStateList
 
 fun SnapshotStateList<AppRoute>.navigate(route: AppRoute) {
+    if(lastOrNull() == route) return
     add(route)
 }
 

@@ -76,6 +76,9 @@ kotlin {
                 implementation(libs.compose.ui)
                 implementation(libs.compose.components.resources)
                 implementation(libs.compose.uiToolingPreview)
+
+                implementation(libs.coil.compose)
+                implementation(libs.coil.network.ktor3)
             }
         }
 
