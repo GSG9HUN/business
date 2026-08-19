@@ -9,6 +9,11 @@ plugins {
     alias(libs.plugins.android.lint)
 }
 
+compose.resources {
+    packageOfResClass = "com.dc.melodiasmario.feature.profile.generated.resources"
+    publicResClass = true
+}
+
 kotlin {
     android {
         namespace = "com.dc.melodiasmario.feature.profile"
@@ -18,6 +23,10 @@ kotlin {
             }
         }
         minSdk = 24
+
+        androidResources {
+            enable = true
+        }
 
         withHostTestBuilder {
         }
@@ -49,6 +58,9 @@ kotlin {
             dependencies {
                 implementation(project(":core:common"))
                 implementation(project(":core:ui"))
+                implementation(project(":core:auth"))
+                implementation(project(":core:network"))
+                implementation(project(":core:settings"))
 
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)
@@ -64,6 +76,9 @@ kotlin {
                 implementation(libs.koin.annotations)
                 implementation(libs.koin.compose)
                 implementation(libs.koin.compose.viewmodel)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.kotlinx.serialization.json)
             }
         }

@@ -10,6 +10,11 @@ plugins {
     alias(libs.plugins.koin.compiler)
 }
 
+compose.resources {
+    packageOfResClass = "com.dc.melodiasmario.shared.generated.resources"
+    publicResClass = true
+}
+
 kotlin {
     listOf(
         iosArm64(),
@@ -54,6 +59,8 @@ kotlin {
             implementation(project(":core:ui"))
             implementation(project(":core:network"))
             implementation(project(":core:auth"))
+            implementation(project(":core:settings"))
+
             implementation(project(":feature:addsong"))
             implementation(project(":feature:currentmusic"))
             implementation(project(":feature:guild"))

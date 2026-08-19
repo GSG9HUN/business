@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
 import com.dc.melodiasmario.feature.login.presentation.LoginEvent
 import com.dc.melodiasmario.feature.login.presentation.LoginUiState
-import com.dc.melodiasmario.core.ui.components.MText
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.ui.theme.MmPrimary
@@ -36,6 +36,7 @@ import com.dc.melodiasmario.core.ui.generated.resources.app_name
 import com.dc.melodiasmario.core.ui.generated.resources.login_button
 import com.dc.melodiasmario.core.ui.generated.resources.login_lead
 import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun LoginScreen(
     uiState: LoginUiState,

@@ -1,4 +1,4 @@
-package com.dc.melodiasmario.core.ui.components
+package com.dc.melodiasmario.core.ui.components.display
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +24,7 @@ import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun Avatar(
+fun MAvatar(
     name: String,
     imageUrl: String?,
     modifier: Modifier = Modifier,
@@ -67,7 +67,7 @@ fun Avatar(
 )
 @Composable
 private fun AvatarPreviewWithImage() {
-    Avatar(
+    MAvatar(
         name = "name",
         imageUrl = "https://cdn.discordapp.com/icons/1309813939563003966/6efd05e8cd412d4defb7d59941a3a512.webp?size=128",
         modifier = Modifier.size(44.dp)
@@ -79,7 +79,7 @@ private fun AvatarPreviewWithImage() {
 )
 @Composable
 private fun AvatarPreviewWithNoImage() {
-    Avatar(
+    MAvatar(
         name = "name",
         imageUrl = null,
         modifier = Modifier.size(44.dp)

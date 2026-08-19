@@ -1,10 +1,12 @@
-package com.dc.melodiasmario.core.ui.components
+package com.dc.melodiasmario.core.ui.components.button
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,16 +21,16 @@ import com.dc.melodiasmario.core.ui.generated.resources.refresh_button
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun RefreshButton(
+fun MRefreshButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         onClick = onClick,
         modifier = modifier.size(36.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(12.dp),
         color = MmSurface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MmSurfaceOutline),
+        border = BorderStroke(1.dp, MmSurfaceOutline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -47,5 +49,5 @@ fun RefreshButton(
 @Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
 @Composable
 private fun RefreshButtonPreview() {
-    RefreshButton(onClick = {})
+    MRefreshButton(onClick = {})
 }

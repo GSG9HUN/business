@@ -1,17 +1,12 @@
 package com.dc.melodiasmario.feature.guild.ui.components
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
-import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.ui.components.display.MBadge
 import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
-import com.dc.melodiasmario.core.ui.components.MText
 import com.dc.melodiasmario.core.ui.theme.MmPrimary
 import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
 import com.dc.melodiasmario.core.ui.theme.MmSurfaceRed
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 
 @Composable
 fun GuildAccessBadge(
@@ -30,15 +25,9 @@ fun GuildAccessBadge(
         GuildAccessLevel.ReadOnly -> MmSurfaceRed.copy(alpha = 0.35f)
     }
 
-    Surface(
+    MBadge(
         modifier = modifier,
-        shape = RoundedCornerShape(999.dp),
-        color = backgroundColor,
-    ) {
-        MText(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            text = text,
-            color = MmTextPrimary,
-        )
-    }
+        text = text,
+        backgroundColor = backgroundColor,
+    )
 }

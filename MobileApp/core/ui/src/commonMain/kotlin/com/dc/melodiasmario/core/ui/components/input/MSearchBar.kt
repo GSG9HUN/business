@@ -1,4 +1,4 @@
-package com.dc.melodiasmario.core.ui.components
+package com.dc.melodiasmario.core.ui.components.input
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MmElevated
 import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
 import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
@@ -31,7 +32,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun SearchBar(
+fun MSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.components.MText
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MmPrimary
 import com.dc.melodiasmario.core.ui.theme.MmSurface
 import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline

@@ -88,7 +88,7 @@ fun GuildSelectorScreen(
             SearchBar(
                 value = searchQuery,
                 onValueChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
-                placeholder = stringResource(Res.string.search_placeholder),
+                placeholder = stringResource(CoreUiRes.string.search_placeholder),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
             )
             when {

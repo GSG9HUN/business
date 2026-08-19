@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
@@ -15,8 +16,19 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
     implementation(project(":core:auth"))
+    implementation(project(":core:settings"))
+    implementation(project(":feature:addsong"))
+    implementation(project(":feature:currentmusic"))
+    implementation(project(":feature:guild"))
+    implementation(project(":feature:login"))
+    implementation(project(":feature:playlists"))
+    implementation(project(":feature:profile"))
+    implementation(project(":feature:queue"))
+    implementation(project(":feature:removesong"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

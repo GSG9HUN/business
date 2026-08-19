@@ -1,4 +1,4 @@
-package com.dc.melodiasmario.core.ui.components
+package com.dc.melodiasmario.core.ui.components.display
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +29,6 @@ fun MText(modifier: Modifier = Modifier,
         fontSize = fontSize,
         textAlign =textAlign,
         lineHeight = lineHeight.sp,
-        fontWeight = fontWeight
+        fontWeight = fontWeight,
     )
 }
