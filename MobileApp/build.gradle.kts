@@ -8,4 +8,5 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.koin.compiler) apply false
+    alias(libs.plugins.android.lint) apply false
 }

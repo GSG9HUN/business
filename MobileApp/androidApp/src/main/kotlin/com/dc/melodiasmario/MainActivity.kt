@@ -4,9 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.dc.melodiasmario.shared.presentation.auth.AuthDeepLinkDispatcher
+import com.dc.melodiasmario.core.auth.presentation.AuthDeepLinkDispatcher
 import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
-import com.dc.melodiasmario.shared.ui.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
 import org.koin.android.ext.android.getKoin
 
 class MainActivity : ComponentActivity() {

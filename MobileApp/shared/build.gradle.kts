@@ -50,6 +50,20 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
+            implementation(project(":core:common"))
+            implementation(project(":core:ui"))
+            implementation(project(":core:network"))
+            implementation(project(":core:auth"))
+            implementation(project(":feature:addsong"))
+            implementation(project(":feature:currentmusic"))
+            implementation(project(":feature:guild"))
+            implementation(project(":feature:login"))
+            implementation(project(":feature:playlists"))
+            implementation(project(":feature:profile"))
+            implementation(project(":feature:queue"))
+            implementation(project(":feature:removesong"))
+            implementation(project(":feature:settings"))
+
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
