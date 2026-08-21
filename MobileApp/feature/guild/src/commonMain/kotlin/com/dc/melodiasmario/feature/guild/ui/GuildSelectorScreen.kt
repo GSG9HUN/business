@@ -16,27 +16,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.components.Avatar
 import com.dc.melodiasmario.feature.guild.domain.model.Guild
 import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
 import com.dc.melodiasmario.core.ui.components.MTopBar
-import com.dc.melodiasmario.core.ui.components.RefreshButton
-import com.dc.melodiasmario.core.ui.components.SearchBar
+import com.dc.melodiasmario.core.ui.components.button.MRefreshButton
+import com.dc.melodiasmario.core.ui.components.display.MAvatar
+import com.dc.melodiasmario.core.ui.components.input.MSearchBar
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.ui.theme.MmBackground
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
-import com.dc.melodiasmario.core.ui.generated.resources.Res
-import com.dc.melodiasmario.core.ui.generated.resources.available_guilds
-import com.dc.melodiasmario.core.ui.generated.resources.guild_empty_message
-import com.dc.melodiasmario.core.ui.generated.resources.guild_loading_message
-import com.dc.melodiasmario.core.ui.generated.resources.guild_placeholder_title
-import com.dc.melodiasmario.core.ui.generated.resources.search_placeholder
-import com.dc.melodiasmario.core.ui.generated.resources.select_guild
 import com.dc.melodiasmario.core.ui.theme.MmPrimary
 import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
 import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
+import com.dc.melodiasmario.feature.guild.generated.resources.Res
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_available_count
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_empty_message
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_loading_message
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_placeholder_title
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_search_placeholder
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_select_title
 import com.dc.melodiasmario.feature.guild.ui.components.GuildSelectorPlaceholder
 import org.jetbrains.compose.resources.stringResource
 
@@ -55,22 +55,22 @@ fun GuildSelectorScreen(
         topBar = {
             MTopBar(
                 modifier = Modifier.fillMaxWidth(),
-                title = stringResource(Res.string.select_guild),
-                subTitle = stringResource(Res.string.available_guilds) + " ${guilds.size}",
+                title = stringResource(Res.string.guild_select_title),
+                subTitle = stringResource(Res.string.guild_available_count, guilds.size),
                 navigationIcon = {
                     //TODO profile adatok kellenek ide
-                    Avatar(
+                    MAvatar(
                         name = "",
                         imageUrl = "",
                         shape = CircleShape,
                         size = 44.dp,
                         backgroundColor = MmPrimary,
                         contentColor = MmTextPrimary,
-                        avatarOnClick = { onEvent(GuildSelectorEvent.AvatarClicked) }
+                        avatarOnClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
                     )
                 },
                 actions = {
-                    RefreshButton(onClick = {
+                    MRefreshButton(onClick = {
                         onEvent(GuildSelectorEvent.RefreshClicked)
                     })
                 },
@@ -85,10 +85,10 @@ fun GuildSelectorScreen(
         ) {
 
             HorizontalDivider()
-            SearchBar(
+            MSearchBar(
                 value = searchQuery,
                 onValueChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
-                placeholder = stringResource(CoreUiRes.string.search_placeholder),
+                placeholder = stringResource(Res.string.guild_search_placeholder),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
             )
             when {
@@ -163,13 +163,13 @@ private fun GuildSelectorScreenPreview() {
 }
 
 private val guild = Guild(
-    id="1309813939563003966",
-    name="Business business",
-    iconUrl="https://cdn.discordapp.com/icons/1309813939563003966/6efd05e8cd412d4defb7d59941a3a512.webp?size=128",
-    accessLevel= GuildAccessLevel.Admin,
-    botStatus= BotStatus(
+    id = "1309813939563003966",
+    name = "Business business",
+    iconUrl = "https://cdn.discordapp.com/icons/1309813939563003966/6efd05e8cd412d4defb7d59941a3a512.webp?size=128",
+    accessLevel = GuildAccessLevel.Admin,
+    botStatus = BotStatus(
         isOnline = false,
         connectedVoiceChannelName = null,
-        connectedVoiceUserCount = 0
-    )
+        connectedVoiceUserCount = 0,
+    ),
 )

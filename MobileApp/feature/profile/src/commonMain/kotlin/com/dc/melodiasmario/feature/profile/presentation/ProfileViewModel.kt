@@ -241,8 +241,8 @@ class ProfileViewModel(
     private suspend fun onLogoutSuccess() {
         userSettingsStore.clear()
         userSettingsStorage.clear()
-        _effect.emit(ProfileEffect.NavigateToLogin)
         _effect.emit(ProfileEffect.LogoutSuccess)
+        _effect.emit(ProfileEffect.NavigateToLogin)
     }
 
     private suspend fun onLanguageClicked() {

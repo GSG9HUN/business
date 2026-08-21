@@ -5,4 +5,6 @@
     <string name="bottom_bar_queue">Sor</string>
     <string name="bottom_bar_playlists">Lejátszási listák</string>
     <string name="bottom_bar_settings">Beállítások</string>
+    <string name="search_placeholder">Keresés</string>
+    <string name="retry_button">Újrapróbál</string>
 </resources>

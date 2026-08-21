@@ -12,6 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MmProfileErrorText
+import com.dc.melodiasmario.core.ui.generated.resources.Res
+import com.dc.melodiasmario.core.ui.generated.resources.retry_button
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ProfileErrorContent(
@@ -36,7 +39,7 @@ fun ProfileErrorContent(
             onClick = onRetryClick,
             modifier = Modifier.padding(top = 16.dp),
         ) {
-            MText(text = "Retry")
+            MText(text = stringResource(Res.string.retry_button))
         }
     }
 }

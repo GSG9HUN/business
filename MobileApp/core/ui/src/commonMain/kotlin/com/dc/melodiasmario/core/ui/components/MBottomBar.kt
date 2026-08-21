@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.data.BottomBarIcon
 import com.dc.melodiasmario.core.ui.data.BottomBarItem
 import com.dc.melodiasmario.core.ui.generated.resources.Res
@@ -47,7 +48,6 @@ fun MBottomBar(
         modifier = modifier.fillMaxWidth(),
         color = MmSurface,
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -65,7 +65,6 @@ fun MBottomBar(
         }
     }
 }
-
 
 @Composable
 private fun MBottomBarItem(

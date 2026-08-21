@@ -9,22 +9,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.dc.melodiasmario.core.settings.domain.model.UserSettings
 import com.dc.melodiasmario.core.ui.components.button.MFloatingSaveCancelBar
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_appearance
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_appearance_light
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.ui.theme.MmSurface
 import com.dc.melodiasmario.feature.profile.domain.model.UserProfile
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_english
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_hungarian
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_cancel_settings_button
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_settings_button
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_dark
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_light
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_system
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_refreshing
-import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_updated
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEvent
 import com.dc.melodiasmario.feature.profile.presentation.ProfileUiState
 import com.dc.melodiasmario.feature.profile.ui.components.ProfileErrorContent
@@ -39,7 +29,8 @@ fun ProfileScreen(
     onEvent: (ProfileEvent) -> Unit = {},
 ) {
     Scaffold(
-        modifier = modifier.fillMaxSize(), containerColor = MmSurface,
+        modifier = modifier.fillMaxSize(),
+        containerColor = MmSurface,
         topBar = {
             MText(text = "Random Top bar")
         },
@@ -56,13 +47,13 @@ fun ProfileScreen(
         },
     ) { innerPadding ->
         when {
-            uiState.isLoading -> ProfileLoadingContent()
+            uiState.isLoading -> ProfileLoadingContent(modifier = Modifier.padding(innerPadding))
 
             uiState.errorMessage != null -> ProfileErrorContent(
+                modifier = Modifier.padding(innerPadding),
                 message = uiState.errorMessage,
                 onRetryClick = { onEvent(ProfileEvent.RefreshClicked) },
             )
-
 
             else -> ProfileLoadedContent(
                 modifier = Modifier.padding(innerPadding),
@@ -70,37 +61,6 @@ fun ProfileScreen(
                 onEvent = onEvent,
             )
         }
-    }
-}
-
-//TODO több nyelv esetén kiszervezno ezeket.
-
-@Composable
-private fun String.toLanguageLabel(): String = when (this.lowercase()) {
-    "hu" -> stringResource(ProfileRes.string.profile_language_hungarian)
-    "en" -> stringResource(ProfileRes.string.profile_language_english)
-    else -> uppercase()
-}
-
-@Composable
-private fun String.toThemeLabel(): String = when (this.lowercase()) {
-    "dark" -> stringResource(ProfileRes.string.profile_theme_dark)
-    "light" -> stringResource(ProfileRes.string.profile_theme_light)
-    "system" -> stringResource(ProfileRes.string.profile_theme_system)
-    else -> this
-}
-
-private fun String.toThemeIcon() = when (lowercase()) {
-    "light" -> CoreUiRes.drawable.ic_profile_appearance_light
-    else -> CoreUiRes.drawable.ic_profile_appearance
-}
-
-@Composable
-private fun String.toTokenUpdatedLabel(): String {
-    return if (isBlank()) {
-        stringResource(ProfileRes.string.profile_token_refreshing)
-    } else {
-        stringResource(ProfileRes.string.profile_token_updated)
     }
 }
 
@@ -117,7 +77,7 @@ fun ProfileScreenPreview() {
                     avatarUrl = "",
                     isActive = false,
                     provider = "Discord",
-                    isDiscordConnected = true
+                    isDiscordConnected = true,
                 ),
                 userSettings = UserSettings(
                     languageCode = "en",
@@ -127,7 +87,7 @@ fun ProfileScreenPreview() {
                     telemetryEnabled = true,
                 ),
                 settingsUpdatedAtUtc = "2023-01-01T00:00:00Z",
-            )
+            ),
         )
     }
 }

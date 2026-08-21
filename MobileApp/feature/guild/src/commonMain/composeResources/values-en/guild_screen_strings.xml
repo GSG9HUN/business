@@ -5,4 +5,7 @@
     <string name="guild_in_voice_channel">people in voice</string>
     <string name="guild_select_title">Select guild</string>
     <string name="guild_available_count">Available guilds: %1$d</string>
+    <string name="guild_placeholder_title">Guild list</string>
+    <string name="guild_loading_message">Loading guilds...</string>
+    <string name="guild_empty_message">No available guilds</string>
 </resources>

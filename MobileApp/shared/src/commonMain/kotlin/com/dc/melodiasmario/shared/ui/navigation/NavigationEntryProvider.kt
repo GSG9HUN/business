@@ -4,8 +4,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.entryProvider
 import com.dc.melodiasmario.core.ui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.addsong.ui.AddSongRoute
-import com.dc.melodiasmario.feature.login.ui.LoginRoute
 import com.dc.melodiasmario.feature.currentmusic.ui.CurrentMusicRoute
+import com.dc.melodiasmario.feature.login.ui.LoginRoute
 import com.dc.melodiasmario.feature.guild.ui.GuildSelectorRoute
 import com.dc.melodiasmario.feature.playlists.ui.PlaylistSongsRoute
 import com.dc.melodiasmario.feature.playlists.ui.PlaylistsRoute
@@ -47,9 +47,9 @@ fun navigationEntryProvider(
                 backStack.goBack()
             },
             logout = {
-              backStack.replaceAll(AppRoute.Login)
+                backStack.replaceAll(AppRoute.Login)
             },
-            toastHostState = toastHostState
+            toastHostState = toastHostState,
         )
     }
 

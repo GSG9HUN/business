@@ -1,21 +1,19 @@
 package com.dc.melodiasmario.core.ui.components.display
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import com.dc.melodiasmario.core.ui.components.AvatarFallback
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.avatar_content_description
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
@@ -60,28 +58,28 @@ fun MAvatar(
     }
 }
 
-
 @Preview(
     showBackground = true,
-    backgroundColor = MmBackgroundPreviewColor
+    backgroundColor = MmBackgroundPreviewColor,
 )
 @Composable
 private fun AvatarPreviewWithImage() {
     MAvatar(
         name = "name",
         imageUrl = "https://cdn.discordapp.com/icons/1309813939563003966/6efd05e8cd412d4defb7d59941a3a512.webp?size=128",
-        modifier = Modifier.size(44.dp)
+        modifier = Modifier.size(44.dp),
     )
 }
+
 @Preview(
     showBackground = true,
-    backgroundColor = MmBackgroundPreviewColor
+    backgroundColor = MmBackgroundPreviewColor,
 )
 @Composable
 private fun AvatarPreviewWithNoImage() {
     MAvatar(
         name = "name",
         imageUrl = null,
-        modifier = Modifier.size(44.dp)
+        modifier = Modifier.size(44.dp),
     )
 }

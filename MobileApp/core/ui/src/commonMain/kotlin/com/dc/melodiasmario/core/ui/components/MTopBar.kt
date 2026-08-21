@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MmElevated
 import com.dc.melodiasmario.core.ui.theme.MmTextMuted
 import com.dc.melodiasmario.core.ui.theme.MmTextPrimary

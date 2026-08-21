@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.feature.guild.domain.model.Guild
 import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
-import com.dc.melodiasmario.core.ui.components.display.Avatar
+import com.dc.melodiasmario.core.ui.components.display.MAvatar
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.ui.theme.MmPrimary
@@ -50,7 +50,7 @@ fun GuildListItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Avatar(
+            MAvatar(
                 name = guild.name,
                 imageUrl = guild.iconUrl,
                 shape = RoundedCornerShape(10.dp),

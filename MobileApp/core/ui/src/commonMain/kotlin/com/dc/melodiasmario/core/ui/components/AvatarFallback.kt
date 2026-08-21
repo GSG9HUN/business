@@ -7,14 +7,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.dc.melodiasmario.core.ui.components.display.MText
 
 @Composable
-fun AvatarFallback(name: String, contentColor: Color){
+fun AvatarFallback(name: String, contentColor: Color) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
-
-        ) {
+    ) {
         MText(
             text = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
             color = contentColor,

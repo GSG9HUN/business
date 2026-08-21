@@ -89,7 +89,7 @@ fun MSearchBar(
 @Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
 @Composable
 private fun SearchBarPreview() {
-    SearchBar(
+    MSearchBar(
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
         value = "",
         onValueChange = {},

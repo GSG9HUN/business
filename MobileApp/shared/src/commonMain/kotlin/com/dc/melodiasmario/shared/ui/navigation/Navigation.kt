@@ -3,21 +3,16 @@ package com.dc.melodiasmario.shared.ui.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.dc.melodiasmario.core.ui.components.MBottomBar
 import com.dc.melodiasmario.core.ui.feedback.components.MToastHost
 import com.dc.melodiasmario.core.ui.feedback.state.rememberMToastHostState
-import com.dc.melodiasmario.core.ui.components.MBottomBar
-import com.dc.melodiasmario.core.ui.theme.MmBackground
-import com.dc.melodiasmario.core.ui.components.MBottomBar
 import com.dc.melodiasmario.core.ui.theme.MmBackground
 
 @Composable
@@ -62,7 +57,8 @@ fun Navigation() {
             )
         }
         MToastHost(
-            hostState = toastHostState, modifier = Modifier.align(Alignment.TopCenter)
+            hostState = toastHostState,
+            modifier = Modifier.align(Alignment.TopCenter),
         )
     }
 }

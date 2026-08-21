@@ -22,12 +22,12 @@ import com.dc.melodiasmario.core.ui.components.display.MBadge
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.components.settings.MSettingRow
 import com.dc.melodiasmario.core.ui.components.settings.MToggleRow
-import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_haptics
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_language
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_sound_effects
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_telemetry
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_token_status
+import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
 import com.dc.melodiasmario.core.ui.layout.MScrollableScreenContent
 import com.dc.melodiasmario.core.ui.theme.MmDangerText
 import com.dc.melodiasmario.core.ui.theme.MmProfileCard
@@ -43,6 +43,7 @@ import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRe
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_application_section
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_connected_provider
+import com.dc.melodiasmario.feature.profile.generated.resources.profile_disconnected_provider
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_haptics_subtitle
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_haptics_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_title
@@ -58,12 +59,11 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_st
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_status_title
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEvent
 import com.dc.melodiasmario.feature.profile.presentation.ProfileUiState
-import com.dc.melodiasmario.feature.profile.ui.toLanguageLabel
-import com.dc.melodiasmario.feature.profile.ui.toThemeIcon
-import com.dc.melodiasmario.feature.profile.ui.toThemeLabel
-import com.dc.melodiasmario.feature.profile.ui.toTokenUpdatedLabel
+import com.dc.melodiasmario.feature.profile.ui.mapper.toLanguageLabel
+import com.dc.melodiasmario.feature.profile.ui.mapper.toThemeIcon
+import com.dc.melodiasmario.feature.profile.ui.mapper.toThemeLabel
+import com.dc.melodiasmario.feature.profile.ui.mapper.toTokenUpdatedLabel
 import org.jetbrains.compose.resources.stringResource
-import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
 
 @Composable
 fun ProfileLoadedContent(

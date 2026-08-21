@@ -1,8 +1,14 @@
 <resources>
-    <string name="guild_is_online">A bot elerheto</string>
-    <string name="guild_is_offline">A bot nem elerheto</string>
-    <string name="guild_bot_status_unknown">Bot allapot ismeretlen</string>
-    <string name="guild_in_voice_channel">ember hangcsatornaban</string>
-    <string name="guild_select_title">Guild valasztasa</string>
-    <string name="guild_available_count">Elerheto guildek: %1$d</string>
+    <string name="guild_is_online">A bot elérhető</string>
+    <string name="guild_is_offline">A bot nem elérhető</string>
+    <string name="guild_bot_status_unknown">Bot állapot ismeretlen</string>
+    <string name="guild_in_voice_channel">ember hangcsatornában</string>
+
+    <string name="guild_select_title">Guild kiválasztása</string>
+    <string name="guild_available_count">Elérhető guildek: %1$d</string>
+    <string name="guild_search_placeholder">Guild keresése</string>
+    <string name="guild_placeholder_title">Guild lista</string>
+    <string name="guild_loading_message">Guildek betöltése...</string>
+    <string name="guild_empty_message">Nincs elérhető guild</string>
+
 </resources>
