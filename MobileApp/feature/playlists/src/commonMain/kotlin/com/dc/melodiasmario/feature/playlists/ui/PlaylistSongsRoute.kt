@@ -10,6 +10,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PlaylistSongsRoute(
     modifier: Modifier = Modifier,
     viewModel: PlaylistSongsViewModel = koinViewModel(),
+    playlistId: String,
 ) {
     EmptyRouteScreen(
         text = viewModel.emptyText(),

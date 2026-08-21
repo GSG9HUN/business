@@ -7,4 +7,7 @@
     <string name="select_guild">Select Guild</string>
     <string name="available_guilds">Available Guilds: </string>
     <string name="search_placeholder">Search guild</string>
+    <string name="guild_placeholder_title">Guild list</string>
+    <string name="guild_loading_message">Loading guilds...</string>
+    <string name="guild_empty_message">No available guilds</string>
 </resources>

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Melódiás Mário</string>
+    <string name="app_name">Melódias Mário</string>
+    <string name="bottom_bar_now_playing">Lejátszás</string>
+    <string name="bottom_bar_queue">Sor</string>
+    <string name="bottom_bar_playlists">Lejátszási listák</string>
+    <string name="bottom_bar_settings">Beállítások</string>
 </resources>

@@ -10,6 +10,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsRoute(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
+    guildId: String,
 ) {
     EmptyRouteScreen(
         text = viewModel.emptyText(),

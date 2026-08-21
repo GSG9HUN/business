@@ -43,27 +43,27 @@ fun navigationEntryProvider(
         ProfileRoute(profileId = route.profileId)
     }
 
-    entry<AppRoute.PlaylistSongs> {
-        PlaylistSongsRoute()
+    entry<AppRoute.PlaylistSongs> { route ->
+        PlaylistSongsRoute(playlistId = route.playlistId)
     }
 
-    entry<AppRoute.Queue> {
-        QueueRoute()
+    entry<AppRoute.Queue> { route ->
+        QueueRoute(guildId = route.guildId)
     }
 
-    entry<AppRoute.CurrentMusic> {
-        CurrentMusicRoute()
+    entry<AppRoute.CurrentMusic> { route ->
+        CurrentMusicRoute(guildId = route.guildId)
     }
 
-    entry<AppRoute.AddSong> {
-        AddSongRoute()
+    entry<AppRoute.AddSong> { route ->
+        AddSongRoute(guildId = route.guildId)
     }
 
-    entry<AppRoute.RemoveSong> {
-        RemoveSongRoute()
+    entry<AppRoute.RemoveSong> { route ->
+        RemoveSongRoute(guildId = route.guildId)
     }
 
-    entry<AppRoute.Settings> {
-        SettingsRoute()
+    entry<AppRoute.Settings> { route ->
+        SettingsRoute(guildId = route.guildId)
     }
 }

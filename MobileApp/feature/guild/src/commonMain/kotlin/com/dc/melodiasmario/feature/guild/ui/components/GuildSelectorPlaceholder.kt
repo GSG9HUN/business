@@ -3,6 +3,7 @@ package com.dc.melodiasmario.feature.guild.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,19 +23,20 @@ import com.dc.melodiasmario.core.ui.theme.MmTextMuted
 import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 
 @Composable
-fun GuildSelectorPlaceholder(contentText: String) {
+fun GuildSelectorPlaceholder(
+    title: String,
+    contentText: String,
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
         shape = RoundedCornerShape(12.dp),
         color = MmSurface,
         border = BorderStroke(1.dp, MmSurfaceOutline),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Surface(
                 shape = RoundedCornerShape(10.dp),
@@ -53,7 +55,7 @@ fun GuildSelectorPlaceholder(contentText: String) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 MText(
-                    text = "Guild list loading is coming later",
+                    text = title,
                     color = MmTextPrimary,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start,

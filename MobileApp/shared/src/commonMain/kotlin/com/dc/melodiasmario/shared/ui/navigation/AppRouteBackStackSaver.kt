@@ -12,12 +12,12 @@ val AppRouteBackStackSaver = Saver<SnapshotStateList<AppRoute>, List<List<String
                 AppRoute.GuildSelector -> listOf("GuildSelector")
                 is AppRoute.Profile -> listOf("Profile", route.profileId)
                 is AppRoute.Playlists -> listOf("Playlists", route.guildId)
-                AppRoute.PlaylistSongs -> listOf("PlaylistSongs")
-                AppRoute.Queue -> listOf("Queue")
-                AppRoute.CurrentMusic -> listOf("CurrentMusic")
-                AppRoute.AddSong -> listOf("AddSong")
-                AppRoute.RemoveSong -> listOf("RemoveSong")
-                AppRoute.Settings -> listOf("Settings")
+                is AppRoute.PlaylistSongs -> listOf("PlaylistSongs", route.guildId, route.playlistId)
+                is AppRoute.Queue -> listOf("Queue", route.guildId)
+                is AppRoute.CurrentMusic -> listOf("CurrentMusic", route.guildId)
+                is AppRoute.AddSong -> listOf("AddSong", route.guildId)
+                is AppRoute.RemoveSong -> listOf("RemoveSong", route.guildId)
+                is AppRoute.Settings -> listOf("Settings", route.guildId)
             }
         }
     },
@@ -29,12 +29,16 @@ val AppRouteBackStackSaver = Saver<SnapshotStateList<AppRoute>, List<List<String
                     "GuildSelector" -> AppRoute.GuildSelector
                     "Profile" -> route.getOrNull(1)?.let(AppRoute::Profile)
                     "Playlists" -> route.getOrNull(1)?.let(AppRoute::Playlists)
-                    "PlaylistSongs" -> AppRoute.PlaylistSongs
-                    "Queue" -> AppRoute.Queue
-                    "CurrentMusic" -> AppRoute.CurrentMusic
-                    "AddSong" -> AppRoute.AddSong
-                    "RemoveSong" -> AppRoute.RemoveSong
-                    "Settings" -> AppRoute.Settings
+                    "PlaylistSongs" -> route.getOrNull(1)?.let { guildId ->
+                        route.getOrNull(2)?.let { playlistId ->
+                            AppRoute.PlaylistSongs(guildId = guildId, playlistId = playlistId)
+                        }
+                    }
+                    "Queue" -> route.getOrNull(1)?.let(AppRoute::Queue)
+                    "CurrentMusic" -> route.getOrNull(1)?.let(AppRoute::CurrentMusic)
+                    "AddSong" -> route.getOrNull(1)?.let(AppRoute::AddSong)
+                    "RemoveSong" -> route.getOrNull(1)?.let(AppRoute::RemoveSong)
+                    "Settings" -> route.getOrNull(1)?.let(AppRoute::Settings)
                     else -> null
                 }
             }.ifEmpty { listOf(AppRoute.Login) })

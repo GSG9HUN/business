@@ -10,6 +10,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun QueueRoute(
     modifier: Modifier = Modifier,
     viewModel: QueueViewModel = koinViewModel(),
+    guildId: String,
 ) {
     EmptyRouteScreen(
         text = viewModel.emptyText(),
