@@ -3,7 +3,7 @@ namespace DC_bot.Interface.Service.Persistence.Models.MobileAppUserSettings;
 public static class MobileAppLanguageCode
 {
     public const int MaxLength = 10;
-    public const string English = "eng";
+    public const string English = "en";
     public const string Hungarian = "hu";
 
     private static readonly string[] SupportedCodes = [English, Hungarian];

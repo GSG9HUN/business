@@ -1,5 +1,6 @@
 ﻿using DC_bot.Configurations.Shared;
 using DC_bot.Entities.MobileAppUserSettings;
+using DC_bot.Interface.Service.Persistence.Models.MobileAppUserSettings;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Configurations.MobileAppUserSettings;
@@ -20,7 +21,7 @@ public class MobileAppUserSettingsConfiguration : IEntityTypeConfiguration<Mobil
         builder.Property(entity => entity.LanguageCode)
             .HasColumnName("language_code")
             .HasMaxLength(10)
-            .HasDefaultValue("en")
+            .HasDefaultValue(MobileAppLanguageCode.English)
             .IsRequired();
 
         builder.Property(entity => entity.Theme)

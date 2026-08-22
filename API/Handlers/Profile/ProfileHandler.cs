@@ -51,7 +51,8 @@ public static class ProfileHandler
 
         var requestedTheme = MobileAppTheme.Normalize(request.Theme);
 
-        if (requestedTheme is not null && !MobileAppTheme.IsValid(requestedTheme))
+        if (request.Theme is not null && 
+            (requestedTheme is null || !MobileAppTheme.IsValid(requestedTheme)))
         {
             var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput,
                 "Invalid theme value. Allowed values: dark, light, system.");

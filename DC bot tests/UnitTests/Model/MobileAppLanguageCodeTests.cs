@@ -6,8 +6,8 @@ namespace DC_bot_tests.UnitTests.Model;
 public class MobileAppLanguageCodeTests
 {
     [Theory]
-    [InlineData("eng", "eng")]
-    [InlineData("ENG", "eng")]
+    [InlineData("en", "en")]
+    [InlineData("EN", "en")]
     [InlineData(" hu ", "hu")]
     public void TryNormalize_WhenLanguageCodeIsSupported_ReturnsNormalizedValue(
         string input,

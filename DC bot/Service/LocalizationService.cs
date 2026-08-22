@@ -10,7 +10,7 @@ namespace DC_bot.Service;
 
 public class LocalizationService : ILocalizationService
 {
-    private const string DefaultLanguage = "eng";
+    private const string DefaultLanguage = "en";
 
     private static readonly string LocalizationDirectory =
         Path.Combine(Directory.GetCurrentDirectory(), "guildFiles/localization");
