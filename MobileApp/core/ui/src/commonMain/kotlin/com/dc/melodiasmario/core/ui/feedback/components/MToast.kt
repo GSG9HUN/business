@@ -15,36 +15,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties.LiveRegion
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.feedback.model.MToastData
 import com.dc.melodiasmario.core.ui.feedback.model.MToastType
-import com.dc.melodiasmario.core.ui.theme.MmCyan
-import com.dc.melodiasmario.core.ui.theme.MmElevated
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmProfileErrorBackground
-import com.dc.melodiasmario.core.ui.theme.MmProfileErrorText
-import com.dc.melodiasmario.core.ui.theme.MmProfileSuccessBackground
-import com.dc.melodiasmario.core.ui.theme.MmProfileSuccessText
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MToast(
     modifier: Modifier = Modifier,
     data: MToastData,
 ) {
+    val themeColors = MelodiasMarioThemeTokens.current
     val colors = data.type.colors()
 
     Surface(
         modifier = modifier
+            .semantics {
+                liveRegion = when (data.type) {
+                    MToastType.Error -> LiveRegionMode.Assertive
+                    else -> LiveRegionMode.Polite
+                }
+            }
             .padding(horizontal = 16.dp)
             .widthIn(max = 560.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MmElevated,
+        color = themeColors.elevated,
         border = BorderStroke(1.dp, colors.borderColor),
         shadowElevation = 10.dp,
     ) {
@@ -62,7 +65,7 @@ fun MToast(
             MText(
                 modifier = Modifier.weight(1f),
                 text = data.message,
-                color = MmTextPrimary,
+                color = themeColors.textPrimary,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 18,
@@ -100,32 +103,37 @@ private data class ToastColors(
     val borderColor: Color,
 )
 
-private fun MToastType.colors(): ToastColors = when (this) {
-    MToastType.Success -> ToastColors(
-        markLabel = "OK",
-        markBackgroundColor = MmProfileSuccessBackground,
-        contentColor = MmProfileSuccessText,
-        borderColor = MmProfileSuccessText.copy(alpha = 0.35f),
-    )
+@Composable
+private fun MToastType.colors(): ToastColors {
+    val colors = MelodiasMarioThemeTokens.current
 
-    MToastType.Error -> ToastColors(
-        markLabel = "!",
-        markBackgroundColor = MmProfileErrorBackground,
-        contentColor = MmProfileErrorText,
-        borderColor = MmProfileErrorText.copy(alpha = 0.35f),
-    )
+    return when (this) {
+        MToastType.Success -> ToastColors(
+            markLabel = "OK",
+            markBackgroundColor = colors.successBackground,
+            contentColor = colors.successText,
+            borderColor = colors.successText.copy(alpha = 0.35f),
+        )
 
-    MToastType.Warning -> ToastColors(
-        markLabel = "!",
-        markBackgroundColor = Color(0x26F6C343),
-        contentColor = Color(0xFFFFD36A),
-        borderColor = Color(0x66F6C343),
-    )
+        MToastType.Error -> ToastColors(
+            markLabel = "!",
+            markBackgroundColor = colors.errorBackground,
+            contentColor = colors.errorText,
+            borderColor = colors.errorText.copy(alpha = 0.35f),
+        )
 
-    MToastType.Info -> ToastColors(
-        markLabel = "i",
-        markBackgroundColor = MmPrimary.copy(alpha = 0.18f),
-        contentColor = MmCyan,
-        borderColor = MmSurfaceOutline,
-    )
+        MToastType.Warning -> ToastColors(
+            markLabel = "!",
+            markBackgroundColor = Color(0x26F6C343),
+            contentColor = Color(0xFF996A00),
+            borderColor = Color(0x66F6C343),
+        )
+
+        MToastType.Info -> ToastColors(
+            markLabel = "i",
+            markBackgroundColor = colors.primary.copy(alpha = 0.18f),
+            contentColor = colors.cyan,
+            borderColor = colors.outline,
+        )
+    }
 }

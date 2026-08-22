@@ -23,11 +23,9 @@ import com.dc.melodiasmario.core.ui.components.button.MRefreshButton
 import com.dc.melodiasmario.core.ui.components.display.MAvatar
 import com.dc.melodiasmario.core.ui.components.input.MSearchBar
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmBackground
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
 import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.generated.resources.Res
@@ -49,9 +47,11 @@ fun GuildSelectorScreen(
     searchQuery: String,
     onEvent: (GuildSelectorEvent) -> Unit = {},
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = MmBackground,
+        containerColor = colors.background,
         topBar = {
             MTopBar(
                 modifier = Modifier.fillMaxWidth(),
@@ -64,8 +64,8 @@ fun GuildSelectorScreen(
                         imageUrl = "",
                         shape = CircleShape,
                         size = 44.dp,
-                        backgroundColor = MmPrimary,
-                        contentColor = MmTextPrimary,
+                        backgroundColor = colors.primary,
+                        contentColor = colors.textPrimary,
                         avatarOnClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
                     )
                 },

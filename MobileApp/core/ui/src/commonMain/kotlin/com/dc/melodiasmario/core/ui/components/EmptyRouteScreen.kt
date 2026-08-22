@@ -7,16 +7,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MmBackground
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun EmptyRouteScreen(
     text: String,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MmBackground,
+        color = colors.background,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),

@@ -20,18 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
 import com.dc.melodiasmario.core.ui.components.display.MBadge
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmStatusOfflineBg
-import com.dc.melodiasmario.core.ui.theme.MmStatusOfflineText
-import com.dc.melodiasmario.core.ui.theme.MmStatusOnlineBg
-import com.dc.melodiasmario.core.ui.theme.MmStatusOnlineText
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
-import com.dc.melodiasmario.core.ui.theme.MmTextSecondary
 import com.dc.melodiasmario.core.ui.components.display.MText
-import org.jetbrains.compose.resources.stringResource
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.api_available_detail
 import com.dc.melodiasmario.core.ui.generated.resources.api_available_title
@@ -40,28 +29,32 @@ import com.dc.melodiasmario.core.ui.generated.resources.api_unavailable_title
 import com.dc.melodiasmario.core.ui.generated.resources.connection_section_title
 import com.dc.melodiasmario.core.ui.generated.resources.offline_badge
 import com.dc.melodiasmario.core.ui.generated.resources.online_badge
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConnectionCard(
     apiConnectionStatus: ApiConnectionStatus,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
     val isOnline = apiConnectionStatus == ApiConnectionStatus.Online
-    val statusBackground = if (isOnline) MmStatusOnlineBg else MmStatusOfflineBg
-    val statusTextColor = if (isOnline) MmStatusOnlineText else MmStatusOfflineText
+    val statusBackground = if (isOnline) colors.statusOnlineBackground else colors.statusOfflineBackground
+    val statusTextColor = if (isOnline) colors.statusOnlineText else colors.statusOfflineText
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MmSurface),
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
         ) {
             MText(
                 text = stringResource(Res.string.connection_section_title),
-                color = MmTextSecondary,
+                color = colors.textSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
@@ -90,7 +83,7 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_title
                             },
                         ),
-                        color = MmTextPrimary,
+                        color = colors.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -102,7 +95,7 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_detail
                             },
                         ),
-                        color = MmTextMuted,
+                        color = colors.textMuted,
                         fontSize = 11.sp,
                     )
                 }

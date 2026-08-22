@@ -2,17 +2,18 @@ package com.dc.melodiasmario.feature.profile.data.remote.dto
 
 import com.dc.melodiasmario.core.settings.domain.model.UserSettings
 import com.dc.melodiasmario.feature.profile.domain.model.ProfileData
-import com.dc.melodiasmario.feature.profile.domain.model.UserProfile
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileSettingsData
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProfileDto(
-    val user: UserProfileDto,
-    val userSettings: UserSettingsDto,
+    val user: ProfileUserDto,
+    val userSettings: ProfileSettingsDto,
 )
 
 @Serializable
-data class UserProfileDto(
+data class ProfileUserDto(
     val discordUserId: String,
     val username: String,
     val displayName: String,
@@ -22,7 +23,7 @@ data class UserProfileDto(
 )
 
 @Serializable
-data class UserSettingsDto(
+data class ProfileSettingsDto(
     val languageCode: String,
     val theme: String,
     val hapticFeedbackEnabled: Boolean,
@@ -31,7 +32,7 @@ data class UserSettingsDto(
     val updatedAtUtc: String,
 )
 
-fun UserProfileDto.toDomain() = UserProfile(
+fun ProfileUserDto.toDomain() = ProfileUser(
     id = discordUserId,
     displayName = displayName,
     username = username,
@@ -41,12 +42,17 @@ fun UserProfileDto.toDomain() = UserProfile(
     isDiscordConnected = isDiscordConnected,
 )
 
-fun UserSettingsDto.toDomain() = UserSettings(
+fun ProfileSettingsDto.toDomain() = UserSettings(
     languageCode = languageCode,
     theme = theme,
     hapticFeedbackEnabled = hapticFeedbackEnabled,
     soundEffectsEnabled = soundEffectsEnabled,
     telemetryEnabled = telemetryEnabled,
+)
+
+fun ProfileSettingsDto.toProfileSettingsData() = ProfileSettingsData(
+    userSettings = toDomain(),
+    settingsUpdatedAtUtc = updatedAtUtc,
 )
 
 fun ProfileDto.toDomain() = ProfileData(

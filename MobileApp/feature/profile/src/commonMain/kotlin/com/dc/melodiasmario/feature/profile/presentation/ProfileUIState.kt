@@ -1,12 +1,12 @@
 package com.dc.melodiasmario.feature.profile.presentation
 
 import com.dc.melodiasmario.core.settings.domain.model.UserSettings
-import com.dc.melodiasmario.feature.profile.domain.model.UserProfile
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
 
 data class ProfileUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val profile: UserProfile = UserProfile.Default,
+    val user: ProfileUser = ProfileUser.Default,
     val userSettings: UserSettings = UserSettings.Default,
     val draftUserSettings: UserSettings = UserSettings.Default,
     val settingsUpdatedAtUtc: String = "",

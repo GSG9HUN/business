@@ -16,9 +16,8 @@ import coil3.compose.SubcomposeAsyncImage
 import com.dc.melodiasmario.core.ui.components.AvatarFallback
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.avatar_content_description
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -28,8 +27,8 @@ fun MAvatar(
     modifier: Modifier = Modifier,
     shape: Shape = CircleShape,
     size: Dp = 44.dp,
-    backgroundColor: Color = MmPrimary,
-    contentColor: Color = MmTextPrimary,
+    backgroundColor: Color = MelodiasMarioThemeTokens.current.primary,
+    contentColor: Color = MelodiasMarioThemeTokens.current.textPrimary,
     contentDescription: String = stringResource(Res.string.avatar_content_description),
     avatarOnClick: () -> Unit = {},
 ) {

@@ -16,7 +16,7 @@ import com.dc.melodiasmario.core.ui.feedback.model.MToastType
 import com.dc.melodiasmario.core.ui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.profile.presentation.ProfileViewModel
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.feature.profile.domain.model.UserProfile
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
 import com.dc.melodiasmario.feature.profile.generated.resources.Res
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_title
@@ -150,7 +150,7 @@ fun ProfileRoutePreview() {
     MelodiasMarioTheme {
         ProfileScreen(
             uiState = ProfileUiState(
-                profile = UserProfile(
+                user = ProfileUser(
                     id = "1",
                     displayName = "John Doe",
                     username = "johndoe",
@@ -177,7 +177,7 @@ fun ProfileRoutePreview2() {
     MelodiasMarioTheme {
         ProfileScreen(
             uiState = ProfileUiState(
-                profile = UserProfile(
+                user = ProfileUser(
                     id = "1",
                     displayName = "John Doe",
                     username = "johndoe",

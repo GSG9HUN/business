@@ -18,9 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_chevron_right
-import com.dc.melodiasmario.core.ui.theme.MmDivider
-import com.dc.melodiasmario.core.ui.theme.MmSubtitle
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -33,6 +31,7 @@ fun MSettingRow(
     onClick: (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
     val rowModifier = if (onClick != null) {
         modifier
             .fillMaxWidth()
@@ -58,13 +57,13 @@ fun MSettingRow(
         ) {
             MText(
                 text = title,
-                color = MmTextPrimary,
+                color = colors.textPrimary,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
             )
             MText(
                 text = subtitle,
-                color = MmSubtitle,
+                color = colors.subtitle,
                 textAlign = TextAlign.Start,
             )
         }
@@ -76,13 +75,13 @@ fun MSettingRow(
                 painter = painterResource(Res.drawable.ic_profile_chevron_right),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = MmTextPrimary,
+                tint = colors.textPrimary,
             )
         }
     }
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = MmDivider,
+        color = colors.divider,
     )
 }

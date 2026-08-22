@@ -16,22 +16,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun GuildSelectorPlaceholder(
     title: String,
     contentText: String,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = Modifier.fillMaxWidth().padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
         shape = RoundedCornerShape(12.dp),
-        color = MmSurface,
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -40,12 +38,12 @@ fun GuildSelectorPlaceholder(
         ) {
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = MmPrimary,
+                color = colors.primary,
             ) {
                 MText(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                     text = "DC",
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -56,13 +54,13 @@ fun GuildSelectorPlaceholder(
             ) {
                 MText(
                     text = title,
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start,
                 )
                 MText(
                     text = contentText,
-                    color = MmTextMuted,
+                    color = colors.textMuted,
                     textAlign = TextAlign.Start,
                 )
             }

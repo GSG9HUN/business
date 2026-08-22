@@ -13,11 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.refresh_button
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -25,12 +24,14 @@ fun MRefreshButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         onClick = onClick,
         modifier = modifier.size(36.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MmSurface,
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

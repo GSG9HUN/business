@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MmProfileErrorText
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.retry_button
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -22,6 +22,8 @@ fun ProfileErrorContent(
     message: String,
     onRetryClick: () -> Unit,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -31,7 +33,7 @@ fun ProfileErrorContent(
     ) {
         MText(
             text = message,
-            color = MmProfileErrorText,
+            color = colors.errorText,
             fontWeight = FontWeight.Bold,
         )
 

@@ -1,7 +1,8 @@
 package com.dc.melodiasmario.feature.profile.data.remote
 
 import com.dc.melodiasmario.feature.profile.data.remote.dto.ProfileDto
-import com.dc.melodiasmario.feature.profile.data.remote.dto.UpdateUserSettingsDto
+import com.dc.melodiasmario.feature.profile.data.remote.dto.ProfileSettingsDto
+import com.dc.melodiasmario.feature.profile.data.remote.dto.UpdateProfileSettingsDto
 import org.koin.core.annotation.Single
 
 @Single(binds = [ProfileRemoteDataSource::class])
@@ -12,11 +13,11 @@ class ProfileRemoteDataSourceImpl(
         return profileApiService.getProfile(accessToken = accessToken)
     }
 
-    override suspend fun updateProfile(
+    override suspend fun updateProfileSettings(
         accessToken: String,
-        userSettings: UpdateUserSettingsDto
-    ): ProfileDto {
-        return profileApiService.updateProfile(
+        userSettings: UpdateProfileSettingsDto
+    ): ProfileSettingsDto {
+        return profileApiService.updateProfileSettings(
             accessToken = accessToken,
             userSettings = userSettings,
         )

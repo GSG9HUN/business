@@ -13,9 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MmDivider
-import com.dc.melodiasmario.core.ui.theme.MmSubtitle
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -28,6 +26,8 @@ fun MToggleRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -44,13 +44,13 @@ fun MToggleRow(
         ) {
             MText(
                 text = title,
-                color = MmTextPrimary,
+                color = colors.textPrimary,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
             )
             MText(
                 text = subtitle,
-                color = MmSubtitle,
+                color = colors.subtitle,
                 textAlign = TextAlign.Start,
             )
         }
@@ -63,6 +63,6 @@ fun MToggleRow(
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = MmDivider,
+        color = colors.divider,
     )
 }

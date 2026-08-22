@@ -19,12 +19,8 @@ import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
 import com.dc.melodiasmario.core.ui.components.display.MAvatar
 import com.dc.melodiasmario.core.ui.components.display.MText
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
-import com.dc.melodiasmario.core.ui.theme.MmTextSecondary
 import com.dc.melodiasmario.feature.guild.generated.resources.Res
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_bot_status_unknown
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_in_voice_channel
@@ -38,11 +34,13 @@ fun GuildListItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = MmSurface,
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline),
         onClick = onClick,
     ) {
         Row(
@@ -55,8 +53,8 @@ fun GuildListItem(
                 imageUrl = guild.iconUrl,
                 shape = RoundedCornerShape(10.dp),
                 size = 44.dp,
-                backgroundColor = MmPrimary,
-                contentColor = MmTextPrimary,
+                backgroundColor = colors.primary,
+                contentColor = colors.textPrimary,
             )
 
             Column(
@@ -66,7 +64,7 @@ fun GuildListItem(
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
                     text = guild.name,
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
                 MText(
@@ -77,7 +75,7 @@ fun GuildListItem(
                         unknownText = stringResource(Res.string.guild_bot_status_unknown),
                         connectedInVoiceSuffix = stringResource(Res.string.guild_in_voice_channel),
                     ),
-                    color = MmTextSecondary,
+                    color = colors.textSecondary,
                 )
             }
 

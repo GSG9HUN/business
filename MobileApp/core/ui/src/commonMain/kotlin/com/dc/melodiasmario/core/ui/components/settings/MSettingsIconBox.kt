@@ -11,18 +11,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MmIconBackground
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MSettingsIconBox(
     painter: Painter,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.size(48.dp),
         shape = RoundedCornerShape(14.dp),
-        color = MmIconBackground,
+        color = colors.iconBackground,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -32,7 +33,7 @@ fun MSettingsIconBox(
                 painter = painter,
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = MmTextPrimary,
+                tint = colors.textPrimary,
             )
         }
     }

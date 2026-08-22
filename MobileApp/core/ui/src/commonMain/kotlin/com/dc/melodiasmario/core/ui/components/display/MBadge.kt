@@ -8,14 +8,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MBadge(
     text: String,
     modifier: Modifier = Modifier,
     backgroundColor: Color,
-    contentColor: Color = MmTextPrimary,
+    contentColor: Color = MelodiasMarioThemeTokens.current.textPrimary,
 ) {
     Surface(
         modifier = modifier,

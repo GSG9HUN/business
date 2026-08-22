@@ -6,6 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -13,21 +14,20 @@ import androidx.navigation3.ui.NavDisplay
 import com.dc.melodiasmario.core.ui.components.MBottomBar
 import com.dc.melodiasmario.core.ui.feedback.components.MToastHost
 import com.dc.melodiasmario.core.ui.feedback.state.rememberMToastHostState
-import com.dc.melodiasmario.core.ui.theme.MmBackground
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
-fun Navigation() {
-    val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
-        mutableStateListOf(AppRoute.Login)
-    }
+fun Navigation(backStack: SnapshotStateList<AppRoute>) {
+
     val currentRoute = backStack.last()
 
     val toastHostState = rememberMToastHostState()
+    val colors = MelodiasMarioThemeTokens.current
 
     Box {
 
         Scaffold(
-            containerColor = MmBackground,
+            containerColor = colors.background,
             bottomBar = {
                 if (currentRoute.shouldShowBottomBar()) {
                     val items = bottomBarItems(

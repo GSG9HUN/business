@@ -22,23 +22,14 @@ import com.dc.melodiasmario.core.ui.components.display.MBadge
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.components.settings.MSettingRow
 import com.dc.melodiasmario.core.ui.components.settings.MToggleRow
+import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_haptics
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_language
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_sound_effects
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_telemetry
 import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_token_status
-import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
 import com.dc.melodiasmario.core.ui.layout.MScrollableScreenContent
-import com.dc.melodiasmario.core.ui.theme.MmDangerText
-import com.dc.melodiasmario.core.ui.theme.MmProfileCard
-import com.dc.melodiasmario.core.ui.theme.MmProfileCardOutline
-import com.dc.melodiasmario.core.ui.theme.MmProfileErrorBackground
-import com.dc.melodiasmario.core.ui.theme.MmProfileErrorText
-import com.dc.melodiasmario.core.ui.theme.MmProfileSuccessBackground
-import com.dc.melodiasmario.core.ui.theme.MmProfileSuccessText
-import com.dc.melodiasmario.core.ui.theme.MmSecondaryButtonBackground
-import com.dc.melodiasmario.core.ui.theme.MmSecondaryButtonOutline
-import com.dc.melodiasmario.core.ui.theme.MmSurface
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_application_section
@@ -71,16 +62,16 @@ fun ProfileLoadedContent(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
 ) {
-
-    val profile = uiState.profile
+    val colors = MelodiasMarioThemeTokens.current
+    val user = uiState.user
     val userSettings = uiState.draftUserSettings
-    val displayName = profile.displayName
-    val username = profile.username
-    val avatarUrl = profile.avatarUrl
-    val isActive = profile.isActive
-    val provider = profile.provider
+    val displayName = user.displayName
+    val username = user.username
+    val avatarUrl = user.avatarUrl
+    val isActive = user.isActive
+    val provider = user.provider
     val settingsUpdatedAtUtc = uiState.settingsUpdatedAtUtc
-    val connectedProviderText = if (profile.isDiscordConnected) {
+    val connectedProviderText = if (user.isDiscordConnected) {
         stringResource(ProfileRes.string.profile_connected_provider, provider)
     } else {
         stringResource(ProfileRes.string.profile_disconnected_provider, provider)
@@ -93,18 +84,18 @@ fun ProfileLoadedContent(
 
 
     MScrollableScreenContent(
-        modifier = modifier
+        modifier = modifier,
     ) {
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             shape = RoundedCornerShape(12.dp),
-            color = MmProfileCard,
-            border = BorderStroke(1.dp, MmProfileCardOutline),
+            color = colors.profileCard,
+            border = BorderStroke(1.dp, colors.profileCardOutline),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 MAvatar(
                     name = displayName,
@@ -113,28 +104,30 @@ fun ProfileLoadedContent(
                 )
 
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     MText(
                         text = displayName,
                         textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     MText(
-                        text = "@$username • $connectedProviderText", textAlign = TextAlign.Start
+                        text = "@$username • $connectedProviderText",
+                        textAlign = TextAlign.Start,
                     )
                 }
 
                 MBadge(
                     text = statusText,
-                    backgroundColor = if (isActive) MmProfileSuccessBackground else MmProfileErrorBackground,
-                    contentColor = if (isActive) MmProfileSuccessText else MmProfileErrorText,
+                    backgroundColor = if (isActive) colors.successBackground else colors.errorBackground,
+                    contentColor = if (isActive) colors.successText else colors.errorText,
                 )
             }
         }
 
         Surface(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = MmSurface
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = colors.surface,
         ) {
             Column {
                 MText(
@@ -195,8 +188,8 @@ fun ProfileLoadedContent(
                     trailingContent = {
                         MBadge(
                             text = stringResource(ProfileRes.string.profile_token_status_ok),
-                            backgroundColor = MmProfileSuccessBackground,
-                            contentColor = MmProfileSuccessText,
+                            backgroundColor = colors.successBackground,
+                            contentColor = colors.successText,
                         )
                     },
                 )
@@ -205,15 +198,15 @@ fun ProfileLoadedContent(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     onClick = { onEvent(ProfileEvent.LogoutClicked) },
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MmSecondaryButtonOutline),
+                    border = BorderStroke(1.dp, colors.secondaryButtonOutline),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MmSecondaryButtonBackground,
-                        contentColor = MmDangerText,
+                        containerColor = colors.secondaryButtonBackground,
+                        contentColor = colors.dangerText,
                     ),
                 ) {
                     MText(
                         text = stringResource(ProfileRes.string.profile_logout_button),
-                        color = MmDangerText,
+                        color = colors.dangerText,
                         fontWeight = FontWeight.Bold,
                     )
                 }

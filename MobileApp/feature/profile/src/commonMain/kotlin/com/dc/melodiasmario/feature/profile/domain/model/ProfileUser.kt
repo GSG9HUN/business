@@ -1,6 +1,6 @@
 package com.dc.melodiasmario.feature.profile.domain.model
 
-data class UserProfile(
+data class ProfileUser(
     val id: String,
     val displayName: String,
     val username: String,
@@ -10,7 +10,7 @@ data class UserProfile(
     val isDiscordConnected: Boolean,
 ) {
     companion object {
-        val Default = UserProfile(
+        val Default = ProfileUser(
             id = "",
             displayName = "",
             username = "",

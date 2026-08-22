@@ -7,12 +7,14 @@ import androidx.activity.compose.setContent
 import com.dc.melodiasmario.core.auth.presentation.AuthDeepLinkDispatcher
 import com.dc.melodiasmario.core.settings.data.UserSettingsStorage
 import com.dc.melodiasmario.core.settings.data.UserSettingsStore
+import com.dc.melodiasmario.core.settings.locale.AppLocaleController
 import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
     private val userSettingsStore: UserSettingsStore by inject()
     private val userSettingsStorage: UserSettingsStorage by inject()
+    private val appLocaleController: AppLocaleController by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +25,7 @@ class MainActivity : ComponentActivity() {
             MelodiasMarioRoot(
                 userSettingsStore = userSettingsStore,
                 userSettingsStorage = userSettingsStorage,
+                appLocaleController = appLocaleController,
             )
         }
     }

@@ -4,7 +4,7 @@ import com.dc.melodiasmario.core.settings.domain.model.UserSettings
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UpdateUserSettingsDto(
+data class UpdateProfileSettingsDto(
     val languageCode: String,
     val theme: String,
     val hapticFeedbackEnabled: Boolean,
@@ -12,7 +12,7 @@ data class UpdateUserSettingsDto(
     val telemetryEnabled: Boolean,
 )
 
-fun UserSettings.toUpdateDto() = UpdateUserSettingsDto(
+fun UserSettings.toUpdateProfileSettingsDto() = UpdateProfileSettingsDto(
     languageCode = languageCode,
     theme = theme,
     hapticFeedbackEnabled = hapticFeedbackEnabled,

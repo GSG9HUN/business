@@ -10,8 +10,8 @@ import com.dc.melodiasmario.core.settings.domain.model.UserSettings
 import com.dc.melodiasmario.core.ui.components.button.MFloatingSaveCancelBar
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.feature.profile.domain.model.UserProfile
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_cancel_settings_button
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_settings_button
@@ -28,9 +28,11 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit = {},
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = MmSurface,
+        containerColor = colors.surface,
         topBar = {
             MText(text = "Random Top bar")
         },
@@ -70,7 +72,7 @@ fun ProfileScreenPreview() {
     MelodiasMarioTheme {
         ProfileScreen(
             uiState = ProfileUiState(
-                profile = UserProfile(
+                user = ProfileUser(
                     id = "1",
                     displayName = "John Doe",
                     username = "johndoe",

@@ -7,8 +7,9 @@ import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.settings.data.UserSettingsStorage
 import com.dc.melodiasmario.core.settings.data.UserSettingsStore
 import com.dc.melodiasmario.feature.profile.domain.model.ProfileData
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileSettingsData
 import com.dc.melodiasmario.feature.profile.domain.usecase.GetProfileUseCase
-import com.dc.melodiasmario.feature.profile.domain.usecase.UpdateProfileUseCase
+import com.dc.melodiasmario.feature.profile.domain.usecase.UpdateProfileSettingsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 class ProfileViewModel(
     private val getProfileUseCase: GetProfileUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val updateProfileSettingsUseCase: UpdateProfileSettingsUseCase,
     private val discordLogoutUseCase: DiscordLogoutUseCase,
     private val userSettingsStorage: UserSettingsStorage,
     private val userSettingsStore: UserSettingsStore
@@ -100,7 +101,7 @@ class ProfileViewModel(
         _uiState.update {
             it.copy(
                 isLoading = false,
-                profile = data.user,
+                user = data.user,
                 userSettings = data.userSettings,
                 draftUserSettings = data.userSettings,
                 settingsUpdatedAtUtc = data.settingsUpdatedAtUtc,
@@ -168,7 +169,7 @@ class ProfileViewModel(
     }
 
     private suspend fun onSaveSettingsClicked() {
-        updateProfileUseCase(_uiState.value.draftUserSettings).collect { result ->
+        updateProfileSettingsUseCase(_uiState.value.draftUserSettings).collect { result ->
             when (result) {
                 Resource.Loading -> onProfileSettingsSaving()
                 is Resource.Success -> onProfileSettingsSaved(result.data)
@@ -186,14 +187,14 @@ class ProfileViewModel(
         }
     }
 
-    private suspend fun onProfileSettingsSaved(profileData: ProfileData) {
-        userSettingsStore.setSettings(profileData.userSettings)
-        userSettingsStorage.saveSettings(profileData.userSettings)
+    private suspend fun onProfileSettingsSaved(profileSettingsData: ProfileSettingsData) {
+        userSettingsStore.setSettings(profileSettingsData.userSettings)
+        userSettingsStorage.saveSettings(profileSettingsData.userSettings)
         _uiState.update {
             it.copy(
-                userSettings = profileData.userSettings,
-                draftUserSettings = profileData.userSettings,
-                settingsUpdatedAtUtc = profileData.settingsUpdatedAtUtc,
+                userSettings = profileSettingsData.userSettings,
+                draftUserSettings = profileSettingsData.userSettings,
+                settingsUpdatedAtUtc = profileSettingsData.settingsUpdatedAtUtc,
                 isSaving = false,
                 errorMessageSaving = null,
             )

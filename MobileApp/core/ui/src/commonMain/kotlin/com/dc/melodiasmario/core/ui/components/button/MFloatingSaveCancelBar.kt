@@ -16,12 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MmElevated
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmSecondaryButtonBackground
-import com.dc.melodiasmario.core.ui.theme.MmSecondaryButtonOutline
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MFloatingSaveCancelBar(
@@ -32,13 +27,15 @@ fun MFloatingSaveCancelBar(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         shape = RoundedCornerShape(18.dp),
-        color = MmElevated,
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        color = colors.elevated,
+        border = BorderStroke(1.dp, colors.outline),
         shadowElevation = 8.dp,
     ) {
         Row(
@@ -53,16 +50,16 @@ fun MFloatingSaveCancelBar(
                 onClick = onCancelClick,
                 enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MmSecondaryButtonOutline),
+                border = BorderStroke(1.dp, colors.secondaryButtonOutline),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = MmSecondaryButtonBackground,
-                    contentColor = MmTextPrimary,
-                    disabledContainerColor = MmSecondaryButtonBackground,
+                    containerColor = colors.secondaryButtonBackground,
+                    contentColor = colors.textPrimary,
+                    disabledContainerColor = colors.secondaryButtonBackground,
                 ),
             ) {
                 MText(
                     text = cancelText,
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -73,14 +70,14 @@ fun MFloatingSaveCancelBar(
                 enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MmPrimary,
-                    contentColor = MmTextPrimary,
-                    disabledContainerColor = MmPrimary.copy(alpha = 0.5f),
+                    containerColor = colors.primary,
+                    contentColor = colors.textPrimary,
+                    disabledContainerColor = colors.primary.copy(alpha = 0.5f),
                 ),
             ) {
                 MText(
                     text = saveText,
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
             }

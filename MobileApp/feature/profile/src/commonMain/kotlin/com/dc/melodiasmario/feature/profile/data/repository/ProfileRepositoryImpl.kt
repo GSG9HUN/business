@@ -4,8 +4,10 @@ import com.dc.melodiasmario.core.auth.data.session.AuthorizedSessionProvider
 import com.dc.melodiasmario.core.settings.domain.model.UserSettings
 import com.dc.melodiasmario.feature.profile.data.remote.ProfileRemoteDataSource
 import com.dc.melodiasmario.feature.profile.data.remote.dto.toDomain
-import com.dc.melodiasmario.feature.profile.data.remote.dto.toUpdateDto
+import com.dc.melodiasmario.feature.profile.data.remote.dto.toProfileSettingsData
+import com.dc.melodiasmario.feature.profile.data.remote.dto.toUpdateProfileSettingsDto
 import com.dc.melodiasmario.feature.profile.domain.model.ProfileData
+import com.dc.melodiasmario.feature.profile.domain.model.ProfileSettingsData
 import com.dc.melodiasmario.feature.profile.domain.repository.ProfileRepository
 import org.koin.core.annotation.Single
 
@@ -20,10 +22,10 @@ class ProfileRepositoryImpl(
         ).toDomain()
     }
 
-    override suspend fun updateProfile(userSettings: UserSettings): ProfileData {
-        return profileRemoteDataSource.updateProfile(
+    override suspend fun updateProfileSettings(userSettings: UserSettings): ProfileSettingsData {
+        return profileRemoteDataSource.updateProfileSettings(
             accessToken = authorizedSessionProvider.getValidSession(),
-            userSettings = userSettings.toUpdateDto(),
-        ).toDomain()
+            userSettings = userSettings.toUpdateProfileSettingsDto(),
+        ).toProfileSettingsData()
     }
 }

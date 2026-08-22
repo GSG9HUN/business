@@ -2,7 +2,8 @@ package com.dc.melodiasmario.feature.profile.data.remote
 
 import com.dc.melodiasmario.core.common.AppConstants
 import com.dc.melodiasmario.feature.profile.data.remote.dto.ProfileDto
-import com.dc.melodiasmario.feature.profile.data.remote.dto.UpdateUserSettingsDto
+import com.dc.melodiasmario.feature.profile.data.remote.dto.ProfileSettingsDto
+import com.dc.melodiasmario.feature.profile.data.remote.dto.UpdateProfileSettingsDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -26,14 +27,14 @@ class ProfileApiService(
         }.body()
     }
 
-    suspend fun updateProfile(
+    suspend fun updateProfileSettings(
         accessToken: String,
-        userSettings: UpdateUserSettingsDto,
-    ): ProfileDto {
+        userSettings: UpdateProfileSettingsDto,
+    ): ProfileSettingsDto {
         return client.patch("$baseUrl/profile/settings") {
             header("Authorization", "Bearer $accessToken")
             contentType(ContentType.Application.Json)
             setBody(userSettings)
-        }.body<ProfileDto>()
+        }.body<ProfileSettingsDto>()
     }
 }
