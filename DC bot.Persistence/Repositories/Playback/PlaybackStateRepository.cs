@@ -1,0 +1,117 @@
+using DC_bot.Db;
+using DC_bot.Entities.Playback;
+using DC_bot.Interface.Service.Persistence.Models.Playback;
+using DC_bot.Interface.Service.Persistence.Playback;
+using DC_bot.Repositories.Guilds;
+using Microsoft.EntityFrameworkCore;
+
+namespace DC_bot.Repositories.Playback;
+
+public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IPlaybackStateRepository
+{
+    public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+
+        var state = await dbContext.GuildPlaybackStates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+        if (state is null)
+        {
+            var now = DateTimeOffset.UtcNow;
+            state = new GuildPlaybackStateEntity
+            {
+                GuildId = guildId,
+                IsRepeating = false,
+                IsRepeatingList = false,
+                CurrentTrackIdentifier = null,
+                UpdatedAtUtc = now
+            };
+
+            dbContext.GuildPlaybackStates.Add(state);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return new PlaybackStateRecord(
+            guildId,
+            state.IsRepeating,
+            state.IsRepeatingList,
+            state.CurrentTrackIdentifier,
+            state.QueueItemId,
+            state.UpdatedAtUtc);
+    }
+
+    public async Task SetRepeatStateAsync(
+        ulong guildId,
+        bool isRepeating,
+        bool isRepeatingList,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+
+        var state = await dbContext.GuildPlaybackStates
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+        if (state is null)
+        {
+            state = new GuildPlaybackStateEntity
+            {
+                GuildId = guildId,
+                IsRepeating = isRepeating,
+                IsRepeatingList = isRepeatingList,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+            dbContext.GuildPlaybackStates.Add(state);
+        }
+        else
+        {
+            state.IsRepeating = isRepeating;
+            state.IsRepeatingList = isRepeatingList;
+            state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+    
+
+    public async Task SetCurrentTrackAsync(
+        ulong guildId,
+        string? trackIdentifier,
+        long? queueItemId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+
+        var state = await dbContext.GuildPlaybackStates
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+        if (state is null)
+        {
+            state = new GuildPlaybackStateEntity
+            {
+                GuildId = guildId,
+                IsRepeating = false,
+                IsRepeatingList = false,
+                CurrentTrackIdentifier = trackIdentifier,
+                QueueItemId = queueItemId,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+            dbContext.GuildPlaybackStates.Add(state);
+        }
+        else
+        {
+            state.CurrentTrackIdentifier = trackIdentifier;
+            state.QueueItemId = queueItemId;
+            state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+}

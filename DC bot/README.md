@@ -102,7 +102,6 @@ DC bot/
 │   │   ├── IO/                    # IFileSystem
 │   │   ├── Localization/          # ILocalizationService
 │   │   ├── Music/                 # ILavaLinkService, playlist service, etc.
-│   │   ├── Persistence/           # Repository contracts
 │   │   ├── Presentation/          # IResponseBuilder
 │   │   ├── SlashCommands/         # Slash command adapter contracts
 │   │   └── README.md
@@ -147,10 +146,8 @@ DC bot/
 │   │   ├── LavalinkServiceCollectionExtensions.cs
 │   │   ├── LoggingServiceCollectionExtensions.cs
 │   │   ├── MusicServiceCollectionExtensions.cs
-│   │   ├── PersistenceServiceCollectionExtensions.cs
 │   │   └── README.md
 │   ├── BotServiceProviderFactory.cs # Dependency injection composition root
-│   ├── DatabaseMigrationRunner.cs # EF Core migration execution
 │   └── README.md
 │
 ├── Wrapper/                       # Discord API wrappers (DSharpPlus abstraction)
@@ -181,8 +178,12 @@ DC bot/
 │   ├── EventIdTable.md
 │   └── README.md
 │
-├── Persistence/                   # EF Core + PostgreSQL persistence layer
-│   ├── Db/                        # BotDbContext and factory
+├── ../DC bot.Contracts/           # Shared contracts referenced by API and bot
+│   └── DC bot.Contracts/Interface/Service/Persistence/
+│       └── Models/
+│
+├── ../DC bot.Persistence/         # EF Core + PostgreSQL persistence project
+│   ├── Db/                        # BotDbContext, factory, migration runner
 │   ├── Entities/                  # EF Core entities
 │   ├── Configurations/            # EF model mapping
 │   ├── Repositories/              # Repository implementations
@@ -320,7 +321,7 @@ Startup is split between a thin process entry point and focused startup componen
 1. `Program.cs` loads `.env` when present and delegates to `BotApplication`.
 2. `BotConfigurationLoader` reads required bot and Lavalink settings from the environment.
 3. `BotServiceProviderFactory` builds the Dependency Injection container.
-4. `DatabaseMigrationRunner` applies pending EF Core migrations.
+4. `DC bot.Persistence/Db/DatabaseMigrationRunner` applies pending EF Core migrations.
 5. `BotHandlerRegistrar` activates command and reaction handlers.
 6. `BotService` starts the Discord client lifecycle.
 
@@ -347,7 +348,7 @@ BotServiceProviderFactory.Create()
   |-- AddMusicServices (music services, playlist service, and track serializer)
   `-- Build ServiceProvider
   ↓
-DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync()
+DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync() (from `DC bot.Persistence`)
   ↓
 BotHandlerRegistrar.RegisterHandlers()
   ├─ CommandHandlerService.RegisterHandler(discordClient)
@@ -476,7 +477,7 @@ YOUTUBE_REFRESH_TOKEN=
 
 #### Persistence Registrations
 
-- `BotDbContext` factory - EF Core/PostgreSQL context creation
+- `BotDbContext` factory - EF Core/PostgreSQL context creation through `DC bot.Persistence`
 - `IGuildDataRepository` - Guild row and premium state
 - `IPlaybackStateRepository` - Current playback state
 - `IQueueRepository` / `QueueRepository` - Queue entries; atomic queued-item claim is handled internally by `QueueClaimService`
@@ -574,7 +575,7 @@ The project has **60+ README.md files** documenting every component:
 - **Configuration/** - Configuration models
 - **Constants/** - Localization keys
 - **Logging/** - Structured logging
-- **Persistence/** - Database entities, configurations, migrations, and repositories
+- **DC bot.Persistence/** - Database entities, configurations, migrations, and repositories
 - **Interface/Service/Music/PlaylistServiceInterface/** - Saved playlist service contracts
 - **localization/** - Language files
 - **guildFiles/** - Persistent data structure

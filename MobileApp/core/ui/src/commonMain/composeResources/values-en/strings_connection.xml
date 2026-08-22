@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_section_title">CONNECTION</string>
+    <string name="api_available_title">API reachable</string>
+    <string name="api_unavailable_title">API unreachable</string>
+    <string name="api_available_detail">Bot status checked separately</string>
+    <string name="api_unavailable_detail">/api/status is not responding right now.</string>
+    <string name="online_badge">Online</string>
+    <string name="offline_badge">Offline</string>
+</resources>

@@ -1,6 +1,8 @@
+using DC_bot.Db;
 using DC_bot.Interface.Service.Persistence.Models;
-using DC_bot.Persistence.Db;
-using DC_bot.Persistence.Repositories;
+using DC_bot.Interface.Service.Persistence.Models.Queue;
+using DC_bot.Repositories;
+using DC_bot.Repositories.Queue;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,6 +1,8 @@
+using DC_bot.Entities;
+using DC_bot.Entities.Playlists;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Models;
-using DC_bot.Persistence.Entities;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 
 namespace DC_bot_tests.UnitTests.Model;
 

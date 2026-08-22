@@ -1,4 +1,5 @@
-using DC_bot.Persistence.Repositories;
+using DC_bot.Repositories;
+using DC_bot.Repositories.Guilds;
 
 namespace DC_bot_tests.UnitTests.Persistence;
 

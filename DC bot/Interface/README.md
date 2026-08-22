@@ -93,9 +93,10 @@ Service layer interfaces grouped by domain.
 - `IO/` - File system interfaces
 - `Localization/` - Localization service
 - `Music/` - Music, playback, and saved playlist services
-- `Persistence/` - Repository contracts and persistence records
 - `Presentation/` - Response building
 - `SlashCommands/` - Slash command adapter contracts
+
+Persistence repository contracts moved to `../DC bot.Contracts/Interface/Service/Persistence/` so the API and bot can share them without referencing each other.
 
 ---
 

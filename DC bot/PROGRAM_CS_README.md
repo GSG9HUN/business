@@ -20,7 +20,7 @@
 - `BotRuntimeSettings.cs` - groups bot, Lavalink, and database startup settings
 - `BotServiceProviderFactory.cs` - builds the DI container
 - `Startup/DependencyInjection/*.cs` - groups DI registrations by logging, core services, Discord runtime, Lavalink, persistence, commands, and music domains
-- `DatabaseMigrationRunner.cs` - applies pending EF Core migrations
+- `DC bot.Persistence/Db/DatabaseMigrationRunner.cs` - applies pending EF Core migrations
 - `BotHandlerRegistrar.cs` - activates command and reaction handlers after the service graph is built
 
 ## Startup Flow
@@ -117,7 +117,7 @@ YOUTUBE_REFRESH_TOKEN=
 
 ## Persistence Wiring
 
-`BotServiceProviderFactory` calls `PersistenceServiceCollectionExtensions.AddPersistenceServices(...)`, which registers:
+`BotServiceProviderFactory` calls `DC_bot.Persistence.DependencyInjection.PersistenceServiceCollectionExtensions.AddPersistenceServices(...)`, which registers:
 
 - `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
 - `IGuildDataRepository -> GuildDataRepository`
@@ -126,10 +126,11 @@ YOUTUBE_REFRESH_TOKEN=
 - `IPlaylistRepository -> PlaylistRepository`
 - `IPlaylistTrackRepository -> PlaylistTrackRepository`
 - `IRepeatListRepository -> RepeatListRepository`
+- `IBotControlCommandsRepository -> BotControlCommandsRepository`
 
 `QueueRepository` keeps the public `IQueueRepository` contract, while the PostgreSQL atomic claim transaction is delegated internally to `QueueClaimService`.
 
-`DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` checks pending migrations and runs `MigrateAsync()` when needed.
+`DC bot.Persistence/Db/DatabaseMigrationRunner.cs` checks pending migrations and runs `MigrateAsync()` when needed.
 
 The runtime PostgreSQL connection string is built from the `POSTGRES_*` variables by `BotConfigurationLoader.BuildPostgresConnectionString()`. The current C# startup path does not read `POSTGRES_CONNECTION_STRING` directly.
 

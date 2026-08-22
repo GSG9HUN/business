@@ -1,4 +1,4 @@
-﻿# guildFiles
+# guildFiles
 
 This folder stores filesystem-based per-guild data.
 
@@ -63,6 +63,6 @@ localizationService.LoadLanguage(guildId);
 
 - **Service/LocalizationService.cs** - Language preference management
 - **Interface/Service/IO/IFileSystem.cs** - Filesystem operations
-- **Interface/Service/Persistence/IQueueRepository.cs** - Active queue persistence contract
-- **Persistence/README.md** - Database persistence overview
+- **DC bot.Contracts/Interface/Service/Persistence/IQueueRepository.cs** - Active queue persistence contract
+- **DC bot.Persistence/README.md** - Database persistence overview
 

@@ -37,7 +37,7 @@ public class ViewPlaylistCommand(
 
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.ViewPlaylistAsync(guildId, playlistName);
-        var safePlaylistName = DiscordTextSanitizer.EscapeMentions((result.PlaylistName ?? playlistName).Trim());
+        var safePlaylistName = DiscordTextSanitizer.EscapeMentions(result.PlaylistName.Trim());
 
         switch (result.Status)
         {

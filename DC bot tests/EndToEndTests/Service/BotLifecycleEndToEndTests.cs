@@ -1,8 +1,8 @@
 using DC_bot.Configuration;
-using DC_bot.Persistence.Db;
 using DC_bot.Service;
 using DC_bot.Startup;
 using DC_bot_tests.IntegrationTests.Persistence;
+using DC_bot.Db;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;

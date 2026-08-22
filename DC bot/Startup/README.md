@@ -4,7 +4,7 @@ This folder contains the runtime composition layer for the bot.
 
 ## Overview
 
-Startup code is separated from `Program.cs` so configuration loading, dependency injection, migrations, and runtime event wiring can be tested independently.
+Startup code is separated from `Program.cs` so configuration loading, dependency injection, database migration execution, and runtime event wiring can be tested independently.
 
 ## Files
 
@@ -55,9 +55,10 @@ Domain-specific DI registration extensions used by the composition root:
 - `CoreServiceCollectionExtensions.cs` - `AddCoreBotServices(...)` registers bot settings, command registry, localization, validation, response building, wrappers, reaction components, handlers, and file-system services.
 - `DiscordServiceCollectionExtensions.cs` - `AddDiscordRuntime(...)` creates the DSharpPlus client and wires gateway, message, reaction, and voice event callbacks.
 - `LavalinkServiceCollectionExtensions.cs` - `AddLavalinkRuntime(...)` configures Lavalink4NET HTTP and WebSocket endpoints.
-- `PersistenceServiceCollectionExtensions.cs` - `AddPersistenceServices(...)` registers EF Core and repositories.
 - `CommandServiceCollectionExtensions.cs` - `AddCommandServices()` registers text commands, slash command services, slash modules, and `SlashCommandProcessor`.
 - `MusicServiceCollectionExtensions.cs` - `AddMusicServices()` registers music playback, queue, repeat, playlist, notification, and progressive timer services.
+
+Persistence registrations now live in `../../DC bot.Persistence/DependencyInjection/PersistenceServiceCollectionExtensions.cs` and are consumed by this composition root through the `DC bot.Persistence` project reference.
 
 ### BotServiceProviderFactory.cs
 
@@ -85,9 +86,9 @@ Current slash command modules are registered from:
 - `Commands/SlashCommands/Playlist/`
 - `Commands/SlashCommands/Utility/`
 
-### DatabaseMigrationRunner.cs
+### DatabaseMigrationRunner
 
-Creates a scoped `BotDbContext` and applies pending EF Core migrations with `MigrateAsync()`.
+`DC bot.Persistence/Db/DatabaseMigrationRunner.cs` creates a scoped `BotDbContext` and applies pending EF Core migrations with `MigrateAsync()`.
 
 ### BotHandlerRegistrar.cs
 

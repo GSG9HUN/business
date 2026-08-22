@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_section_title">KAPCSOLAT</string>
+    <string name="api_available_title">API elérhető</string>
+    <string name="api_unavailable_title">API nem elérhető</string>
+    <string name="api_available_detail">Bot állapot külön ellenőrizve</string>
+    <string name="api_unavailable_detail">A /api/status jelenleg nem válaszol.</string>
+    <string name="online_badge">Online</string>
+    <string name="offline_badge">Offline</string>
+</resources>

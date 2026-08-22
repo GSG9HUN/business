@@ -1,6 +1,7 @@
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Music.PlaylistService;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Melódias Mário</string>
+    <string name="bottom_bar_now_playing">Now</string>
+    <string name="bottom_bar_queue">Queue</string>
+    <string name="bottom_bar_playlists">Playlists</string>
+    <string name="bottom_bar_settings">Settings</string>
+    <string name="search_placeholder">Search</string>
+    <string name="retry_button">Retry</string>
+</resources>

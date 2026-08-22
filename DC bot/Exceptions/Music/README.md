@@ -1,4 +1,4 @@
-﻿# Music Exceptions
+# Music Exceptions
 
 This folder contains exceptions for music playback operations.
 
@@ -115,5 +115,5 @@ catch (BotException botEx)
 - `Service/Music/MusicServices/LavalinkNodeConnectionService.cs` - Throws `LavalinkOperationException`
 - `Service/Music/MusicServices/PlaybackRequestService.cs` - Throws `TrackLoadException`
 - `Service/Music/MusicServices/MusicQueueService.cs` - Lets repository exceptions bubble; it does not currently throw `QueueOperationException`
-- `Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
+- `DC bot.Contracts/Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
 

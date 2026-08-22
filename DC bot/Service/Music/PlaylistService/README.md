@@ -52,7 +52,7 @@ Examples:
 
 ## Persistence Boundary
 
-The service consumes repository records from `Interface/Service/Persistence/Models/`, not EF Core entities. EF entities stay inside `Persistence/`.
+The service consumes repository records from `DC bot.Contracts/Interface/Service/Persistence/Models/`, not EF Core entities. EF entities stay inside `DC bot.Persistence/`.
 
 `SavePlaylistAsync` serializes loaded track identities before creating the playlist record. If the playlist record is
 created but `IPlaylistTrackRepository.AddRangeAsync` fails, the service attempts to delete the newly-created playlist and
@@ -74,7 +74,7 @@ The service clamps configured values to at least `1` before applying them.
 - `Commands/SlashCommands/Playlist/`
 - `Configuration/PlaylistOptions.cs`
 - `Interface/Service/Music/PlaylistServiceInterface/`
-- `Interface/Service/Persistence/IPlaylistRepository.cs`
-- `Interface/Service/Persistence/IPlaylistTrackRepository.cs`
-- `Persistence/Repositories/PlaylistRepository.cs`
-- `Persistence/Repositories/PlaylistTrackRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistTrackRepository.cs`
+- `DC bot.Persistence/Repositories/PlaylistRepository.cs`
+- `DC bot.Persistence/Repositories/PlaylistTrackRepository.cs`

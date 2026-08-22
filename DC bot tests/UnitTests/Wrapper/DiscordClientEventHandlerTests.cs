@@ -1,6 +1,7 @@
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Moq;
