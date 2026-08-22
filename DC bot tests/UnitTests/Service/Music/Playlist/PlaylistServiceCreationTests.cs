@@ -1,4 +1,5 @@
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -52,6 +53,23 @@ public class PlaylistServiceCreationTests : PlaylistServiceTestBase
     }
 
     [Fact]
+    public async Task CreatePlaylistAsync_WhenPlaylistIsCreatedConcurrently_ReturnsPlaylistAlreadyExists()
+    {
+        var context = CreateContext();
+        context.PlaylistRepository.Setup(repository => repository.ExistsAsync(GuildId, PlaylistName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        context.PlaylistRepository.Setup(repository => repository.CreatePlaylistAsync(
+                GuildId,
+                PlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateUniqueConstraintConflictException());
+
+        var result = await context.Service.CreatePlaylistAsync(GuildId, PlaylistName);
+
+        Assert.Equal(CreatePlaylistResult.PlaylistAlreadyExists, result);
+    }
+
+    [Fact]
     public async Task CreatePlaylistAsync_WhenPlaylistLimitReached_ReturnsPlaylistLimitReached()
     {
         var context = CreateContext(new() { MaxPlaylistsPerGuild = 1 });
@@ -80,6 +98,35 @@ public class PlaylistServiceCreationTests : PlaylistServiceTestBase
 
         Assert.Equal(SavePlaylistResult.AlreadyExists, result);
         context.TrackSearchResolver.Verify(resolver => resolver.ResolveSearchMode(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SavePlaylistAsync_WhenPlaylistIsCreatedConcurrently_ReturnsAlreadyExists()
+    {
+        var context = CreateContext();
+        var track = CreateLavalinkTrack();
+        context.PlaylistRepository.Setup(repository => repository.ExistsAsync(GuildId, PlaylistName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        context.AudioService
+            .Setup(service => service.Tracks.LoadTracksAsync(
+                "https://example.com/playlist",
+                TrackSearchMode.YouTube,
+                default,
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<TrackLoadResult>(new TrackLoadResult(track, null)));
+        context.PlaylistRepository.Setup(repository => repository.CreatePlaylistAsync(
+                GuildId,
+                PlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateUniqueConstraintConflictException());
+
+        var result = await context.Service.SavePlaylistAsync(GuildId, PlaylistName, "https://example.com/playlist");
+
+        Assert.Equal(SavePlaylistResult.AlreadyExists, result);
+        context.PlaylistRepository.Verify(repository => repository.DeleteByGuildAndNameAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -166,4 +213,7 @@ public class PlaylistServiceCreationTests : PlaylistServiceTestBase
             PlaylistName,
             It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    private static UniqueConstraintConflictException CreateUniqueConstraintConflictException() =>
+        new("Duplicate playlist.", new InvalidOperationException("duplicate"));
 }

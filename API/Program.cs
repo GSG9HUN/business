@@ -77,6 +77,7 @@ app.UseAuthorization();
 
 var api = app.MapGroup("/api");
 api.MapGuildEndpoints()
+    .MapProfileEndpoints()
     .MapAuthEndpoints()
     .MapPlayerEndpoints()
     .MapPlaybackEndpoints()

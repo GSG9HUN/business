@@ -1,4 +1,6 @@
-﻿namespace DC_bot.Entities.MobileApps;
+﻿using DC_bot.Entities.MobileAppUserSettings;
+
+namespace DC_bot.Entities.MobileApps;
 
 public class MobileAppUserEntity
 {
@@ -10,4 +12,5 @@ public class MobileAppUserEntity
     public DateTimeOffset LastLoginAtUtc { get; set; }
     
     public ICollection<UserGuildEntity> Guilds { get; set; } = new List<UserGuildEntity>();
+    public MobileAppUserSettingsEntity? Settings { get; set; }
 }

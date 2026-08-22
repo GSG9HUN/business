@@ -1,6 +1,7 @@
 using DC_bot.Db;
 using DC_bot.Entities.Guilds;
 using DC_bot.Interface.Service.Persistence.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Guilds;
@@ -25,7 +26,7 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(dbContext, cancellationToken);
     }
 
     public async Task<bool> IsPremiumAsync(ulong guildId, CancellationToken cancellationToken = default)
@@ -60,14 +61,30 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
             };
 
             dbContext.GuildData.Add(guild);
-        }
-        else
-        {
-            guild.IsPremium = isPremium;
-            guild.PremiumUntilUtc = premiumUntilUtc;
-            guild.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (inserted)
+            {
+                return;
+            }
+
+            guild = await dbContext.GuildData.FirstAsync(g => g.GuildId == guildId, cancellationToken);
         }
 
+        ApplyPremium(guild, isPremium, premiumUntilUtc);
+
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void ApplyPremium(
+        GuildDataEntity guild,
+        bool isPremium,
+        DateTimeOffset? premiumUntilUtc)
+    {
+        guild.IsPremium = isPremium;
+        guild.PremiumUntilUtc = premiumUntilUtc;
+        guild.UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

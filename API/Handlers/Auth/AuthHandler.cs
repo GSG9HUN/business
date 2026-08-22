@@ -5,6 +5,7 @@ using API.Responses.Auth;
 using API.Results;
 using API.Services.Auth;
 using DC_bot.Interface.Service.Persistence.MobileApps;
+using DC_bot.Interface.Service.Persistence.MobileAppUserSettings;
 using DC_bot.Interface.Service.Persistence.Models.MobileApps;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
@@ -30,6 +31,7 @@ public static class AuthHandler
         OAuthStateStore stateStore,
         AuthTicketStore ticketStore,
         IMobileAppUserRepository userRepository,
+        IMobileAppUserSettingsRepository settingsRepository,
         IConfiguration configuration,
         CancellationToken ct)
     {
@@ -55,6 +57,8 @@ public static class AuthHandler
                 discordUser.Avatar),
             ct);
 
+        await settingsRepository.EnsureExistsAsync(discordUserId, ct);
+        
         var guildRecords = discordGuilds
             .Select(guild => new MobileAppUserGuildUpsertRecord(
                 ulong.Parse(guild.Id),

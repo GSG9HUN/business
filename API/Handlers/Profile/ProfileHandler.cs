@@ -1,0 +1,117 @@
+using API.Errors;
+using API.Mapping;
+using API.Requests.Profile;
+using API.Responses.Profile;
+using API.Results;
+using DC_bot.Interface.Service.Persistence.MobileApps;
+using DC_bot.Interface.Service.Persistence.MobileAppUserSettings;
+using DC_bot.Interface.Service.Persistence.Models.MobileApps;
+using DC_bot.Interface.Service.Persistence.Models.MobileAppUserSettings;
+
+namespace API.Handlers.Profile;
+
+public static class ProfileHandler
+{
+    public static async Task<IResult> GetProfile(
+        HttpContext httpContext,
+        IMobileAppUserRepository userRepository,
+        IMobileAppUserSettingsRepository settingsRepository,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        var user = await userRepository.GetUserAsync(discordUserId, cancellationToken);
+        if (user is null)
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.NotFound, "Mobile app user was not found.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        var settings = await settingsRepository.GetOrCreateAsync(discordUserId, cancellationToken);
+        var response = new ProfileResponse(MapUser(user), MapSettings(settings));
+
+        return DomainToHttpMapper.ToHttpResult(ApiResult<object>.Ok(response));
+    }
+
+    public static async Task<IResult> UpdateSettings(
+        HttpContext httpContext,
+        UpdateProfileSettingsRequest request,
+        IMobileAppUserSettingsRepository settingsRepository,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        var requestedTheme = MobileAppTheme.Normalize(request.Theme);
+
+        if (requestedTheme is not null && !MobileAppTheme.IsValid(requestedTheme))
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput,
+                "Invalid theme value. Allowed values: dark, light, system.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        if (request.LanguageCode is null || request.LanguageCode.Length > 10)
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput,
+                "Invalid language code. Maximum length is 10 characters and must be a valid ISO 639-1 code.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        var current = await settingsRepository.GetOrCreateAsync(discordUserId, cancellationToken);
+        var updated = new MobileAppUserSettingsRecord(
+            discordUserId,
+            request.LanguageCode ?? current.LanguageCode,
+            requestedTheme ?? current.Theme,
+            request.HapticFeedbackEnabled ?? current.HapticFeedbackEnabled,
+            request.SoundEffectsEnabled ?? current.SoundEffectsEnabled,
+            request.TelemetryEnabled ?? current.TelemetryEnabled,
+            current.UpdatedAtUtc);
+
+        var saved = await settingsRepository.UpdateAsync(updated, cancellationToken);
+
+        return DomainToHttpMapper.ToHttpResult(ApiResult<object>.Ok(MapSettings(saved)));
+    }
+
+    private static bool TryGetDiscordUserId(HttpContext httpContext, out ulong discordUserId)
+    {
+        var userIdValue = httpContext.User.FindFirst("sub")?.Value;
+        return ulong.TryParse(userIdValue, out discordUserId) && discordUserId != 0;
+    }
+
+    private static ProfileUserResponse MapUser(MobileAppUserRecord user) =>
+        new(
+            user.DiscordUserId.ToString(),
+            user.Username,
+            user.GlobalName,
+            BuildUserAvatarUrl(user.DiscordUserId, user.AvatarHash),
+            true,
+            true);
+
+    private static ProfileSettingsResponse MapSettings(MobileAppUserSettingsRecord settings) =>
+        new(
+            settings.LanguageCode,
+            settings.Theme,
+            settings.HapticFeedbackEnabled,
+            settings.SoundEffectsEnabled,
+            settings.TelemetryEnabled,
+            settings.UpdatedAtUtc);
+
+    private static string? BuildUserAvatarUrl(ulong discordUserId, string? avatarHash)
+    {
+        if (string.IsNullOrWhiteSpace(avatarHash))
+        {
+            return null;
+        }
+
+        var extension = avatarHash.StartsWith("a_", StringComparison.Ordinal) ? "gif" : "webp";
+        return $"https://cdn.discordapp.com/avatars/{discordUserId}/{avatarHash}.{extension}?size=128";
+    }
+}

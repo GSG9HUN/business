@@ -3,6 +3,7 @@ using System;
 using DC_bot.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DC_bot.Persistence.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    partial class BotDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820200155_AddMobileAppUserSettings")]
+    partial class AddMobileAppUserSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,9 +220,9 @@ namespace DC_bot.Persistence.Migrations
                     b.Property<string>("Theme")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("system")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("dark")
                         .HasColumnName("theme");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
@@ -230,10 +233,7 @@ namespace DC_bot.Persistence.Migrations
 
                     b.HasKey("DiscordUserId");
 
-                    b.ToTable("mobile_app_user_settings", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_mobile_app_user_settings_theme", "theme IN ('dark', 'light', 'system')");
-                        });
+                    b.ToTable("mobile_app_user_settings", (string)null);
                 });
 
             modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppSessionEntity", b =>
