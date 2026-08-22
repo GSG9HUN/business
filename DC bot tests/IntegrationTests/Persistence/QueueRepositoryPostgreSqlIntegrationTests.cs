@@ -68,6 +68,28 @@ public class QueueRepositoryPostgreSqlIntegrationTests
     }
 
     [Fact]
+    public async Task EnqueueAsync_WhenCalledConcurrently_AssignsUniquePositions()
+    {
+        var database = await PostgreSqlTestDatabase.TryCreateAsync();
+        if (database is null) return;
+        await using var _ = database;
+        await database.MigrateAsync();
+        await using var services = database.CreateServiceProvider();
+        var factory = services.GetRequiredService<IDbContextFactory<BotDbContext>>();
+        const ulong guildId = 252ul;
+
+        var enqueued = await Task.WhenAll(Enumerable.Range(0, 3)
+            .Select(index => new QueueRepository(factory).EnqueueAsync(guildId, $"track-{index}")));
+
+        var queued = await new QueueRepository(factory).GetQueuedItemsAsync(guildId);
+
+        Assert.Equal(3, enqueued.Length);
+        Assert.Equal(3, queued.Count);
+        Assert.Equal([0, 1, 2], queued.Select(item => item.Position).OrderBy(position => position));
+        Assert.Equal(3, queued.Select(item => item.Position).Distinct().Count());
+    }
+
+    [Fact]
     public async Task ClaimNextQueuedItemAsync_WithMoreParallelConsumersThanItems_ClaimsEachItemOnce()
     {
         var database = await PostgreSqlTestDatabase.TryCreateAsync();

@@ -56,53 +56,44 @@ public class MobileAppUserSettingsRepository(IDbContextFactory<BotDbContext> dbC
         return MapToRecord(existing);
     }
 
-    public async Task<MobileAppUserSettingsRecord> UpdateAsync(
-        MobileAppUserSettingsRecord settings,
+    public async Task<MobileAppUserSettingsRecord> PatchAsync(
+        ulong discordUserId,
+        MobileAppUserSettingsPatchRecord patch,
         CancellationToken ct = default)
     {
-        await using var db = await dbContextFactory.CreateDbContextAsync(ct);
-
-        var entity = await db.MobileAppUserSettings
-            .FirstOrDefaultAsync(x => x.DiscordUserId == settings.DiscordUserId, ct);
-
-        if (entity is null)
+        if (!patch.HasChanges)
         {
-            entity = CreateDefault(settings.DiscordUserId);
-            ApplySettings(entity, settings);
-            db.MobileAppUserSettings.Add(entity);
-
-            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(db, ct);
-            if (inserted)
-            {
-                return MapToRecord(entity);
-            }
-
-            entity = await db.MobileAppUserSettings
-                .FirstAsync(x => x.DiscordUserId == settings.DiscordUserId, ct);
+            return await GetOrCreateAsync(discordUserId, ct);
         }
 
-        ApplySettings(entity, settings);
-        await db.SaveChangesAsync(ct);
+        await EnsureExistsAsync(discordUserId, ct);
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(ct);
+
+        var now = DateTimeOffset.UtcNow;
+
+        await db.MobileAppUserSettings
+            .Where(x => x.DiscordUserId == discordUserId)
+            .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.LanguageCode, x => patch.LanguageCode ?? x.LanguageCode)
+                    .SetProperty(x => x.Theme, x => patch.Theme ?? x.Theme)
+                    .SetProperty(x => x.HapticFeedbackEnabled, x => patch.HapticFeedbackEnabled ?? x.HapticFeedbackEnabled)
+                    .SetProperty(x => x.SoundEffectsEnabled, x => patch.SoundEffectsEnabled ?? x.SoundEffectsEnabled)
+                    .SetProperty(x => x.TelemetryEnabled, x => patch.TelemetryEnabled ?? x.TelemetryEnabled)
+                    .SetProperty(x => x.UpdatedAtUtc, _ => now),
+                ct);
+
+        var entity = await db.MobileAppUserSettings
+            .AsNoTracking()
+            .FirstAsync(x => x.DiscordUserId == discordUserId, ct);
 
         return MapToRecord(entity);
-    }
-
-    private static void ApplySettings(
-        MobileAppUserSettingsEntity entity,
-        MobileAppUserSettingsRecord settings)
-    {
-        entity.LanguageCode = settings.LanguageCode;
-        entity.Theme = settings.Theme;
-        entity.HapticFeedbackEnabled = settings.HapticFeedbackEnabled;
-        entity.SoundEffectsEnabled = settings.SoundEffectsEnabled;
-        entity.TelemetryEnabled = settings.TelemetryEnabled;
-        entity.UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
     private static MobileAppUserSettingsEntity CreateDefault(ulong discordUserId) => new()
     {
         DiscordUserId = discordUserId,
-        LanguageCode = "eng",
+        LanguageCode = MobileAppLanguageCode.English,
         Theme = MobileAppTheme.System,
         HapticFeedbackEnabled = true,
         SoundEffectsEnabled = true,

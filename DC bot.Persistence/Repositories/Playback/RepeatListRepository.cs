@@ -2,6 +2,7 @@ using DC_bot.Db;
 using DC_bot.Entities.Playback;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Playback;
@@ -36,15 +37,23 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 			throw new InvalidOperationException($"Repeat list cannot contain more than {MaxRepeatListItemsPerGuild} tracks.");
 		}
 
-		await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+		await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+			dbContextFactory,
+			(dbContext, ct) => ReplaceAsync(dbContext, guildId, trackIdentifiers, ct),
+			cancellationToken);
+	}
 
+	private static async Task ReplaceAsync(
+		BotDbContext dbContext,
+		ulong guildId,
+		IReadOnlyList<string> trackIdentifiers,
+		CancellationToken cancellationToken)
+	{
 		await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
 		var existingItems = await dbContext.GuildRepeatListItems
 			.Where(item => item.GuildId == guildId)
 			.ToListAsync(cancellationToken);
-
-		await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
 		dbContext.GuildRepeatListItems.RemoveRange(existingItems);
 		await dbContext.SaveChangesAsync(cancellationToken);
@@ -65,8 +74,6 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
 			dbContext.GuildRepeatListItems.AddRange(newItems);
 			await dbContext.SaveChangesAsync(cancellationToken);
 		}
-
-		await transaction.CommitAsync(cancellationToken);
 	}
 
 	public async Task ClearAsync(ulong guildId, CancellationToken cancellationToken = default)

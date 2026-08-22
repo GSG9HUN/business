@@ -53,27 +53,24 @@ public class MobileAppSessionRepository(IDbContextFactory<BotDbContext> dbContex
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task RotateRefreshTokenAsync(Guid sessionId, string newRefreshTokenHash, DateTimeOffset expiresAtUtc,
-        CancellationToken ct = default)
+    public async Task<bool> RotateRefreshTokenAsync(Guid sessionId, string currentRefreshTokenHash,
+        string newRefreshTokenHash, DateTimeOffset expiresAtUtc, CancellationToken ct = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(ct);
-        var transaction = await db.Database.BeginTransactionAsync(ct);
+        var now = DateTimeOffset.UtcNow;
 
-        try
-        {
-            var session = await db.MobileAppSessions.FirstAsync(x => x.SessionId == sessionId, ct);
-            session.RefreshTokenHash = newRefreshTokenHash;
-            session.RefreshTokenExpiresAtUtc = expiresAtUtc;
-            session.LastRefreshedAtUtc = DateTimeOffset.UtcNow;
+        var affectedRows = await db.MobileAppSessions
+            .Where(x => x.SessionId == sessionId &&
+                        x.RefreshTokenHash == currentRefreshTokenHash &&
+                        x.RevokedAtUtc == null &&
+                        x.RefreshTokenExpiresAtUtc > now)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(x => x.RefreshTokenHash, newRefreshTokenHash)
+                .SetProperty(x => x.RefreshTokenExpiresAtUtc, expiresAtUtc)
+                .SetProperty(x => x.LastRefreshedAtUtc, now),
+                ct);
 
-            await db.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync(ct);
-            throw;
-        }
+        return affectedRows == 1;
     }
 
     public async Task RevokeAsync(Guid sessionId, CancellationToken ct = default)

@@ -1,3 +1,5 @@
+using System.Data;
+using DC_bot.Db;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -68,6 +70,66 @@ internal static class PostgreSqlConcurrencyHelper
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
             }
         }
+    }
+
+    internal static async Task<T> ExecuteInSerializableTransactionWithRetryAsync<T>(
+        IDbContextFactory<BotDbContext> dbContextFactory,
+        Func<BotDbContext, CancellationToken, Task<T>> operation,
+        CancellationToken cancellationToken,
+        int maxAttempts = DefaultMaxAttempts)
+    {
+        ArgumentNullException.ThrowIfNull(dbContextFactory);
+        ArgumentNullException.ThrowIfNull(operation);
+
+        if (maxAttempts < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxAttempts), maxAttempts, "Max attempts must be at least 1.");
+        }
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            await using var transaction =
+                await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
+            try
+            {
+                var result = await operation(dbContext, cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return result;
+            }
+            catch (Exception exception) when (IsRetriable(exception) && attempt < maxAttempts)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
+
+        throw new InvalidOperationException("Operation failed after retries due to concurrent database modifications.");
+    }
+
+    internal static async Task ExecuteInSerializableTransactionWithRetryAsync(
+        IDbContextFactory<BotDbContext> dbContextFactory,
+        Func<BotDbContext, CancellationToken, Task> operation,
+        CancellationToken cancellationToken,
+        int maxAttempts = DefaultMaxAttempts)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+
+        await ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            async (dbContext, ct) =>
+            {
+                await operation(dbContext, ct);
+                return true;
+            },
+            cancellationToken,
+            maxAttempts);
     }
 
     private static bool IsUniqueViolation(PostgresException exception) =>

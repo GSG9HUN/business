@@ -58,24 +58,24 @@ public static class ProfileHandler
             return DomainToHttpMapper.ToHttpResult(failed);
         }
 
-        if (request.LanguageCode is null || request.LanguageCode.Length > 10)
+        string? requestedLanguageCode = null;
+        if (request.LanguageCode is not null &&
+            !MobileAppLanguageCode.TryNormalize(request.LanguageCode, out requestedLanguageCode))
         {
             var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput,
-                "Invalid language code. Maximum length is 10 characters and must be a valid ISO 639-1 code.");
+                $"Invalid language code. Allowed values: {MobileAppLanguageCode.SupportedValues}.");
             return DomainToHttpMapper.ToHttpResult(failed);
         }
 
-        var current = await settingsRepository.GetOrCreateAsync(discordUserId, cancellationToken);
-        var updated = new MobileAppUserSettingsRecord(
+        var saved = await settingsRepository.PatchAsync(
             discordUserId,
-            request.LanguageCode ?? current.LanguageCode,
-            requestedTheme ?? current.Theme,
-            request.HapticFeedbackEnabled ?? current.HapticFeedbackEnabled,
-            request.SoundEffectsEnabled ?? current.SoundEffectsEnabled,
-            request.TelemetryEnabled ?? current.TelemetryEnabled,
-            current.UpdatedAtUtc);
-
-        var saved = await settingsRepository.UpdateAsync(updated, cancellationToken);
+            new MobileAppUserSettingsPatchRecord(
+                requestedLanguageCode,
+                requestedTheme,
+                request.HapticFeedbackEnabled,
+                request.SoundEffectsEnabled,
+                request.TelemetryEnabled),
+            cancellationToken);
 
         return DomainToHttpMapper.ToHttpResult(ApiResult<object>.Ok(MapSettings(saved)));
     }

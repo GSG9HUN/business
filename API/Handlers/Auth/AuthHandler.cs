@@ -129,7 +129,19 @@ public static class AuthHandler
         var newRefreshExpiresAt = DateTimeOffset.UtcNow.AddDays(30);
         var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds).ToUnixTimeMilliseconds();
             
-        await sessionRepository.RotateRefreshTokenAsync(session.SessionId, newHash, newRefreshExpiresAt, ct);
+        var rotated = await sessionRepository.RotateRefreshTokenAsync(
+            session.SessionId,
+            oldHash,
+            newHash,
+            newRefreshExpiresAt,
+            ct);
+
+        if (!rotated)
+        {
+            result = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized.");
+            return DomainToHttpMapper.ToHttpResult(result);
+        }
+
         result = ApiResult<object>.Ok(new AuthSessionResponse(
             tokenService.CreateAccessToken(session.SessionId, session.DiscordUserId),
             newRefreshToken,

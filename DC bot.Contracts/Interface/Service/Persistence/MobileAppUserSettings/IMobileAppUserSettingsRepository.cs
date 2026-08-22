@@ -10,7 +10,8 @@ public interface IMobileAppUserSettingsRepository
         ulong discordUserId,
         CancellationToken ct = default);
 
-    Task<MobileAppUserSettingsRecord> UpdateAsync(
-        MobileAppUserSettingsRecord settings,
+    Task<MobileAppUserSettingsRecord> PatchAsync(
+        ulong discordUserId,
+        MobileAppUserSettingsPatchRecord patch,
         CancellationToken ct = default);
 }
