@@ -13,22 +13,23 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.ui.generated.resources.Res
-import com.dc.melodiasmario.core.ui.theme.MmCyan
-import com.dc.melodiasmario.core.ui.theme.MmPrimaryAlt
 import com.dc.melodiasmario.core.ui.generated.resources.app_name
 import com.dc.melodiasmario.core.ui.generated.resources.melodias_mario_note
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MelodiasLogo(modifier: Modifier = Modifier) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Box(
         modifier = modifier
             .size(86.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(
                 Brush.linearGradient(
-                    colors = listOf(MmPrimaryAlt, MmCyan),
+                    colors = listOf(colors.primaryAlt, colors.cyan),
                 ),
             ),
         contentAlignment = Alignment.Center,

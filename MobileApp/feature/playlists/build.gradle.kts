@@ -9,6 +9,11 @@ plugins {
     alias(libs.plugins.android.lint)
 }
 
+compose.resources {
+    packageOfResClass = "com.dc.melodiasmario.feature.playlists.generated.resources"
+    publicResClass = true
+}
+
 kotlin {
     android {
         namespace = "com.dc.melodiasmario.feature.playlists"
@@ -18,6 +23,10 @@ kotlin {
             }
         }
         minSdk = 24
+
+        androidResources {
+            enable = true
+        }
 
         withHostTestBuilder {
         }

@@ -20,31 +20,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
-import com.dc.melodiasmario.feature.login.presentation.LoginEvent
-import com.dc.melodiasmario.feature.login.presentation.LoginUiState
-import com.dc.melodiasmario.core.ui.components.MText
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmPrimary
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
-import com.dc.melodiasmario.feature.login.ui.components.ConnectionCard
-import com.dc.melodiasmario.feature.login.ui.components.MelodiasLogo
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.app_name
 import com.dc.melodiasmario.core.ui.generated.resources.login_button
 import com.dc.melodiasmario.core.ui.generated.resources.login_lead
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
+import com.dc.melodiasmario.feature.login.presentation.LoginEvent
+import com.dc.melodiasmario.feature.login.presentation.LoginUiState
+import com.dc.melodiasmario.feature.login.ui.components.ConnectionCard
+import com.dc.melodiasmario.feature.login.ui.components.MelodiasLogo
 import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun LoginScreen(
     uiState: LoginUiState,
     modifier: Modifier = Modifier,
     onEvent: (LoginEvent) -> Unit = {},
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MmSurface,
+        color = colors.surface,
     ) {
         Column(
             modifier = Modifier
@@ -59,7 +60,7 @@ fun LoginScreen(
 
             MText(
                 text = stringResource(Res.string.app_name),
-                color = MmTextPrimary,
+                color = colors.textPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
@@ -79,8 +80,8 @@ fun LoginScreen(
                 enabled = uiState.apiConnectionStatus == ApiConnectionStatus.Online,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MmPrimary,
-                    contentColor = MmTextPrimary,
+                    containerColor = colors.primary,
+                    contentColor = colors.textPrimary,
                 ),
             ) {
                 MText(

@@ -2,6 +2,7 @@ package com.dc.melodiasmario
 
 import android.app.Application
 import com.dc.melodiasmario.core.common.AppConstants
+import com.dc.melodiasmario.di.androidAppModule
 import com.dc.melodiasmario.shared.di.SharedModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -22,6 +23,7 @@ class MelodiasMario : Application() {
 
             modules(
                 SharedModule().module(),
+                androidAppModule,
             )
         }
     }

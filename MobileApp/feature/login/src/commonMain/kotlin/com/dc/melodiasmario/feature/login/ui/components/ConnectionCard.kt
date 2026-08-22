@@ -1,41 +1,26 @@
 package com.dc.melodiasmario.feature.login.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmStatusOfflineBg
-import com.dc.melodiasmario.core.ui.theme.MmStatusOfflineText
-import com.dc.melodiasmario.core.ui.theme.MmStatusOnlineBg
-import com.dc.melodiasmario.core.ui.theme.MmStatusOnlineText
-import com.dc.melodiasmario.core.ui.theme.MmSurface
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
-import com.dc.melodiasmario.core.ui.theme.MmTextSecondary
-import com.dc.melodiasmario.core.ui.components.MText
-import org.jetbrains.compose.resources.stringResource
+import com.dc.melodiasmario.core.ui.components.display.MBadge
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.api_available_detail
 import com.dc.melodiasmario.core.ui.generated.resources.api_available_title
@@ -44,28 +29,32 @@ import com.dc.melodiasmario.core.ui.generated.resources.api_unavailable_title
 import com.dc.melodiasmario.core.ui.generated.resources.connection_section_title
 import com.dc.melodiasmario.core.ui.generated.resources.offline_badge
 import com.dc.melodiasmario.core.ui.generated.resources.online_badge
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConnectionCard(
     apiConnectionStatus: ApiConnectionStatus,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
     val isOnline = apiConnectionStatus == ApiConnectionStatus.Online
-    val statusBackground = if (isOnline) MmStatusOnlineBg else MmStatusOfflineBg
-    val statusTextColor = if (isOnline) MmStatusOnlineText else MmStatusOfflineText
+    val statusBackground = if (isOnline) colors.statusOnlineBackground else colors.statusOfflineBackground
+    val statusTextColor = if (isOnline) colors.statusOnlineText else colors.statusOfflineText
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MmSurface),
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
         ) {
             MText(
                 text = stringResource(Res.string.connection_section_title),
-                color = MmTextSecondary,
+                color = colors.textSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
@@ -94,7 +83,7 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_title
                             },
                         ),
-                        color = MmTextPrimary,
+                        color = colors.textPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -106,63 +95,20 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_detail
                             },
                         ),
-                        color = MmTextMuted,
+                        color = colors.textMuted,
                         fontSize = 11.sp,
                     )
                 }
 
-                StatusBadge(
+                MBadge(
                     text = stringResource(
                         if (isOnline) Res.string.online_badge else Res.string.offline_badge,
                     ),
                     backgroundColor = statusBackground,
-                    textColor = statusTextColor,
+                    contentColor = statusTextColor,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun StatusIcon(
-    text: String,
-    backgroundColor: Color,
-    textColor: Color,
-) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center,
-    ) {
-        MText(
-            text = text,
-            color = textColor,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-        )
-    }
-}
-
-@Composable
-private fun StatusBadge(
-    text: String,
-    backgroundColor: Color,
-    textColor: Color,
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(backgroundColor)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    ) {
-        MText(
-            text = text,
-            color = textColor,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }
 

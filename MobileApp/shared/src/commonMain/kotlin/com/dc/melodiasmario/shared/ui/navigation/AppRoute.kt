@@ -10,7 +10,8 @@ sealed interface AppRoute : NavKey {
     @Serializable
     data object GuildSelector : AppRoute
     @Serializable
-    data class Profile(val profileId: String) : AppRoute
+    data object MyProfile : AppRoute
+
     @Serializable
     data class Playlists(val guildId: String) : AppRoute
     @Serializable

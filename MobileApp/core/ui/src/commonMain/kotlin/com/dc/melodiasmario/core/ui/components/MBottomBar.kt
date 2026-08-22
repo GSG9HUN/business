@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.data.BottomBarIcon
 import com.dc.melodiasmario.core.ui.data.BottomBarItem
 import com.dc.melodiasmario.core.ui.generated.resources.Res
@@ -29,11 +30,8 @@ import com.dc.melodiasmario.core.ui.generated.resources.ic_bottom_playlists
 import com.dc.melodiasmario.core.ui.generated.resources.ic_bottom_queue
 import com.dc.melodiasmario.core.ui.generated.resources.ic_bottom_settings
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MmPrimaryAlt
-import com.dc.melodiasmario.core.ui.theme.MmSurface
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -43,11 +41,12 @@ fun MBottomBar(
     items: List<BottomBarItem>,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MmSurface,
+        color = colors.surface,
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,15 +65,15 @@ fun MBottomBar(
     }
 }
 
-
 @Composable
 private fun MBottomBarItem(
     item: BottomBarItem,
     modifier: Modifier = Modifier,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
     val label = stringResource(item.label)
-    val contentColor = if (item.selected) MmTextPrimary else MmTextMuted
-    val backgroundColor = if (item.selected) MmPrimaryAlt.copy(alpha = 0.22f) else MmSurface
+    val contentColor = if (item.selected) colors.textPrimary else colors.textMuted
+    val backgroundColor = if (item.selected) colors.primaryAlt.copy(alpha = 0.22f) else colors.surface
 
     Surface(
         modifier = modifier.height(54.dp),

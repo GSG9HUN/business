@@ -1,4 +1,4 @@
-package com.dc.melodiasmario.core.ui.components
+package com.dc.melodiasmario.core.ui.components.input
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -19,37 +19,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MmElevated
-import com.dc.melodiasmario.core.ui.theme.MmSurfaceOutline
-import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.generated.resources.Res
 import com.dc.melodiasmario.core.ui.generated.resources.ic_search
 import com.dc.melodiasmario.core.ui.generated.resources.search_placeholder
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.ui.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun SearchBar(
+fun MSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
     enabled: Boolean = true,
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MmElevated,
-        border = BorderStroke(1.dp, MmSurfaceOutline),
+        color = colors.elevated,
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             enabled = enabled,
             singleLine = true,
-            textStyle = TextStyle(color = MmTextPrimary),
+            textStyle = TextStyle(color = colors.textPrimary),
             interactionSource = remember { MutableInteractionSource() },
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
@@ -73,7 +73,7 @@ fun SearchBar(
                         if (value.isBlank()) {
                             MText(
                                 text = placeholder,
-                                color = MmTextMuted,
+                                color = colors.textMuted,
                             )
                         }
 
@@ -88,7 +88,7 @@ fun SearchBar(
 @Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
 @Composable
 private fun SearchBarPreview() {
-    SearchBar(
+    MSearchBar(
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
         value = "",
         onValueChange = {},

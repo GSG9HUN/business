@@ -11,9 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MmElevated
-import com.dc.melodiasmario.core.ui.theme.MmTextMuted
-import com.dc.melodiasmario.core.ui.theme.MmTextPrimary
+import com.dc.melodiasmario.core.ui.components.display.MText
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MTopBar(
@@ -23,9 +22,11 @@ fun MTopBar(
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    val colors = MelodiasMarioThemeTokens.current
+
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MmElevated,
+        color = colors.elevated,
     ) {
         Row(
             modifier = Modifier
@@ -42,13 +43,13 @@ fun MTopBar(
             ) {
                 MText(
                     text = title,
-                    color = MmTextPrimary,
+                    color = colors.textPrimary,
                 )
 
                 if (!subTitle.isNullOrBlank()) {
                     MText(
                         text = subTitle,
-                        color = MmTextMuted,
+                        color = colors.textMuted,
                     )
                 }
             }
