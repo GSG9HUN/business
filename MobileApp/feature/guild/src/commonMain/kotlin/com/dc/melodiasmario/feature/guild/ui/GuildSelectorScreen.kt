@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
 import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
 import com.dc.melodiasmario.core.ui.components.MTopBar
 import com.dc.melodiasmario.core.ui.components.button.MRefreshButton
@@ -25,9 +25,10 @@ import com.dc.melodiasmario.core.ui.components.input.MSearchBar
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.feature.guild.domain.model.currentuser.CurrentUser
 import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
-import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
-import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
+import com.dc.melodiasmario.feature.guild.domain.model.guild.BotStatus
+import com.dc.melodiasmario.feature.guild.domain.model.guild.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.generated.resources.Res
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_available_count
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_empty_message
@@ -41,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun GuildSelectorScreen(
     modifier: Modifier = Modifier,
+    currentUser: CurrentUser,
     guilds: List<Guild>,
     isLoading: Boolean,
     errorMessage: String?,
@@ -60,8 +62,8 @@ fun GuildSelectorScreen(
                 navigationIcon = {
                     //TODO profile adatok kellenek ide
                     MAvatar(
-                        name = "",
-                        imageUrl = "",
+                        name = currentUser.displayName,
+                        imageUrl = currentUser.avatarUrl,
                         shape = CircleShape,
                         size = 44.dp,
                         backgroundColor = colors.primary,
@@ -96,14 +98,17 @@ fun GuildSelectorScreen(
                     title = stringResource(Res.string.guild_placeholder_title),
                     contentText = stringResource(Res.string.guild_loading_message),
                 )
+
                 errorMessage != null -> GuildSelectorPlaceholder(
                     title = stringResource(Res.string.guild_placeholder_title),
                     contentText = errorMessage,
                 )
+
                 guilds.isEmpty() -> GuildSelectorPlaceholder(
                     title = stringResource(Res.string.guild_placeholder_title),
                     contentText = stringResource(Res.string.guild_empty_message),
                 )
+
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     contentPadding = PaddingValues(12.dp, 0.dp, 12.dp, 12.dp),
@@ -131,6 +136,12 @@ private fun GuildSelectorScreenEmptyListPreview() {
             searchQuery = "",
             isLoading = false,
             errorMessage = null,
+            currentUser = CurrentUser(
+                id = "1234567890",
+                displayName = "John Doe",
+                avatarUrl = "https://example.com/avatar.jpg",
+                username = "johndoe",
+            )
         )
     }
 }
@@ -145,6 +156,12 @@ private fun GuildSelectorScreenIsLoadingPreview() {
             searchQuery = "",
             isLoading = true,
             errorMessage = null,
+            currentUser = CurrentUser(
+                id = "1234567890",
+                displayName = "John Doe",
+                avatarUrl = "https://example.com/avatar.jpg",
+                username = "johndoe",
+            )
         )
     }
 }
@@ -158,6 +175,12 @@ private fun GuildSelectorScreenPreview() {
             searchQuery = "",
             isLoading = false,
             errorMessage = null,
+            currentUser = CurrentUser(
+                id = "1234567890",
+                displayName = "John Doe",
+                avatarUrl = "https://example.com/avatar.jpg",
+                username = "johndoe",
+            )
         )
     }
 }

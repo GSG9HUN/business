@@ -1,4 +1,4 @@
-package com.dc.melodiasmario.feature.guild.domain.model
+package com.dc.melodiasmario.feature.guild.domain.model.guild
 
 data class BotStatus(
     val isOnline: Boolean,

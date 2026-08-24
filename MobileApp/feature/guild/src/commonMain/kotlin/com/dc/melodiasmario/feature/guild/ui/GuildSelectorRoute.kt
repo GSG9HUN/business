@@ -15,12 +15,13 @@ fun GuildSelectorRoute(
     modifier: Modifier = Modifier,
     viewModel: GuildSelectorViewModel = koinViewModel(),
     onGuildClicked: (guildId: String) -> Unit = {},
-    onAvatarClicked: (profileId: String) -> Unit = {},
+    onAvatarClicked: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.onEvent(GuildSelectorEvent.GetGuilds)
+        viewModel.onEvent(GuildSelectorEvent.GetCurrentUser)
     }
 
     LaunchedEffect(Unit) {
@@ -31,7 +32,7 @@ fun GuildSelectorRoute(
                 }
 
                 is GuildSelectorEffect.NavigateToProfile -> {
-                    onAvatarClicked(effect.profileId)
+                    onAvatarClicked()
                 }
             }
         }
@@ -39,6 +40,7 @@ fun GuildSelectorRoute(
 
     GuildSelectorScreen(
         modifier = modifier,
+        currentUser = uiState.currentUser,
         guilds = uiState.filteredGuilds,
         searchQuery = uiState.searchQuery,
         isLoading = uiState.isLoading,
