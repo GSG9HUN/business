@@ -3,18 +3,14 @@ using DC_bot.Db;
 using DC_bot.Entities.Playlists;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Interface.Service.Persistence.Playlists;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace DC_bot.Repositories.Playlists;
 
 public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IPlaylistTrackRepository
 {
     private const int MaxRetries = 3;
-
-    // PostgreSQL error codes
-    private const string UniqueViolation = "23505";
-    private const string SerializationFailure = "40001";
 
     public async Task<IReadOnlyList<PlaylistTrackRecord>> GetByPlaylistIdOrderedAsync(
         long playlistId,
@@ -72,12 +68,7 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
                 await tx.CommitAsync(cancellationToken);
                 return;
             }
-            catch (DbUpdateException ex) when (IsRetriable(ex) && attempt < MaxRetries)
-            {
-                await tx.RollbackAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
-            }
-            catch (PostgresException ex) when (IsRetriable(ex) && attempt < MaxRetries)
+            catch (Exception ex) when (PostgreSqlConcurrencyHelper.IsRetriable(ex) && attempt < MaxRetries)
             {
                 await tx.RollbackAsync(cancellationToken);
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
@@ -117,12 +108,7 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
                 await tx.CommitAsync(cancellationToken);
                 return;
             }
-            catch (DbUpdateException ex) when (IsRetriable(ex) && attempt < MaxRetries)
-            {
-                await tx.RollbackAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
-            }
-            catch (PostgresException ex) when (IsRetriable(ex) && attempt < MaxRetries)
+            catch (Exception ex) when (PostgreSqlConcurrencyHelper.IsRetriable(ex) && attempt < MaxRetries)
             {
                 await tx.RollbackAsync(cancellationToken);
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
@@ -164,12 +150,7 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
                 await tx.CommitAsync(cancellationToken);
                 return;
             }
-            catch (DbUpdateException ex) when (IsRetriable(ex) && attempt < MaxRetries)
-            {
-                await tx.RollbackAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
-            }
-            catch (PostgresException ex) when (IsRetriable(ex) && attempt < MaxRetries)
+            catch (Exception ex) when (PostgreSqlConcurrencyHelper.IsRetriable(ex) && attempt < MaxRetries)
             {
                 await tx.RollbackAsync(cancellationToken);
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
@@ -228,18 +209,4 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
             entity.TrackUri);
     }
 
-    private static bool IsRetriable(DbUpdateException ex)
-    {
-        if (ex.InnerException is PostgresException pg)
-        {
-            return IsRetriable(pg);
-        }
-
-        return false;
-    }
-
-    private static bool IsRetriable(PostgresException ex)
-    {
-        return ex.SqlState is UniqueViolation or SerializationFailure;
-    }
 }

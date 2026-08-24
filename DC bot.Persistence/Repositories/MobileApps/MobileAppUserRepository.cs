@@ -2,6 +2,7 @@
 using DC_bot.Entities.MobileApps;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Models.MobileApps;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.MobileApps;
@@ -11,124 +12,109 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
     public async Task UpsertUserAsync(MobileAppUserUpsertRecord user, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        try
+        var now = DateTimeOffset.UtcNow;
+
+        var savedUser =
+            await dbContext.MobileAppUsers.FirstOrDefaultAsync(u => u.DiscordUserId == user.DiscordUserId,
+                cancellationToken);
+
+        if (savedUser is null)
         {
-            var savedUser =
-                await dbContext.MobileAppUsers.FirstOrDefaultAsync(u => u.DiscordUserId == user.DiscordUserId,
-                    cancellationToken);
-
-            if (savedUser is null)
+            var newUser = new MobileAppUserEntity
             {
-                var newUser = new MobileAppUserEntity
-                {
-                    DiscordUserId = user.DiscordUserId,
-                    Username = user.Username,
-                    GlobalName = user.GlobalName,
-                    AvatarHash = user.AvatarHash,
-                    CreatedAtUtc = DateTimeOffset.UtcNow,
-                    LastLoginAtUtc = DateTimeOffset.UtcNow
-                };
-                dbContext.MobileAppUsers.Add(newUser);
+                DiscordUserId = user.DiscordUserId,
+                Username = user.Username,
+                GlobalName = user.GlobalName,
+                AvatarHash = user.AvatarHash,
+                CreatedAtUtc = now,
+                LastLoginAtUtc = now
+            };
+            dbContext.MobileAppUsers.Add(newUser);
 
-                await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (inserted)
+            {
                 return;
             }
 
-            savedUser.Username = user.Username;
-            savedUser.GlobalName = user.GlobalName;
-            savedUser.AvatarHash = user.AvatarHash;
-            savedUser.LastLoginAtUtc = DateTimeOffset.UtcNow;
+            savedUser = await dbContext.MobileAppUsers.FirstAsync(
+                u => u.DiscordUserId == user.DiscordUserId,
+                cancellationToken);
+        }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+        ApplyUser(savedUser, user, now);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
 
     public async Task SyncUserGuildsAsync(ulong discordUserId,
         IReadOnlyCollection<MobileAppUserGuildUpsertRecord> guilds, CancellationToken cancellationToken = default)
     {
+        await PostgreSqlConcurrencyHelper.ExecuteWithUniqueViolationRetryAsync(
+            ct => SyncUserGuildsOnceAsync(discordUserId, guilds, ct),
+            cancellationToken);
+    }
+
+    private async Task SyncUserGuildsOnceAsync(ulong discordUserId,
+        IReadOnlyCollection<MobileAppUserGuildUpsertRecord> guilds, CancellationToken cancellationToken)
+    {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        try
+
+        var incoming = guilds
+            .GroupBy(g => g.GuildId)
+            .ToDictionary(g => g.Key, g => g.Last());
+
+        var guildIds = incoming.Keys.ToArray();
+
+        var knownGuildIds = await dbContext.GuildData
+            .Where(g => guildIds.Contains(g.GuildId))
+            .Select(g => g.GuildId)
+            .ToListAsync(cancellationToken);
+
+        var knownSet = knownGuildIds.ToHashSet();
+
+        var existing = await dbContext.UserGuilds
+            .Where(g => g.DiscordUserId == discordUserId)
+            .ToListAsync(cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var row in existing)
         {
-            //TODO kapott guild adatok
-            var incoming = guilds
-                .GroupBy(g => g.GuildId)
-                .ToDictionary(g => g.Key, g => g.Last());
-
-            //TODO ID-k
-            var guildIds = incoming.Keys.ToArray();
-
-            //TODO azok a guild adatok amelyeken a bot fent van...
-            // kérdés kitöröljük-e ha leavel a bot?
-            // TODO checkolni
-            var knownGuildIds = await dbContext.GuildData
-                .Where(g => guildIds.Contains(g.GuildId))
-                .Select(g => g.GuildId)
-                .ToListAsync(cancellationToken);
-
-            var knownSet = knownGuildIds.ToHashSet();
-
-            //TODO azok a guild adatok amelyeken a felhasználónak van hozzáférése
-            var existing = await dbContext.UserGuilds
-                .Where(g => g.DiscordUserId == discordUserId)
-                .ToListAsync(cancellationToken);
-
-            var now = DateTimeOffset.UtcNow;
-
-            foreach (var row in existing)
+            if (!knownSet.Contains(row.GuildId))
             {
-                //Ha azok a guild adatok amelyeken a felhasználónak van hozzáférése, de már a bot leavelt akkor töröljük
-                if (!knownSet.Contains(row.GuildId))
-                {
-                    dbContext.UserGuilds.Remove(row);
-                    continue;
-                }
-
-                var update = incoming[row.GuildId];
-                row.Permissions = update.Permissions;
-                row.IsOwner = update.IsOwner;
-                row.LastSeenAtUtc = now;
-                row.Name = update.Name;
-                row.IconHash = update.IconHash;
+                dbContext.UserGuilds.Remove(row);
+                continue;
             }
 
-            var existingIds = existing.Select(x => x.GuildId).ToHashSet();
-            foreach (var guildId in knownGuildIds)
-            {
-                if (existingIds.Contains(guildId)) continue;
+            ApplyUserGuild(row, incoming[row.GuildId], now);
+        }
 
-                var update = incoming[guildId];
-                var newRow = new UserGuildEntity
-                {
-                    DiscordUserId = discordUserId,
-                    GuildId = guildId,
-                    Permissions = update.Permissions,
-                    IsOwner = update.IsOwner,
-                    Name = update.Name,
-                    IconHash = update.IconHash,
-                    LastSeenAtUtc = now
-                };
-                dbContext.UserGuilds.Add(newRow);
+        var existingIds = existing.Select(x => x.GuildId).ToHashSet();
+        foreach (var guildId in knownGuildIds)
+        {
+            if (existingIds.Contains(guildId))
+            {
+                continue;
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            var update = incoming[guildId];
+            var newRow = new UserGuildEntity
+            {
+                DiscordUserId = discordUserId,
+                GuildId = guildId,
+                Permissions = update.Permissions,
+                IsOwner = update.IsOwner,
+                Name = update.Name,
+                IconHash = update.IconHash,
+                LastSeenAtUtc = now
+            };
+            dbContext.UserGuilds.Add(newRow);
         }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<MobileAppUserRecord?> GetUserAsync(ulong discordUserId,
@@ -175,5 +161,28 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
 
         return await dbContext.UserGuilds.AsNoTracking()
             .AnyAsync(g => g.GuildId == guildId && g.DiscordUserId == discordUserId, cancellationToken);
+    }
+
+    private static void ApplyUser(
+        MobileAppUserEntity entity,
+        MobileAppUserUpsertRecord user,
+        DateTimeOffset now)
+    {
+        entity.Username = user.Username;
+        entity.GlobalName = user.GlobalName;
+        entity.AvatarHash = user.AvatarHash;
+        entity.LastLoginAtUtc = now;
+    }
+
+    private static void ApplyUserGuild(
+        UserGuildEntity entity,
+        MobileAppUserGuildUpsertRecord update,
+        DateTimeOffset now)
+    {
+        entity.Permissions = update.Permissions;
+        entity.IsOwner = update.IsOwner;
+        entity.LastSeenAtUtc = now;
+        entity.Name = update.Name;
+        entity.IconHash = update.IconHash;
     }
 }

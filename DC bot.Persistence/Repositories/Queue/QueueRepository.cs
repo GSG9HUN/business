@@ -3,6 +3,7 @@ using DC_bot.Entities.Queue;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Queue;
@@ -67,8 +68,89 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         string trackIdentifier,
         CancellationToken cancellationToken = default)
     {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => EnqueueAsync(dbContext, guildId, trackIdentifier, ct),
+            cancellationToken);
+    }
 
+    public async Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(trackIdentifiers);
+
+        if (trackIdentifiers.Count == 0)
+        {
+            return;
+        }
+
+        await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => EnqueueManyAsync(dbContext, guildId, trackIdentifiers, ct),
+            cancellationToken);
+    }
+
+    public async Task ReorderQueuedItemsAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(trackIdentifiers);
+
+        if (trackIdentifiers.Count > MaxQueuedItemsPerGuild)
+        {
+            throw new InvalidOperationException($"Queue cannot contain more than {MaxQueuedItemsPerGuild} queued tracks.");
+        }
+
+        await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => ReorderQueuedItemsAsync(dbContext, guildId, trackIdentifiers, ct),
+            cancellationToken);
+    }
+
+    public Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default)
+    {
+        return UpdateStateAsync(queueItemId, QueueItemState.Playing, setPlayedAt: false, setSkippedAt: false,
+            cancellationToken);
+    }
+
+    public Task MarkPlayedAsync(long queueItemId, CancellationToken cancellationToken = default)
+    {
+        return UpdateStateAsync(queueItemId, QueueItemState.Played, setPlayedAt: true, setSkippedAt: false,
+            cancellationToken);
+    }
+
+    public Task MarkSkippedAsync(long queueItemId, CancellationToken cancellationToken = default)
+    {
+        return UpdateStateAsync(queueItemId, QueueItemState.Skipped, setPlayedAt: false, setSkippedAt: true,
+            cancellationToken);
+    }
+
+    public async Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+
+        await dbContext.GuildQueueItems
+            .Where(x => x.GuildId == guildId && x.State == QueueItemState.Queued)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(b => b.State, QueueItemState.Skipped)
+                .SetProperty(b => b.SkippedAtUtc, now),
+                cancellationToken);
+    }
+    public Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        return _queueClaimService.ClaimNextQueuedItemAsync(guildId, cancellationToken);
+    }
+
+    private static async Task<QueueItemRecord> EnqueueAsync(
+        BotDbContext dbContext,
+        ulong guildId,
+        string trackIdentifier,
+        CancellationToken cancellationToken)
+    {
         await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var queuedItemCount = await dbContext.GuildQueueItems
@@ -99,20 +181,12 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         return QueueItemMapper.ToRecord(entity);
     }
 
-    public async Task EnqueueManyAsync(
+    private static async Task EnqueueManyAsync(
+        BotDbContext dbContext,
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(trackIdentifiers);
-
-        if (trackIdentifiers.Count == 0)
-        {
-            return;
-        }
-
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
         await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
         var queuedItemCount = await dbContext.GuildQueueItems
@@ -146,20 +220,12 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ReorderQueuedItemsAsync(
+    private static async Task ReorderQueuedItemsAsync(
+        BotDbContext dbContext,
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(trackIdentifiers);
-
-        if (trackIdentifiers.Count > MaxQueuedItemsPerGuild)
-        {
-            throw new InvalidOperationException($"Queue cannot contain more than {MaxQueuedItemsPerGuild} queued tracks.");
-        }
-
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
         var queuedEntities = await dbContext.GuildQueueItems
             .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
             .OrderBy(item => item.Position)
@@ -199,8 +265,6 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
 
         var temporaryPositionBase = checked(maxPosition + queuedEntities.Count + 1);
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
         for (var index = 0; index < queuedEntities.Count; index++)
         {
             queuedEntities[index].Position = temporaryPositionBase + index;
@@ -214,42 +278,30 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
     }
 
-    public Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default)
+    private static async Task UpdateQueueItemPositionAsync(
+        BotDbContext dbContext,
+        long queueItemId,
+        int newPosition,
+        CancellationToken cancellationToken)
     {
-        return UpdateStateAsync(queueItemId, QueueItemState.Playing, setPlayedAt: false, setSkippedAt: false,
+        var item = await dbContext.GuildQueueItems.FirstOrDefaultAsync(q => q.Id == queueItemId, cancellationToken);
+        if (item is null)
+        {
+            return;
+        }
+
+        var positionOccupied = await dbContext.GuildQueueItems.AnyAsync(
+            q => q.GuildId == item.GuildId && q.Position == newPosition && q.Id != queueItemId,
             cancellationToken);
-    }
+        if (positionOccupied)
+        {
+            throw new InvalidOperationException("Queue position is already occupied.");
+        }
 
-    public Task MarkPlayedAsync(long queueItemId, CancellationToken cancellationToken = default)
-    {
-        return UpdateStateAsync(queueItemId, QueueItemState.Played, setPlayedAt: true, setSkippedAt: false,
-            cancellationToken);
-    }
-
-    public Task MarkSkippedAsync(long queueItemId, CancellationToken cancellationToken = default)
-    {
-        return UpdateStateAsync(queueItemId, QueueItemState.Skipped, setPlayedAt: false, setSkippedAt: true,
-            cancellationToken);
-    }
-
-    public async Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default)
-    {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var now = DateTimeOffset.UtcNow;
-
-        await dbContext.GuildQueueItems
-            .Where(x => x.GuildId == guildId && x.State == QueueItemState.Queued)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(b => b.State, QueueItemState.Skipped)
-                .SetProperty(b => b.SkippedAtUtc, now),
-                cancellationToken);
-    }
-    public Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
-    {
-        return _queueClaimService.ClaimNextQueuedItemAsync(guildId, cancellationToken);
+        item.Position = newPosition;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task UpdateStateAsync(
@@ -283,13 +335,9 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
 
     public async Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default)
     {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var item = await dbContext.GuildQueueItems.FirstOrDefaultAsync(q => q.Id == queueItemId, cancellationToken);
-        if (item is null)
-        {
-            return;
-        }
-        item.Position = newPosition;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => UpdateQueueItemPositionAsync(dbContext, queueItemId, newPosition, ct),
+            cancellationToken);
     }
 }

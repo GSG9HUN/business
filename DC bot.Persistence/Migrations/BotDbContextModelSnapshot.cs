@@ -182,6 +182,60 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("guild_premium_audit", (string)null);
                 });
 
+            modelBuilder.Entity("DC_bot.Entities.MobileAppUserSettings.MobileAppUserSettingsEntity", b =>
+                {
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("discord_user_id");
+
+                    b.Property<bool>("HapticFeedbackEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("haptic_feedback_enabled");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en")
+                        .HasColumnName("language_code");
+
+                    b.Property<bool>("SoundEffectsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("sound_effects_enabled");
+
+                    b.Property<bool>("TelemetryEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("telemetry_enabled");
+
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("system")
+                        .HasColumnName("theme");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("DiscordUserId");
+
+                    b.ToTable("mobile_app_user_settings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_mobile_app_user_settings_theme", "theme IN ('dark', 'light', 'system')");
+                        });
+                });
+
             modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppSessionEntity", b =>
                 {
                     b.Property<Guid>("SessionId")
@@ -529,6 +583,17 @@ namespace DC_bot.Persistence.Migrations
                     b.Navigation("Guild");
                 });
 
+            modelBuilder.Entity("DC_bot.Entities.MobileAppUserSettings.MobileAppUserSettingsEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.MobileApps.MobileAppUserEntity", "User")
+                        .WithOne("Settings")
+                        .HasForeignKey("DC_bot.Entities.MobileAppUserSettings.MobileAppUserSettingsEntity", "DiscordUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppSessionEntity", b =>
                 {
                     b.HasOne("DC_bot.Entities.MobileApps.MobileAppUserEntity", "User")
@@ -634,6 +699,8 @@ namespace DC_bot.Persistence.Migrations
             modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileAppUserEntity", b =>
                 {
                     b.Navigation("Guilds");
+
+                    b.Navigation("Settings");
                 });
 
             modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>

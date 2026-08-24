@@ -12,9 +12,9 @@ Guild endpoints expose the guilds a mobile app user can access. The API should n
 
 Represents a compact guild listing item.
 
-### GuildStatusResponse.cs
+### GuildBotStatusResponse.cs
 
-Reserved for guild status/details returned by future dashboard endpoints.
+Represents the bot status summary embedded in each guild listing item.
 
 ## Flow Context
 

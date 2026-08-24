@@ -37,6 +37,15 @@ Responsibilities:
 - require authorization for guild access endpoints
 - expose the current user's accessible guild list
 
+### ProfileEndpoints.cs
+
+Maps authenticated `/api/profile` routes.
+
+Routes:
+
+- `GET /api/profile` - return the authenticated mobile user's profile and settings
+- `PATCH /api/profile/settings` - update selected profile settings fields
+
 ### PlaybackEndpoints.cs
 
 Maps `/api/guilds/{guildId}/playback` command endpoints.

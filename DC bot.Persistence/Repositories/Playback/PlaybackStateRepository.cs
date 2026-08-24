@@ -3,6 +3,7 @@ using DC_bot.Entities.Playback;
 using DC_bot.Interface.Service.Persistence.Models.Playback;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Playback;
@@ -32,7 +33,15 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
             };
 
             dbContext.GuildPlaybackStates.Add(state);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (!inserted)
+            {
+                state = await dbContext.GuildPlaybackStates
+                    .AsNoTracking()
+                    .FirstAsync(s => s.GuildId == guildId, cancellationToken);
+            }
         }
 
         return new PlaybackStateRecord(
@@ -67,13 +76,19 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
             dbContext.GuildPlaybackStates.Add(state);
+
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (inserted)
+            {
+                return;
+            }
+
+            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
         }
-        else
-        {
-            state.IsRepeating = isRepeating;
-            state.IsRepeatingList = isRepeatingList;
-            state.UpdatedAtUtc = DateTimeOffset.UtcNow;
-        }
+
+        ApplyRepeatState(state, isRepeating, isRepeatingList);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -104,14 +119,40 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
             dbContext.GuildPlaybackStates.Add(state);
-        }
-        else
-        {
-            state.CurrentTrackIdentifier = trackIdentifier;
-            state.QueueItemId = queueItemId;
-            state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (inserted)
+            {
+                return;
+            }
+
+            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
         }
 
+        ApplyCurrentTrack(state, trackIdentifier, queueItemId);
+
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void ApplyRepeatState(
+        GuildPlaybackStateEntity state,
+        bool isRepeating,
+        bool isRepeatingList)
+    {
+        state.IsRepeating = isRepeating;
+        state.IsRepeatingList = isRepeatingList;
+        state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    private static void ApplyCurrentTrack(
+        GuildPlaybackStateEntity state,
+        string? trackIdentifier,
+        long? queueItemId)
+    {
+        state.CurrentTrackIdentifier = trackIdentifier;
+        state.QueueItemId = queueItemId;
+        state.UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

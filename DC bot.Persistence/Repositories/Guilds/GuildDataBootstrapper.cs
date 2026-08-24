@@ -1,5 +1,6 @@
 using DC_bot.Db;
 using DC_bot.Entities.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Guilds;
@@ -24,6 +25,6 @@ internal static class GuildDataBootstrapper
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(dbContext, cancellationToken);
     }
 }

@@ -1,8 +1,10 @@
 using DC_bot.Db;
 using DC_bot.Entities.Playlists;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.Playlists;
@@ -74,9 +76,20 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var affectedRows = await dbContext.Playlists
-            .Where(playlist => playlist.GuildId == guildId && playlist.Name == currentName)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(playlist => playlist.Name, newName), cancellationToken);
+
+        int affectedRows;
+        try
+        {
+            affectedRows = await dbContext.Playlists
+                .Where(playlist => playlist.GuildId == guildId && playlist.Name == currentName)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(playlist => playlist.Name, newName), cancellationToken);
+        }
+        catch (Exception exception) when (PostgreSqlConcurrencyHelper.IsUniqueViolation(exception))
+        {
+            throw new UniqueConstraintConflictException(
+                $"Playlist '{newName}' already exists for guild '{guildId}'.",
+                exception);
+        }
 
         return affectedRows > 0;
     }
@@ -97,7 +110,16 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         };
 
         dbContext.Playlists.Add(playlist);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception exception) when (PostgreSqlConcurrencyHelper.IsUniqueViolation(exception))
+        {
+            throw new UniqueConstraintConflictException(
+                $"Playlist '{playlistName}' already exists for guild '{guildId}'.",
+                exception);
+        }
 
         return playlist.Id;
     }

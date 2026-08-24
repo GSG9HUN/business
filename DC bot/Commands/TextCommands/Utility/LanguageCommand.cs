@@ -4,6 +4,7 @@ using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Persistence.Models.MobileAppUserSettings;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -17,12 +18,6 @@ public class LanguageCommand(
     ILocalizationService localizationService,
     ICommandHelper commandHelper) : ICommand
 {
-    private static readonly HashSet<string> AllowedLanguageCodes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "eng",
-        "hu"
-    };
-
     public string Name => "language";
     public string Description => localizationService.Get(LocalizationKeys.LanguageCommandDescription);
 
@@ -36,8 +31,7 @@ public class LanguageCommand(
         
         if (language is null) return;
 
-        language = language.Trim().ToLowerInvariant();
-        if (string.IsNullOrWhiteSpace(language) || !AllowedLanguageCodes.Contains(language))
+        if (!MobileAppLanguageCode.TryNormalize(language, out language))
         {
             await responseBuilder.SendValidationErrorAsync(message, LocalizationKeys.LanguageCommandInvalidLanguage);
             return;

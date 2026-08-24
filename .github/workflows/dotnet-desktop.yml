@@ -77,7 +77,7 @@ jobs:
         echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
     - name: Check EF migrations
-      run: dotnet ef migrations has-pending-model-changes --project "./DC bot/DC bot.csproj" --startup-project "./DC bot/DC bot.csproj" --no-build
+      run: dotnet ef migrations has-pending-model-changes --project "./DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "./DC bot.Persistence/DC bot.Persistence.csproj" --no-build
 
     - name: Test integration
       env:

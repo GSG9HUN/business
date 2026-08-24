@@ -4,6 +4,7 @@ using DC_bot.Interface.Service.Persistence.BotRuntimeStatus;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.MobileApps;
+using DC_bot.Interface.Service.Persistence.MobileAppUserSettings;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Interface.Service.Persistence.Queue;
@@ -13,6 +14,7 @@ using DC_bot.Repositories.BotRuntimeStatus;
 using DC_bot.Repositories.GuildBotStatus;
 using DC_bot.Repositories.Guilds;
 using DC_bot.Repositories.MobileApps;
+using DC_bot.Repositories.MobileAppUserSettings;
 using DC_bot.Repositories.Playback;
 using DC_bot.Repositories.Playlists;
 using DC_bot.Repositories.Queue;
@@ -41,6 +43,7 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IMobileAppSessionRepository, MobileAppSessionRepository>()
             .AddSingleton<IBotRuntimeStatusRepository, BotRuntimeStatusRepository>()
             .AddSingleton<IGuildBotStatusRepository, GuildBotStatusRepository>()
+            .AddSingleton<IMobileAppUserSettingsRepository, MobileAppUserSettingsRepository>()
             .AddSingleton<IBotControlCommandsRepository, BotControlCommandsRepository>();
     }
 }
