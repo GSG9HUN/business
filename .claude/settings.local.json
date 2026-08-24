@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(rm \"C:/Users/GSG9_Came2Carry/Documents/GitHub/business/API/Contracts/EnqueueRequest.cs\" \"C:/Users/GSG9_Came2Carry/Documents/GitHub/business/API/Contracts/GuildStatusResponse.cs\" \"C:/Users/GSG9_Came2Carry/Documents/GitHub/business/API/Contracts/PlaybackStatusResponse.cs\" \"C:/Users/GSG9_Came2Carry/Documents/GitHub/business/API/Contracts/PlaylistSummaryResponse.cs\")"
-    ]
-  }
-}
