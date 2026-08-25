@@ -44,7 +44,21 @@ Maps authenticated `/api/profile` routes.
 Routes:
 
 - `GET /api/profile` - return the authenticated mobile user's profile and settings
+- `GET /api/profile/me` - return only the authenticated mobile user's Discord profile fields
 - `PATCH /api/profile/settings` - update selected profile settings fields
+
+`GET /api/profile/me` response:
+
+```json
+{
+  "discordUserId": "123456789012345678",
+  "username": "example_user",
+  "displayName": "Example User",
+  "avatarUrl": "https://cdn.discordapp.com/avatars/123456789012345678/avatarhash.webp?size=128",
+  "isDiscordConnected": true,
+  "isActive": true
+}
+```
 
 ### PlaybackEndpoints.cs
 

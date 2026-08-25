@@ -12,6 +12,30 @@ namespace API.Handlers.Profile;
 
 public static class ProfileHandler
 {
+    
+    public static async Task<IResult> GetMyProfile(
+        HttpContext httpContext,
+        IMobileAppUserRepository userRepository,
+        IMobileAppUserSettingsRepository settingsRepository,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+
+        var user = await userRepository.GetUserAsync(discordUserId, cancellationToken);
+        if (user is null)
+        {
+            var failed = ApiResult<object>.Fail(ApiErrorCode.NotFound, "Mobile app user was not found.");
+            return DomainToHttpMapper.ToHttpResult(failed);
+        }
+        var response = MapUser(user);
+
+        return DomainToHttpMapper.ToHttpResult(ApiResult<object>.Ok(response));
+    }
+    
     public static async Task<IResult> GetProfile(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
@@ -91,7 +115,7 @@ public static class ProfileHandler
         new(
             user.DiscordUserId.ToString(),
             user.Username,
-            user.GlobalName,
+            user.GlobalName ?? user.Username,
             BuildUserAvatarUrl(user.DiscordUserId, user.AvatarHash),
             true,
             true);

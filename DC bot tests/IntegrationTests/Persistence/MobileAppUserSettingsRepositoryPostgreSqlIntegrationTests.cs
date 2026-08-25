@@ -99,7 +99,7 @@ public class MobileAppUserSettingsRepositoryPostgreSqlIntegrationTests
     }
 
     [Theory]
-    [InlineData("eng", "amoled")]
+    [InlineData("en", "amoled")]
     [InlineData("toolongcode1", "system")]
     public async Task MobileAppUserSettings_WithInvalidPersistedValues_FailsDatabaseConstraints(
         string languageCode,

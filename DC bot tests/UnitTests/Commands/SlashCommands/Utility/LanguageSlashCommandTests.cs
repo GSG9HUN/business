@@ -8,7 +8,7 @@ namespace DC_bot_tests.UnitTests.Commands.SlashCommands.Utility;
 public class LanguageSlashCommandTests : SlashCommandTestBase
 {
     [Theory]
-    [InlineData(SlashLanguage.Eng, "eng")]
+    [InlineData(SlashLanguage.Eng, "en")]
     [InlineData(SlashLanguage.Hu, "hu")]
     public async Task Language_ShouldCreateInteractionContextAndDelegateLanguageCodeToExecutor(
         SlashLanguage language,

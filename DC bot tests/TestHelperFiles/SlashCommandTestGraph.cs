@@ -201,7 +201,7 @@ internal sealed class SlashCommandTestGraph
 
         localizationService
             .Setup(service => service.Get(It.IsAny<string>(), It.IsAny<object[]>()))
-            .Returns<string, object[]>((key, args) => FormatLocalization(key, args, "eng"));
+            .Returns<string, object[]>((key, args) => FormatLocalization(key, args, "en"));
 
         localizationService
             .Setup(service => service.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
@@ -211,7 +211,7 @@ internal sealed class SlashCommandTestGraph
                     args,
                     useSavedGuildLanguage && languageByGuild.TryGetValue(guildId, out var language)
                         ? language
-                        : "eng"));
+                        : "en"));
 
         return localizationService;
     }
@@ -224,7 +224,7 @@ internal sealed class SlashCommandTestGraph
             {
             LocalizationKeys.LanguageCommandResponse => "A nyelv sikeresen megvaltozott.",
             LocalizationKeys.PingCommandResponse => "Pong!",
-            _ => FormatLocalization(key, args, "eng")
+            _ => FormatLocalization(key, args, "en")
             };
         }
 

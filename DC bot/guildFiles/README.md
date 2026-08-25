@@ -21,7 +21,7 @@ guildFiles/
 **Format:**
 
 ```json
-"eng"
+"en"
 ```
 
 **File:** `{guildId}.json`

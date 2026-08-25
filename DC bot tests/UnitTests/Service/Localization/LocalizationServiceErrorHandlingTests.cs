@@ -36,10 +36,10 @@ public class LocalizationServiceErrorHandlingTests : LocalizationServiceTestBase
             .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("guildFiles"))))
             .Returns(false);
         FileSystemMock
-            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("en.json"))))
             .Returns(true);
         FileSystemMock
-            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("en.json"))))
             .Throws(new IOException("Disk read error"));
         var service = CreateService(loggerMock.Object);
 
@@ -80,10 +80,10 @@ public class LocalizationServiceErrorHandlingTests : LocalizationServiceTestBase
             .Setup(x => x.FileExists(It.Is<string>(p => p.Contains("guildFiles"))))
             .Returns(false);
         FileSystemMock
-            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Setup(x => x.FileExists(It.Is<string>(p => p.EndsWith("en.json"))))
             .Returns(true);
         FileSystemMock
-            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("eng.json"))))
+            .Setup(x => x.ReadAllText(It.Is<string>(p => p.EndsWith("en.json"))))
             .Returns("{ invalid json content }}}");
         var service = CreateService(loggerMock.Object);
 

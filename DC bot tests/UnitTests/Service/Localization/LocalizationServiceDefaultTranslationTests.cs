@@ -15,7 +15,7 @@ public class LocalizationServiceDefaultTranslationTests : LocalizationServiceTes
         const string expectedValue = "Play a song";
         SetupLocalizationDirectory();
         SetupNoGuildLanguageFile(guildId);
-        SetupTranslationFile("eng", $"{{\"{key}\":\"{expectedValue}\"}}");
+        SetupTranslationFile("en", $"{{\"{key}\":\"{expectedValue}\"}}");
         var service = CreateService();
 
         service.LoadLanguage(guildId);
@@ -31,7 +31,7 @@ public class LocalizationServiceDefaultTranslationTests : LocalizationServiceTes
         const string key = "nonexistent_key";
         SetupLocalizationDirectory();
         SetupNoGuildLanguageFile(guildId);
-        SetupTranslationFile("eng", "{}");
+        SetupTranslationFile("en", "{}");
         var service = CreateService();
 
         service.LoadLanguage(guildId);
@@ -52,7 +52,7 @@ public class LocalizationServiceDefaultTranslationTests : LocalizationServiceTes
         };
         SetupLocalizationDirectory();
         SetupNoGuildLanguageFile(guildId);
-        SetupTranslationFile("eng", JsonSerializer.Serialize(keys));
+        SetupTranslationFile("en", JsonSerializer.Serialize(keys));
         var service = CreateService();
 
         service.LoadLanguage(guildId);
@@ -70,7 +70,7 @@ public class LocalizationServiceDefaultTranslationTests : LocalizationServiceTes
         const ulong guildId = 123456789;
         SetupLocalizationDirectory();
         SetupNoGuildLanguageFile(guildId);
-        SetupTranslationFile("eng", "{\"test_key\":\"English Value\"}");
+        SetupTranslationFile("en", "{\"test_key\":\"English Value\"}");
         var service = CreateService();
 
         service.LoadLanguage(guildId);
