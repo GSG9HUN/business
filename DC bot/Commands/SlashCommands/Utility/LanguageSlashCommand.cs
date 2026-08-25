@@ -8,7 +8,7 @@ namespace DC_bot.Commands.SlashCommands.Utility;
 
 public enum SlashLanguage
 {
-    [ChoiceDisplayName("eng")]
+    [ChoiceDisplayName("en")]
     Eng,
 
     [ChoiceDisplayName("hu")]
@@ -46,7 +46,7 @@ public class LanguageSlashCommand(
     {
         return language switch
         {
-            SlashLanguage.Eng => "eng",
+            SlashLanguage.Eng => "en",
             SlashLanguage.Hu => "hu",
             _ => throw new ArgumentOutOfRangeException(nameof(language), language, null)
         };

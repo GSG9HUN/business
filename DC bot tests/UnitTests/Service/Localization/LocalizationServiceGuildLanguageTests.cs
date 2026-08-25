@@ -32,9 +32,9 @@ public class LocalizationServiceGuildLanguageTests : LocalizationServiceTestBase
         const string key = "greeting";
         SetupLocalizationDirectory();
         SetupGuildLanguageFile(hungarianGuildId, "hu");
-        SetupGuildLanguageFile(englishGuildId, "eng");
+        SetupGuildLanguageFile(englishGuildId, "en");
         SetupTranslationFile("hu", $"{{\"{key}\":\"Szia\"}}");
-        SetupTranslationFile("eng", $"{{\"{key}\":\"Hello\"}}");
+        SetupTranslationFile("en", $"{{\"{key}\":\"Hello\"}}");
         var service = CreateService();
 
         service.LoadLanguage(hungarianGuildId);

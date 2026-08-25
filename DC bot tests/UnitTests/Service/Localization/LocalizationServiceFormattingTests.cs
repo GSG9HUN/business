@@ -13,7 +13,7 @@ public class LocalizationServiceFormattingTests : LocalizationServiceTestBase
         const string artist = "Artist Name";
         SetupLocalizationDirectory();
         SetupNoGuildLanguageFile(guildId);
-        SetupTranslationFile("eng", $"{{\"{key}\":\"{translationTemplate}\"}}");
+        SetupTranslationFile("en", $"{{\"{key}\":\"{translationTemplate}\"}}");
         var service = CreateService();
 
         service.LoadLanguage(guildId);

@@ -115,7 +115,7 @@ public static class ProfileHandler
         new(
             user.DiscordUserId.ToString(),
             user.Username,
-            user.GlobalName,
+            user.GlobalName ?? user.Username,
             BuildUserAvatarUrl(user.DiscordUserId, user.AvatarHash),
             true,
             true);
