@@ -60,7 +60,6 @@ fun GuildSelectorScreen(
                 title = stringResource(Res.string.guild_select_title),
                 subTitle = stringResource(Res.string.guild_available_count, guilds.size),
                 navigationIcon = {
-                    //TODO profile adatok kellenek ide
                     MAvatar(
                         name = currentUser.displayName,
                         imageUrl = currentUser.avatarUrl,

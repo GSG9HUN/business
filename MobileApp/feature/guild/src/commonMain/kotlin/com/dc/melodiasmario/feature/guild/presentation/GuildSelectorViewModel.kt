@@ -60,19 +60,14 @@ class GuildSelectorViewModel(
             when (result) {
                 is Resource.Success -> {
                     _uiState.update {
-                        it.copy(currentUser = result.data, isLoading = false)
+                        it.copy(currentUser = result.data)
                     }
                 }
 
-                is Resource.Error -> {
-                    _uiState.update {
-                        it.copy(errorMessage = result.error.message, isLoading = false)
-                    }
-                }
+                //TODO kettészedni a guild és az avatár loding stateket.
+                is Resource.Error -> Unit
 
-                Resource.Loading -> {
-                    _uiState.update { it.copy(isLoading = true) }
-                }
+                Resource.Loading -> Unit
             }
         }
     }

@@ -10,7 +10,7 @@ import org.koin.core.annotation.Single
 @Single
 class GetCurrentUserUseCase(private val currentUserRepository: CurrentUserRepository) {
 
-    suspend operator fun invoke(): Flow<Resource<CurrentUser>> = flow {
+    operator fun invoke(): Flow<Resource<CurrentUser>> = flow {
         emit(Resource.Loading)
 
         try {
