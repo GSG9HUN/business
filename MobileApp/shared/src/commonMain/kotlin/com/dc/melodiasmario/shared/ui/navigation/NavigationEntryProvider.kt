@@ -28,7 +28,7 @@ fun navigationEntryProvider(
 
     entry<AppRoute.GuildSelector> {
         GuildSelectorRoute(
-            onAvatarClicked = { profileId ->
+            onAvatarClicked = {
                 backStack.navigate(AppRoute.MyProfile)
             },
             onGuildClicked = { guildId ->

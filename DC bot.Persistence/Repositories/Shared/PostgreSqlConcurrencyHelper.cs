@@ -10,24 +10,15 @@ internal static class PostgreSqlConcurrencyHelper
     private const int DefaultMaxAttempts = 3;
 
     internal static bool IsUniqueViolation(Exception exception) =>
-        exception switch
-        {
-            DbUpdateException dbUpdateException => IsUniqueViolation(dbUpdateException),
-            PostgresException postgresException => IsUniqueViolation(postgresException),
-            _ => false
-        };
+        FindPostgresException(exception) is { SqlState: PostgresErrorCodes.UniqueViolation };
 
     internal static bool IsUniqueViolation(DbUpdateException exception) =>
-        exception.InnerException is PostgresException postgresException &&
-        IsUniqueViolation(postgresException);
+        IsUniqueViolation((Exception)exception);
 
     internal static bool IsRetriable(Exception exception) =>
-        exception switch
+        FindPostgresException(exception) is
         {
-            DbUpdateException dbUpdateException => dbUpdateException.InnerException is PostgresException postgresException &&
-                                                   IsRetriable(postgresException),
-            PostgresException postgresException => IsRetriable(postgresException),
-            _ => false
+            SqlState: PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.SerializationFailure
         };
 
     internal static async Task<bool> SaveChangesIgnoringUniqueViolationAsync(
@@ -39,7 +30,7 @@ internal static class PostgreSqlConcurrencyHelper
             await dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        catch (Exception exception) when (IsUniqueViolation(exception))
         {
             DetachEntries(exception);
             return false;
@@ -132,17 +123,48 @@ internal static class PostgreSqlConcurrencyHelper
             maxAttempts);
     }
 
-    private static bool IsUniqueViolation(PostgresException exception) =>
-        exception.SqlState == PostgresErrorCodes.UniqueViolation;
-
-    private static bool IsRetriable(PostgresException exception) =>
-        exception.SqlState is PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.SerializationFailure;
-
-    private static void DetachEntries(DbUpdateException exception)
+    private static PostgresException? FindPostgresException(Exception exception)
     {
-        foreach (var entry in exception.Entries)
+        var current = exception;
+        while (current is not null)
+        {
+            if (current is PostgresException postgresException)
+            {
+                return postgresException;
+            }
+
+            current = current.InnerException;
+        }
+
+        return null;
+    }
+
+    private static void DetachEntries(Exception exception)
+    {
+        if (FindDbUpdateException(exception) is not { } dbUpdateException)
+        {
+            return;
+        }
+
+        foreach (var entry in dbUpdateException.Entries)
         {
             entry.State = EntityState.Detached;
         }
+    }
+
+    private static DbUpdateException? FindDbUpdateException(Exception exception)
+    {
+        var current = exception;
+        while (current is not null)
+        {
+            if (current is DbUpdateException dbUpdateException)
+            {
+                return dbUpdateException;
+            }
+
+            current = current.InnerException;
+        }
+
+        return null;
     }
 }

@@ -1,7 +1,7 @@
-package com.dc.melodiasmario.feature.guild.data.remote.dto
+package com.dc.melodiasmario.feature.guild.data.remote.guild.dto
 
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
-import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
+import com.dc.melodiasmario.feature.guild.domain.model.guild.GuildAccessLevel
 import kotlinx.serialization.Serializable
 
 @Serializable

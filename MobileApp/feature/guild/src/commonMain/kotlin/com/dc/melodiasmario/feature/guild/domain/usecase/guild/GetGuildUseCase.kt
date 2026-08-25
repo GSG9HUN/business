@@ -1,8 +1,8 @@
-package com.dc.melodiasmario.feature.guild.domain.usecase
+package com.dc.melodiasmario.feature.guild.domain.usecase.guild
 
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
-import com.dc.melodiasmario.feature.guild.domain.repository.GuildRepository
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
+import com.dc.melodiasmario.feature.guild.domain.repository.guild.GuildRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Single

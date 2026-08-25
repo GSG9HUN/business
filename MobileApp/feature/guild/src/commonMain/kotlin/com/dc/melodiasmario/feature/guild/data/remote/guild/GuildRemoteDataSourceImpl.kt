@@ -1,7 +1,7 @@
-package com.dc.melodiasmario.feature.guild.data.remote
+package com.dc.melodiasmario.feature.guild.data.remote.guild
 
-import com.dc.melodiasmario.feature.guild.data.remote.dto.toDomain
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
+import com.dc.melodiasmario.feature.guild.data.remote.guild.dto.toDomain
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
 import org.koin.core.annotation.Single
 
 @Single(binds = [GuildRemoteDataSource::class])

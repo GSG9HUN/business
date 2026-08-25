@@ -1,9 +1,9 @@
-package com.dc.melodiasmario.feature.guild.data.repository
+package com.dc.melodiasmario.feature.guild.data.repository.guild
 
 import com.dc.melodiasmario.core.auth.data.session.AuthorizedSessionProvider
-import com.dc.melodiasmario.feature.guild.data.remote.GuildRemoteDataSource
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
-import com.dc.melodiasmario.feature.guild.domain.repository.GuildRepository
+import com.dc.melodiasmario.feature.guild.data.remote.guild.GuildRemoteDataSource
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
+import com.dc.melodiasmario.feature.guild.domain.repository.guild.GuildRepository
 import org.koin.core.annotation.Single
 
 @Single(binds = [GuildRepository::class])

@@ -1,9 +1,15 @@
 package com.dc.melodiasmario.feature.guild.presentation
 
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
+import com.dc.melodiasmario.feature.guild.domain.model.currentuser.CurrentUser
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
 
 data class GuildSelectorUiState(
-    val profileId: String,
+    val currentUser: CurrentUser = CurrentUser(
+        id = "",
+        displayName = "",
+        username = "",
+        avatarUrl = null
+    ),
     val guilds: List<Guild> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
