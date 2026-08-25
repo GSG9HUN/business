@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_lead">Sign in with Discord. The Discord code goes to the API callback, then the API returns the app session.</string>
+    <string name="login_button">Sign in with Discord</string>
+    <string name="login_again_button">Sign in with Discord again</string>
+    <string name="logout_button">Sign out</string>
+    <string name="login_signed_out_status">No active session</string>
+    <string name="login_signed_out_detail">Start Discord sign-in. After success, the API opens the app again with a handoff link.</string>
+    <string name="login_starting_status">Starting Discord sign-in</string>
+    <string name="login_starting_detail">The app requests the authorize URL from your API.</string>
+    <string name="login_browser_status">Browser opened</string>
+    <string name="login_browser_detail">After Discord sign-in, the API redirects back into the app.</string>
+    <string name="login_exchange_status">Exchanging session</string>
+    <string name="login_exchange_detail">The one-time handoff code is exchanged for app access and refresh tokens.</string>
+    <string name="login_success_status">Signed in</string>
+    <string name="login_success_detail">%1$s session is active. Access token expires at: %2$s.</string>
+    <string name="login_success_detail_no_expiry">%1$s session is active. The API did not return an access token expiry.</string>
+    <string name="login_error_status">Sign-in error</string>
+    <string name="login_start_failed">Could not start Discord sign-in: %1$s</string>
+    <string name="login_exchange_failed">Could not exchange the handoff code for an app session: %1$s</string>
+    <string name="login_redirect_error">The redirect returned with an error: %1$s</string>
+    <string name="login_missing_code">The return link does not contain a handoff code.</string>
+    <string name="session_read_failed">The saved session could not be read, so it was cleared: %1$s</string>
+    <string name="unknown_user">Unknown user</string>
+</resources>

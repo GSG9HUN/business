@@ -1,6 +1,7 @@
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
-using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Exceptions;
+using DC_bot.Interface.Service.Persistence.Playlists;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Music.PlaylistService;
@@ -71,6 +72,11 @@ internal sealed class PlaylistMutationService(
                 newName, guildId);
             return RenamePlaylistResult.Renamed;
         }
+        catch (UniqueConstraintConflictException ex)
+        {
+            logger.LogWarning(ex, "Playlist {PlaylistName} already exists for guild {GuildId}", newName, guildId);
+            return RenamePlaylistResult.PlaylistAlreadyExists;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to rename playlist {CurrentName} to {NewName} for guild {GuildId}", currentName,
@@ -109,6 +115,11 @@ internal sealed class PlaylistMutationService(
             await playlistRepository.CreatePlaylistAsync(guildId, playlistName);
             logger.LogInformation("Created new playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
             return CreatePlaylistResult.Created;
+        }
+        catch (UniqueConstraintConflictException ex)
+        {
+            logger.LogWarning(ex, "Playlist {PlaylistName} already exists for guild {GuildId}", playlistName, guildId);
+            return CreatePlaylistResult.PlaylistAlreadyExists;
         }
         catch (Exception ex)
         {

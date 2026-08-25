@@ -1,0 +1,54 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+local.properties
+
+# IDE and editor state
+.idea/
+.vscode/
+.vs/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+
+# Kotlin / Gradle
+.gradle/
+.kotlin/
+build/
+**/build/
+!src/**/build/
+captures/
+
+# Android
+.externalNativeBuild/
+.cxx/
+
+# Logs and local diagnostics
+*.log
+logs/
+**/logs/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# iOS / Xcode user-specific files
+xcuserdata/
+**/xcuserdata/
+*.xcuserstate
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# Keep shared Xcode project files tracked
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+
+# Node
+node_modules/

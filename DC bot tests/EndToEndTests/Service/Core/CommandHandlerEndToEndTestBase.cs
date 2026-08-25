@@ -6,6 +6,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Core;
 using DC_bot.Service.Presentation;

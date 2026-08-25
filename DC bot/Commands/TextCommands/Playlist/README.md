@@ -236,9 +236,9 @@ Track identity is serialized through `ITrackSerializer`, so playlist persistence
 
 - `Service/Music/PlaylistService/PlaylistService.cs`
 - `Interface/Service/Music/PlaylistServiceInterface/`
-- `Interface/Service/Persistence/IPlaylistRepository.cs`
-- `Interface/Service/Persistence/IPlaylistTrackRepository.cs`
-- `Persistence/Repositories/PlaylistRepository.cs`
-- `Persistence/Repositories/PlaylistTrackRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistTrackRepository.cs`
+- `DC bot.Persistence/Repositories/PlaylistRepository.cs`
+- `DC bot.Persistence/Repositories/PlaylistTrackRepository.cs`
 - `localization/eng.json`
 - `localization/hu.json`

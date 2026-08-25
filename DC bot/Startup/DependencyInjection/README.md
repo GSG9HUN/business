@@ -62,7 +62,7 @@ Configures Lavalink4NET with HTTP/HTTPS and WS/WSS endpoints derived from `Laval
 
 ### PersistenceServiceCollectionExtensions.cs
 
-Registers EF Core and repository implementations:
+Lives in `../../../DC bot.Persistence/DependencyInjection/` and registers EF Core and repository implementations:
 
 - `IDbContextFactory<BotDbContext>` using Npgsql
 - `IGuildDataRepository -> GuildDataRepository`
@@ -71,6 +71,7 @@ Registers EF Core and repository implementations:
 - `IPlaylistRepository -> PlaylistRepository`
 - `IPlaylistTrackRepository -> PlaylistTrackRepository`
 - `IRepeatListRepository -> RepeatListRepository`
+- `IBotControlCommandsRepository -> BotControlCommandsRepository`
 
 ### CommandServiceCollectionExtensions.cs
 
@@ -105,5 +106,5 @@ Registers the music domain services:
 - Add new text or slash commands in `CommandServiceCollectionExtensions.cs` through `AddCommandServices()`.
 - Add new music orchestration services in `MusicServiceCollectionExtensions.cs`.
 - Add new saved playlist service contracts in `MusicServiceCollectionExtensions.cs` when they belong to the music domain.
-- Add new repositories in `PersistenceServiceCollectionExtensions.cs`.
+- Add new repositories in `DC bot.Persistence/DependencyInjection/PersistenceServiceCollectionExtensions.cs`.
 - Keep startup orchestration in `BotServiceProviderFactory.cs`; avoid moving runtime work into `Program.cs`.

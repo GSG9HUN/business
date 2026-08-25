@@ -1,6 +1,9 @@
+using DC_bot.Db;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models;
-using DC_bot.Persistence.Db;
-using DC_bot.Persistence.Repositories;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
+using DC_bot.Repositories;
+using DC_bot.Repositories.Playlists;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -71,7 +74,7 @@ public class PlaylistRepositoryPostgreSqlIntegrationTests
     }
 
     [Fact]
-    public async Task PlaylistRepository_CreateDuplicateNameInSameGuild_ThrowsDbUpdateException()
+    public async Task PlaylistRepository_CreateDuplicateNameInSameGuild_ThrowsUniqueConstraintConflictException()
     {
         var database = await PostgreSqlTestDatabase.TryCreateAsync();
         if (database is null) return;
@@ -83,6 +86,6 @@ public class PlaylistRepositoryPostgreSqlIntegrationTests
 
         await repository.CreatePlaylistAsync(guildId, "mix");
 
-        await Assert.ThrowsAsync<DbUpdateException>(() => repository.CreatePlaylistAsync(guildId, "mix"));
+        await Assert.ThrowsAsync<UniqueConstraintConflictException>(() => repository.CreatePlaylistAsync(guildId, "mix"));
     }
 }

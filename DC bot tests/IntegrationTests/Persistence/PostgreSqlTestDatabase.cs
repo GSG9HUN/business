@@ -1,4 +1,4 @@
-using DC_bot.Persistence.Db;
+using DC_bot.Db;
 using DotNet.Testcontainers.Builders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -41,5 +41,5 @@ This folder contains the saved playlist service contract.
 - `Commands/TextCommands/Playlist/`
 - `Commands/SlashCommands/Playlist/`
 - `Interface/Service/Music/PlaylistServiceInterface/Models/`
-- `Interface/Service/Persistence/IPlaylistRepository.cs`
-- `Interface/Service/Persistence/IPlaylistTrackRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistRepository.cs`
+- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistTrackRepository.cs`

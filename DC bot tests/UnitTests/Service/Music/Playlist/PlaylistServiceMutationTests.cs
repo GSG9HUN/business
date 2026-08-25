@@ -1,5 +1,7 @@
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using Moq;
 
 namespace DC_bot_tests.UnitTests.Service.Music.Playlist;
@@ -100,5 +102,33 @@ public class PlaylistServiceMutationTests : PlaylistServiceTestBase
         var result = await context.Service.RenamePlaylistAsync(GuildId, PlaylistName, NewPlaylistName);
 
         Assert.Equal(RenamePlaylistResult.Renamed, result);
+    }
+
+    [Fact]
+    public async Task RenamePlaylistAsync_WhenPlaylistIsCreatedConcurrently_ReturnsPlaylistAlreadyExists()
+    {
+        var context = CreateContext();
+        context.PlaylistRepository.Setup(repository => repository.GetByGuildAndNameAsync(
+                GuildId,
+                PlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PlaylistRecord(PlaylistId, GuildId, PlaylistName));
+        context.PlaylistRepository.Setup(repository => repository.ExistsAsync(
+                GuildId,
+                NewPlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        context.PlaylistRepository.Setup(repository => repository.RenameAsync(
+                GuildId,
+                PlaylistName,
+                NewPlaylistName,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UniqueConstraintConflictException(
+                "Duplicate playlist.",
+                new InvalidOperationException("duplicate")));
+
+        var result = await context.Service.RenamePlaylistAsync(GuildId, PlaylistName, NewPlaylistName);
+
+        Assert.Equal(RenamePlaylistResult.PlaylistAlreadyExists, result);
     }
 }

@@ -1,5 +1,7 @@
-using DC_bot.Persistence.Db;
-using DC_bot.Persistence.Repositories;
+using DC_bot.Db;
+using DC_bot.Repositories;
+using DC_bot.Repositories.Guilds;
+using DC_bot.Repositories.Playback;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

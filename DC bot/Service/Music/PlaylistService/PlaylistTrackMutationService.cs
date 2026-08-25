@@ -1,8 +1,10 @@
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
-using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models;
+using DC_bot.Interface.Service.Persistence.Models.Playlists;
+using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Lavalink4NET.Tracks;
@@ -121,6 +123,11 @@ internal sealed class PlaylistTrackMutationService(
                 trackRecords.Count);
 
             return SavePlaylistResult.Saved;
+        }
+        catch (UniqueConstraintConflictException ex)
+        {
+            logger.LogWarning(ex, "Playlist {PlaylistName} already exists for guild {GuildId}", playlistName, guildId);
+            return SavePlaylistResult.AlreadyExists;
         }
         catch (Exception ex)
         {

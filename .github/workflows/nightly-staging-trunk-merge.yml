@@ -113,7 +113,7 @@ jobs:
 
       - name: Check EF migrations
         if: steps.changes.outputs.has_changes == 'true'
-        run: dotnet ef migrations has-pending-model-changes --project "./DC bot/DC bot.csproj" --startup-project "./DC bot/DC bot.csproj" --no-build
+        run: dotnet ef migrations has-pending-model-changes --project "./DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "./DC bot.Persistence/DC bot.Persistence.csproj" --no-build
 
       - name: Test merged result
         if: steps.changes.outputs.has_changes == 'true'

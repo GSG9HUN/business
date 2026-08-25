@@ -1,0 +1,32 @@
+<resources>
+    <string name="profile_connected_provider">%1$s összekapcsolva</string>
+    <string name="profile_disconnected_provider">%1$s nincs összekapcsolva</string>
+    <string name="profile_status_active">Aktív</string>
+    <string name="profile_status_inactive">Inaktív</string>
+    <string name="profile_application_section">Alkalmazás</string>
+    <string name="profile_language_title">Nyelv</string>
+    <string name="profile_appearance_title">Megjelenítés</string>
+    <string name="profile_haptics_title">Haptikus visszajelzés</string>
+    <string name="profile_haptics_subtitle">Vezérlőparancsoknál</string>
+    <string name="profile_sound_effects_title">Hangeffektek</string>
+    <string name="profile_sound_effects_subtitle">Visszajelzések és jelzések</string>
+    <string name="profile_telemetry_title">Telemetria</string>
+    <string name="profile_telemetry_subtitle">Csak crash report</string>
+    <string name="profile_session_section">Session</string>
+    <string name="profile_token_status_title">Token állapot</string>
+    <string name="profile_token_status_ok">Rendben</string>
+    <string name="profile_save_settings_button">Mentés</string>
+    <string name="profile_cancel_settings_button">Mégse</string>
+    <string name="profile_save_success">Sikeresen elmentettük a beállításokat.</string>
+    <string name="profile_save_failed">Nem sikerült elmenteni a beállításokat.</string>
+    <string name="profile_logout_success">Sikeresen kijelentkeztél.</string>
+    <string name="profile_logout_failed">Nem sikerült kijelentkezni.</string>
+    <string name="profile_logout_button">Kijelentkezés</string>
+    <string name="profile_language_hungarian">Magyar</string>
+    <string name="profile_language_english">Angol</string>
+    <string name="profile_theme_dark">Sötét</string>
+    <string name="profile_theme_light">Világos</string>
+    <string name="profile_theme_system">Rendszer</string>
+    <string name="profile_token_refreshing">Frissítés alatt</string>
+    <string name="profile_token_updated">Frissítve</string>
+</resources>

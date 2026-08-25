@@ -1,3 +1,4 @@
+using DC_bot.Db;
 using DC_bot.Service;
 using Microsoft.Extensions.DependencyInjection;
 

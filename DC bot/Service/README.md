@@ -62,10 +62,10 @@ Files:
 
 ## Persistence Boundary
 
-There is no `Service/Persistence/` folder in the current source tree. Persistence contracts and implementations are currently in:
+There is no `Service/Persistence/` folder in the current source tree. Persistence contracts and implementations live in separate projects:
 
-- `../Interface/Service/Persistence/`
-- `../Persistence/`
+- `../../DC bot.Contracts/Interface/Service/Persistence/`
+- `../../DC bot.Persistence/`
 
 ## Service Architecture
 
@@ -86,7 +86,7 @@ Lavalink / PostgreSQL / Discord
 ## Related Components
 
 - `Interface/Service/` - service contracts
-- `Interface/Service/Persistence/` - persistence contracts
-- `Persistence/` - repository implementations
+- `DC bot.Contracts/Interface/Service/Persistence/` - persistence contracts
+- `DC bot.Persistence/` - repository implementations
 - `Commands/` - service consumers
 

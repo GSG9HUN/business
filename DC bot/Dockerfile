@@ -5,6 +5,8 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG configuration=Release
 WORKDIR /src
 COPY ["DC bot/DC bot.csproj", "DC bot/"]
+COPY ["DC bot.Contracts/DC bot.Contracts.csproj", "DC bot.Contracts/"]
+COPY ["DC bot.Persistence/DC bot.Persistence.csproj", "DC bot.Persistence/"]
 RUN dotnet restore "DC bot/DC bot.csproj"
 COPY . .
 WORKDIR "/src/DC bot"

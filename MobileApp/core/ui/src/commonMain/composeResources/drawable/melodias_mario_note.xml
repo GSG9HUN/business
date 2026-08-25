@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Music note: top beam and stems -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M48,42 L69,36 L69,64.6 L65,64.6 L65,42.1 L52,46 L52,73 L48,73 Z" />
+
+    <!-- Left note head -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M52,73 C51.5,76 48,79 44,79 C39,79 36,76.4 35.8,72.8 C35.8,69 39.3,66.1 43.8,66.1 C48.2,66.1 51.5,68.2 51.5,71.7 Z" />
+
+    <!-- Right note head -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M69,64.2 C69,68.1 65.6,71.3 61.3,71.3 C56.8,71.3 53.4,68.7 53.4,65.1 C53.4,61.3 56.9,58.4 61.4,58.4 C65.8,58.4 69,60.7 69,64.2 Z" />
+</vector>

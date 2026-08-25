@@ -46,6 +46,31 @@ services:
         aliases:
           - lavalink
 
+  discord-api:
+    build:
+        context: .
+        dockerfile: API/Dockerfile
+    container_name: discord-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-dc_bot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      LAVALINK_HOSTNAME: lavalink
+    ports:
+      - "5281:8080"
+    networks:
+      - dc-bot-network
+      
   discord-bot:
     build:
       context: .

@@ -1,5 +1,4 @@
-using DC_bot.Persistence.Db;
-using DC_bot_tests.TestHelperFiles;
+using DC_bot.Db;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot_tests.UnitTests.Persistence;

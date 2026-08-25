@@ -34,9 +34,9 @@ Music and playback service interfaces.
 
 ---
 
-### Persistence/
+### Persistence Contracts
 
-Persistence repository contracts used by services.
+Persistence repository contracts used by services moved to `../../../DC bot.Contracts/Interface/Service/Persistence/`.
 
 **Files:**
 
@@ -46,6 +46,7 @@ Persistence repository contracts used by services.
 - `IPlaylistTrackRepository.cs`
 - `IQueueRepository.cs`
 - `IRepeatListRepository.cs`
+- `IBotControlCommandsRepository.cs`
 - `Models/` - contract record models
 
 ---
@@ -74,6 +75,6 @@ Slash command adapter contracts.
 ## Related Components
 
 - **Service/** - Implements these interfaces
-- **Persistence/** - Implements persistence contracts
+- **DC bot.Persistence/** - Implements persistence contracts
 - **Commands/** - Use service interfaces for business logic
 
