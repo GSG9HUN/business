@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
-import com.dc.melodiasmario.feature.guild.domain.model.GuildAccessLevel
-import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
+import com.dc.melodiasmario.feature.guild.domain.model.guild.GuildAccessLevel
+import com.dc.melodiasmario.feature.guild.domain.model.guild.BotStatus
 import com.dc.melodiasmario.core.ui.components.display.MAvatar
 import com.dc.melodiasmario.core.ui.components.display.MText
 import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens

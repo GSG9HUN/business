@@ -3,8 +3,9 @@ package com.dc.melodiasmario.feature.guild.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.feature.guild.domain.model.Guild
-import com.dc.melodiasmario.feature.guild.domain.usecase.GetGuildUseCase
+import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
+import com.dc.melodiasmario.feature.guild.domain.usecase.currentuser.GetCurrentUserUseCase
+import com.dc.melodiasmario.feature.guild.domain.usecase.guild.GetGuildUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +18,9 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 class GuildSelectorViewModel(
     private val getGuildUseCase: GetGuildUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
-    // TODO profileId should come from the authenticated session.
-    private val _uiState = MutableStateFlow(GuildSelectorUiState(profileId = "1"))
+    private val _uiState = MutableStateFlow(GuildSelectorUiState())
     val uiState: StateFlow<GuildSelectorUiState> = _uiState.asStateFlow()
     private val events = MutableSharedFlow<GuildSelectorEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<GuildSelectorEffect>()
@@ -50,6 +51,24 @@ class GuildSelectorViewModel(
             GuildSelectorEvent.AvatarClicked -> navigateToProfile()
             is GuildSelectorEvent.GuildClicked -> navigateToPlaylists(event.guildId)
             is GuildSelectorEvent.SearchQueryChanged -> onQueryChange(event.query)
+            GuildSelectorEvent.GetCurrentUser -> loadCurrentUser()
+        }
+    }
+
+    private suspend fun loadCurrentUser() {
+        getCurrentUserUseCase().collect { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(currentUser = result.data)
+                    }
+                }
+
+                //TODO kettészedni a guild és az avatár loding stateket.
+                is Resource.Error -> Unit
+
+                Resource.Loading -> Unit
+            }
         }
     }
 
@@ -79,7 +98,7 @@ class GuildSelectorViewModel(
     }
 
     private suspend fun navigateToProfile() {
-        _effect.emit(GuildSelectorEffect.NavigateToProfile(profileId = uiState.value.profileId))
+        _effect.emit(GuildSelectorEffect.NavigateToProfile)
     }
 
     private fun filterGuilds(

@@ -1,6 +1,6 @@
-package com.dc.melodiasmario.feature.guild.data.remote.dto
+package com.dc.melodiasmario.feature.guild.data.remote.guild.dto
 
-import com.dc.melodiasmario.feature.guild.domain.model.BotStatus
+import com.dc.melodiasmario.feature.guild.domain.model.guild.BotStatus
 import kotlinx.serialization.Serializable
 
 @Serializable

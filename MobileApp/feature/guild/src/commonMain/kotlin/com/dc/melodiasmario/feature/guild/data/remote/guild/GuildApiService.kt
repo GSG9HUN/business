@@ -1,7 +1,7 @@
-package com.dc.melodiasmario.feature.guild.data.remote
+package com.dc.melodiasmario.feature.guild.data.remote.guild
 
 import com.dc.melodiasmario.core.common.AppConstants
-import com.dc.melodiasmario.feature.guild.data.remote.dto.GuildDto
+import com.dc.melodiasmario.feature.guild.data.remote.guild.dto.GuildDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
