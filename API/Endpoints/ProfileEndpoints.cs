@@ -9,6 +9,7 @@ public static class ProfileEndpoints
         var profileGroup = group.MapGroup("/profile").RequireAuthorization();
 
         profileGroup.MapGet("/", ProfileHandler.GetProfile);
+        profileGroup.MapGet("/me", ProfileHandler.GetMyProfile);
         profileGroup.MapPatch("/settings", ProfileHandler.UpdateSettings);
 
         return group;
