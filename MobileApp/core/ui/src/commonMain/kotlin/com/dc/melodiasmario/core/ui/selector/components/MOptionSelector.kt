@@ -60,8 +60,8 @@ fun <T> MOptionSelector(
 
         if (searchEnabled) {
             MSearchBar(
-                value = query,
-                onValueChange = { query = it },
+                query = query,
+                onQueryChange = { query = it },
                 placeholder = searchPlaceholder,
             )
         }

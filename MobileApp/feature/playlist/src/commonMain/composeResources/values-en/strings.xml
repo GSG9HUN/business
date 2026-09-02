@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playlist_card_subtitle">%1$d songs • %2$s</string>
+    <string name="playlist_card_menu_content_description">Playlist menu</string>
+    <string name="playlist_duration_hours">%1$dh</string>
+    <string name="playlist_duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="playlist_duration_hours_seconds">%1$dh %2$ds</string>
+    <string name="playlist_duration_hours_minutes_seconds">%1$dh %2$dm %3$ds</string>
+    <string name="playlist_duration_minutes">%1$dm</string>
+    <string name="playlist_duration_minutes_seconds">%1$dm %2$ds</string>
+    <string name="playlist_duration_seconds">%1$ds</string>
+    <string name="playlists_title">Playlists</string>
+    <string name="playlists_count">%1$d playlists</string>
+    <string name="playlists_search_placeholder">Search playlists</string>
+    <string name="playlists_search_content_description">Search playlists</string>
+    <string name="playlists_add_content_description">Add playlist</string>
+    <string name="playlists_placeholder_title">Playlists</string>
+    <string name="playlists_loading_message">Loading playlists...</string>
+    <string name="playlists_empty_message">There are no playlists yet.</string>
+    <string name="playlists_no_search_results_message">No playlists match your search.</string>
+    <string name="playlists_search_action">Search</string>
+    <string name="playlists_cancel">Cancel</string>
+    <string name="playlists_create_title">New playlist</string>
+    <string name="playlists_create_action">Create</string>
+    <string name="playlists_rename_title">Rename playlist</string>
+    <string name="playlists_rename_action">Rename</string>
+    <string name="playlists_delete_title">Delete playlist</string>
+    <string name="playlists_delete_message">Delete "%1$s"?</string>
+    <string name="playlists_delete_action">Delete</string>
+    <string name="playlists_name_placeholder">Playlist name</string>
+</resources>

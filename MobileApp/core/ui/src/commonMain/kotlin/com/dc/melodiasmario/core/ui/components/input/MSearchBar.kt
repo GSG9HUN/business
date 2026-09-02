@@ -30,8 +30,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MSearchBar(
-    value: String,
-    onValueChange: (String) -> Unit,
+    query: String,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
     enabled: Boolean = true,
@@ -45,8 +45,8 @@ fun MSearchBar(
         border = BorderStroke(1.dp, colors.outline),
     ) {
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = query,
+            onValueChange = onQueryChange,
             enabled = enabled,
             singleLine = true,
             textStyle = TextStyle(color = colors.textPrimary),
@@ -70,7 +70,7 @@ fun MSearchBar(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.CenterStart,
                     ) {
-                        if (value.isBlank()) {
+                        if (query.isBlank()) {
                             MText(
                                 text = placeholder,
                                 color = colors.textMuted,
@@ -90,8 +90,8 @@ fun MSearchBar(
 private fun SearchBarPreview() {
     MSearchBar(
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-        value = "",
-        onValueChange = {},
+        query = "",
+        onQueryChange = {},
         placeholder = stringResource(Res.string.search_placeholder),
     )
 }

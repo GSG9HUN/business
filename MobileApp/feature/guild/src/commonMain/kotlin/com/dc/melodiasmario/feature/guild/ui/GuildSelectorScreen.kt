@@ -87,8 +87,8 @@ fun GuildSelectorScreen(
 
             HorizontalDivider()
             MSearchBar(
-                value = searchQuery,
-                onValueChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
+                query = searchQuery,
+                onQueryChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
                 placeholder = stringResource(Res.string.guild_search_placeholder),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
             )
