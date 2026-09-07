@@ -21,7 +21,7 @@ sealed interface AppRoute : NavKey {
     @Serializable
     data class Settings(val guildId: String) : AppRoute
     @Serializable
-    data class AddSong(val guildId: String) : AppRoute
+    data class PlaylistSong(val guildId: String) : AppRoute
     @Serializable
     data class RemoveSong(val guildId: String) : AppRoute
     @Serializable
@@ -37,7 +37,7 @@ fun AppRoute.guildIdOrNull(): String? {
         is AppRoute.Queue -> guildId
         is AppRoute.CurrentMusic -> guildId
         is AppRoute.Settings -> guildId
-        is AppRoute.AddSong -> guildId
+        is AppRoute.PlaylistSong -> guildId
         is AppRoute.RemoveSong -> guildId
         is AppRoute.PlaylistSongs -> guildId
         else -> null

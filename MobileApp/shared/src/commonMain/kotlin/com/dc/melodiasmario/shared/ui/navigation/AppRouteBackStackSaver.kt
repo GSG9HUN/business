@@ -15,7 +15,7 @@ val AppRouteBackStackSaver = Saver<SnapshotStateList<AppRoute>, List<List<String
                 is AppRoute.PlaylistSongs -> listOf("PlaylistSongs", route.guildId, route.playlistId)
                 is AppRoute.Queue -> listOf("Queue", route.guildId)
                 is AppRoute.CurrentMusic -> listOf("CurrentMusic", route.guildId)
-                is AppRoute.AddSong -> listOf("AddSong", route.guildId)
+                is AppRoute.PlaylistSong -> listOf("PlaylistSong", route.guildId)
                 is AppRoute.RemoveSong -> listOf("RemoveSong", route.guildId)
                 is AppRoute.Settings -> listOf("Settings", route.guildId)
             }
@@ -36,7 +36,7 @@ val AppRouteBackStackSaver = Saver<SnapshotStateList<AppRoute>, List<List<String
                     }
                     "Queue" -> route.getOrNull(1)?.let(AppRoute::Queue)
                     "CurrentMusic" -> route.getOrNull(1)?.let(AppRoute::CurrentMusic)
-                    "AddSong" -> route.getOrNull(1)?.let(AppRoute::AddSong)
+                    "PlaylistSong" -> route.getOrNull(1)?.let(AppRoute::PlaylistSong)
                     "RemoveSong" -> route.getOrNull(1)?.let(AppRoute::RemoveSong)
                     "Settings" -> route.getOrNull(1)?.let(AppRoute::Settings)
                     else -> null
