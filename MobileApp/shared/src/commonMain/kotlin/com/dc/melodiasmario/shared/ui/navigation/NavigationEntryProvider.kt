@@ -3,12 +3,12 @@ package com.dc.melodiasmario.shared.ui.navigation
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.entryProvider
 import com.dc.melodiasmario.core.ui.feedback.state.MToastHostState
-import com.dc.melodiasmario.feature.addsong.ui.AddSongRoute
 import com.dc.melodiasmario.feature.currentmusic.ui.CurrentMusicRoute
 import com.dc.melodiasmario.feature.login.ui.LoginRoute
 import com.dc.melodiasmario.feature.guild.ui.GuildSelectorRoute
-import com.dc.melodiasmario.feature.playlists.ui.PlaylistSongsRoute
-import com.dc.melodiasmario.feature.playlists.ui.PlaylistsRoute
+import com.dc.melodiasmario.feature.playlist.ui.playlistsong.PlaylistSongsRoute
+import com.dc.melodiasmario.feature.playlist.ui.PlaylistsRoute
+import com.dc.melodiasmario.feature.playlistsong.ui.PlaylistSongRoute
 import com.dc.melodiasmario.feature.profile.ui.ProfileRoute
 import com.dc.melodiasmario.feature.queue.ui.QueueRoute
 import com.dc.melodiasmario.feature.removesong.ui.RemoveSongRoute
@@ -38,7 +38,17 @@ fun navigationEntryProvider(
     }
 
     entry<AppRoute.Playlists> { route ->
-        PlaylistsRoute(guildId = route.guildId)
+        PlaylistsRoute(
+            guildId = route.guildId,
+            onPlaylistClicked = { playlistId ->
+                backStack.navigate(
+                    AppRoute.PlaylistSongs(
+                        guildId = route.guildId,
+                        playlistId = playlistId,
+                    )
+                )
+            },
+        )
     }
 
     entry<AppRoute.MyProfile> {
@@ -54,7 +64,10 @@ fun navigationEntryProvider(
     }
 
     entry<AppRoute.PlaylistSongs> { route ->
-        PlaylistSongsRoute(playlistId = route.playlistId)
+        PlaylistSongsRoute(
+            guildId = route.guildId,
+            playlistId = route.playlistId,
+        )
     }
 
     entry<AppRoute.Queue> { route ->
@@ -65,8 +78,8 @@ fun navigationEntryProvider(
         CurrentMusicRoute(guildId = route.guildId)
     }
 
-    entry<AppRoute.AddSong> { route ->
-        AddSongRoute(guildId = route.guildId)
+    entry<AppRoute.PlaylistSong> { route ->
+        PlaylistSongRoute(guildId = route.guildId)
     }
 
     entry<AppRoute.RemoveSong> { route ->

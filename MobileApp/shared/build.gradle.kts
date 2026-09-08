@@ -61,11 +61,11 @@ kotlin {
             implementation(project(":core:auth"))
             implementation(project(":core:settings"))
 
-            implementation(project(":feature:addsong"))
+            implementation(project(":feature:playlistsong"))
             implementation(project(":feature:currentmusic"))
             implementation(project(":feature:guild"))
             implementation(project(":feature:login"))
-            implementation(project(":feature:playlists"))
+            implementation(project(":feature:playlist"))
             implementation(project(":feature:profile"))
             implementation(project(":feature:queue"))
             implementation(project(":feature:removesong"))

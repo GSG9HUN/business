@@ -1,0 +1,74 @@
+package com.dc.melodiasmario.feature.playlist.ui.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.ui.components.display.MText
+import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+
+@Composable
+fun PlaylistsPlaceholder(
+    title: String,
+    contentText: String,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MelodiasMarioThemeTokens.current
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = colors.primary,
+            ) {
+                MText(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                    text = "MM",
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                MText(
+                    text = title,
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start,
+                )
+                MText(
+                    text = contentText,
+                    color = colors.textMuted,
+                    textAlign = TextAlign.Start,
+                )
+            }
+        }
+    }
+}

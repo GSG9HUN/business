@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playlist_card_subtitle">%1$d szám • %2$s</string>
+    <string name="playlist_card_menu_content_description">Lej&#225;tsz&#225;si lista men&#252;je</string>
+    <string name="playlist_duration_hours">%1$dó</string>
+    <string name="playlist_duration_hours_minutes">%1$dó %2$dp</string>
+    <string name="playlist_duration_hours_seconds">%1$dó %2$dmp</string>
+    <string name="playlist_duration_hours_minutes_seconds">%1$dó %2$dp %3$dmp</string>
+    <string name="playlist_duration_minutes">%1$dp</string>
+    <string name="playlist_duration_minutes_seconds">%1$dp %2$dmp</string>
+    <string name="playlist_duration_seconds">%1$dmp</string>
+    <string name="playlists_title">Lejátszási listák</string>
+    <string name="playlists_count">%1$d lejátszási lista</string>
+    <string name="playlists_search_placeholder">Lejátszási listák keresése</string>
+    <string name="playlists_search_content_description">Lejátszási listák keresése</string>
+    <string name="playlists_add_content_description">Lejátszási lista hozzáadása</string>
+    <string name="playlists_placeholder_title">Lejátszási listák</string>
+    <string name="playlists_loading_message">Lejátszási listák betöltése...</string>
+    <string name="playlists_empty_message">Még nincs lejátszási lista.</string>
+    <string name="playlists_no_search_results_message">Nincs találat.</string>
+    <string name="playlists_search_action">Keresés</string>
+    <string name="playlists_cancel">Mégse</string>
+    <string name="playlists_create_title">Új lejátszási lista</string>
+    <string name="playlists_create_action">Létrehozás</string>
+    <string name="playlists_rename_title">Lejátszási lista átnevezése</string>
+    <string name="playlists_rename_action">Átnevezés</string>
+    <string name="playlists_delete_title">Lejátszási lista törlése</string>
+    <string name="playlists_delete_message">Törlöd ezt: "%1$s"?</string>
+    <string name="playlists_delete_action">Törlés</string>
+    <string name="playlists_name_placeholder">Lejátszási lista neve</string>
+</resources>
