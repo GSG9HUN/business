@@ -1,11 +1,12 @@
 namespace API.Requests.Playlists;
 
-public sealed class CreatePlaylistRequest(string name)
+public sealed class CreatePlaylistRequest
 {
-    public string Name { get; init; } = name;
+    public string? Name { get; init; }
+    public string? PlaylistName { get; init; }
 
-    public void Deconstruct(out string name)
+    public string? GetPlaylistName()
     {
-        name = Name;
+        return string.IsNullOrWhiteSpace(PlaylistName) ? Name : PlaylistName;
     }
 }

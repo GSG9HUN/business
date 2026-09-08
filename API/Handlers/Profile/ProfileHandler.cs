@@ -19,9 +19,9 @@ public static class ProfileHandler
         IMobileAppUserSettingsRepository settingsRepository,
         CancellationToken cancellationToken)
     {
-        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        if (!ApiUserContext.TryGetDiscordUserId(httpContext, out var discordUserId))
         {
-            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            var failed = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized Discord user.");
             return DomainToHttpMapper.ToHttpResult(failed);
         }
 
@@ -42,9 +42,9 @@ public static class ProfileHandler
         IMobileAppUserSettingsRepository settingsRepository,
         CancellationToken cancellationToken)
     {
-        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        if (!ApiUserContext.TryGetDiscordUserId(httpContext, out var discordUserId))
         {
-            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            var failed = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized Discord user.");
             return DomainToHttpMapper.ToHttpResult(failed);
         }
 
@@ -67,9 +67,9 @@ public static class ProfileHandler
         IMobileAppUserSettingsRepository settingsRepository,
         CancellationToken cancellationToken)
     {
-        if (!TryGetDiscordUserId(httpContext, out var discordUserId))
+        if (!ApiUserContext.TryGetDiscordUserId(httpContext, out var discordUserId))
         {
-            var failed = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            var failed = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized Discord user.");
             return DomainToHttpMapper.ToHttpResult(failed);
         }
 
@@ -104,12 +104,7 @@ public static class ProfileHandler
 
         return DomainToHttpMapper.ToHttpResult(ApiResult<object>.Ok(MapSettings(saved)));
     }
-
-    private static bool TryGetDiscordUserId(HttpContext httpContext, out ulong discordUserId)
-    {
-        var userIdValue = httpContext.User.FindFirst("sub")?.Value;
-        return ulong.TryParse(userIdValue, out discordUserId) && discordUserId != 0;
-    }
+    
 
     private static ProfileUserResponse MapUser(MobileAppUserRecord user) =>
         new(

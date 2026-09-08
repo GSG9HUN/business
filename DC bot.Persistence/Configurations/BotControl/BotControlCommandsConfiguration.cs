@@ -21,6 +21,9 @@ public class BotControlCommandsConfiguration : IEntityTypeConfiguration<BotContr
             .HasColumnName("type")
             .IsRequired();
 
+        builder.Property(entity => entity.PayloadJson)
+            .HasColumnName("payload_json");
+
         builder.Property(entity => entity.Status)
             .HasColumnName("status")
             .IsRequired();

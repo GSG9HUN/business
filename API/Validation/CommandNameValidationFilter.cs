@@ -12,9 +12,7 @@ public class CommandNameValidationFilter: IEndpointFilter
         var commandName = routeValues["commandName"]?.ToString();
         //TODO majd kiszervezni a commandName-ket valahova.
         
-        var normalizedCommand = commandName?.ToLowerInvariant();
-
-        if (normalizedCommand is not ("pause" or "resume" or "skip" or "stop"))
+        if (!TryNormalize(commandName, out var normalizedCommand))
         {
             return BadRequest(new
             {
@@ -22,12 +20,29 @@ public class CommandNameValidationFilter: IEndpointFilter
                 Message = "Invalid playback command.",
                 Errors = new Dictionary<string, string[]>
                 {
-                    ["commandName"] = ["Allowed values: pause, resume, skip, stop."]
+                    ["commandName"] = ["Allowed values: pause, resume, skip, leave, stop, repeat, repeatList."]
                 }
             });
         }
 
         context.HttpContext.Items["commandName"] = normalizedCommand;
         return await next(context);
+    }
+
+    private static bool TryNormalize(string? commandName, out string normalizedCommand)
+    {
+        normalizedCommand = commandName?.Trim().ToLowerInvariant() switch
+        {
+            "pause" => "pause",
+            "resume" => "resume",
+            "skip" => "skip",
+            "leave" => "leave",
+            "stop" => "leave",
+            "repeat" => "repeat",
+            "repeatlist" => "repeatList",
+            _ => string.Empty
+        };
+
+        return normalizedCommand.Length > 0;
     }
 }

@@ -4,5 +4,5 @@ public sealed record PlaylistTrackResponse(
     int OrderNumber,
     string Title,
     string Author,
-    TimeSpan Duration,
+    int Duration,
     string TrackUri);

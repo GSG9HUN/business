@@ -4,6 +4,6 @@ public sealed record QueueTrackResponse(
     int Position,
     string Title,
     string Author,
-    TimeSpan Duration,
+    int Duration,
     string TrackUri,
     string? ArtworkUri);

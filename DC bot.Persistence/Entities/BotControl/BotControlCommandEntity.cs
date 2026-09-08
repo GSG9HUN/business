@@ -7,6 +7,7 @@ public class BotControlCommandEntity
     public string CommandId { get; set; } = string.Empty;
     public ulong GuildId { get; set; }
     public string Type { get; set; } = string.Empty;
+    public string? PayloadJson { get; set; }
     public ulong UserId { get; set; }
     public BotControlCommandState Status { get; set; } = BotControlCommandState.Pending;
     

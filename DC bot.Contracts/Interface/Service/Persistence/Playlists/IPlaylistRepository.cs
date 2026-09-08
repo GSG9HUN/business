@@ -9,6 +9,10 @@ public interface IPlaylistRepository
         string playlistName,
         CancellationToken cancellationToken = default);
 
+    Task<PlaylistRecord?> GetByIdAsync(
+        long playlistId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PlaylistSummaryRecord>> GetByGuildAsync(
         ulong guildId,
         CancellationToken cancellationToken = default);
@@ -23,9 +27,18 @@ public interface IPlaylistRepository
         string playlistName,
         CancellationToken cancellationToken = default);
 
+    Task<bool> DeleteByIdAsync(
+        long playlistId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> RenameAsync(
         ulong guildId,
         string currentName,
+        string newName,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> RenameByIdAsync(
+        long playlistId,
         string newName,
         CancellationToken cancellationToken = default);
 

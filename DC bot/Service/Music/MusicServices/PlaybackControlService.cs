@@ -3,6 +3,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ public class PlaybackControlService(
     IPlayerConnectionService playerConnectionService,
     IPlaybackEventHandlerService playbackEventHandlerService,
     IProgressiveTimerService progressiveTimerService,
+    IPlaybackStateRepository playbackStateRepository,
     ILogger<PlaybackControlService> logger) : IPlaybackControlService
 {
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
@@ -37,6 +39,7 @@ public class PlaybackControlService(
         {
             await connection.PauseAsync();
             progressiveTimerService.Pause(guildId);
+            await playbackStateRepository.SetPlaybackPositionAsync(guildId, GetCurrentPosition(connection), true);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
@@ -66,6 +69,7 @@ public class PlaybackControlService(
         {
             await connection.ResumeAsync();
             await progressiveTimerService.ResumeAsync(guildId);
+            await playbackStateRepository.SetPlaybackPositionAsync(guildId, GetCurrentPosition(connection), false);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
@@ -116,6 +120,7 @@ public class PlaybackControlService(
             if (connection.CurrentTrack != null) await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
             await connection.DisconnectAsync().ConfigureAwait(false);
+            await playbackStateRepository.SetCurrentTrackAsync(guildId, null, null);
             logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);
         }
         catch (Exception ex)
@@ -123,5 +128,17 @@ public class PlaybackControlService(
             logger.LavalinkOperationFailed(ex, "LeaveVoiceChannel");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
         }
+    }
+
+    private static TimeSpan GetCurrentPosition(Lavalink4NET.Players.ILavalinkPlayer player)
+    {
+        var position = player.Position?.Position ?? TimeSpan.Zero;
+        if (position < TimeSpan.Zero)
+        {
+            return TimeSpan.Zero;
+        }
+
+        var duration = player.CurrentTrack?.Duration ?? TimeSpan.Zero;
+        return duration > TimeSpan.Zero && position > duration ? duration : position;
     }
 }

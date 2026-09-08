@@ -2,6 +2,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET.Players;
@@ -22,6 +23,7 @@ public abstract class PlaybackControlServiceTestBase
     protected readonly Mock<IDiscordMessage> MessageMock = new();
     protected readonly Mock<IMusicQueueService> MusicQueueServiceMock = new();
     protected readonly Mock<IPlaybackEventHandlerService> PlaybackEventHandlerServiceMock = new();
+    protected readonly Mock<IPlaybackStateRepository> PlaybackStateRepositoryMock = new();
     protected readonly Mock<ILavalinkPlayer> PlayerMock = new();
     protected readonly Mock<IPlayerConnectionService> PlayerConnectionServiceMock = new();
     protected readonly Mock<IProgressiveTimerService> ProgressiveTimerServiceMock = new();
@@ -45,6 +47,20 @@ public abstract class PlaybackControlServiceTestBase
         LocalizationServiceMock
             .Setup(l => l.Get(It.IsAny<ulong>(), It.IsAny<string>(), It.IsAny<object[]>()))
             .Returns((ulong _, string key, object[] args) => LocalizationServiceMock.Object.Get(key, args));
+        PlaybackStateRepositoryMock
+            .Setup(r => r.SetPlaybackPositionAsync(
+                It.IsAny<ulong>(),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        PlaybackStateRepositoryMock
+            .Setup(r => r.SetCurrentTrackAsync(
+                It.IsAny<ulong>(),
+                It.IsAny<string?>(),
+                It.IsAny<long?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         Service = new PlaybackControlService(
             MusicQueueServiceMock.Object,
@@ -54,6 +70,7 @@ public abstract class PlaybackControlServiceTestBase
             PlayerConnectionServiceMock.Object,
             PlaybackEventHandlerServiceMock.Object,
             ProgressiveTimerServiceMock.Object,
+            PlaybackStateRepositoryMock.Object,
             LoggerMock.Object);
     }
 
