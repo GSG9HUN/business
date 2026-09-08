@@ -53,6 +53,7 @@ public class TrackEndedHandlerService(
             await player.PlayAsync(repeatTrack.ToLavalinkTrack());
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, repeatTrack, TimeSpan.Zero,
                 repeatTrack.Duration);
+            await currentTrackService.SetCurrentTrackAsync(guildId, repeatTrack);
             logger.Repeating(repeatTrack.Author, repeatTrack.Title);
             return;
         }
@@ -61,6 +62,7 @@ public class TrackEndedHandlerService(
 
         if (await TryRepeatListAndPlayAsync(player, textChannel, guildId)) return;
 
+        await currentTrackService.SetCurrentTrackAsync(guildId, null);
         await trackNotificationService.NotifyQueueEmptyAsync(textChannel);
     }
 

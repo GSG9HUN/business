@@ -26,6 +26,19 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         return entity is null ? null : MapToRecord(entity);
     }
 
+    public async Task<PlaylistRecord?> GetByIdAsync(
+        long playlistId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var entity = await dbContext.Playlists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(playlist => playlist.Id == playlistId, cancellationToken);
+
+        return entity is null ? null : MapToRecord(entity);
+    }
+
     public async Task<IReadOnlyList<PlaylistSummaryRecord>> GetByGuildAsync(
         ulong guildId,
         CancellationToken cancellationToken = default)
@@ -69,6 +82,18 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         return affectedRows > 0;
     }
 
+    public async Task<bool> DeleteByIdAsync(
+        long playlistId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var affectedRows = await dbContext.Playlists
+            .Where(playlist => playlist.Id == playlistId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return affectedRows > 0;
+    }
+
     public async Task<bool> RenameAsync(
         ulong guildId,
         string currentName,
@@ -88,6 +113,30 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         {
             throw new UniqueConstraintConflictException(
                 $"Playlist '{newName}' already exists for guild '{guildId}'.",
+                exception);
+        }
+
+        return affectedRows > 0;
+    }
+
+    public async Task<bool> RenameByIdAsync(
+        long playlistId,
+        string newName,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        int affectedRows;
+        try
+        {
+            affectedRows = await dbContext.Playlists
+                .Where(playlist => playlist.Id == playlistId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(playlist => playlist.Name, newName), cancellationToken);
+        }
+        catch (Exception exception) when (PostgreSqlConcurrencyHelper.IsUniqueViolation(exception))
+        {
+            throw new UniqueConstraintConflictException(
+                $"Playlist id '{playlistId}' could not be renamed to '{newName}' because the name already exists for the guild.",
                 exception);
         }
 

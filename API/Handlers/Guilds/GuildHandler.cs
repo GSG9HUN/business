@@ -16,12 +16,11 @@ public static class GuildHandler
         IMobileAppUserRepository repository, 
         CancellationToken cancellationToken)
     {
-        var userIdValue = httpContext.User.FindFirst("sub")?.Value;
         ApiResult<object> result;
         
-        if(!ulong.TryParse(userIdValue, out var discordUserId) || discordUserId == 0)
+        if(!ApiUserContext.TryGetDiscordUserId(httpContext, out var discordUserId))
         {
-            result = ApiResult<object>.Fail(ApiErrorCode.InvalidInput, "Invalid Discord user ID.");
+            result = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized Discord user.");
             return DomainToHttpMapper.ToHttpResult(result);
         }
         
@@ -34,7 +33,7 @@ public static class GuildHandler
 
     private static GuildSummaryResponse MapGuild(MobileAppUserGuildRecord guild) =>
         new(
-            guild.GuildId.ToString(),
+            guild.GuildId,
             guild.Name,
             BuildGuildIconUrl(guild.GuildId, guild.IconHash),
             GetAccessLevel(guild),

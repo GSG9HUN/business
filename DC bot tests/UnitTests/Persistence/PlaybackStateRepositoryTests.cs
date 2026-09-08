@@ -19,6 +19,9 @@ public class PlaybackStateRepositoryTests
         Assert.Equal(100ul, result.GuildId);
         Assert.False(result.IsRepeating);
         Assert.False(result.IsRepeatingList);
+        Assert.False(result.IsPaused);
+        Assert.Equal(0, result.PositionSeconds);
+        Assert.Null(result.PositionUpdatedAtUtc);
         Assert.Null(result.CurrentTrackIdentifier);
     }
 
@@ -88,6 +91,9 @@ public class PlaybackStateRepositoryTests
         var result = await repo.GetOrCreateAsync(600ul);
         Assert.Equal("track-abc", result.CurrentTrackIdentifier);
         Assert.Equal(1, result.QueueItemId);
+        Assert.False(result.IsPaused);
+        Assert.Equal(0, result.PositionSeconds);
+        Assert.NotNull(result.PositionUpdatedAtUtc);
     }
 
     [Fact]
@@ -117,6 +123,41 @@ public class PlaybackStateRepositoryTests
         var result = await repo.GetOrCreateAsync(800ul);
         Assert.Null(result.CurrentTrackIdentifier);
         Assert.Null(result.QueueItemId);
+        Assert.False(result.IsPaused);
+        Assert.Equal(0, result.PositionSeconds);
+        Assert.Null(result.PositionUpdatedAtUtc);
+    }
+
+    [Fact]
+    public async Task SetPlaybackPositionAsync_WhenStateExists_UpdatesPositionFields()
+    {
+        var factory = CreateFactory();
+        var repo = new PlaybackStateRepository(factory);
+
+        await repo.SetCurrentTrackAsync(900ul, "track-abc", 1);
+        await repo.SetPlaybackPositionAsync(900ul, TimeSpan.FromSeconds(37), isPaused: true);
+
+        var result = await repo.GetOrCreateAsync(900ul);
+        Assert.True(result.IsPaused);
+        Assert.Equal(37, result.PositionSeconds);
+        Assert.NotNull(result.PositionUpdatedAtUtc);
+    }
+
+    [Fact]
+    public async Task SetCurrentTrackAsync_WhenStateWasPaused_ResetsPositionFields()
+    {
+        var factory = CreateFactory();
+        var repo = new PlaybackStateRepository(factory);
+
+        await repo.SetCurrentTrackAsync(901ul, "track-first", 1);
+        await repo.SetPlaybackPositionAsync(901ul, TimeSpan.FromSeconds(37), isPaused: true);
+        await repo.SetCurrentTrackAsync(901ul, "track-second", 2);
+
+        var result = await repo.GetOrCreateAsync(901ul);
+        Assert.Equal("track-second", result.CurrentTrackIdentifier);
+        Assert.False(result.IsPaused);
+        Assert.Equal(0, result.PositionSeconds);
+        Assert.NotNull(result.PositionUpdatedAtUtc);
     }
 }
 

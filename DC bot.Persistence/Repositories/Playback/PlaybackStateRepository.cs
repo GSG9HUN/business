@@ -28,6 +28,9 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 GuildId = guildId,
                 IsRepeating = false,
                 IsRepeatingList = false,
+                IsPaused = false,
+                PositionSeconds = 0,
+                PositionUpdatedAtUtc = null,
                 CurrentTrackIdentifier = null,
                 UpdatedAtUtc = now
             };
@@ -50,7 +53,10 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
             state.IsRepeatingList,
             state.CurrentTrackIdentifier,
             state.QueueItemId,
-            state.UpdatedAtUtc);
+            state.UpdatedAtUtc,
+            state.IsPaused,
+            state.PositionSeconds,
+            state.PositionUpdatedAtUtc);
     }
 
     public async Task SetRepeatStateAsync(
@@ -73,6 +79,9 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 GuildId = guildId,
                 IsRepeating = isRepeating,
                 IsRepeatingList = isRepeatingList,
+                IsPaused = false,
+                PositionSeconds = 0,
+                PositionUpdatedAtUtc = null,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
             dbContext.GuildPlaybackStates.Add(state);
@@ -114,6 +123,9 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 GuildId = guildId,
                 IsRepeating = false,
                 IsRepeatingList = false,
+                IsPaused = false,
+                PositionSeconds = 0,
+                PositionUpdatedAtUtc = trackIdentifier is null ? null : DateTimeOffset.UtcNow,
                 CurrentTrackIdentifier = trackIdentifier,
                 QueueItemId = queueItemId,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
@@ -136,6 +148,49 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task SetPlaybackPositionAsync(
+        ulong guildId,
+        TimeSpan position,
+        bool isPaused,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+
+        var state = await dbContext.GuildPlaybackStates
+            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+        if (state is null)
+        {
+            state = new GuildPlaybackStateEntity
+            {
+                GuildId = guildId,
+                IsRepeating = false,
+                IsRepeatingList = false,
+                IsPaused = isPaused,
+                PositionSeconds = ToPositionSeconds(position),
+                PositionUpdatedAtUtc = DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+            dbContext.GuildPlaybackStates.Add(state);
+
+            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
+                dbContext,
+                cancellationToken);
+            if (inserted)
+            {
+                return;
+            }
+
+            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
+        }
+
+        ApplyPlaybackPosition(state, position, isPaused);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     private static void ApplyRepeatState(
         GuildPlaybackStateEntity state,
         bool isRepeating,
@@ -153,6 +208,32 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
     {
         state.CurrentTrackIdentifier = trackIdentifier;
         state.QueueItemId = queueItemId;
+        state.IsPaused = false;
+        state.PositionSeconds = 0;
+        state.PositionUpdatedAtUtc = trackIdentifier is null ? null : DateTimeOffset.UtcNow;
         state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    private static void ApplyPlaybackPosition(
+        GuildPlaybackStateEntity state,
+        TimeSpan position,
+        bool isPaused)
+    {
+        state.IsPaused = isPaused;
+        state.PositionSeconds = ToPositionSeconds(position);
+        state.PositionUpdatedAtUtc = DateTimeOffset.UtcNow;
+        state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    private static int ToPositionSeconds(TimeSpan position)
+    {
+        if (position <= TimeSpan.Zero)
+        {
+            return 0;
+        }
+
+        return position.TotalSeconds >= int.MaxValue
+            ? int.MaxValue
+            : (int)position.TotalSeconds;
     }
 }

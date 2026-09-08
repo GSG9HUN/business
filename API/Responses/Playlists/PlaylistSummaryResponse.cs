@@ -1,6 +1,7 @@
 namespace API.Responses.Playlists;
 
-public sealed class PlaylistSummaryResponse
-{
-    //TODO create properties
-}
+public sealed record PlaylistSummaryResponse(
+    string Id,
+    string Name,
+    int SongCount,
+    int Duration);

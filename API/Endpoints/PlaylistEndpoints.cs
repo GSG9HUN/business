@@ -1,31 +1,32 @@
-﻿namespace API.Endpoints;
+using API.Handlers.Playlists;
+using API.Validation;
+
+namespace API.Endpoints;
 
 public static class PlaylistEndpoints
 {
     public static RouteGroupBuilder MapPlaylistEndpoints(this RouteGroupBuilder group)
     {
-       /* group.MapGet("guilds/{guildId}/playlists",
-            async (ulong guildId, IPlaylistFacade facade, CancellationToken ct) => await facade.ListPlaylistsAsync<PlaylistDetail>(guildId, ct));
-        
-        
-        //Ez még kérdéses
-        /*group.MapPost("guilds/{guildId}/playlists/{playlistName}/load", 
-            async (ulong guildId, IPlaylistFacade facade, CancellationToken ct) => await facade.SavePlaylistAsync<PlaylistDetail>(guildId, playlistName,ct));*/
-      /*  group.MapGet("guilds/{guildId}/playlists/{playlistName}", 
-            async (ulong guildId, string playlistName, IPlaylistFacade facade, CancellationToken ct) => await facade.ViewPlaylistAsync<PlaylistDetail>(guildId, playlistName, ct));
-        group.MapPatch("guilds/{guildId}/playlists/{playlistName}/rename",
-            async (ulong guildId, string playlistName, string newName, IPlaylistFacade facade, CancellationToken ct) => await facade.RenamePlaylistAsync<PlaylistDetail>(guildId, playlistName, newName, ct));
-        group.MapDelete("guilds/{guildId}/playlists/{playlistName}", 
-            async (ulong guildId, string playlistName, IPlaylistFacade facade, CancellationToken ct) => await facade.DeletePlaylistAsync<PlaylistDetail>(guildId, playlistName, ct));
-        group.MapPost("guilds/{guildId}/playlists/{playlistName}/tracks",
-            async (ulong guildId, string playlistName, string songUrl, IPlaylistFacade facade, CancellationToken ct) => await facade.AddSongToPlaylistAsync<PlaylistDetail>(guildId, playlistName, songUrl, ct));
-        group.MapDelete("guilds/{guildId}/playlists/{playlistName}/tracks/{trackNumber}", 
-            async (ulong guildId, string playlistName, int trackNumber, IPlaylistFacade facade, CancellationToken ct) => await facade.RemoveSongFromPlaylistAsync<PlaylistDetail>(guildId, playlistName, trackNumber, ct));
-        group.MapPost("guilds/{guildId}/playlists/{playlistName}", 
-            async (ulong guildId, string playlistName, IPlaylistFacade facade, CancellationToken ct) => await facade.CreatePlaylistAsync<PlaylistDetail>(guildId, playlistName, ct));
-        group.MapPost("guilds/{guildId}/playlists/{playlistName}/load", 
-            async (ulong guildId, string playlistName, IPlaylistFacade facade, CancellationToken ct) => await facade.LoadPlaylistAsync<PlaylistDetail>(guildId, playlistName, ct));
-        */
+        var guildPlaylists = group
+            .MapGroup("/guilds/{guildId}/playlists")
+            .RequireAuthorization()
+            .AddEndpointFilter<GuildIdValidationFilter>();
+
+        guildPlaylists.MapGet("", PlaylistHandlers.ListAsync);
+        guildPlaylists.MapPost("", PlaylistHandlers.CreateAsync);
+        guildPlaylists.MapPost("/import", PlaylistHandlers.ImportAsync);
+
+        var playlists = group
+            .MapGroup("/playlists")
+            .RequireAuthorization();
+
+        playlists.MapGet("/{playlistId:long}", PlaylistHandlers.GetAsync);
+        playlists.MapPatch("/{playlistId:long}/rename", PlaylistHandlers.RenameAsync);
+        playlists.MapDelete("/{playlistId:long}", PlaylistHandlers.DeleteAsync);
+        playlists.MapPost("/{playlistId:long}/load", PlaylistHandlers.LoadAsync);
+        playlists.MapPost("/{playlistId:long}/tracks", PlaylistHandlers.AddTrackAsync);
+        playlists.MapDelete("/{playlistId:long}/tracks/{trackNumber:int}", PlaylistHandlers.RemoveTrackAsync);
+
         return group;
     }
 }

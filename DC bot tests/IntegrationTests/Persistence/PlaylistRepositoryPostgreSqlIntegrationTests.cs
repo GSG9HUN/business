@@ -74,6 +74,43 @@ public class PlaylistRepositoryPostgreSqlIntegrationTests
     }
 
     [Fact]
+    public async Task PlaylistTrackRepository_GetByPlaylistIdsOrdered_ReturnsRequestedPlaylistTracks()
+    {
+        var database = await PostgreSqlTestDatabase.TryCreateAsync();
+        if (database is null) return;
+        await using var _ = database;
+        await database.MigrateAsync();
+        await using var services = database.CreateServiceProvider();
+        var factory = services.GetRequiredService<IDbContextFactory<BotDbContext>>();
+        var playlistRepository = new PlaylistRepository(factory);
+        var trackRepository = new PlaylistTrackRepository(factory);
+        var firstPlaylistId = await playlistRepository.CreatePlaylistAsync(126ul, "first");
+        var secondPlaylistId = await playlistRepository.CreatePlaylistAsync(126ul, "second");
+        var otherPlaylistId = await playlistRepository.CreatePlaylistAsync(999ul, "other");
+        await trackRepository.AddRangeAsync(firstPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "first-a", "https://example.com/first-a"),
+            new PlaylistTrackCreateRecord("YouTube", "first-b", "https://example.com/first-b")
+        ]);
+        await trackRepository.AddRangeAsync(secondPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "second-a", "https://example.com/second-a")
+        ]);
+        await trackRepository.AddRangeAsync(otherPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "other-a", "https://example.com/other-a")
+        ]);
+
+        var tracks = await trackRepository.GetByPlaylistIdsOrderedAsync([secondPlaylistId, firstPlaylistId]);
+
+        Assert.Equal(
+            [firstPlaylistId, firstPlaylistId, secondPlaylistId],
+            tracks.Select(track => track.PlaylistId));
+        Assert.Equal(["first-a", "first-b", "second-a"], tracks.Select(track => track.TrackIdentifier));
+        Assert.DoesNotContain(tracks, track => track.PlaylistId == otherPlaylistId);
+    }
+
+    [Fact]
     public async Task PlaylistRepository_CreateDuplicateNameInSameGuild_ThrowsUniqueConstraintConflictException()
     {
         var database = await PostgreSqlTestDatabase.TryCreateAsync();

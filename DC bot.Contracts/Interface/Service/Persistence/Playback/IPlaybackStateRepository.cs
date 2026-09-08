@@ -17,4 +17,10 @@ public interface IPlaybackStateRepository
         string? trackIdentifier, 
         long? queueItemId, 
         CancellationToken cancellationToken = default);
+
+    Task SetPlaybackPositionAsync(
+        ulong guildId,
+        TimeSpan position,
+        bool isPaused,
+        CancellationToken cancellationToken = default);
 }

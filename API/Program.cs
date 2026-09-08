@@ -81,6 +81,7 @@ api.MapGuildEndpoints()
     .MapAuthEndpoints()
     .MapPlayerEndpoints()
     .MapPlaybackEndpoints()
+    .MapCommandEndpoints()
     .MapPlaylistEndpoints()
     .MapStatusEndpoints()
     .MapQueueEndpoints();
