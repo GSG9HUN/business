@@ -33,16 +33,23 @@ public static class PlaylistHandlers
         }
 
         var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken);
+        var playlistIds = playlists.Select(playlist => playlist.Id).ToList();
+        var tracksByPlaylistId = (await playlistTrackRepository.GetByPlaylistIdsOrderedAsync(
+                playlistIds,
+                cancellationToken))
+            .GroupBy(track => track.PlaylistId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
         var response = new List<PlaylistSummaryResponse>(playlists.Count);
 
         foreach (var playlist in playlists)
         {
-            var tracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id, cancellationToken);
+            tracksByPlaylistId.TryGetValue(playlist.Id, out var tracks);
             response.Add(new PlaylistSummaryResponse(
                 playlist.Id.ToString(),
                 playlist.Name,
                 playlist.TrackCount,
-                TrackResponseMapper.SumDurations(tracks)));
+                TrackResponseMapper.SumDurations(tracks ?? [])));
         }
 
         return HttpResults.Ok(response);

@@ -54,6 +54,38 @@ public class PlaylistTrackRepositoryTests
     }
 
     [Fact]
+    public async Task GetByPlaylistIdsOrderedAsync_ReturnsTracksForRequestedPlaylistsOnly()
+    {
+        var factory = CreateFactory();
+        var playlistRepository = new PlaylistRepository(factory);
+        var firstPlaylistId = await playlistRepository.CreatePlaylistAsync(GuildId, "first");
+        var secondPlaylistId = await playlistRepository.CreatePlaylistAsync(GuildId, "second");
+        var otherPlaylistId = await playlistRepository.CreatePlaylistAsync(999ul, "other");
+        var repository = new PlaylistTrackRepository(factory);
+        await repository.AddRangeAsync(firstPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "first-a", "https://example.com/first-a"),
+            new PlaylistTrackCreateRecord("YouTube", "first-b", "https://example.com/first-b")
+        ]);
+        await repository.AddRangeAsync(secondPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "second-a", "https://example.com/second-a")
+        ]);
+        await repository.AddRangeAsync(otherPlaylistId,
+        [
+            new PlaylistTrackCreateRecord("YouTube", "other-a", "https://example.com/other-a")
+        ]);
+
+        var tracks = await repository.GetByPlaylistIdsOrderedAsync([secondPlaylistId, firstPlaylistId]);
+
+        Assert.Equal(
+            [firstPlaylistId, firstPlaylistId, secondPlaylistId],
+            tracks.Select(track => track.PlaylistId));
+        Assert.Equal(["first-a", "first-b", "second-a"], tracks.Select(track => track.TrackIdentifier));
+        Assert.DoesNotContain(tracks, track => track.PlaylistId == otherPlaylistId);
+    }
+
+    [Fact]
     public async Task RemoveTrackAsync_RemovesTrackAndCompactsOrderNumbers()
     {
         var factory = CreateFactory();

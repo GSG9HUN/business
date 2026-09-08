@@ -126,13 +126,16 @@ public static class QueueHandlers
     private static QueueResponse MapQueue(ulong guildId, IReadOnlyList<QueueItemRecord> queueItems)
     {
         var tracks = new List<QueueTrackResponse>(queueItems.Count);
-        for (var index = 0; index < queueItems.Count; index++)
+        var position = 1;
+        foreach (var item in queueItems)
         {
-            var mappedTrack = TrackResponseMapper.TryMapQueueTrack(queueItems[index].TrackIdentifier, index + 1);
-            if (mappedTrack is not null)
+            var mappedTrack = TrackResponseMapper.TryMapQueueTrack(item.TrackIdentifier, position);
+            if (mappedTrack is null)
             {
-                tracks.Add(mappedTrack);
+               continue;
             }
+            tracks.Add(mappedTrack);
+            position++;
         }
 
         return new QueueResponse(guildId.ToString(), tracks.Count, tracks);
