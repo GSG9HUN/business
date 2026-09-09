@@ -21,15 +21,4 @@ public static class DomainToHttpMapper
                 ApiErrorCode.DbUnavailable => HttpResults.Problem(result.ErrorMessage, statusCode: 503),
                 _ => HttpResults.Problem(result.ErrorMessage ?? "Unknown error")
             };
-
-    public static ApiResult<TDto> MapPlaylistResult<TDomain, TDto>(ApiResult<TDomain> result, Func<TDomain, TDto> mapFunc)
-    {
-        if (result.Success)
-        {
-            var dto = mapFunc(result.Value!);
-            return ApiResult<TDto>.Ok(dto);
-        }
-
-        return ApiResult<TDto>.Fail(result.ErrorCode!.Value, result.ErrorMessage!);
-    }
 }

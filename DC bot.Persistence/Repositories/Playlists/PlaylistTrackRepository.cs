@@ -27,6 +27,29 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
         return entities.Select(MapToRecord).ToList();
     }
 
+    public async Task<IReadOnlyList<PlaylistTrackRecord>> GetByPlaylistIdsOrderedAsync(
+        IReadOnlyCollection<long> playlistIds,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(playlistIds);
+        if (playlistIds.Count == 0)
+        {
+            return [];
+        }
+
+        var distinctPlaylistIds = playlistIds.Distinct().ToList();
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var entities = await dbContext.PlaylistTracks
+            .AsNoTracking()
+            .Where(track => distinctPlaylistIds.Contains(track.PlaylistId))
+            .OrderBy(track => track.PlaylistId)
+            .ThenBy(track => track.OrderNumber)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(MapToRecord).ToList();
+    }
+
     public async Task AddRangeAsync(
         long playlistId,
         IReadOnlyCollection<PlaylistTrackCreateRecord> tracks,

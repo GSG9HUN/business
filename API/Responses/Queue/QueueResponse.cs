@@ -1,3 +1,3 @@
 namespace API.Responses.Queue;
 
-public sealed record QueueResponse(ulong GuildId, int TrackCount, IReadOnlyList<QueueTrackResponse> Tracks);
+public sealed record QueueResponse(string GuildId, int TrackCount, IReadOnlyList<QueueTrackResponse> Tracks);

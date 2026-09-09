@@ -28,6 +28,19 @@ public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPla
             .HasDefaultValue(false)
             .IsRequired();
 
+        builder.Property(entity => entity.IsPaused)
+            .HasColumnName("is_paused")
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(entity => entity.PositionSeconds)
+            .HasColumnName("position_seconds")
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(entity => entity.PositionUpdatedAtUtc)
+            .HasColumnName("position_updated_at_utc");
+
         builder.Property(entity => entity.CurrentTrackIdentifier)
             .HasColumnName("current_track_identifier");
 

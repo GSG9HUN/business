@@ -1,6 +1,6 @@
+using API.Mapping;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.MobileApps;
-using static Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers.Playback;
 
@@ -15,16 +15,14 @@ public static class PlaybackHandlers
         var guildId = (ulong)httpContext.Items["guildId"]!;
         var commandName = (string)httpContext.Items["commandName"]!;
 
-        var userIdValue = httpContext.User.FindFirst("sub")?.Value;
-        if (!ulong.TryParse(userIdValue, out var userId) || userId == 0)
+        var (userId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+            httpContext,
+            userRepository,
+            guildId,
+            ct);
+        if (accessError is not null)
         {
-            return Unauthorized();
-        }
-        
-        var hasAccess = await userRepository.HasGuildAccessAsync(userId, guildId, ct);
-        if (!hasAccess)
-        {
-            return Forbid();
+            return accessError;
         }
         
         var command = await repository.EnqueueAsync(
@@ -33,10 +31,6 @@ public static class PlaybackHandlers
             commandName,
             ct);
 
-        return Accepted($"/api/commands/{command.CommandId}", new
-        {
-            command.CommandId,
-            command.State
-        });
+        return BotControlCommandHttpMapper.ToAccepted(command);
     }
 }

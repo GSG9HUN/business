@@ -8,6 +8,10 @@ public interface IPlaylistTrackRepository
         long playlistId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<PlaylistTrackRecord>> GetByPlaylistIdsOrderedAsync(
+        IReadOnlyCollection<long> playlistIds,
+        CancellationToken cancellationToken = default);
+
     Task AddRangeAsync(
         long playlistId,
         IReadOnlyCollection<PlaylistTrackCreateRecord> tracks,

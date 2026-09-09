@@ -6,4 +6,7 @@ public record PlaybackStateRecord(
     bool IsRepeatingList,
     string? CurrentTrackIdentifier,
     long? QueueItemId, 
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    bool IsPaused = false,
+    int PositionSeconds = 0,
+    DateTimeOffset? PositionUpdatedAtUtc = null);

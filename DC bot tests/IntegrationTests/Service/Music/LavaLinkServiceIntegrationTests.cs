@@ -392,6 +392,30 @@ public class LavaLinkServiceIntegrationTests
             {
                 CurrentTrackIdentifier = trackIdentifier,
                 QueueItemId = queueItemId,
+                IsPaused = false,
+                PositionSeconds = 0,
+                PositionUpdatedAtUtc = trackIdentifier is null ? null : DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+
+            return Task.CompletedTask;
+        }
+
+        public Task SetPlaybackPositionAsync(ulong guildId, TimeSpan position, bool isPaused, CancellationToken cancellationToken = default)
+        {
+            var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
+                guildId,
+                false,
+                false,
+                null,
+                null,
+                DateTimeOffset.UtcNow));
+
+            _states[guildId] = state with
+            {
+                IsPaused = isPaused,
+                PositionSeconds = position <= TimeSpan.Zero ? 0 : (int)position.TotalSeconds,
+                PositionUpdatedAtUtc = DateTimeOffset.UtcNow,
                 UpdatedAtUtc = DateTimeOffset.UtcNow
             };
 
