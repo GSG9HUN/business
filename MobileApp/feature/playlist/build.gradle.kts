@@ -74,9 +74,9 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 implementation(project(":core:common"))
-                implementation(project(":core:ui"))
-                implementation(project(":core:auth"))
-                implementation(project(":core:network"))
+                implementation(project(":core:common-ui"))
+                implementation(project(":core:domain"))
+                implementation(project(":core:model"))
 
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)
@@ -93,10 +93,6 @@ kotlin {
                 implementation(libs.koin.compose)
                 implementation(libs.koin.compose.viewmodel)
                 implementation(libs.kotlinx.serialization.json)
-
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.content.negotiation)
-                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
 
@@ -126,7 +122,7 @@ kotlin {
             dependencies {
                 // Add iOS-specific dependencies here. This a source set created by Kotlin Gradle
                 // Plugin (KGP) that each specific iOS target (e.g., iosX64) depends on as
-                // part of KMP’s default source set hierarchy. Note that this source set depends
+                // part of KMPâ€™s default source set hierarchy. Note that this source set depends
                 // on common by default and will correctly pull the iOS artifacts of any
                 // KMP dependencies declared in commonMain.
             }

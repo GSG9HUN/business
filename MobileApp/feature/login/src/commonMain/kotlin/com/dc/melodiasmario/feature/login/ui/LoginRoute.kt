@@ -6,7 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.dc.melodiasmario.core.auth.platform.ExternalUrlOpener
+import com.dc.melodiasmario.core.domain.auth.platform.ExternalUrlOpener
 import com.dc.melodiasmario.feature.login.presentation.LoginEffect
 import com.dc.melodiasmario.feature.login.presentation.LoginEvent
 import com.dc.melodiasmario.feature.login.presentation.LoginViewModel

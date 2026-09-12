@@ -1,8 +1,6 @@
 package com.dc.melodiasmario.shared.di
 
-import com.dc.melodiasmario.core.auth.di.AuthModule
-import com.dc.melodiasmario.core.network.di.NetworkModule
-import com.dc.melodiasmario.core.settings.di.SettingsModule as CoreSettingsModule
+import com.dc.melodiasmario.core.di.CoreModule
 import com.dc.melodiasmario.feature.currentmusic.di.CurrentMusicModule
 import com.dc.melodiasmario.feature.guild.di.GuildModule
 import com.dc.melodiasmario.feature.login.di.LoginModule
@@ -17,8 +15,7 @@ import org.koin.core.annotation.Module
 
 @Module(
     includes = [
-        NetworkModule::class,
-        AuthModule::class,
+        CoreModule::class,
         PlaylistSongModule::class,
         CurrentMusicModule::class,
         LoginModule::class,
@@ -28,7 +25,7 @@ import org.koin.core.annotation.Module
         QueueModule::class,
         RemoveSongModule::class,
         SettingsModule::class,
-        CoreSettingsModule::class,
+        
     ],
 )
 @ComponentScan("com.dc.melodiasmario.shared")

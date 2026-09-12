@@ -1,0 +1,644 @@
+﻿<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DC Bot Android/KMP kezelő alkalmazás terv</title>
+<style>
+:root{
+  --bg:#f7f8fb;
+  --panel:#ffffff;
+  --ink:#182033;
+  --muted:#627084;
+  --line:#d9e1ec;
+  --soft:#eef5ff;
+  --soft2:#f0fdf6;
+  --warn:#fff7ed;
+  --bad:#fef2f2;
+  --blue:#155eef;
+  --green:#0f766e;
+  --amber:#b45309;
+  --red:#b91c1c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Segoe UI,Arial,sans-serif;line-height:1.5}
+header{background:#fff;border-bottom:1px solid var(--line);padding:28px 34px 20px}
+h1{margin:0 0 8px;font-size:29px;letter-spacing:0}
+h2{font-size:21px;margin:0 0 10px}
+h3{font-size:16px;margin:0 0 8px}
+p{margin:0 0 8px}
+header p,.muted{color:var(--muted)}
+main{padding:24px 34px 44px}
+section{margin:22px 0}
+.grid{display:grid;gap:14px}
+.two{grid-template-columns:1fr 1fr}
+.three{grid-template-columns:repeat(3,1fr)}
+.four{grid-template-columns:repeat(4,1fr)}
+.card,.metric{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.metric b{display:block;color:var(--blue);font-size:24px}
+.metric span{display:block;color:var(--muted);font-size:13px}
+.notice{border:1px solid var(--line);border-left:4px solid var(--blue);background:var(--soft);border-radius:8px;padding:13px 14px}
+.notice.ok{border-left-color:var(--green);background:var(--soft2)}
+.notice.warn{border-left-color:var(--amber);background:var(--warn)}
+.notice.bad{border-left-color:var(--red);background:var(--bad)}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+th{background:#f1f5f9;color:#111827}
+tr:last-child td{border-bottom:0}
+code{background:#eef2f7;border:1px solid #dde5ef;border-radius:4px;padding:1px 5px}
+pre{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:13px;line-height:1.45}
+ul{margin:8px 0 0 18px;padding:0}
+li{margin:4px 0}
+.tag{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700;background:#e2e8f0;color:#334155}
+.tag.ok{background:#dcfce7;color:#166534}
+.tag.warn{background:#fef3c7;color:#92400e}
+.tag.bad{background:#fee2e2;color:#991b1b}
+.tag.blue{background:#dbeafe;color:#1d4ed8}
+.flow{display:grid;grid-template-columns:repeat(6,minmax(125px,1fr));gap:10px}
+.step{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px;min-height:104px}
+.step b{display:block;margin-bottom:5px}
+.screen{display:flex;gap:10px;align-items:flex-start}
+.screen .num{min-width:28px;height:28px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:700}
+a{color:#155eef;text-decoration:none}
+a:hover{text-decoration:underline}
+@media(max-width:1100px){.two,.three,.four,.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>DC Bot Android/KMP kezelő alkalmazás terv</h1>
+<p>Frissítve: 2026-07-27. Cél: mobil alkalmazásból kezelni azt a Discord botot, amely ugyanazon a Discord szerveren van, mint a bejelentkezett felhasználó, úgy hogy a bot meglévő music, queue, playlist és utility funkciói biztonságosan elérhetők legyenek.</p>
+</header>
+<main>
+
+<section class="grid four">
+<div class="metric"><b>Igen</b><span>Lehetséges mobil appból kezelni a botot</span></div>
+<div class="metric"><b>KMP</b><span>Javasolt, ha iOS is cél</span></div>
+<div class="metric"><b>API kell</b><span>Ne a mobil app beszéljen közvetlenül Discord/Lavalink felé</span></div>
+<div class="metric"><b>Guild metszet</b><span>User guildök ∩ bot guildök = kezelhető szerverek</span></div>
+</section>
+
+<section class="notice ok">
+<strong>Rövid döntés:</strong> érdemes KMP-s alkalmazásban gondolkodni, ha Android mellett később iOS-t is fejlesztenél. Az első verzió legyen Android-first Compose UI-val, de a domain modellek, API kliens, auth/session logika és állapotkezelés menjen a shared KMP modulba. A botot ne Discord slash command self-invocationnel kezeld, hanem egy saját backend API-n keresztül.
+</section>
+
+<section class="notice warn">
+<strong>Fontos Discord-korlát:</strong> publikus OAuth2-vel nem tudod megbízhatóan lekérdezni, hogy a user Discord kliensében éppen melyik szerver van megnyitva. A biztonságos modell az, hogy a mobil app listázza azokat a szervereket, ahol a user is tag és a bot is bent van, majd a user kiválasztja az aktív szervert. Opcionálisan ellenőrizhető, hogy a user éppen melyik voice channelben van azon a guilden, ha a bot gateway/cache oldalon látja ezt.
+</section>
+
+<section>
+<h2>Miért nem elég a meglévő command rendszer?</h2>
+<div class="grid two">
+<div class="card">
+<h3>Jelenlegi bot működés</h3>
+<ul>
+<li>Discord text commandok: <code>!play</code>, <code>!pause</code>, <code>!savePlaylist</code>.</li>
+<li>Slash adapterek: <code>/play</code>, <code>/queue</code>, <code>/playlist ...</code>.</li>
+<li>A commandok <code>IDiscordMessage</code>, <code>IDiscordMember</code>, guild/channel wrapper és localized Discord response köré épülnek.</li>
+<li>Ez jó Discordon belüli használatra, de mobil API contractnak túl Discord-specifikus.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Mobilhoz kell egy API boundary</h3>
+<ul>
+<li>Az app HTTP/WebSocket API-t hívjon, ne DSharpPlus objektumokat.</li>
+<li>A backend validálja a Discord usert és a guild jogosultságot.</li>
+<li>Az API strukturált DTO-kat adjon vissza: queue itemek, current track, playlist listák, error code-ok.</li>
+<li>A meglévő service-ek elé érdemes application facade réteget tenni.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Ajánlott teljes architektúra</h2>
+<div class="flow">
+<div class="step"><b>KMP App</b><span class="muted">Android/iOS UI, session, cache, API kliens.</span></div>
+<div class="step"><b>Discord OAuth2</b><span class="muted">identify + guilds scope, PKCE/state védelemmel.</span></div>
+<div class="step"><b>Bot Control API</b><span class="muted">ASP.NET Core endpointok mobilhoz.</span></div>
+<div class="step"><b>Access Service</b><span class="muted">User guildök és bot guildök metszete, role/permission check.</span></div>
+<div class="step"><b>Application Services</b><span class="muted">Playback, queue, playlist use-case facade.</span></div>
+<div class="step"><b>Existing Bot Core</b><span class="muted">Lavalink, repositories, current services.</span></div>
+</div>
+</section>
+
+<section>
+<h2>Guild kezelés: honnan tudjuk, melyik szerveren kezelhet a user?</h2>
+<table>
+<thead><tr><th>Lépés</th><th>Forrás</th><th>Mit ad?</th><th>Döntés</th></tr></thead>
+<tbody>
+<tr>
+<td>1. User login</td>
+<td>Discord OAuth2 <code>identify</code> + <code>guilds</code></td>
+<td>User ID, username/avatar, user guild list basic adatokkal.</td>
+<td>A mobil app saját sessiont kap a backendtől.</td>
+</tr>
+<tr>
+<td>2. Bot guild lista</td>
+<td>Bot runtime cache / Discord gateway / saját DB <code>guild_data</code></td>
+<td>Mely szervereken van bent a bot.</td>
+<td>A backend kezeli, nem a mobil kliens.</td>
+</tr>
+<tr>
+<td>3. Metszet</td>
+<td><code>userGuilds ∩ botGuilds</code></td>
+<td>Csak azok a szerverek, ahol user és bot is jelen van.</td>
+<td>Ez lesz a mobil guild picker listája.</td>
+</tr>
+<tr>
+<td>4. Jogosultság</td>
+<td>User permissions bitset, bot-config DJ role, allowlist, admin flag</td>
+<td>Mit tehet a user: read-only, playback control, playlist edit, admin.</td>
+<td>Endpointonként ellenőrizni kell.</td>
+</tr>
+<tr>
+<td>5. Aktív guild</td>
+<td>User választása az appban</td>
+<td>Az app contextje: <code>activeGuildId</code>.</td>
+<td>Minden command/API call ezzel fut.</td>
+</tr>
+<tr>
+<td>6. Voice-state check</td>
+<td>Bot gateway/cache, ha elérhető</td>
+<td>User éppen melyik voice channelben van.</td>
+<td>Playback parancsoknál opcionális vagy kötelező guard.</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section class="notice bad">
+<strong>Ne erre építs:</strong> ne próbáld a mobil appból a Discord kliens aktuálisan megnyitott szerverét olvasni. A publikus Discord OAuth2 <code>guilds</code> scope alap guild listát ad, nem live kliens UI state-et. A Discord RPC/voice jellegű scope-ok több esetben partner/jóváhagyás kötelesek, ezért erre nem érdemes MVP-t tervezni.
+</section>
+
+<section>
+<h2>KMP vs csak Android</h2>
+<table>
+<thead><tr><th>Opció</th><th>Mikor jó?</th><th>Előny</th><th>Hátrány</th><th>Javaslat</th></tr></thead>
+<tbody>
+<tr>
+<td>Natív Android, Kotlin + Compose</td>
+<td>Ha biztosan csak Android kell.</td>
+<td>Leggyorsabb indulás, kevesebb tooling komplexitás.</td>
+<td>iOS esetén később új SwiftUI kliens vagy KMP migráció kell.</td>
+<td><span class="tag warn">Csak Android MVP-hez</span></td>
+</tr>
+<tr>
+<td>KMP shared logic + Android Compose + iOS SwiftUI</td>
+<td>Ha iOS később reális cél, de natív iOS UI-t akarsz.</td>
+<td>API, auth, DTO, cache, state gép megosztott; UI natív marad.</td>
+<td>Két UI codebase.</td>
+<td><span class="tag ok">Legkonzervatívabb cross-platform út</span></td>
+</tr>
+<tr>
+<td>KMP + Compose Multiplatform shared UI</td>
+<td>Ha Android és iOS UI-t is egyben akarod fejleszteni.</td>
+<td>Nagy kódmegosztás, egy UI architektúra.</td>
+<td>iOS platform integrációknál több figyelem kell.</td>
+<td><span class="tag blue">Jó, ha kicsi/egycsapatos app lesz</span></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Javasolt Gradle modul architektúra</h2>
+<p class="muted">A cél nem egy nagy <code>:shared</code> modul belső package rendezése, hanem valódi KMP Gradle modulokra bontás. A <code>:shared</code> maradjon app shell: root Compose app, Nav3 host, app-szintű DI összerakás. A feature modulok adják a screeneket és a saját vertical slice-aikat.</p>
+<table>
+<thead><tr><th>Modul</th><th>Tartalom</th><th>Függhet erre</th><th>Megjegyzés</th></tr></thead>
+<tbody>
+<tr><td><code>:androidApp</code></td><td><code>MainActivity</code>, Android manifest, Android deeplink entrypoint, platform bootstrap.</td><td><code>:shared</code></td><td>Android-only host. Nem tartalmaz feature logikát.</td></tr>
+<tr><td><code>:iosApp</code></td><td>iOS host, URL scheme/deeplink entrypoint, platform bootstrap.</td><td><code>:shared</code></td><td>Későbbi iOS targethez.</td></tr>
+<tr><td><code>:shared</code></td><td><code>MelodiasMarioApp</code>, Nav3 <code>Navigation</code>, <code>AppRoute</code>, app-level DI composition.</td><td><code>:feature:*</code>, <code>:core:ui</code>, <code>:core:auth</code></td><td>App shell. Ismerheti az összes feature-t, ezért nem tiszta core modul.</td></tr>
+<tr><td><code>:core:common</code></td><td><code>Resource</code>, közös result/error modellek, nagyon általános helper-ek.</td><td>-</td><td>Nem tartalmaz UI-t, Ktor-t, feature modelleket.</td></tr>
+<tr><td><code>:core:ui</code></td><td>Theme, <code>Avatar</code>, <code>Header</code>, <code>MText</code>, <code>SearchBar</code>, <code>RefreshButton</code>, közös Compose komponensek.</td><td><code>:core:common</code></td><td>Feature-független UI építőelemek.</td></tr>
+<tr><td><code>:core:network</code></td><td>Ktor <code>HttpClient</code>, network config, base API kliens infrastruktúra, JSON config.</td><td><code>:core:common</code></td><td>Endpoint-specifikus DTO-k csak akkor kerüljenek ide, ha tényleg közösek.</td></tr>
+<tr><td><code>:core:auth</code></td><td><code>AuthSession</code>, <code>SecureAuthSessionStorage</code>, auth DTO-k, auth repository/data/usecase, <code>AuthorizedSessionProvider</code>, deeplink dispatcher.</td><td><code>:core:common</code>, <code>:core:network</code></td><td>Login UI nem ide tartozik. Az expect/actual secure storage kifejtése modularizáció után fejezhető be.</td></tr>
+<tr><td><code>:feature:login</code></td><td><code>LoginRoute</code>, <code>LoginScreen</code>, <code>LoginViewModel</code>, login UiState/Event/Effect, login komponensek.</td><td><code>:core:auth</code>, <code>:core:ui</code>, <code>:core:common</code></td><td>Csak login UI/presentation. Nem birtokolja az auth session infrastruktúrát.</td></tr>
+<tr><td><code>:feature:guild</code></td><td>Guild selector UI/presentation/domain/data: <code>Guild</code>, <code>GuildDto</code>, repository, remote datasource, <code>GetGuildUseCase</code>.</td><td><code>:core:auth</code>, <code>:core:network</code>, <code>:core:ui</code>, <code>:core:common</code></td><td>Jó első feature modul, mert teljes vertical slice.</td></tr>
+<tr><td><code>:feature:playlists</code></td><td>Playlists és PlaylistSongs screenek, ViewModelek, későbbi playlist domain/data.</td><td><code>:core:auth</code>, <code>:core:network</code>, <code>:core:ui</code>, <code>:core:common</code></td><td>Guild ID typed route paraméterrel érkezik.</td></tr>
+<tr><td><code>:feature:profile</code></td><td>Profile screen, ViewModel, későbbi profile domain/data.</td><td><code>:core:auth</code>, <code>:core:network</code>, <code>:core:ui</code>, <code>:core:common</code></td><td>Profile ID typed route paraméterrel érkezik.</td></tr>
+<tr><td><code>:feature:musiccontrol</code></td><td>Queue, CurrentMusic, AddSong, RemoveSong screenek és ViewModelek.</td><td><code>:core:auth</code>, <code>:core:network</code>, <code>:core:ui</code>, <code>:core:common</code></td><td>Most egyben tartható, mert a részscreenek még vékonyak.</td></tr>
+<tr><td><code>:feature:settings</code></td><td>Settings screen és ViewModel.</td><td><code>:core:ui</code>, <code>:core:common</code></td><td>Csak akkor kapjon auth/network dependency-t, ha valós API igénye lesz.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Modul dependency irány</h2>
+<pre><code>androidApp
+  -> shared
+
+iosApp
+  -> shared
+
+shared
+  -> feature:login
+  -> feature:guild
+  -> feature:profile
+  -> feature:playlists
+  -> feature:musiccontrol
+  -> feature:settings
+  -> core:ui
+  -> core:auth
+
+feature:*
+  -> core:common
+  -> core:ui
+  -> core:auth       // ha authorized API vagy session kell
+  -> core:network    // ha saját data/remote rétege van
+
+core:auth
+  -> core:common
+  -> core:network
+
+core:network
+  -> core:common
+
+core:ui
+  -> core:common
+
+core:common
+  -> no app/feature dependency</code></pre>
+<div class="notice warn">
+<strong>Szabály:</strong> <code>core</code> modul soha nem függhet <code>feature</code> modultól. A <code>:shared</code> app shell függhet feature moduloktól, mert ő rakja össze a root navigationt és az app-szintű kompozíciót.
+</div>
+</section>
+
+<section>
+<h2>Javasolt modularizációs sorrend</h2>
+<ol>
+<li><code>:core:common</code> létrehozása, <code>Resource</code> és közös primitive-ek áthelyezése.</li>
+<li><code>:core:ui</code> létrehozása, theme és reusable Compose komponensek áthelyezése.</li>
+<li><code>:feature:guild</code> kivágása első vertical slice-ként: UI, presentation, domain, data.</li>
+<li><code>:core:auth</code> kialakítása, majd auth session expect/actual storage befejezése.</li>
+<li><code>:feature:login</code> kivágása, de az auth session infrastruktúra maradjon <code>:core:auth</code> alatt.</li>
+<li><code>:core:network</code> stabilizálása, ApiService vagy endpoint kliensek végleges határainak kijelölése.</li>
+<li>Vékony feature-ek kivágása: <code>:feature:profile</code>, <code>:feature:playlists</code>, <code>:feature:musiccontrol</code>, <code>:feature:settings</code>.</li>
+</ol>
+</section>
+<section>
+<h2>Activity, Fragment vagy Compose Navigation?</h2>
+<div class="grid three">
+<div class="card">
+<h3>Android-only Compose</h3>
+<p><span class="tag ok">Ajánlott</span></p>
+<ul>
+<li>Egy <code>MainActivity</code>.</li>
+<li>Nincs klasszikus Fragment, ha nincs meglévő XML/navigation örökség.</li>
+<li>Compose Navigation: Auth, GuildPicker, Dashboard, Queue, Playlists, Settings.</li>
+</ul>
+</div>
+<div class="card">
+<h3>KMP + Compose Multiplatform</h3>
+<p><span class="tag ok">Ajánlott, ha iOS UI is shared</span></p>
+<ul>
+<li>Androidon egy Activity hostolja a shared <code>App()</code> composable-t.</li>
+<li>iOS-en SwiftUI/UIViewController hostolja ugyanazt.</li>
+<li>Navigáció shared szinten tartható.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Fragmentek</h3>
+<p><span class="tag warn">Csak ha kell</span></p>
+<ul>
+<li>Legacy Android appba integrálásnál hasznos.</li>
+<li>Új appnál felesleges réteg.</li>
+<li>KMP/iOS út mellett nem ideális közös absztrakció.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Képernyőterv</h2>
+<div class="grid two">
+<div class="card screen">
+<div class="num">1</div>
+<div>
+<h3>LoginScreen</h3>
+<p>Discord login, session restore, OAuth error handling.</p>
+<ul><li>Gomb: Discorddal belépés.</li><li>Állapot: loading, login failed, offline cached session.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">2</div>
+<div>
+<h3>GuildPickerScreen</h3>
+<p>Csak a kezelhető szervereket mutatja: user és bot is tag, plusz permission szint.</p>
+<ul><li>Guild card: név, ikon, bot állapot, user role badge.</li><li>Szűrés: kezelhető / read-only / nincs jogosultság.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">3</div>
+<div>
+<h3>NowPlayingScreen</h3>
+<p>Aktuális lejátszás és alap vezérlés.</p>
+<ul><li>Track cím, author, idő, progress.</li><li>Play/pause/resume/skip/leave.</li><li>Repeat track/list toggle.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">4</div>
+<div>
+<h3>QueueScreen</h3>
+<p>Queue megtekintés és vezérlés.</p>
+<ul><li>Lista, reorder drag and drop, remove item.</li><li>Shuffle, clear confirm dialog.</li><li>Queue count, total duration.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">5</div>
+<div>
+<h3>PlayRequestScreen</h3>
+<p>URL vagy keresés indítása.</p>
+<ul><li>Input: URL/query.</li><li>Search mode választás opcionális.</li><li>Result: now playing vagy queued.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">6</div>
+<div>
+<h3>PlaylistsScreen</h3>
+<p>Mentett playlistek kezelése.</p>
+<ul><li>Create, list, rename, delete confirm.</li><li>Save playlist URL, add-song.</li><li>View playlist tracks, remove-song.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">7</div>
+<div>
+<h3>GuildSettingsScreen</h3>
+<p>Guild-szintű usernek látható beállítások.</p>
+<ul><li>Nyelv, prefix, limit summary.</li><li>Bot status, Lavalink status.</li><li>Jogosultsági szerepkörök, ha admin.</li></ul>
+</div>
+</div>
+<div class="card screen">
+<div class="num">8</div>
+<div>
+<h3>ProfileScreen</h3>
+<p>Discord user session és app beállítások.</p>
+<ul><li>Logout, token refresh state.</li><li>Theme, telemetry opt-in.</li><li>Debug info fejlesztői módban.</li></ul>
+</div>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Backend API terv</h2>
+<table>
+<thead><tr><th>Endpoint</th><th>Mit csinál?</th><th>Jogosultság</th><th>Meglévő bot kapcsolat</th></tr></thead>
+<tbody>
+<tr><td><code>GET /api/me</code></td><td>Bejelentkezett Discord user profil.</td><td>Authenticated</td><td>Új auth service.</td></tr>
+<tr><td><code>GET /api/guilds</code></td><td>Kezelhető guildök listája.</td><td>Authenticated</td><td>User guilds ∩ bot guilds.</td></tr>
+<tr><td><code>GET /api/guilds/{guildId}/summary</code></td><td>Dashboard: bot/player/queue/playlist summary.</td><td>Read</td><td>Guild data, current track, queue, playlist.</td></tr>
+<tr><td><code>GET /api/guilds/{guildId}/player</code></td><td>Now playing és playback state.</td><td>Read</td><td><code>ICurrentTrackService</code>, Lavalink player snapshot.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/play</code></td><td>URL/query indítása.</td><td>PlaybackControl</td><td>Új API-friendly playback facade.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/pause</code></td><td>Pause.</td><td>PlaybackControl</td><td>Playback control facade.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/resume</code></td><td>Resume.</td><td>PlaybackControl</td><td>Playback control facade.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/skip</code></td><td>Skip.</td><td>PlaybackControl</td><td>Playback control facade.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/leave</code></td><td>Bot disconnect.</td><td>PlaybackControl</td><td>Playback control facade.</td></tr>
+<tr><td><code>GET /api/guilds/{guildId}/queue</code></td><td>Queue lista.</td><td>Read</td><td><code>IMusicQueueService</code>.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/queue/shuffle</code></td><td>Queue shuffle.</td><td>QueueWrite</td><td><code>ShuffleCommand</code> logicból service facade.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/queue/clear</code></td><td>Queue clear, confirm mezővel.</td><td>QueueWrite</td><td><code>IMusicQueueService.ClearQueue</code>.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/queue/reorder</code></td><td>Drag/drop reorder mentése.</td><td>QueueWrite</td><td>Queue repository/application service.</td></tr>
+<tr><td><code>GET /api/guilds/{guildId}/playlists</code></td><td>Playlist summary lista.</td><td>Read</td><td><code>IPlaylistService.ListPlaylistsAsync</code>.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/playlists</code></td><td>Playlist create.</td><td>PlaylistWrite</td><td><code>IPlaylistService.CreatePlaylistAsync</code>.</td></tr>
+<tr><td><code>GET /api/guilds/{guildId}/playlists/{name}</code></td><td>Playlist view.</td><td>Read</td><td><code>IPlaylistService.ViewPlaylistAsync</code>.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/playlists/{name}/save</code></td><td>Külső playlist URL mentése.</td><td>PlaylistWrite</td><td><code>IPlaylistService.SavePlaylistAsync</code>.</td></tr>
+<tr><td><code>POST /api/guilds/{guildId}/playlists/{name}/tracks</code></td><td>Song add.</td><td>PlaylistWrite</td><td><code>IPlaylistService.AddSongToPlaylistAsync</code>.</td></tr>
+<tr><td><code>DELETE /api/guilds/{guildId}/playlists/{name}/tracks/{number}</code></td><td>Song remove.</td><td>PlaylistWrite</td><td><code>IPlaylistService.RemoveSongFromPlaylistAsync</code>.</td></tr>
+<tr><td><code>PATCH /api/guilds/{guildId}/playlists/{name}</code></td><td>Rename.</td><td>PlaylistWrite</td><td><code>IPlaylistService.RenamePlaylistAsync</code>.</td></tr>
+<tr><td><code>DELETE /api/guilds/{guildId}/playlists/{name}?confirm=true</code></td><td>Delete.</td><td>PlaylistWrite</td><td><code>IPlaylistService.DeletePlaylistAsync</code>.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Adatok, amiket egy usernek látnia kell</h2>
+<div class="grid three">
+<div class="card">
+<h3>Guild dashboard</h3>
+<ul>
+<li>Bot online/offline és Lavalink connection state.</li>
+<li>Aktív voice channel, ha van.</li>
+<li>Queue count, playlist count, current repeat mode.</li>
+<li>User jogosultság az adott guildben.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Playback és queue</h3>
+<ul>
+<li>Current track: cím, author, duration, elapsed position.</li>
+<li>Queue lista: order, title, author, duration, requestedBy ha később tárolod.</li>
+<li>Repeat track/list állapot.</li>
+<li>Utolsó command eredménye/error code.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Playlist</h3>
+<ul>
+<li>Playlist nevek, track count.</li>
+<li>Playlist trackek order numberrel.</li>
+<li>Limit állapot: max playlist/guild, max track/playlist, max import.</li>
+<li>Invalid/missing/corrupt track jelzés userbarát módon.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Jogosultsági modell</h2>
+<table>
+<thead><tr><th>Role</th><th>Mit tehet?</th><th>Discord alap</th><th>Bot config</th></tr></thead>
+<tbody>
+<tr><td>ReadOnly</td><td>Dashboard, queue, playlist view.</td><td>User és bot közös guildben van.</td><td>Alap hozzáférés.</td></tr>
+<tr><td>PlaybackControl</td><td>Play, pause, resume, skip, repeat, leave.</td><td>Manage Guild vagy configured DJ role.</td><td><code>guild_bot_permissions</code> tábla később.</td></tr>
+<tr><td>QueueWrite</td><td>Shuffle, clear, reorder.</td><td>DJ role vagy admin.</td><td>Guild settingsben állítható.</td></tr>
+<tr><td>PlaylistWrite</td><td>Create/save/add/remove/rename/delete playlist.</td><td>DJ role vagy admin.</td><td>Külön kapcsolható, mert persistence-t érint.</td></tr>
+<tr><td>Admin</td><td>Bot settings, roles, limits, localization.</td><td>Guild owner vagy Manage Guild permission.</td><td>Audit log kötelező.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Backend refaktorok Android előtt</h2>
+<table>
+<thead><tr><th>Prioritás</th><th>Feladat</th><th>Miért kell?</th><th>Kimenet</th></tr></thead>
+<tbody>
+<tr>
+<td><span class="tag bad">P0</span></td>
+<td>Bot Control API projekt</td>
+<td>A mobil appnak stabil HTTP contract kell.</td>
+<td><code>DC bot.Api</code> ASP.NET Core, OpenAPI, auth middleware.</td>
+</tr>
+<tr>
+<td><span class="tag bad">P0</span></td>
+<td>Discord OAuth2 login backend flow</td>
+<td>A user identity és guild lista innen jön.</td>
+<td><code>DiscordOAuthService</code>, session token, refresh kezelés.</td>
+</tr>
+<tr>
+<td><span class="tag bad">P0</span></td>
+<td>Guild access service</td>
+<td>Csak közös guildben lévő bot legyen kezelhető.</td>
+<td><code>IGuildAccessService.GetManageableGuilds(userId)</code>.</td>
+</tr>
+<tr>
+<td><span class="tag warn">P1</span></td>
+<td>Discord-message-független application facade</td>
+<td>A mobil requestek nem tudnak <code>IDiscordMessage</code>-et adni.</td>
+<td><code>PlaybackApplicationService</code>, <code>QueueApplicationService</code>, <code>PlaylistApplicationService</code>.</td>
+</tr>
+<tr>
+<td><span class="tag warn">P1</span></td>
+<td>Structured API result modellek</td>
+<td>Mobil UI nem lokalizált Discord stringből dolgozzon.</td>
+<td><code>ApiResult&lt;T&gt;</code>, error code enumok, HTTP mapping.</td>
+</tr>
+<tr>
+<td><span class="tag warn">P1</span></td>
+<td>Realtime/polling state endpoint</td>
+<td>Progress és queue változás frissüljön.</td>
+<td>Első körben <code>GET /summary</code> polling; később SignalR/WebSocket.</td>
+</tr>
+<tr>
+<td><span class="tag blue">P2</span></td>
+<td>Audit és rate limiting</td>
+<td>Mobilról könnyű floodolni commandokat.</td>
+<td>User/guild/action audit log, per-user throttling.</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>MVP ütemezés</h2>
+<div class="grid three">
+<div class="card">
+<h3>MVP 1 - Read-only companion</h3>
+<ul>
+<li>Discord login.</li>
+<li>Kezelhető guildök listája.</li>
+<li>Now playing dashboard.</li>
+<li>Queue és playlist read-only nézet.</li>
+<li>Polling alapú frissítés 5-10 másodpercenként.</li>
+</ul>
+</div>
+<div class="card">
+<h3>MVP 2 - Playback controller</h3>
+<ul>
+<li>Play URL/query.</li>
+<li>Pause/resume/skip/leave.</li>
+<li>Repeat track/list toggle.</li>
+<li>Queue clear/shuffle confirm dialógussal.</li>
+<li>Voice channel guard és jogosultsági hiba UI.</li>
+</ul>
+</div>
+<div class="card">
+<h3>MVP 3 - Playlist manager</h3>
+<ul>
+<li>Create/save/list/view/add-song/remove-song.</li>
+<li>Rename/delete confirm.</li>
+<li>Limit állapotok megjelenítése.</li>
+<li>Track import progress, ha később async job lesz.</li>
+<li>SignalR/WebSocket realtime frissítés.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2>KMP screen state példa</h2>
+<table>
+<thead><tr><th>Screen</th><th>State</th><th>Intentek</th><th>API callok</th></tr></thead>
+<tbody>
+<tr><td>GuildPicker</td><td><code>GuildPickerState(guilds, selectedGuildId, loading, error)</code></td><td>SelectGuild, Refresh, Logout</td><td><code>GET /api/guilds</code></td></tr>
+<tr><td>NowPlaying</td><td><code>PlayerState(track, progress, controls, permissions)</code></td><td>Play, Pause, Resume, Skip, Leave, ToggleRepeat</td><td><code>GET /player</code>, <code>POST /pause</code></td></tr>
+<tr><td>Queue</td><td><code>QueueState(items, canReorder, version)</code></td><td>Shuffle, Clear, MoveItem, RemoveItem</td><td><code>GET /queue</code>, <code>POST /queue/reorder</code></td></tr>
+<tr><td>Playlists</td><td><code>PlaylistState(playlists, selected, limits)</code></td><td>Create, SaveUrl, AddSong, RemoveSong, Rename, Delete</td><td><code>GET /playlists</code>, playlist CRUD endpointok</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Biztonsági checklista</h2>
+<div class="grid two">
+<div class="card">
+<h3>Backend</h3>
+<ul>
+<li>OAuth <code>state</code> és PKCE használata.</li>
+<li>Access tokeneket backend oldalon titkosítva tárolni vagy rövid session tokenre cserélni.</li>
+<li>Minden guild endpointon újra ellenőrizni: user is member, bot is member, permission elég.</li>
+<li>Command rate limit user+guild alapon.</li>
+<li>Playlist delete/queue clear confirm kötelező.</li>
+<li>Audit log playback/queue/playlist write műveletekre.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Mobil</h3>
+<ul>
+<li>Secure storage: Android Keystore, iOS Keychain.</li>
+<li>Ne tárolj Discord bot tokent mobilon.</li>
+<li>Logout törölje a lokális sessiont.</li>
+<li>Offline cache csak read-only adat legyen.</li>
+<li>Permission denied állapot legyen egyértelmű.</li>
+<li>Confirm UI veszélyes műveleteknél.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Tesztterv</h2>
+<table>
+<thead><tr><th>Réteg</th><th>Tesztek</th><th>Példák</th></tr></thead>
+<tbody>
+<tr><td>Backend unit</td><td>Guild metszet, permission mapping, API result mapping.</td><td>User guildben van, bot nincs -> nem kezelhető.</td></tr>
+<tr><td>Backend integration</td><td>OAuth mock, DI, endpoint auth, repository read/write.</td><td><code>GET /api/guilds</code> csak engedélyezett guildöket ad.</td></tr>
+<tr><td>Contract</td><td>OpenAPI schema vagy snapshot JSON.</td><td>KMP kliens DTO kompatibilitás.</td></tr>
+<tr><td>KMP unit</td><td>Reducers/ViewModel state transition.</td><td>Pause success -> player state paused.</td></tr>
+<tr><td>Android UI</td><td>Compose screen tests.</td><td>Delete confirm nélkül nincs API call.</td></tr>
+<tr><td>E2E</td><td>Local API + fake Discord/OAuth + mocked Lavalink.</td><td>Login -> guild select -> playlist create -> list refresh.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Kockázatok és döntési pontok</h2>
+<table>
+<thead><tr><th>Kockázat</th><th>Hatás</th><th>Kezelés</th></tr></thead>
+<tbody>
+<tr><td>Discord OAuth scope félreértés</td><td>A user aktuális Discord UI guildje nem olvasható.</td><td>Guild picker + guild intersection modell.</td></tr>
+<tr><td>DSharpPlus típusok kiszivárognak API-ba</td><td>KMP kliens törékeny és backendhez kötött lesz.</td><td>DTO-only API, application facade.</td></tr>
+<tr><td>Jogosulatlan bot vezérlés</td><td>User más guild botját vezérli.</td><td>Endpointonként guild access és permission check.</td></tr>
+<tr><td>Realtime complexity</td><td>WebSocket túl korai komplexitás.</td><td>MVP-ben polling, WebSocket csak stabil API után.</td></tr>
+<tr><td>iOS tooling overhead</td><td>KMP lassíthatja az MVP-t.</td><td>Shared logic KMP, UI először Android Compose; iOS később.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Ajánlott megvalósítási sorrend</h2>
+<ol>
+<li>Backend API proof-of-concept: <code>GET /api/guilds</code>, <code>GET /summary</code>.</li>
+<li>Discord OAuth2 login és guild intersection service.</li>
+<li>Read-only Android/KMP app: login, guild picker, now playing, queue, playlists.</li>
+<li>Playback write endpointok és UI: play/pause/resume/skip/leave.</li>
+<li>Playlist write endpointok és UI: create/save/add/remove/rename/delete.</li>
+<li>Permission/admin settings és audit log.</li>
+<li>Realtime SignalR/WebSocket, ha a polling már kevés.</li>
+<li>iOS target bekapcsolása, ha az Android MVP stabil.</li>
+</ol>
+</section>
+
+<section>
+<h2>Források</h2>
+<ul>
+<li><a href="https://docs.discord.com/developers/topics/oauth2">Discord Developer Docs - OAuth2 scopes, state and authorization code flow</a></li>
+<li><a href="https://docs.discord.com/developers/events/gateway">Discord Developer Docs - Gateway guild availability and bot guild state</a></li>
+<li><a href="https://developer.android.com/kotlin/multiplatform">Android Developers - Kotlin Multiplatform support</a></li>
+<li><a href="https://kotlinlang.org/compose-multiplatform/">Kotlin - Compose Multiplatform supported platforms and shared UI</a></li>
+</ul>
+</section>
+
+</main>
+</body>
+</html>
+

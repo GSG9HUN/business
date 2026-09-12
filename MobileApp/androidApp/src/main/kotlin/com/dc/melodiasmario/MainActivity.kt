@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.dc.melodiasmario.core.auth.presentation.AuthDeepLinkDispatcher
-import com.dc.melodiasmario.core.settings.data.UserSettingsStorage
-import com.dc.melodiasmario.core.settings.data.UserSettingsStore
-import com.dc.melodiasmario.core.settings.locale.AppLocaleController
+import com.dc.melodiasmario.core.domain.auth.usecase.AuthDeepLinkDispatcher
+import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
+import com.dc.melodiasmario.core.data.settings.UserSettingsStore
+import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
 import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 

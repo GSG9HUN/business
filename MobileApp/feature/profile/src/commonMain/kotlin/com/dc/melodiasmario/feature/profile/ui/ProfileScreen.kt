@@ -6,12 +6,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.dc.melodiasmario.core.settings.domain.model.UserSettings
-import com.dc.melodiasmario.core.ui.components.button.MFloatingSaveCancelBar
-import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
+import com.dc.melodiasmario.core.model.settings.UserSettings
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MFloatingSaveCancelBar
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.model.profile.ProfileUser
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_cancel_settings_button
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_settings_button

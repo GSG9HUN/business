@@ -3,9 +3,9 @@ package com.dc.melodiasmario.feature.guild.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
-import com.dc.melodiasmario.feature.guild.domain.usecase.currentuser.GetCurrentUserUseCase
-import com.dc.melodiasmario.feature.guild.domain.usecase.guild.GetGuildUseCase
+import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
+import com.dc.melodiasmario.core.domain.guild.usecase.GetGuildUseCase
+import com.dc.melodiasmario.core.model.guild.Guild
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +64,7 @@ class GuildSelectorViewModel(
                     }
                 }
 
-                //TODO kettészedni a guild és az avatár loding stateket.
+                //TODO kettĂ©szedni a guild Ă©s az avatĂˇr loding stateket.
                 is Resource.Error -> Unit
 
                 Resource.Loading -> Unit

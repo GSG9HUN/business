@@ -56,10 +56,8 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(project(":core:common"))
-            implementation(project(":core:ui"))
-            implementation(project(":core:network"))
-            implementation(project(":core:auth"))
-            implementation(project(":core:settings"))
+            implementation(project(":core:common-ui"))
+            implementation(project(":core:di"))
 
             implementation(project(":feature:playlistsong"))
             implementation(project(":feature:currentmusic"))

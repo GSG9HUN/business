@@ -3,11 +3,11 @@ package com.dc.melodiasmario.feature.playlist.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.feature.playlist.domain.model.Playlist
-import com.dc.melodiasmario.feature.playlist.domain.usecase.CreatePlaylistUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.DeletePlaylistUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.GetPlaylistsUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.RenamePlaylistUseCase
+import com.dc.melodiasmario.core.model.playlist.Playlist
+import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.DeletePlaylistUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.GetPlaylistsUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.RenamePlaylistUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

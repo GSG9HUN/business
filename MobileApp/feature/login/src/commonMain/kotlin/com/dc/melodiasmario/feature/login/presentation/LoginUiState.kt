@@ -1,6 +1,6 @@
 package com.dc.melodiasmario.feature.login.presentation
 
-import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
+import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
 
 data class LoginUiState(
     val apiConnectionStatus: ApiConnectionStatus = ApiConnectionStatus.Offline,

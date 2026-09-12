@@ -2,14 +2,14 @@ package com.dc.melodiasmario.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dc.melodiasmario.core.auth.domain.usecase.DiscordLogoutUseCase
+import com.dc.melodiasmario.core.domain.auth.usecase.DiscordLogoutUseCase
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.settings.data.UserSettingsStorage
-import com.dc.melodiasmario.core.settings.data.UserSettingsStore
-import com.dc.melodiasmario.feature.profile.domain.model.ProfileData
-import com.dc.melodiasmario.feature.profile.domain.model.ProfileSettingsData
-import com.dc.melodiasmario.feature.profile.domain.usecase.GetProfileUseCase
-import com.dc.melodiasmario.feature.profile.domain.usecase.UpdateProfileSettingsUseCase
+import com.dc.melodiasmario.core.domain.profile.usecase.ClearUserSettingsUseCase
+import com.dc.melodiasmario.core.model.profile.ProfileData
+import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
+import com.dc.melodiasmario.core.domain.profile.usecase.GetProfileUseCase
+import com.dc.melodiasmario.core.domain.profile.usecase.SaveUserSettingsUseCase
+import com.dc.melodiasmario.core.domain.profile.usecase.UpdateProfileSettingsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +24,8 @@ class ProfileViewModel(
     private val getProfileUseCase: GetProfileUseCase,
     private val updateProfileSettingsUseCase: UpdateProfileSettingsUseCase,
     private val discordLogoutUseCase: DiscordLogoutUseCase,
-    private val userSettingsStorage: UserSettingsStorage,
-    private val userSettingsStore: UserSettingsStore
+    private val saveUserSettingsUseCase: SaveUserSettingsUseCase,
+    private val clearUserSettingsUseCase: ClearUserSettingsUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -96,8 +96,7 @@ class ProfileViewModel(
     }
 
     private suspend fun onProfileSuccess(data: ProfileData) {
-        userSettingsStore.setSettings(data.userSettings)
-        userSettingsStorage.saveSettings(data.userSettings)
+        saveUserSettingsUseCase(data.userSettings)
         _uiState.update {
             it.copy(
                 isLoading = false,
@@ -188,8 +187,7 @@ class ProfileViewModel(
     }
 
     private suspend fun onProfileSettingsSaved(profileSettingsData: ProfileSettingsData) {
-        userSettingsStore.setSettings(profileSettingsData.userSettings)
-        userSettingsStorage.saveSettings(profileSettingsData.userSettings)
+        saveUserSettingsUseCase(profileSettingsData.userSettings)
         _uiState.update {
             it.copy(
                 userSettings = profileSettingsData.userSettings,
@@ -240,8 +238,7 @@ class ProfileViewModel(
     }
 
     private suspend fun onLogoutSuccess() {
-        userSettingsStore.clear()
-        userSettingsStorage.clear()
+        clearUserSettingsUseCase()
         _effect.emit(ProfileEffect.LogoutSuccess)
         _effect.emit(ProfileEffect.NavigateToLogin)
     }

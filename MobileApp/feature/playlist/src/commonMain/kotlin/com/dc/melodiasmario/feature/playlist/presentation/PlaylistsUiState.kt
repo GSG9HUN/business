@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.feature.playlist.presentation
 
-import com.dc.melodiasmario.feature.playlist.domain.model.GuildData
-import com.dc.melodiasmario.feature.playlist.domain.model.Playlist
+import com.dc.melodiasmario.core.model.playlist.GuildData
+import com.dc.melodiasmario.core.model.playlist.Playlist
 
 data class PlaylistsUiState(
     val isLoading: Boolean = false,

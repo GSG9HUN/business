@@ -18,7 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import com.dc.melodiasmario.core.ui.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.feature.playlist.domain.model.Playlist
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_menu_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_subtitle

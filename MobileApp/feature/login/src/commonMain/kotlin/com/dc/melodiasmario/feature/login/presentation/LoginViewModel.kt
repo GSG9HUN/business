@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.AppConstants.PollingIntervalMs
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.auth.domain.usecase.ExchangeAuthTicketUseCase
-import com.dc.melodiasmario.core.auth.domain.usecase.StartDiscordLoginUseCase
-import com.dc.melodiasmario.core.auth.presentation.AuthDeepLinkDispatcher
-import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
-import com.dc.melodiasmario.core.network.status.domain.usecase.CheckApiStatusUseCase
+import com.dc.melodiasmario.core.domain.auth.usecase.ExchangeAuthTicketUseCase
+import com.dc.melodiasmario.core.domain.auth.usecase.StartDiscordLoginUseCase
+import com.dc.melodiasmario.core.domain.auth.usecase.AuthDeepLinkDispatcher
+import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
+import com.dc.melodiasmario.core.domain.login.usecase.CheckApiStatusUseCase
 import com.dc.melodiasmario.feature.login.presentation.LoginEffect.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.feature.profile.presentation
 
-import com.dc.melodiasmario.core.settings.domain.model.UserSettings
-import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
+import com.dc.melodiasmario.core.model.settings.UserSettings
+import com.dc.melodiasmario.core.model.profile.ProfileUser
 
 data class ProfileUiState(
     val isLoading: Boolean = false,

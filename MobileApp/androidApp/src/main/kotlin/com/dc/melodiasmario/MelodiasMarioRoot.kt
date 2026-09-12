@@ -10,14 +10,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dc.melodiasmario.core.settings.data.UserSettingsStorage
-import com.dc.melodiasmario.core.settings.data.UserSettingsStore
-import com.dc.melodiasmario.core.settings.locale.AppLocaleController
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.toThemeMode
+import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
+import com.dc.melodiasmario.core.data.settings.UserSettingsStore
+import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.designsystem.theme.toThemeMode
 import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
-import com.dc.melodiasmario.shared.ui.navigation.AppRoute
-import com.dc.melodiasmario.shared.ui.navigation.AppRouteBackStackSaver
+import com.dc.melodiasmario.shared.presentation.navigation.AppRoute
+import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
 
 @Composable
 fun MelodiasMarioRoot(
