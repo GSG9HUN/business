@@ -1,13 +1,11 @@
 package com.dc.melodiasmario.feature.removesong.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.removesong.ui.RemoveSongRoute
 
-class RemoveSongEntryProvider {
-    @Composable
-    fun Entry(
-        guildId: String,
-    ) {
-        RemoveSongRoute(guildId = guildId)
+fun EntryProviderScope<AppRoute>.removeSongEntry() {
+    entry<AppRoute.RemoveSong> { route ->
+        RemoveSongRoute(guildId = route.guildId)
     }
 }

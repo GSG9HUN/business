@@ -6,13 +6,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MBackButton
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MMoreButton
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MRefreshButton
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MSearchButton
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
+import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 
 @Composable
 fun MTopBar(

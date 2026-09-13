@@ -1,13 +1,11 @@
 package com.dc.melodiasmario.feature.currentmusic.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.currentmusic.ui.CurrentMusicRoute
 
-class CurrentMusicEntryProvider {
-    @Composable
-    fun Entry(
-        guildId: String,
-    ) {
-        CurrentMusicRoute(guildId = guildId)
+fun EntryProviderScope<AppRoute>.currentMusicEntry() {
+    entry<AppRoute.CurrentMusic> { route ->
+        CurrentMusicRoute(guildId = route.guildId)
     }
 }

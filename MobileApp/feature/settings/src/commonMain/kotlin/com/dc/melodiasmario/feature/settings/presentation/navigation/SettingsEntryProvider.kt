@@ -1,13 +1,11 @@
 package com.dc.melodiasmario.feature.settings.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.settings.ui.SettingsRoute
 
-class SettingsEntryProvider {
-    @Composable
-    fun Entry(
-        guildId: String,
-    ) {
-        SettingsRoute(guildId = guildId)
+fun EntryProviderScope<AppRoute>.settingsEntry() {
+    entry<AppRoute.Settings> { route ->
+        SettingsRoute(guildId = route.guildId)
     }
 }

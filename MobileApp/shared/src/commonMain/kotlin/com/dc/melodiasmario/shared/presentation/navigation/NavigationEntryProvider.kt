@@ -2,100 +2,69 @@ package com.dc.melodiasmario.shared.presentation.navigation
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.entryProvider
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
-import com.dc.melodiasmario.feature.currentmusic.presentation.navigation.CurrentMusicEntryProvider
-import com.dc.melodiasmario.feature.guild.presentation.navigation.GuildEntryProvider
-import com.dc.melodiasmario.feature.login.presentation.navigation.LoginEntryProvider
-import com.dc.melodiasmario.feature.playlist.presentation.navigation.PlaylistEntryProvider
-import com.dc.melodiasmario.feature.playlistsong.presentation.navigation.PlaylistSongEntryProvider
-import com.dc.melodiasmario.feature.profile.presentation.navigation.ProfileEntryProvider
-import com.dc.melodiasmario.feature.queue.presentation.navigation.QueueEntryProvider
-import com.dc.melodiasmario.feature.removesong.presentation.navigation.RemoveSongEntryProvider
-import com.dc.melodiasmario.feature.settings.presentation.navigation.SettingsEntryProvider
-
-private val loginEntryProvider = LoginEntryProvider()
-private val guildEntryProvider = GuildEntryProvider()
-private val playlistEntryProvider = PlaylistEntryProvider()
-private val profileEntryProvider = ProfileEntryProvider()
-private val currentMusicEntryProvider = CurrentMusicEntryProvider()
-private val queueEntryProvider = QueueEntryProvider()
-private val playlistSongEntryProvider = PlaylistSongEntryProvider()
-private val removeSongEntryProvider = RemoveSongEntryProvider()
-private val settingsEntryProvider = SettingsEntryProvider()
+import com.dc.melodiasmario.feature.currentmusic.presentation.navigation.currentMusicEntry
+import com.dc.melodiasmario.feature.guild.presentation.navigation.guildSelectorEntry
+import com.dc.melodiasmario.feature.login.presentation.navigation.loginEntry
+import com.dc.melodiasmario.feature.playlist.presentation.navigation.playlistSongsEntry
+import com.dc.melodiasmario.feature.playlist.presentation.navigation.playlistsEntry
+import com.dc.melodiasmario.feature.playlistsong.presentation.navigation.playlistSongEntry
+import com.dc.melodiasmario.feature.profile.presentation.navigation.profileEntry
+import com.dc.melodiasmario.feature.queue.presentation.navigation.queueEntry
+import com.dc.melodiasmario.feature.removesong.presentation.navigation.removeSongEntry
+import com.dc.melodiasmario.feature.settings.presentation.navigation.settingsEntry
 
 fun navigationEntryProvider(
     backStack: SnapshotStateList<AppRoute>,
     toastHostState: MToastHostState,
 ) = entryProvider {
-    entry<AppRoute.Login> {
-        loginEntryProvider.Entry(
-            onLoginSuccess = {
-                backStack.replaceAll(AppRoute.GuildSelector)
-            },
-        )
-    }
+    loginEntry(
+        onLoginSuccess = {
+            backStack.replaceAll(AppRoute.GuildSelector)
+        },
+    )
 
-    entry<AppRoute.GuildSelector> {
-        guildEntryProvider.Entry(
-            onAvatarClicked = {
-                backStack.navigate(AppRoute.MyProfile)
-            },
-            onGuildClicked = { guildId ->
-                backStack.navigate(AppRoute.Playlists(guildId))
-            },
-        )
-    }
+    guildSelectorEntry(
+        onAvatarClicked = {
+            backStack.navigate(AppRoute.MyProfile)
+        },
+        onGuildClicked = { guildId ->
+            backStack.navigate(AppRoute.Playlists(guildId))
+        },
+    )
 
-    entry<AppRoute.Playlists> { route ->
-        playlistEntryProvider.PlaylistsEntry(
-            guildId = route.guildId,
-            onPlaylistClicked = { playlistId ->
-                backStack.navigate(
-                    AppRoute.PlaylistSongs(
-                        guildId = route.guildId,
-                        playlistId = playlistId,
-                    )
+    playlistsEntry(
+        toastHostState = toastHostState,
+        onPlaylistClicked = { route, playlistId ->
+            backStack.navigate(
+                AppRoute.PlaylistSongs(
+                    guildId = route.guildId,
+                    playlistId = playlistId,
                 )
-            },
-        )
-    }
+            )
+        },
+    )
 
-    entry<AppRoute.MyProfile> {
-        profileEntryProvider.Entry(
-            onBack = {
-                backStack.goBack()
-            },
-            logout = {
-                backStack.replaceAll(AppRoute.Login)
-            },
-            toastHostState = toastHostState,
-        )
-    }
+    profileEntry(
+        onBack = {
+            backStack.goBack()
+        },
+        logout = {
+            backStack.replaceAll(AppRoute.Login)
+        },
+        toastHostState = toastHostState,
+    )
 
-    entry<AppRoute.PlaylistSongs> { route ->
-        playlistEntryProvider.PlaylistSongsEntry(
-            guildId = route.guildId,
-            playlistId = route.playlistId,
-        )
-    }
+    playlistSongsEntry()
 
-    entry<AppRoute.Queue> { route ->
-        queueEntryProvider.Entry(guildId = route.guildId)
-    }
+    queueEntry()
 
-    entry<AppRoute.CurrentMusic> { route ->
-        currentMusicEntryProvider.Entry(guildId = route.guildId)
-    }
+    currentMusicEntry()
 
-    entry<AppRoute.PlaylistSong> { route ->
-        playlistSongEntryProvider.Entry(guildId = route.guildId)
-    }
+    playlistSongEntry()
 
-    entry<AppRoute.RemoveSong> { route ->
-        removeSongEntryProvider.Entry(guildId = route.guildId)
-    }
+    removeSongEntry()
 
-    entry<AppRoute.Settings> { route ->
-        settingsEntryProvider.Entry(guildId = route.guildId)
-    }
+    settingsEntry()
 }

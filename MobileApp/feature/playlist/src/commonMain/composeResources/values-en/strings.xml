@@ -13,6 +13,7 @@
     <string name="playlists_count">%1$d playlists</string>
     <string name="playlists_search_placeholder">Search playlists</string>
     <string name="playlists_search_content_description">Search playlists</string>
+    <string name="playlists_refresh_content_description">Refresh playlists</string>
     <string name="playlists_add_content_description">Add playlist</string>
     <string name="playlists_placeholder_title">Playlists</string>
     <string name="playlists_loading_message">Loading playlists...</string>
@@ -22,10 +23,16 @@
     <string name="playlists_cancel">Cancel</string>
     <string name="playlists_create_title">New playlist</string>
     <string name="playlists_create_action">Create</string>
+    <string name="playlists_create_success">Playlist created.</string>
+    <string name="playlists_create_failed">Could not create playlist.</string>
     <string name="playlists_rename_title">Rename playlist</string>
     <string name="playlists_rename_action">Rename</string>
+    <string name="playlists_rename_success">Playlist renamed.</string>
+    <string name="playlists_rename_failed">Could not rename playlist.</string>
     <string name="playlists_delete_title">Delete playlist</string>
     <string name="playlists_delete_message">Delete "%1$s"?</string>
     <string name="playlists_delete_action">Delete</string>
+    <string name="playlists_delete_success">Playlist deleted.</string>
+    <string name="playlists_delete_failed">Could not delete playlist.</string>
     <string name="playlists_name_placeholder">Playlist name</string>
 </resources>

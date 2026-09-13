@@ -1,16 +1,16 @@
 package com.dc.melodiasmario.feature.profile.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.profile.ui.ProfileRoute
 
-class ProfileEntryProvider {
-    @Composable
-    fun Entry(
-        onBack: () -> Unit,
-        logout: () -> Unit,
-        toastHostState: MToastHostState,
-    ) {
+fun EntryProviderScope<AppRoute>.profileEntry(
+    onBack: () -> Unit,
+    logout: () -> Unit,
+    toastHostState: MToastHostState,
+) {
+    entry<AppRoute.MyProfile> {
         ProfileRoute(
             onBack = onBack,
             logout = logout,

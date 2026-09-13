@@ -1,33 +1,42 @@
-package com.dc.melodiasmario.shared.presentation.navigation
+package com.dc.melodiasmario.core.common.navigation
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface AppRoute : NavKey {
+
     @Serializable
     data object Login : AppRoute
+
     @Serializable
     data object GuildSelector : AppRoute
+
     @Serializable
     data object MyProfile : AppRoute
 
     @Serializable
     data class Playlists(val guildId: String) : AppRoute
+
     @Serializable
     data class Queue(val guildId: String) : AppRoute
+
     @Serializable
     data class CurrentMusic(val guildId: String) : AppRoute
+
     @Serializable
     data class Settings(val guildId: String) : AppRoute
+
     @Serializable
     data class PlaylistSong(val guildId: String) : AppRoute
+
     @Serializable
     data class RemoveSong(val guildId: String) : AppRoute
+
     @Serializable
     data class PlaylistSongs(
         val guildId: String,
-        val playlistId: String
+        val playlistId: String,
     ) : AppRoute
 }
 
@@ -46,6 +55,13 @@ fun AppRoute.guildIdOrNull(): String? {
 
 fun AppRoute.shouldShowBottomBar(): Boolean {
     return guildIdOrNull() != null
+}
+
+fun AppRoute.shouldShowFloatingButton(): Boolean {
+    return when (this) {
+        is AppRoute.Playlists -> true
+        else -> false
+    }
 }
 
 fun AppRoute.isMainTabRoute(): Boolean {

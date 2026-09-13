@@ -13,10 +13,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
 import com.dc.melodiasmario.core.data.settings.UserSettingsStore
 import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.toThemeMode
 import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
-import com.dc.melodiasmario.shared.presentation.navigation.AppRoute
 import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
 
 @Composable

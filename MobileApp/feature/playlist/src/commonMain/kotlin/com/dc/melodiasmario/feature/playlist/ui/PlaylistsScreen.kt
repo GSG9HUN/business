@@ -9,28 +9,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.commonui.components.MTopBar
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MFloatingButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MRefreshButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MSearchButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MConfirmDialog
-import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MTextInputDialog
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonConfig
+import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonIcon
+import com.dc.melodiasmario.core.commonui.floatingactionbutton.SetFloatingActionButtonConfig
+import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
+import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.model.playlist.GuildData
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
-import com.dc.melodiasmario.feature.playlist.generated.resources.ic_add
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_add_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_cancel
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_count
@@ -46,6 +43,7 @@ import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_no_se
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_placeholder_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_rename_action
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_rename_title
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_refresh_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_action
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_placeholder
@@ -55,7 +53,6 @@ import com.dc.melodiasmario.feature.playlist.presentation.PlaylistsEvent
 import com.dc.melodiasmario.feature.playlist.presentation.PlaylistsUiState
 import com.dc.melodiasmario.feature.playlist.ui.components.PlaylistCard
 import com.dc.melodiasmario.feature.playlist.ui.components.PlaylistsPlaceholder
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -64,115 +61,109 @@ fun PlaylistsScreen(
     uiState: PlaylistsUiState,
     onEvent: (PlaylistsEvent) -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            MTopBar(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(Res.string.playlists_title),
-                subTitle = stringResource(Res.string.playlists_count, uiState.filteredPlaylists.size),
-                actions = {
-                    MRefreshButton(
-                        onClick = { onEvent(PlaylistsEvent.RefreshClicked) },
-                    )
-                    MSearchButton(
-                        onClick = { onEvent(PlaylistsEvent.SearchClicked) },
-                        contentDescription = stringResource(Res.string.playlists_search_content_description),
-                    )
-                },
-                navigationIcon = {
-                    MAvatar(
-                        name = uiState.guildData.name,
-                        imageUrl = uiState.guildData.avatarUrl,
-                        shape = RoundedCornerShape(12.dp),
-                        size = 44.dp,
-                        backgroundColor = MelodiasMarioThemeTokens.current.primary,
-                        contentColor = MelodiasMarioThemeTokens.current.textPrimary,
-                        avatarOnClick = { onEvent(PlaylistsEvent.AvatarClicked) },
-                    )
-                },
-            )
-        },
-        floatingActionButton = {
-            MFloatingButton(
-                modifier = Modifier,
-                size = 45.dp,
-                shape = RoundedCornerShape(22.dp),
-                onClick = { onEvent(PlaylistsEvent.AddPlaylistClicked) },
-                icon = {
-                    Icon(
-                        painter = painterResource(Res.drawable.ic_add),
-                        contentDescription = stringResource(Res.string.playlists_add_content_description),
-                    )
-                },
-            )
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.Start,
-        ) {
-            when {
-                uiState.isLoading -> PlaylistsPlaceholder(
-                    title = stringResource(Res.string.playlists_placeholder_title),
-                    contentText = stringResource(Res.string.playlists_loading_message),
-                )
-
-                uiState.errorMessage != null -> PlaylistsPlaceholder(
-                    title = stringResource(Res.string.playlists_placeholder_title),
-                    contentText = uiState.errorMessage,
-                )
-
-                uiState.filteredPlaylists.isEmpty() -> PlaylistsPlaceholder(
-                    title = stringResource(Res.string.playlists_placeholder_title),
-                    contentText = if (uiState.searchQuery.isBlank()) {
-                        stringResource(Res.string.playlists_empty_message)
-                    } else {
-                        stringResource(Res.string.playlists_no_search_results_message)
-                    },
-                )
-
-                else -> LazyVerticalGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(
-                        start = 12.dp,
-                        top = 16.dp,
-                        end = 12.dp,
-                        bottom = 96.dp,
+    SetTopBarConfig(
+        TopBarConfig(
+            title = stringResource(Res.string.playlists_title),
+            subTitle = stringResource(
+                Res.string.playlists_count,
+                uiState.filteredPlaylists.size,
+            ),
+            navigationIcon = TopBarNavigationIcon.Avatar(
+                name = uiState.guildData.name,
+                imageUrl = uiState.guildData.avatarUrl,
+                onClick = { onEvent(PlaylistsEvent.AvatarClicked) },
+            ),
+            actions = listOf(
+                TopBarAction.Refresh(
+                    onClick = { onEvent(PlaylistsEvent.RefreshClicked) },
+                    contentDescription = stringResource(Res.string.playlists_refresh_content_description),
+                ),
+                TopBarAction.Search(
+                    onClick = { onEvent(PlaylistsEvent.SearchClicked) },
+                    contentDescription = stringResource(
+                        Res.string.playlists_search_content_description,
                     ),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    items(uiState.filteredPlaylists) { playlist ->
-                        PlaylistCard(
-                            modifier = Modifier,
-                            playlist = playlist,
-                            onClick = {
-                                onEvent(PlaylistsEvent.PlaylistClicked(playlistId = playlist.id))
-                            },
-                            onRenameClick = {
-                                onEvent(
-                                    PlaylistsEvent.RenamePlaylistClicked(
-                                        playlistId = playlist.id,
-                                        playlistName = playlist.name,
-                                    )
+                ),
+            ),
+        )
+    )
+
+    SetFloatingActionButtonConfig(
+        if (!uiState.isLoading && uiState.errorMessage == null) {
+            FloatingActionButtonConfig(
+                icon = FloatingActionButtonIcon.Add,
+                contentDescription = stringResource(Res.string.playlists_add_content_description),
+                onClick = { onEvent(PlaylistsEvent.AddPlaylistClicked) },
+            )
+        } else {
+            null
+        }
+    )
+
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        when {
+            uiState.isLoading -> PlaylistsPlaceholder(
+                title = stringResource(Res.string.playlists_placeholder_title),
+                contentText = stringResource(Res.string.playlists_loading_message),
+            )
+
+            uiState.errorMessage != null -> PlaylistsPlaceholder(
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 16.dp),
+                title = stringResource(Res.string.playlists_placeholder_title),
+                contentText = uiState.errorMessage,
+            )
+
+            uiState.filteredPlaylists.isEmpty() -> PlaylistsPlaceholder(
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 16.dp),
+                title = stringResource(Res.string.playlists_placeholder_title),
+                contentText = if (uiState.searchQuery.isBlank()) {
+                    stringResource(Res.string.playlists_empty_message)
+                } else {
+                    stringResource(Res.string.playlists_no_search_results_message)
+                },
+            )
+
+            else -> LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    top = 16.dp,
+                    end = 12.dp,
+                    bottom = 96.dp,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                items(uiState.filteredPlaylists) { playlist ->
+                    PlaylistCard(
+                        modifier = Modifier,
+                        playlist = playlist,
+                        onClick = {
+                            onEvent(PlaylistsEvent.PlaylistClicked(playlistId = playlist.id))
+                        },
+                        onRenameClick = {
+                            onEvent(
+                                PlaylistsEvent.RenamePlaylistClicked(
+                                    playlistId = playlist.id,
+                                    playlistName = playlist.name,
                                 )
-                            },
-                            onDeleteClick = {
-                                onEvent(
-                                    PlaylistsEvent.DeletePlaylistClicked(
-                                        playlistId = playlist.id,
-                                        playlistName = playlist.name,
-                                    )
+                            )
+                        },
+                        onDeleteClick = {
+                            onEvent(
+                                PlaylistsEvent.DeletePlaylistClicked(
+                                    playlistId = playlist.id,
+                                    playlistName = playlist.name,
                                 )
-                            },
-                        )
-                    }
+                            )
+                        },
+                    )
                 }
             }
         }

@@ -15,14 +15,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_search
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.top_bar_search_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MSearchButton(
     onClick: () -> Unit,
-    contentDescription: String?,
+    contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
     val colors = MelodiasMarioThemeTokens.current
@@ -53,6 +55,6 @@ fun MSearchButton(
 private fun MSearchButtonPreview() {
     MSearchButton(
         onClick = {},
-        contentDescription = "Search",
+        contentDescription = stringResource(Res.string.top_bar_search_content_description),
     )
 }

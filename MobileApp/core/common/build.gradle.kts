@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
     alias(libs.plugins.android.lint)
 }
 
@@ -58,7 +59,8 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                // Add KMP dependencies here
+                implementation(libs.jetbrains.navigation3.ui)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
 

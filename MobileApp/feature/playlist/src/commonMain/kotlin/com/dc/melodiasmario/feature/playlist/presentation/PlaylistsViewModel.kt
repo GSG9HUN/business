@@ -91,8 +91,11 @@ class PlaylistsViewModel(
         createPlaylistUseCase(guildId, playlistName).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> loadPlaylists(guildId)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    _effect.emit(PlaylistsEffect.PlaylistCreated)
+                    loadPlaylists(guildId)
+                }
+                is Resource.Error -> onCreatePlaylistError()
             }
         }
     }
@@ -101,8 +104,11 @@ class PlaylistsViewModel(
         renamePlaylistUseCase(playlistId, newPlaylistName).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> onRenamePlaylistSuccess(playlistId, newPlaylistName)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    onRenamePlaylistSuccess(playlistId, newPlaylistName)
+                    _effect.emit(PlaylistsEffect.PlaylistRenamed)
+                }
+                is Resource.Error -> onRenamePlaylistError()
             }
         }
     }
@@ -111,8 +117,11 @@ class PlaylistsViewModel(
         deletePlaylistUseCase(playlistId).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> onDeletePlaylistSuccess(playlistId)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    onDeletePlaylistSuccess(playlistId)
+                    _effect.emit(PlaylistsEffect.PlaylistDeleted)
+                }
+                is Resource.Error -> onDeletePlaylistError()
             }
         }
     }
@@ -169,6 +178,27 @@ class PlaylistsViewModel(
                 isLoading = false,
                 errorMessage = error.message,
             )
+        }
+    }
+
+    private suspend fun onCreatePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistCreateFailed)
+    }
+
+    private suspend fun onRenamePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistRenameFailed)
+    }
+
+    private suspend fun onDeletePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistDeleteFailed)
+    }
+
+    private fun onActionError() {
+        _uiState.update {
+            it.copy(isLoading = false)
         }
     }
 

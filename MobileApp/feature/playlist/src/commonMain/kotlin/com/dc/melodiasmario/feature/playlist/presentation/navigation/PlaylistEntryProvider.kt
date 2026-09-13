@@ -1,29 +1,31 @@
 package com.dc.melodiasmario.feature.playlist.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
+import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.playlist.ui.PlaylistsRoute
 import com.dc.melodiasmario.feature.playlist.ui.playlistsong.PlaylistSongsRoute
 
-class PlaylistEntryProvider {
-    @Composable
-    fun PlaylistsEntry(
-        guildId: String,
-        onPlaylistClicked: (playlistId: String) -> Unit,
-    ) {
+fun EntryProviderScope<AppRoute>.playlistsEntry(
+    onPlaylistClicked: (route: AppRoute.Playlists, playlistId: String) -> Unit,
+    toastHostState: MToastHostState,
+) {
+    entry<AppRoute.Playlists> { route ->
         PlaylistsRoute(
-            guildId = guildId,
-            onPlaylistClicked = onPlaylistClicked,
+            guildId = route.guildId,
+            toastHostState = toastHostState,
+            onPlaylistClicked = { playlistId ->
+                onPlaylistClicked(route, playlistId)
+            },
         )
     }
+}
 
-    @Composable
-    fun PlaylistSongsEntry(
-        guildId: String,
-        playlistId: String,
-    ) {
+fun EntryProviderScope<AppRoute>.playlistSongsEntry() {
+    entry<AppRoute.PlaylistSongs> { route ->
         PlaylistSongsRoute(
-            guildId = guildId,
-            playlistId = playlistId,
+            guildId = route.guildId,
+            playlistId = route.playlistId,
         )
     }
 }

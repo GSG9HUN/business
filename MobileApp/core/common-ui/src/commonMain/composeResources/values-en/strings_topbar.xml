@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="top_bar_back_content_description">Back</string>
+    <string name="top_bar_more_content_description">More actions</string>
+    <string name="top_bar_refresh_content_description">Refresh</string>
+    <string name="top_bar_search_content_description">Search</string>
+</resources>

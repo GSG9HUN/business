@@ -1,14 +1,14 @@
 package com.dc.melodiasmario.feature.guild.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.guild.ui.GuildSelectorRoute
 
-class GuildEntryProvider {
-    @Composable
-    fun Entry(
-        onAvatarClicked: () -> Unit,
-        onGuildClicked: (guildId: String) -> Unit,
-    ) {
+fun EntryProviderScope<AppRoute>.guildSelectorEntry(
+    onAvatarClicked: () -> Unit,
+    onGuildClicked: (guildId: String) -> Unit,
+) {
+    entry<AppRoute.GuildSelector> {
         GuildSelectorRoute(
             onAvatarClicked = onAvatarClicked,
             onGuildClicked = onGuildClicked,

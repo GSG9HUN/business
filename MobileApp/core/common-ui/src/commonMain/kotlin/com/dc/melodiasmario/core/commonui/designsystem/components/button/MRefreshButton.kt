@@ -15,13 +15,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.refresh_button
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.top_bar_refresh_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MRefreshButton(
     onClick: () -> Unit,
+    contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
     val colors = MelodiasMarioThemeTokens.current
@@ -40,7 +43,7 @@ fun MRefreshButton(
         ) {
             Image(
                 painter = painterResource(Res.drawable.refresh_button),
-                contentDescription = "Refresh",
+                contentDescription = contentDescription,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -50,5 +53,8 @@ fun MRefreshButton(
 @Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
 @Composable
 private fun RefreshButtonPreview() {
-    MRefreshButton(onClick = {})
+    MRefreshButton(
+        onClick = {},
+        contentDescription = stringResource(Res.string.top_bar_refresh_content_description),
+    )
 }
