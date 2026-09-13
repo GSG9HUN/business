@@ -15,19 +15,15 @@ class UserSettingsRepositoryImpl(
     private val userSettingsStore: UserSettingsStore,
     private val userSettingsStorage: UserSettingsStorage
 ) : UserSettingsRepository {
-    private val _settings = MutableStateFlow(UserSettings.Default)
-    override val settings: StateFlow<UserSettings> = _settings.asStateFlow()
-
+    override val settings: StateFlow<UserSettings> = userSettingsStore.settings
 
     override suspend fun saveSettings(userSettings: UserSettings) {
         userSettingsStorage.saveSettings(userSettings)
         userSettingsStore.setSettings(userSettings)
-        _settings.value = userSettings
     }
 
     override suspend fun clearSettings() {
         userSettingsStorage.clear()
         userSettingsStore.clear()
-        _settings.value = UserSettings.Default
     }
 }

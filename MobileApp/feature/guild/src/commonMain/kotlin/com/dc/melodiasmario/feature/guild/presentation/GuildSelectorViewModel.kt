@@ -64,7 +64,6 @@ class GuildSelectorViewModel(
                     }
                 }
 
-                //TODO kettĂ©szedni a guild Ă©s az avatĂˇr loding stateket.
                 is Resource.Error -> Unit
 
                 Resource.Loading -> Unit
