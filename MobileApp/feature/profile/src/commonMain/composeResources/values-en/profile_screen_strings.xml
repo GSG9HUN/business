@@ -1,6 +1,8 @@
 <resources>
     <string name="profile_connected_provider">%1$s connected</string>
     <string name="profile_disconnected_provider">%1$s not connected</string>
+    <string name="profile_top_bar_title">Profile</string>
+    <string name="profile_back_content_description">Back from profile</string>
     <string name="profile_status_active">Active</string>
     <string name="profile_status_inactive">Inactive</string>
     <string name="profile_application_section">Application</string>

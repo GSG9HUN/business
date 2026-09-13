@@ -2,9 +2,9 @@ package com.dc.melodiasmario.feature.guild.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.dc.melodiasmario.core.ui.components.display.MBadge
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.feature.guild.domain.model.guild.GuildAccessLevel
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 
 @Composable
 fun GuildAccessBadge(

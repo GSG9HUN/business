@@ -7,6 +7,7 @@
     <string name="guild_select_title">Guild kiválasztása</string>
     <string name="guild_available_count">Elérhető guildek: %1$d</string>
     <string name="guild_search_placeholder">Guild keresése</string>
+    <string name="guild_refresh_content_description">Guildek frissítése</string>
     <string name="guild_placeholder_title">Guild lista</string>
     <string name="guild_loading_message">Guildek betöltése...</string>
     <string name="guild_empty_message">Nincs elérhető guild</string>

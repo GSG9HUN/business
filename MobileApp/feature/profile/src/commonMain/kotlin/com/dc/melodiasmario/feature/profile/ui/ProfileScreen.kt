@@ -6,15 +6,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.dc.melodiasmario.core.settings.domain.model.UserSettings
-import com.dc.melodiasmario.core.ui.components.button.MFloatingSaveCancelBar
-import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.feature.profile.domain.model.ProfileUser
+import com.dc.melodiasmario.core.commonui.designsystem.components.button.MFloatingSaveCancelBar
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
+import com.dc.melodiasmario.core.model.profile.ProfileUser
+import com.dc.melodiasmario.core.model.settings.UserSettings
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_cancel_settings_button
+import com.dc.melodiasmario.feature.profile.generated.resources.profile_back_content_description
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_settings_button
+import com.dc.melodiasmario.feature.profile.generated.resources.profile_top_bar_title
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEvent
 import com.dc.melodiasmario.feature.profile.presentation.ProfileUiState
 import com.dc.melodiasmario.feature.profile.ui.components.ProfileErrorContent
@@ -30,12 +34,20 @@ fun ProfileScreen(
 ) {
     val colors = MelodiasMarioThemeTokens.current
 
+    SetTopBarConfig(
+        TopBarConfig(
+            title = stringResource(ProfileRes.string.profile_top_bar_title),
+            subTitle = uiState.user.displayName.takeIf { it.isNotBlank() },
+            navigationIcon = TopBarNavigationIcon.Back(
+                onClick = { onEvent(ProfileEvent.BackClicked) },
+                contentDescription = stringResource(ProfileRes.string.profile_back_content_description),
+            ),
+        )
+    )
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = colors.surface,
-        topBar = {
-            MText(text = "Random Top bar")
-        },
         bottomBar = {
             if (!uiState.isLoading && uiState.errorMessage == null && uiState.hasUnsavedChanges) {
                 MFloatingSaveCancelBar(
