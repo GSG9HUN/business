@@ -17,19 +17,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dc.melodiasmario.core.ui.components.display.MAvatar
-import com.dc.melodiasmario.core.ui.components.display.MBadge
-import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.components.settings.MSettingRow
-import com.dc.melodiasmario.core.ui.components.settings.MToggleRow
-import com.dc.melodiasmario.core.ui.generated.resources.Res as CoreUiRes
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_haptics
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_language
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_sound_effects
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_telemetry
-import com.dc.melodiasmario.core.ui.generated.resources.ic_profile_token_status
-import com.dc.melodiasmario.core.ui.layout.MScrollableScreenContent
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MSettingRow
+import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MToggleRow
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CoreUiRes
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_haptics
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_language
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_sound_effects
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_telemetry
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_token_status
+import com.dc.melodiasmario.core.commonui.layout.MScrollableScreenContent
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_application_section
@@ -112,7 +112,7 @@ fun ProfileLoadedContent(
                         fontWeight = FontWeight.Bold,
                     )
                     MText(
-                        text = "@$username • $connectedProviderText",
+                        text = "@$username â€˘ $connectedProviderText",
                         textAlign = TextAlign.Start,
                     )
                 }

@@ -8,34 +8,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.feature.guild.domain.model.guild.Guild
-import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
-import com.dc.melodiasmario.core.ui.components.MTopBar
-import com.dc.melodiasmario.core.ui.components.button.MRefreshButton
-import com.dc.melodiasmario.core.ui.components.display.MAvatar
-import com.dc.melodiasmario.core.ui.components.input.MSearchBar
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.core.ui.theme.MmBackgroundPreviewColor
-import com.dc.melodiasmario.feature.guild.domain.model.currentuser.CurrentUser
-import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
-import com.dc.melodiasmario.feature.guild.domain.model.guild.BotStatus
-import com.dc.melodiasmario.feature.guild.domain.model.guild.GuildAccessLevel
+import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
+import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
+import com.dc.melodiasmario.core.model.currentuser.CurrentUser
+import com.dc.melodiasmario.core.model.guild.BotStatus
+import com.dc.melodiasmario.core.model.guild.Guild
+import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.generated.resources.Res
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_available_count
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_empty_message
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_loading_message
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_placeholder_title
+import com.dc.melodiasmario.feature.guild.generated.resources.guild_refresh_content_description
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_search_placeholder
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_select_title
+import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
+import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
 import com.dc.melodiasmario.feature.guild.ui.components.GuildSelectorPlaceholder
 import org.jetbrains.compose.resources.stringResource
 
@@ -49,76 +48,62 @@ fun GuildSelectorScreen(
     searchQuery: String,
     onEvent: (GuildSelectorEvent) -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
+    SetTopBarConfig(
+        TopBarConfig(
+            title = stringResource(Res.string.guild_select_title),
+            subTitle = stringResource(Res.string.guild_available_count, guilds.size),
+            navigationIcon = TopBarNavigationIcon.Avatar(
+                name = currentUser.displayName,
+                imageUrl = currentUser.avatarUrl,
+                onClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
+            ),
+            actions = listOf(
+                TopBarAction.Refresh(
+                    onClick = { onEvent(GuildSelectorEvent.RefreshClicked) },
+                    contentDescription = stringResource(Res.string.guild_refresh_content_description),
+                )
+            ),
+        )
+    )
 
-    Scaffold(
+    Column(
         modifier = modifier.fillMaxSize(),
-        containerColor = colors.background,
-        topBar = {
-            MTopBar(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(Res.string.guild_select_title),
-                subTitle = stringResource(Res.string.guild_available_count, guilds.size),
-                navigationIcon = {
-                    MAvatar(
-                        name = currentUser.displayName,
-                        imageUrl = currentUser.avatarUrl,
-                        shape = CircleShape,
-                        size = 44.dp,
-                        backgroundColor = colors.primary,
-                        contentColor = colors.textPrimary,
-                        avatarOnClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
+        horizontalAlignment = Alignment.Start,
+    ) {
+
+        HorizontalDivider()
+        MSearchBar(
+            query = searchQuery,
+            onQueryChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
+            placeholder = stringResource(Res.string.guild_search_placeholder),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+        )
+        when {
+            isLoading -> GuildSelectorPlaceholder(
+                title = stringResource(Res.string.guild_placeholder_title),
+                contentText = stringResource(Res.string.guild_loading_message),
+            )
+
+            errorMessage != null -> GuildSelectorPlaceholder(
+                title = stringResource(Res.string.guild_placeholder_title),
+                contentText = errorMessage,
+            )
+
+            guilds.isEmpty() -> GuildSelectorPlaceholder(
+                title = stringResource(Res.string.guild_placeholder_title),
+                contentText = stringResource(Res.string.guild_empty_message),
+            )
+
+            else -> LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(12.dp, 0.dp, 12.dp, 12.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                items(guilds) { guild ->
+                    GuildListItem(
+                        guild = guild,
+                        onClick = { onEvent(GuildSelectorEvent.GuildClicked(guild.id)) },
                     )
-                },
-                actions = {
-                    MRefreshButton(onClick = {
-                        onEvent(GuildSelectorEvent.RefreshClicked)
-                    })
-                },
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.Start,
-        ) {
-
-            HorizontalDivider()
-            MSearchBar(
-                query = searchQuery,
-                onQueryChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
-                placeholder = stringResource(Res.string.guild_search_placeholder),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
-            )
-            when {
-                isLoading -> GuildSelectorPlaceholder(
-                    title = stringResource(Res.string.guild_placeholder_title),
-                    contentText = stringResource(Res.string.guild_loading_message),
-                )
-
-                errorMessage != null -> GuildSelectorPlaceholder(
-                    title = stringResource(Res.string.guild_placeholder_title),
-                    contentText = errorMessage,
-                )
-
-                guilds.isEmpty() -> GuildSelectorPlaceholder(
-                    title = stringResource(Res.string.guild_placeholder_title),
-                    contentText = stringResource(Res.string.guild_empty_message),
-                )
-
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentPadding = PaddingValues(12.dp, 0.dp, 12.dp, 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    items(guilds) { guild ->
-                        GuildListItem(
-                            guild = guild,
-                            onClick = { onEvent(GuildSelectorEvent.GuildClicked(guild.id)) },
-                        )
-                    }
                 }
             }
         }

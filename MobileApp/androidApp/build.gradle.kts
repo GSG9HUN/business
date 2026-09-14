@@ -14,9 +14,8 @@ kotlin {
 dependencies {
     implementation(project(":shared"))
     implementation(project(":core:common"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:auth"))
-    implementation(project(":core:settings"))
+    implementation(project(":core:common-ui"))
+    implementation(project(":core:di"))
     implementation(project(":feature:playlistsong"))
     implementation(project(":feature:currentmusic"))
     implementation(project(":feature:guild"))

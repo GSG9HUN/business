@@ -2,7 +2,7 @@ package com.dc.melodiasmario.feature.playlistsong.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.dc.melodiasmario.core.ui.components.EmptyRouteScreen
+import com.dc.melodiasmario.core.commonui.components.EmptyRouteScreen
 import com.dc.melodiasmario.feature.playlistsong.presentation.PlaylistSongViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

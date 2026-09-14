@@ -18,19 +18,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dc.melodiasmario.core.network.status.domain.model.ApiConnectionStatus
-import com.dc.melodiasmario.core.ui.components.display.MBadge
-import com.dc.melodiasmario.core.ui.components.display.MText
-import com.dc.melodiasmario.core.ui.generated.resources.Res
-import com.dc.melodiasmario.core.ui.generated.resources.api_available_detail
-import com.dc.melodiasmario.core.ui.generated.resources.api_available_title
-import com.dc.melodiasmario.core.ui.generated.resources.api_unavailable_detail
-import com.dc.melodiasmario.core.ui.generated.resources.api_unavailable_title
-import com.dc.melodiasmario.core.ui.generated.resources.connection_section_title
-import com.dc.melodiasmario.core.ui.generated.resources.offline_badge
-import com.dc.melodiasmario.core.ui.generated.resources.online_badge
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.api_available_detail
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.api_available_title
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.api_unavailable_detail
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.api_unavailable_title
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.connection_section_title
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.offline_badge
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.online_badge
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

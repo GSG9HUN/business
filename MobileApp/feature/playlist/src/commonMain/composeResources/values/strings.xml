@@ -13,6 +13,7 @@
     <string name="playlists_count">%1$d lejátszási lista</string>
     <string name="playlists_search_placeholder">Lejátszási listák keresése</string>
     <string name="playlists_search_content_description">Lejátszási listák keresése</string>
+    <string name="playlists_refresh_content_description">Lejátszási listák frissítése</string>
     <string name="playlists_add_content_description">Lejátszási lista hozzáadása</string>
     <string name="playlists_placeholder_title">Lejátszási listák</string>
     <string name="playlists_loading_message">Lejátszási listák betöltése...</string>
@@ -22,10 +23,16 @@
     <string name="playlists_cancel">Mégse</string>
     <string name="playlists_create_title">Új lejátszási lista</string>
     <string name="playlists_create_action">Létrehozás</string>
+    <string name="playlists_create_success">Lejátszási lista létrehozva.</string>
+    <string name="playlists_create_failed">Nem sikerült létrehozni a lejátszási listát.</string>
     <string name="playlists_rename_title">Lejátszási lista átnevezése</string>
     <string name="playlists_rename_action">Átnevezés</string>
+    <string name="playlists_rename_success">Lejátszási lista átnevezve.</string>
+    <string name="playlists_rename_failed">Nem sikerült átnevezni a lejátszási listát.</string>
     <string name="playlists_delete_title">Lejátszási lista törlése</string>
     <string name="playlists_delete_message">Törlöd ezt: "%1$s"?</string>
     <string name="playlists_delete_action">Törlés</string>
+    <string name="playlists_delete_success">Lejátszási lista törölve.</string>
+    <string name="playlists_delete_failed">Nem sikerült törölni a lejátszási listát.</string>
     <string name="playlists_name_placeholder">Lejátszási lista neve</string>
 </resources>

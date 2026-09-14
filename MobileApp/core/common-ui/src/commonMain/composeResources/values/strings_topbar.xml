@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="top_bar_back_content_description">Vissza</string>
+    <string name="top_bar_more_content_description">További műveletek</string>
+    <string name="top_bar_refresh_content_description">Frissítés</string>
+    <string name="top_bar_search_content_description">Keresés</string>
+</resources>

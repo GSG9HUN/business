@@ -3,11 +3,11 @@ package com.dc.melodiasmario.feature.playlist.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.feature.playlist.domain.model.Playlist
-import com.dc.melodiasmario.feature.playlist.domain.usecase.CreatePlaylistUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.DeletePlaylistUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.GetPlaylistsUseCase
-import com.dc.melodiasmario.feature.playlist.domain.usecase.RenamePlaylistUseCase
+import com.dc.melodiasmario.core.model.playlist.Playlist
+import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.DeletePlaylistUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.GetPlaylistsUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.RenamePlaylistUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,8 +91,11 @@ class PlaylistsViewModel(
         createPlaylistUseCase(guildId, playlistName).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> loadPlaylists(guildId)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    _effect.emit(PlaylistsEffect.PlaylistCreated)
+                    loadPlaylists(guildId)
+                }
+                is Resource.Error -> onCreatePlaylistError()
             }
         }
     }
@@ -101,8 +104,11 @@ class PlaylistsViewModel(
         renamePlaylistUseCase(playlistId, newPlaylistName).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> onRenamePlaylistSuccess(playlistId, newPlaylistName)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    onRenamePlaylistSuccess(playlistId, newPlaylistName)
+                    _effect.emit(PlaylistsEffect.PlaylistRenamed)
+                }
+                is Resource.Error -> onRenamePlaylistError()
             }
         }
     }
@@ -111,8 +117,11 @@ class PlaylistsViewModel(
         deletePlaylistUseCase(playlistId).collect { result ->
             when (result) {
                 Resource.Loading -> onLoading()
-                is Resource.Success -> onDeletePlaylistSuccess(playlistId)
-                is Resource.Error -> onError(result.error)
+                is Resource.Success -> {
+                    onDeletePlaylistSuccess(playlistId)
+                    _effect.emit(PlaylistsEffect.PlaylistDeleted)
+                }
+                is Resource.Error -> onDeletePlaylistError()
             }
         }
     }
@@ -169,6 +178,27 @@ class PlaylistsViewModel(
                 isLoading = false,
                 errorMessage = error.message,
             )
+        }
+    }
+
+    private suspend fun onCreatePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistCreateFailed)
+    }
+
+    private suspend fun onRenamePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistRenameFailed)
+    }
+
+    private suspend fun onDeletePlaylistError() {
+        onActionError()
+        _effect.emit(PlaylistsEffect.PlaylistDeleteFailed)
+    }
+
+    private fun onActionError() {
+        _uiState.update {
+            it.copy(isLoading = false)
         }
     }
 

@@ -12,10 +12,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.ui.generated.resources.Res
-import com.dc.melodiasmario.core.ui.generated.resources.app_name
-import com.dc.melodiasmario.core.ui.generated.resources.melodias_mario_note
-import com.dc.melodiasmario.core.ui.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.app_name
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.melodias_mario_note
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
