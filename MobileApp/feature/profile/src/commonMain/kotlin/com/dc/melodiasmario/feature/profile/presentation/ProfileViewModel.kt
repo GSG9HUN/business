@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.domain.auth.usecase.DiscordLogoutUseCase
 import com.dc.melodiasmario.core.common.Resource
+import com.dc.melodiasmario.core.common.presentation.runAction
 import com.dc.melodiasmario.core.domain.profile.usecase.ClearUserSettingsUseCase
 import com.dc.melodiasmario.core.model.profile.ProfileData
 import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
@@ -215,32 +216,27 @@ class ProfileViewModel(
     }
 
     private suspend fun onLogoutClicked() {
-        discordLogoutUseCase().collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
 
-                is Resource.Success -> onLogoutSuccess()
-
-                is Resource.Error -> onLogoutError(result.error)
-            }
-        }
-    }
-
-    private suspend fun onLogoutError(error: Throwable) {
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                errorMessage = error.message,
-            )
-        }
-
-        _effect.emit(ProfileEffect.LogoutFailed)
-    }
-
-    private suspend fun onLogoutSuccess() {
-        clearUserSettingsUseCase()
-        _effect.emit(ProfileEffect.LogoutSuccess)
-        _effect.emit(ProfileEffect.NavigateToLogin)
+        discordLogoutUseCase().runAction(
+            state = _uiState,
+            effects = _effect,
+            successEffect = ProfileEffect.LogoutSuccess,
+            failureEffect = ProfileEffect.LogoutFailed,
+            onLoading = {
+                it.copy(isLoading = true, errorMessage = null)
+            },
+            onError = { state, error ->
+                state.copy(
+                    isLoading = false,
+                    errorMessage = error.message,
+                )
+            },
+            afterSuccess = {
+                clearUserSettingsUseCase()
+                _effect.emit(ProfileEffect.LogoutSuccess)
+                _effect.emit(ProfileEffect.NavigateToLogin)
+            },
+        )
     }
 
     private suspend fun onLanguageClicked() {

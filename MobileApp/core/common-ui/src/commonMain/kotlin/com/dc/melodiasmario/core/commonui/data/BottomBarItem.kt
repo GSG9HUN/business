@@ -9,10 +9,3 @@ data class BottomBarItem(
     val selected: Boolean,
     val onClick: () -> Unit,
 )
-
-enum class BottomBarIcon {
-    NowPlaying,
-    Queue,
-    Playlists,
-    Settings,
-}

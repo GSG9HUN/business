@@ -40,11 +40,7 @@ fun GuildSelectorRoute(
 
     GuildSelectorScreen(
         modifier = modifier,
-        currentUser = uiState.currentUser,
-        guilds = uiState.filteredGuilds,
-        searchQuery = uiState.searchQuery,
-        isLoading = uiState.isLoading,
-        errorMessage = uiState.errorMessage,
+        uiState = uiState,
         onEvent = viewModel::onEvent,
     )
 }
