@@ -16,16 +16,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CommonUiRes
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_in_voice_channel
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_offline
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_online
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_unknown
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.core.commonui.guild.botStatusText
 import com.dc.melodiasmario.core.model.guild.BotStatus
 import com.dc.melodiasmario.core.model.guild.Guild
 import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
-import com.dc.melodiasmario.feature.guild.generated.resources.Res
-import com.dc.melodiasmario.feature.guild.generated.resources.guild_bot_status_unknown
-import com.dc.melodiasmario.feature.guild.generated.resources.guild_in_voice_channel
-import com.dc.melodiasmario.feature.guild.generated.resources.guild_is_offline
-import com.dc.melodiasmario.feature.guild.generated.resources.guild_is_online
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -69,11 +70,12 @@ fun GuildListItem(
                 )
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
-                    text = guild.statusText(
-                        isOnlineText = stringResource(Res.string.guild_is_online),
-                        isOfflineText = stringResource(Res.string.guild_is_offline),
-                        unknownText = stringResource(Res.string.guild_bot_status_unknown),
-                        connectedInVoiceSuffix = stringResource(Res.string.guild_in_voice_channel),
+                    text = botStatusText(
+                        botStatus = guild.botStatus,
+                        isOnlineText = stringResource(CommonUiRes.string.guild_status_online),
+                        isOfflineText = stringResource(CommonUiRes.string.guild_status_offline),
+                        unknownText = stringResource(CommonUiRes.string.guild_status_unknown),
+                        connectedInVoiceSuffix = stringResource(CommonUiRes.string.guild_status_in_voice_channel),
                     ),
                     color = colors.textSecondary,
                 )
@@ -139,24 +141,3 @@ private fun previewGuild(
     botStatus = botStatus,
 )
 
-private fun Guild.statusText(
-    isOnlineText: String,
-    isOfflineText: String,
-    unknownText: String,
-    connectedInVoiceSuffix: String,
-): String {
-    val status = botStatus ?: return unknownText
-
-    if (!status.isOnline) return isOfflineText
-
-    val parts = mutableListOf(isOnlineText)
-
-    if (status.connectedVoiceUserCount > 0) {
-        parts += "${status.connectedVoiceUserCount} $connectedInVoiceSuffix"
-        return parts.joinToString(" - ")
-    }
-
-    status.connectedVoiceChannelName?.takeIf { it.isNotBlank() }?.let(parts::add)
-
-    return parts.joinToString(" - ")
-}

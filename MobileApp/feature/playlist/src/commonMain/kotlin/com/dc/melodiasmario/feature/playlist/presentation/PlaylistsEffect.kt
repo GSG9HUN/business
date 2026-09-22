@@ -1,6 +1,8 @@
 package com.dc.melodiasmario.feature.playlist.presentation
 
-sealed interface PlaylistsEffect {
+import com.dc.melodiasmario.core.common.presentation.MviEffect
+
+sealed interface PlaylistsEffect : MviEffect {
     data object NavigateToGuildSelector : PlaylistsEffect
     data class NavigateToPlaylistSongs(val playlistId: String) : PlaylistsEffect
     data object PlaylistCreated : PlaylistsEffect

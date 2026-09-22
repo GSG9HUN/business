@@ -4,4 +4,5 @@ import com.dc.melodiasmario.core.model.guild.Guild
 
 interface GuildRepository {
     suspend fun getGuilds(): List<Guild>
+    suspend fun getSelectedGuild(guildId: String): Guild?
 }

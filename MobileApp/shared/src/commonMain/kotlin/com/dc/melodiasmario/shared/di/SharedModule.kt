@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.shared.di
 
 import com.dc.melodiasmario.core.di.CoreModule
-import com.dc.melodiasmario.feature.currentmusic.di.CurrentMusicModule
+import com.dc.melodiasmario.feature.currenttrack.di.CurrentTrackModule
 import com.dc.melodiasmario.feature.guild.di.GuildModule
 import com.dc.melodiasmario.feature.login.di.LoginModule
 import com.dc.melodiasmario.feature.playlist.di.PlaylistModule
@@ -17,7 +17,7 @@ import org.koin.core.annotation.Module
     includes = [
         CoreModule::class,
         PlaylistSongModule::class,
-        CurrentMusicModule::class,
+        CurrentTrackModule::class,
         LoginModule::class,
         GuildModule::class,
         PlaylistModule::class,

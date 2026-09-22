@@ -18,11 +18,11 @@ fun bottomBarItems(
 
     return listOf(
         BottomBarItem(
-            id = "current_music",
+            id = "current_track",
             label = Res.string.bottom_bar_now_playing,
             icon = BottomBarIcon.NowPlaying,
-            selected = currentRoute is AppRoute.CurrentMusic,
-            onClick = { onNavigate(AppRoute.CurrentMusic(guildId = guildId)) },
+            selected = currentRoute is AppRoute.CurrentTrack,
+            onClick = { onNavigate(AppRoute.CurrentTrack(guildId = guildId)) },
         ),
         BottomBarItem(
             id = "queue",

@@ -7,4 +7,14 @@
     <string name="bottom_bar_settings">Settings</string>
     <string name="search_placeholder">Search</string>
     <string name="retry_button">Retry</string>
+    <string name="queue_action_move_up">&#8593;</string>
+    <string name="queue_action_move_down">&#8595;</string>
+    <string name="queue_action_remove">&#215;</string>
+    <string name="queue_action_move_up_content_description">Move track up</string>
+    <string name="queue_action_move_down_content_description">Move track down</string>
+    <string name="queue_action_remove_content_description">Remove track from queue</string>
+    <string name="guild_status_online">Bot online</string>
+    <string name="guild_status_offline">Bot offline</string>
+    <string name="guild_status_unknown">Bot status unknown</string>
+    <string name="guild_status_in_voice_channel">in voice channel</string>
 </resources>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="currenttrack_topbar_title">Server name</string>
+    <string name="currenttrack_topbar_subtitle">Bot online - voice channel name</string>
+    <string name="currenttrack_add_content_description">Add music to queue</string>
+    <string name="currenttrack_profile_content_description">Open profile</string>
+    <string name="currenttrack_empty_title">Nothing playing</string>
+    <string name="currenttrack_empty_message">The bot is not playing music in this voice channel right now.</string>
+    <string name="currenttrack_next_section_title">UP NEXT</string>
+    <string name="currenttrack_queue_empty">There are no more songs in the queue.</string>
+    <string name="currenttrack_music_icon_content_description">Music icon</string>
+    <string name="currenttrack_add_to_queue_title">Add music</string>
+    <string name="currenttrack_add_to_queue_placeholder">URL or search</string>
+    <string name="currenttrack_add_to_queue_action">Add</string>
+    <string name="currenttrack_cancel">Cancel</string>
+    <string name="currenttrack_more_title">Playback actions</string>
+    <string name="currenttrack_more_message">Choose an action for the current queue.</string>
+    <string name="currenttrack_shuffle_action">Shuffle</string>
+    <string name="currenttrack_clear_queue_action">Clear queue</string>
+    <string name="currenttrack_preview_error">Failed to load the current track.</string>
+    <string name="currenttrack_repeat_content_description">Change repeat mode</string>
+    <string name="currenttrack_previous_content_description">Previous track</string>
+    <string name="currenttrack_play_content_description">Play</string>
+    <string name="currenttrack_pause_content_description">Pause</string>
+    <string name="currenttrack_next_content_description">Next track</string>
+    <string name="currenttrack_more_content_description">More playback actions</string>
+
+    <string name="currenttrack_added_to_queue">Added to queue.</string>
+    <string name="currenttrack_removed_from_queue">Removed from queue.</string>
+    <string name="currenttrack_cleared_queue">Queue cleared.</string>
+    <string name="currenttrack_repeat_mode_changed">Repeat mode changed.</string>
+    <string name="currenttrack_queue_shuffled">Queue shuffled.</string>
+    <string name="currenttrack_playback_updated">Playback updated.</string>
+    <string name="currenttrack_moved_up_in_queue">Track moved up.</string>
+    <string name="currenttrack_moved_down_in_queue">Track moved down.</string>
+
+    <string name="currenttrack_load_failed">Failed to load current track.</string>
+    <string name="currenttrack_add_to_queue_failed">Add to queue is not wired yet.</string>
+    <string name="currenttrack_remove_from_queue_failed">Remove from queue is not available yet.</string>
+    <string name="currenttrack_clear_queue_failed">Failed to clear queue.</string>
+    <string name="currenttrack_next_track_failed">Failed to skip track.</string>
+    <string name="currenttrack_previous_track_failed">Previous track is not available yet.</string>
+    <string name="currenttrack_repeat_mode_change_failed">Failed to change repeat mode.</string>
+    <string name="currenttrack_shuffle_queue_failed">Failed to shuffle queue.</string>
+    <string name="currenttrack_play_pause_toggle_failed">Failed to update playback.</string>
+    <string name="currenttrack_move_up_failed">Move up is not available yet.</string>
+    <string name="currenttrack_move_down_failed">Move down is not available yet.</string>
+</resources>

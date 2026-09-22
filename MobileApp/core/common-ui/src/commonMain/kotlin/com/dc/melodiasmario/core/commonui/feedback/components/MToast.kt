@@ -22,6 +22,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
@@ -68,7 +69,7 @@ fun MToast(
                 color = themeColors.textPrimary,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.SemiBold,
-                lineHeight = 18,
+                lineHeight = 18.sp,
             )
         }
     }
@@ -90,7 +91,7 @@ private fun ToastStatusMark(
                 text = label,
                 color = contentColor,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 14,
+                lineHeight = 14.sp,
             )
         }
     }

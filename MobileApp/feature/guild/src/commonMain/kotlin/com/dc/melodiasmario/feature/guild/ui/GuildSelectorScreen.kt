@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.components.MErrorScreen
+import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
@@ -28,12 +30,12 @@ import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 import com.dc.melodiasmario.feature.guild.generated.resources.Res
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_available_count
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_empty_message
-import com.dc.melodiasmario.feature.guild.generated.resources.guild_loading_message
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_placeholder_title
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_refresh_content_description
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_search_placeholder
 import com.dc.melodiasmario.feature.guild.generated.resources.guild_select_title
 import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
+import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorUiState
 import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
 import com.dc.melodiasmario.feature.guild.ui.components.GuildSelectorPlaceholder
 import org.jetbrains.compose.resources.stringResource
@@ -41,20 +43,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun GuildSelectorScreen(
     modifier: Modifier = Modifier,
-    currentUser: CurrentUser,
-    guilds: List<Guild>,
-    isLoading: Boolean,
-    errorMessage: String?,
-    searchQuery: String,
+    uiState: GuildSelectorUiState,
     onEvent: (GuildSelectorEvent) -> Unit = {},
 ) {
+    val guilds = uiState.filteredGuilds
+
     SetTopBarConfig(
         TopBarConfig(
             title = stringResource(Res.string.guild_select_title),
             subTitle = stringResource(Res.string.guild_available_count, guilds.size),
             navigationIcon = TopBarNavigationIcon.Avatar(
-                name = currentUser.displayName,
-                imageUrl = currentUser.avatarUrl,
+                name = uiState.currentUser.displayName,
+                imageUrl = uiState.currentUser.avatarUrl,
                 onClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
             ),
             actions = listOf(
@@ -73,20 +73,20 @@ fun GuildSelectorScreen(
 
         HorizontalDivider()
         MSearchBar(
-            query = searchQuery,
+            query = uiState.searchQuery,
             onQueryChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
             placeholder = stringResource(Res.string.guild_search_placeholder),
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
         )
         when {
-            isLoading -> GuildSelectorPlaceholder(
-                title = stringResource(Res.string.guild_placeholder_title),
-                contentText = stringResource(Res.string.guild_loading_message),
+            uiState.isLoading -> MLoadingScreen(
+                modifier = Modifier.fillMaxWidth().weight(1f),
             )
 
-            errorMessage != null -> GuildSelectorPlaceholder(
-                title = stringResource(Res.string.guild_placeholder_title),
-                contentText = errorMessage,
+            uiState.errorMessage != null -> MErrorScreen(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                errorMessage = uiState.errorMessage,
+                onClick = { onEvent(GuildSelectorEvent.RefreshClicked) },
             )
 
             guilds.isEmpty() -> GuildSelectorPlaceholder(
@@ -116,16 +116,7 @@ fun GuildSelectorScreen(
 private fun GuildSelectorScreenEmptyListPreview() {
     MelodiasMarioTheme {
         GuildSelectorScreen(
-            guilds = emptyList(),
-            searchQuery = "",
-            isLoading = false,
-            errorMessage = null,
-            currentUser = CurrentUser(
-                id = "1234567890",
-                displayName = "John Doe",
-                avatarUrl = "https://example.com/avatar.jpg",
-                username = "johndoe",
-            )
+            uiState = previewUiState(),
         )
     }
 }
@@ -136,16 +127,7 @@ private fun GuildSelectorScreenEmptyListPreview() {
 private fun GuildSelectorScreenIsLoadingPreview() {
     MelodiasMarioTheme {
         GuildSelectorScreen(
-            guilds = emptyList(),
-            searchQuery = "",
-            isLoading = true,
-            errorMessage = null,
-            currentUser = CurrentUser(
-                id = "1234567890",
-                displayName = "John Doe",
-                avatarUrl = "https://example.com/avatar.jpg",
-                username = "johndoe",
-            )
+            uiState = previewUiState(isLoading = true),
         )
     }
 }
@@ -155,19 +137,29 @@ private fun GuildSelectorScreenIsLoadingPreview() {
 private fun GuildSelectorScreenPreview() {
     MelodiasMarioTheme {
         GuildSelectorScreen(
-            guilds = listOf(guild),
-            searchQuery = "",
-            isLoading = false,
-            errorMessage = null,
-            currentUser = CurrentUser(
-                id = "1234567890",
-                displayName = "John Doe",
-                avatarUrl = "https://example.com/avatar.jpg",
-                username = "johndoe",
-            )
+            uiState = previewUiState(
+                guilds = listOf(guild),
+                filteredGuilds = listOf(guild),
+            ),
         )
     }
 }
+
+private fun previewUiState(
+    guilds: List<Guild> = emptyList(),
+    filteredGuilds: List<Guild> = guilds,
+    isLoading: Boolean = false,
+): GuildSelectorUiState = GuildSelectorUiState(
+    currentUser = CurrentUser(
+        id = "1234567890",
+        displayName = "John Doe",
+        avatarUrl = "https://example.com/avatar.jpg",
+        username = "johndoe",
+    ),
+    guilds = guilds,
+    filteredGuilds = filteredGuilds,
+    isLoading = isLoading,
+)
 
 private val guild = Guild(
     id = "1309813939563003966",

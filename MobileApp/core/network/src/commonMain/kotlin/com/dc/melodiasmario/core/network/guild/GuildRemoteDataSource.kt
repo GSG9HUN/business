@@ -4,4 +4,5 @@ import com.dc.melodiasmario.core.model.guild.Guild
 
 interface GuildRemoteDataSource {
     suspend fun getGuilds(accessToken: String): List<Guild>
+    suspend fun getSelectedGuild(accessToken: String, guildId: String): Guild?
 }

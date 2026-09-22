@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.components.MErrorScreen
+import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MConfirmDialog
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MTextInputDialog
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
@@ -37,7 +39,6 @@ import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_delet
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_delete_message
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_delete_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_empty_message
-import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_loading_message
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_name_placeholder
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_no_search_results_message
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_placeholder_title
@@ -105,15 +106,14 @@ fun PlaylistsScreen(
         horizontalAlignment = Alignment.Start,
     ) {
         when {
-            uiState.isLoading -> PlaylistsPlaceholder(
-                title = stringResource(Res.string.playlists_placeholder_title),
-                contentText = stringResource(Res.string.playlists_loading_message),
+            uiState.isLoading -> MLoadingScreen(
+                modifier = Modifier.fillMaxWidth().weight(1f),
             )
 
-            uiState.errorMessage != null -> PlaylistsPlaceholder(
-                modifier = Modifier.padding(horizontal = 0.dp, vertical = 16.dp),
-                title = stringResource(Res.string.playlists_placeholder_title),
-                contentText = uiState.errorMessage,
+            uiState.errorMessage != null -> MErrorScreen(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                errorMessage = uiState.errorMessage,
+                onClick = { onEvent(PlaylistsEvent.RefreshClicked) },
             )
 
             uiState.filteredPlaylists.isEmpty() -> PlaylistsPlaceholder(

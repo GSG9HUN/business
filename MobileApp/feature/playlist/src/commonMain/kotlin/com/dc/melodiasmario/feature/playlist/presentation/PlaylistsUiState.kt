@@ -14,17 +14,3 @@ data class PlaylistsUiState(
     val playlistNameDraft: String = "",
     val searchDraft: String = "",
 )
-
-sealed interface PlaylistsDialog {
-    data object None : PlaylistsDialog
-    data object Create : PlaylistsDialog
-    data object Search : PlaylistsDialog
-    data class Rename(
-        val playlistId: String,
-        val playlistName: String,
-    ) : PlaylistsDialog
-    data class Delete(
-        val playlistId: String,
-        val playlistName: String,
-    ) : PlaylistsDialog
-}

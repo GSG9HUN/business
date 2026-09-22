@@ -7,4 +7,14 @@
     <string name="bottom_bar_settings">Beállítások</string>
     <string name="search_placeholder">Keresés</string>
     <string name="retry_button">Újrapróbál</string>
+    <string name="queue_action_move_up">&#8593;</string>
+    <string name="queue_action_move_down">&#8595;</string>
+    <string name="queue_action_remove">&#215;</string>
+    <string name="queue_action_move_up_content_description">Szám feljebb mozgatása</string>
+    <string name="queue_action_move_down_content_description">Szám lejjebb mozgatása</string>
+    <string name="queue_action_remove_content_description">Szám eltávolítása a sorból</string>
+    <string name="guild_status_online">Bot online</string>
+    <string name="guild_status_offline">Bot offline</string>
+    <string name="guild_status_unknown">Bot státusz ismeretlen</string>
+    <string name="guild_status_in_voice_channel">voice csatornában</string>
 </resources>

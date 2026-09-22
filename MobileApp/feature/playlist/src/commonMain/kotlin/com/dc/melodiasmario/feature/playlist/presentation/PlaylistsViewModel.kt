@@ -3,6 +3,7 @@ package com.dc.melodiasmario.feature.playlist.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
+import com.dc.melodiasmario.core.common.presentation.runAction
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistUseCase
 import com.dc.melodiasmario.core.domain.playlist.usecase.DeletePlaylistUseCase
@@ -68,6 +69,7 @@ class PlaylistsViewModel(
                 playlistId = event.playlistId,
                 playlistName = event.playlistName,
             )
+
             is PlaylistsEvent.RenamePlaylistClicked -> onRenamePlaylistClicked(
                 playlistId = event.playlistId,
                 playlistName = event.playlistName,
@@ -88,42 +90,69 @@ class PlaylistsViewModel(
 
     private suspend fun createPlaylist(playlistName: String) {
         val guildId = currentGuildId ?: return
-        createPlaylistUseCase(guildId, playlistName).collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
-                is Resource.Success -> {
-                    _effect.emit(PlaylistsEffect.PlaylistCreated)
-                    loadPlaylists(guildId)
-                }
-                is Resource.Error -> onCreatePlaylistError()
+        createPlaylistUseCase(guildId, playlistName).runAction(
+            state = _uiState,
+            effects = _effect,
+            successEffect = PlaylistsEffect.PlaylistCreated,
+            failureEffect = PlaylistsEffect.PlaylistCreateFailed,
+            onLoading = {
+                it.copy(isLoading = true, errorMessage = null)
+            },
+            onSuccess = {
+                it.copy(isLoading = false)
+            },
+            onError = { state, _ ->
+                state.copy(isLoading = false)
+            },
+            afterSuccess = {
+                loadPlaylists(guildId)
             }
-        }
+        )
     }
 
     private suspend fun renamePlaylist(playlistId: String, newPlaylistName: String) {
-        renamePlaylistUseCase(playlistId, newPlaylistName).collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
-                is Resource.Success -> {
-                    onRenamePlaylistSuccess(playlistId, newPlaylistName)
-                    _effect.emit(PlaylistsEffect.PlaylistRenamed)
-                }
-                is Resource.Error -> onRenamePlaylistError()
+        renamePlaylistUseCase(playlistId, newPlaylistName).runAction(
+            state = _uiState,
+            effects = _effect,
+            successEffect = PlaylistsEffect.PlaylistRenamed,
+            failureEffect = PlaylistsEffect.PlaylistRenameFailed,
+            onLoading = {
+                it.copy(isLoading = true, errorMessage = null)
+            },
+            onSuccess = {
+                it.copy(isLoading = false)
+            },
+            onError = { state, _ ->
+                state.copy(isLoading = false)
+            },
+            afterSuccess = {
+                onRenamePlaylistSuccess(playlistId, newPlaylistName)
+                _effect.emit(PlaylistsEffect.PlaylistRenamed)
             }
-        }
+        )
     }
 
     private suspend fun deletePlaylist(playlistId: String) {
-        deletePlaylistUseCase(playlistId).collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
-                is Resource.Success -> {
-                    onDeletePlaylistSuccess(playlistId)
-                    _effect.emit(PlaylistsEffect.PlaylistDeleted)
-                }
-                is Resource.Error -> onDeletePlaylistError()
+
+        deletePlaylistUseCase(playlistId).runAction(
+            state = _uiState,
+            effects = _effect,
+            successEffect = PlaylistsEffect.PlaylistDeleted,
+            failureEffect = PlaylistsEffect.PlaylistDeleteFailed,
+            onLoading = {
+                it.copy(isLoading = true, errorMessage = null)
+            },
+            onSuccess = {
+                it.copy(isLoading = false)
+            },
+            onError = { state, _ ->
+                state.copy(isLoading = false)
+            },
+            afterSuccess = {
+                onDeletePlaylistSuccess(playlistId)
+                _effect.emit(PlaylistsEffect.PlaylistDeleted)
             }
-        }
+        )
     }
 
     private fun onGetPlaylistsSuccess(playlists: List<Playlist>) {
@@ -178,27 +207,6 @@ class PlaylistsViewModel(
                 isLoading = false,
                 errorMessage = error.message,
             )
-        }
-    }
-
-    private suspend fun onCreatePlaylistError() {
-        onActionError()
-        _effect.emit(PlaylistsEffect.PlaylistCreateFailed)
-    }
-
-    private suspend fun onRenamePlaylistError() {
-        onActionError()
-        _effect.emit(PlaylistsEffect.PlaylistRenameFailed)
-    }
-
-    private suspend fun onDeletePlaylistError() {
-        onActionError()
-        _effect.emit(PlaylistsEffect.PlaylistDeleteFailed)
-    }
-
-    private fun onActionError() {
-        _uiState.update {
-            it.copy(isLoading = false)
         }
     }
 

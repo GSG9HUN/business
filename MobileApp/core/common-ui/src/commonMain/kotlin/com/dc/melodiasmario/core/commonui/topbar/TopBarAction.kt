@@ -15,4 +15,11 @@ sealed interface TopBarAction {
         val onClick: () -> Unit,
         val contentDescription: String,
     ) : TopBarAction
+
+    data class Profile(
+        val name: String,
+        val imageUrl: String?,
+        val onClick: () -> Unit,
+        val contentDescription: String,
+    ) : TopBarAction
 }

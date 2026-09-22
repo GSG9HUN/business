@@ -20,4 +20,10 @@ class GuildApiService(
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
+
+    suspend fun getSelectedGuild(accessToken: String, guildId: String): GuildDto? {
+        return client.get("$baseUrl/guilds/$guildId") {
+            header("Authorization", "Bearer $accessToken")
+        }.body<GuildDto?>()
+    }
 }

@@ -6,6 +6,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.dc.melodiasmario.core.commonui.components.MErrorScreen
+import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MFloatingSaveCancelBar
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
@@ -21,9 +23,7 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_set
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_top_bar_title
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEvent
 import com.dc.melodiasmario.feature.profile.presentation.ProfileUiState
-import com.dc.melodiasmario.feature.profile.ui.components.ProfileErrorContent
 import com.dc.melodiasmario.feature.profile.ui.components.ProfileLoadedContent
-import com.dc.melodiasmario.feature.profile.ui.components.ProfileLoadingContent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -61,12 +61,12 @@ fun ProfileScreen(
         },
     ) { innerPadding ->
         when {
-            uiState.isLoading -> ProfileLoadingContent(modifier = Modifier.padding(innerPadding))
+            uiState.isLoading -> MLoadingScreen(modifier = Modifier.padding(innerPadding))
 
-            uiState.errorMessage != null -> ProfileErrorContent(
+            uiState.errorMessage != null -> MErrorScreen(
                 modifier = Modifier.padding(innerPadding),
-                message = uiState.errorMessage,
-                onRetryClick = { onEvent(ProfileEvent.RefreshClicked) },
+                errorMessage = uiState.errorMessage,
+                onClick = { onEvent(ProfileEvent.RefreshClicked) },
             )
 
             else -> ProfileLoadedContent(

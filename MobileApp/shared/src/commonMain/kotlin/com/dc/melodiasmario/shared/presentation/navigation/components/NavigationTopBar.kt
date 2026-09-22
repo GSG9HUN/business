@@ -66,6 +66,17 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                             contentDescription = action.contentDescription
                         )
                     }
+
+                    is TopBarAction.Profile -> MAvatar(
+                        name = action.name,
+                        imageUrl = action.imageUrl,
+                        shape = CircleShape,
+                        size = 36.dp,
+                        backgroundColor = colors.primary,
+                        contentColor = colors.textPrimary,
+                        contentDescription = action.contentDescription,
+                        avatarOnClick = action.onClick,
+                    )
                 }
             }
         },
