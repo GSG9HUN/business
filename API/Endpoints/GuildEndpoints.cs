@@ -1,4 +1,5 @@
 using API.Handlers.Guilds;
+using API.Validation;
 
 namespace API.Endpoints;
 
@@ -8,6 +9,8 @@ public static class GuildEndpoints
     {
         var guildGroup = group.MapGroup("/guilds").RequireAuthorization();
         guildGroup.MapGet("/", GuildHandler.Guilds);
+        guildGroup.MapGet("/{guildId}", GuildHandler.Guild)
+            .AddEndpointFilter<GuildIdValidationFilter>();
         
         return group;
     }

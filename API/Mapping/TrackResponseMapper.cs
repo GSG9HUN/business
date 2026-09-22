@@ -8,7 +8,7 @@ namespace API.Mapping;
 
 internal static class TrackResponseMapper
 {
-    internal static QueueTrackResponse? TryMapQueueTrack(string trackIdentifier, int position)
+    internal static QueueTrackResponse? TryMapQueueTrack(string trackIdentifier, int position, string? requestedBy = null)
     {
         var track = TryParse(trackIdentifier);
         return track is null
@@ -19,10 +19,11 @@ internal static class TrackResponseMapper
                 track.Author,
                 ToDurationSeconds(track.Duration),
                 track.Uri?.ToString() ?? string.Empty,
-                track.ArtworkUri?.ToString());
+                track.ArtworkUri?.ToString(),
+                requestedBy);
     }
 
-    internal static PlaybackTrackResponse? TryMapPlaybackTrack(string trackIdentifier)
+    internal static PlaybackTrackResponse? TryMapPlaybackTrack(string trackIdentifier, string? requestedBy = null)
     {
         var track = TryParse(trackIdentifier);
         return track is null
@@ -32,7 +33,8 @@ internal static class TrackResponseMapper
                 track.Author,
                 ToDurationSeconds(track.Duration),
                 track.Uri?.ToString() ?? string.Empty,
-                track.ArtworkUri?.ToString());
+                track.ArtworkUri?.ToString(),
+                requestedBy);
     }
 
     internal static PlaylistTrackResponse? TryMapPlaylistTrack(PlaylistTrackRecord trackRecord)

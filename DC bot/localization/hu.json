@@ -105,6 +105,8 @@
   "skip_command_description": "Átugorja az aktuális számot.",
   "skip_command_error": "Jelenleg nincs lejátszott szám.",
   "skip_command_queue_is_empty": "A várólista üres. A lejátszás leállt.",
+  "previous_command_description": "Elindítja az előző számot.",
+  "previous_command_error": "Nincs előző szám, amit el lehetne indítani.",
   "tag_command_description": "Meg tagel egy felhasználót.",
   "tag_command_usage": "Felhasználónév megadva.",
   "tag_command_user_not_exist_error": "A felhasználó {0} nem létezik.",

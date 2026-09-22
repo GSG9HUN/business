@@ -17,8 +17,11 @@ public class TrackPlaybackService(
     ILocalizationService localizationService,
     ILogger<TrackPlaybackService> logger) : ITrackPlaybackService
 {
-    public async Task PlayTheFoundMusicAsync(TrackLoadResult searchQuery, ILavalinkPlayer connection,
-        IDiscordChannel textChannel)
+    public async Task PlayTheFoundMusicAsync(
+        TrackLoadResult searchQuery,
+        ILavalinkPlayer connection,
+        IDiscordChannel textChannel,
+        string? requestedBy = null)
     {
         var musicTracks = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
         var guildId = textChannel.Guild.Id;
@@ -29,11 +32,14 @@ public class TrackPlaybackService(
 
         if (searchQuery.IsPlaylist)
         {
-            await musicQueueService.EnqueueMany(guildId, musicTracks.Select(track => new LavaLinkTrackWrapper(track)).ToList());
+            await musicQueueService.EnqueueMany(
+                guildId,
+                musicTracks.Select(track => new LavaLinkTrackWrapper(track)).ToList(),
+                requestedBy);
         }
         else
         {
-            await musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTracks[0]));
+            await musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTracks[0]), requestedBy);
         }
 
         if (connection.CurrentTrack == null)

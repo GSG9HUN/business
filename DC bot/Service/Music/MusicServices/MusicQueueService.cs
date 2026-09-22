@@ -25,13 +25,13 @@ public class MusicQueueService(
         return tracks;
     }
 
-    public async Task Enqueue(ulong guildId, ILavaLinkTrack track)
+    public async Task Enqueue(ulong guildId, ILavaLinkTrack track, string? requestedBy = null)
     {
-        await queueRepository.EnqueueAsync(guildId, _trackSerializer.Serialize(track));
+        await queueRepository.EnqueueAsync(guildId, _trackSerializer.Serialize(track), requestedBy);
         _logger.LogInformation("Track enqueued for guild {GuildId}: {Author} - {Title}", guildId, track.Author, track.Title);
     }
 
-    public async Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks)
+    public async Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks, string? requestedBy = null)
     {
         ArgumentNullException.ThrowIfNull(tracks);
         if (tracks.Count == 0)
@@ -43,7 +43,7 @@ public class MusicQueueService(
             .Select(_trackSerializer.Serialize)
             .ToList();
 
-        await queueRepository.EnqueueManyAsync(guildId, trackIdentifiers);
+        await queueRepository.EnqueueManyAsync(guildId, trackIdentifiers, requestedBy);
         _logger.LogInformation("{TrackCount} tracks enqueued for guild {GuildId} in bulk.", trackIdentifiers.Count, guildId);
     }
 

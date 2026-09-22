@@ -4,8 +4,10 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence.Playback;
+using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Service.Music.MusicServices;
@@ -19,6 +21,9 @@ public class PlaybackControlService(
     IPlaybackEventHandlerService playbackEventHandlerService,
     IProgressiveTimerService progressiveTimerService,
     IPlaybackStateRepository playbackStateRepository,
+    ICurrentTrackService currentTrackService,
+    IQueueRepository queueRepository,
+    ITrackSerializer trackSerializer,
     ILogger<PlaybackControlService> logger) : IPlaybackControlService
 {
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
@@ -104,6 +109,52 @@ public class PlaybackControlService(
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "SkipAsync");
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+        }
+    }
+
+    public async Task PreviousAsync(IDiscordMessage message, IDiscordMember? member)
+    {
+        var (connection, channel, guildId, isValid) =
+            await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
+        if (!isValid || connection == null || channel == null) return;
+
+        var previousItem = await queueRepository.GetPreviousItemAsync(guildId);
+        if (previousItem is null)
+        {
+            await trackNotificationService.SendSafeAsync(channel,
+                localizationService.Get(guildId, LocalizationKeys.PreviousCommandError), "PreviousAsync.NoTrack");
+            logger.LogInformation("Previous requested for guild {GuildId}, but no previous track exists.", guildId);
+            return;
+        }
+
+        try
+        {
+            var previousTrack = trackSerializer.Deserialize(previousItem.TrackIdentifier, previousItem.Id);
+
+            progressiveTimerService.Stop(guildId);
+            var currentTrack = await currentTrackService.GetCurrentTrackAsync(guildId);
+            if (currentTrack is LavaLinkTrackWrapper { QueueItemId: not null } currentWrappedTrack)
+            {
+                await queueRepository.MarkSkippedAsync(currentWrappedTrack.QueueItemId.Value);
+            }
+
+            await currentTrackService.SetCurrentTrackAsync(guildId, null);
+            await connection.PlayAsync(previousTrack.ToLavalinkTrack());
+            await queueRepository.MarkPlayingAsync(previousItem.Id);
+            await currentTrackService.SetCurrentTrackAsync(guildId, previousTrack);
+            await playbackStateRepository.SetPlaybackPositionAsync(guildId, TimeSpan.Zero, false);
+            await trackNotificationService.NotifyNowPlayingAsync(channel, previousTrack,
+                previousTrack.StartPosition ?? TimeSpan.Zero, previousTrack.Duration);
+
+            logger.LogInformation("Previous track started for guild {GuildId}: {Author} - {Title}",
+                guildId,
+                previousTrack.Author,
+                previousTrack.Title);
+        }
+        catch (Exception ex)
+        {
+            logger.LavalinkOperationFailed(ex, "PreviousAsync");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
         }
     }

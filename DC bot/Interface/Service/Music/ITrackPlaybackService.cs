@@ -6,7 +6,11 @@ namespace DC_bot.Interface.Service.Music;
 
 public interface ITrackPlaybackService
 {
-    Task PlayTheFoundMusicAsync(TrackLoadResult searchQuery, ILavalinkPlayer connection, IDiscordChannel textChannel);
+    Task PlayTheFoundMusicAsync(
+        TrackLoadResult searchQuery,
+        ILavalinkPlayer connection,
+        IDiscordChannel textChannel,
+        string? requestedBy = null);
     Task PlayTrackFromQueueAsync(ILavalinkPlayer player, IDiscordChannel textChannel);
     Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId);
 }

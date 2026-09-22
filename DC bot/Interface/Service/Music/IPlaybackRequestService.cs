@@ -5,9 +5,17 @@ namespace DC_bot.Interface.Service.Music;
 
 public interface IPlaybackRequestService
 {
-    Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
-        TrackSearchMode trackSearchMode);
+    Task PlayAsyncUrl(
+        IDiscordChannel voiceStateChannel,
+        Uri url,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null);
 
-    Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
-        TrackSearchMode trackSearchMode);
+    Task PlayAsyncQuery(
+        IDiscordChannel voiceStateChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null);
 }

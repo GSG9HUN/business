@@ -35,6 +35,7 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<ICommand, PlayCommand>()
             .AddSingleton<ICommand, SkipCommand>()
+            .AddSingleton<ICommand, PreviousCommand>()
             .AddSingleton<ICommand, ClearCommand>()
             .AddSingleton<ICommand, LeaveCommand>()
             .AddSingleton<ICommand, PauseCommand>()

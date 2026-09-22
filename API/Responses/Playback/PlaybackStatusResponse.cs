@@ -1,7 +1,12 @@
+using API.Responses.Guilds;
+
 namespace API.Responses.Playback;
 
 public sealed record PlaybackStatusResponse(
     string GuildId,
+    string GuildName,
+    string? GuildIconUrl,
+    GuildBotStatusResponse BotStatus,
     PlaybackTrackResponse? CurrentTrack,
     bool IsPlaying,
     bool IsPaused,
@@ -16,4 +21,5 @@ public sealed record PlaybackTrackResponse(
     string Author,
     int Duration,
     string TrackUri,
-    string? ArtworkUri);
+    string? ArtworkUri,
+    string? RequestedBy);

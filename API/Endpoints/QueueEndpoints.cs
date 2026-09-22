@@ -15,7 +15,10 @@ public static class QueueEndpoints
         queue.MapGet("", QueueHandlers.GetAsync);
         queue.MapPost("/enqueue", QueueHandlers.EnqueueAsync);
         queue.MapDelete("", QueueHandlers.ClearAsync);
+        queue.MapDelete("/{trackNumber:int}", QueueHandlers.RemoveAsync);
         queue.MapPost("/shuffle", QueueHandlers.ShuffleAsync);
+        queue.MapPatch("/{trackIndex:int}/move-up", QueueHandlers.MoveUpAsync);
+        queue.MapPatch("/{trackIndex:int}/move-down", QueueHandlers.MoveDownAsync);
 
         return group;
     }
