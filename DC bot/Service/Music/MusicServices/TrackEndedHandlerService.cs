@@ -5,7 +5,6 @@ using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Logging;
-using DC_bot.Wrapper;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Payloads.Events;
@@ -30,19 +29,20 @@ public class TrackEndedHandlerService(
         var guildId = textChannel.Guild.Id;
         progressiveTimerService.Stop(guildId);
 
-        var currentTrack = await currentTrackService.GetCurrentTrackAsync(guildId);
-        if (currentTrack is LavaLinkTrackWrapper { QueueItemId: not null } wrappedTrack)
+        var endedQueueItem = await queueRepository.GetPlayingItemByTrackIdentifierAsync(
+            guildId,
+            args.Track.ToString());
+        if (endedQueueItem is not null)
         {
-            var queueItemId = wrappedTrack.QueueItemId.Value;
             if (args.Reason == TrackEndReason.Finished)
             {
-                await queueRepository.MarkPlayedAsync(queueItemId);
-                logger.LogDebug("Track {Id} marked as Played.", queueItemId);
+                await queueRepository.MarkPlayedAsync(endedQueueItem.Id);
+                logger.LogDebug("Track {Id} marked as Played.", endedQueueItem.Id);
             }
             else
             {
-                await queueRepository.MarkSkippedAsync(queueItemId);
-                logger.LogDebug("Track {Id} marked as Skipped (Reason: {Reason}).", queueItemId, args.Reason);
+                await queueRepository.MarkSkippedAsync(endedQueueItem.Id);
+                logger.LogDebug("Track {Id} marked as Skipped (Reason: {Reason}).", endedQueueItem.Id, args.Reason);
             }
         }
 

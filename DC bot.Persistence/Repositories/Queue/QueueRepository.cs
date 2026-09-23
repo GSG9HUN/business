@@ -74,6 +74,24 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         return entity is null ? null : QueueItemMapper.ToRecord(entity);
     }
 
+    public async Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
+        ulong guildId,
+        string trackIdentifier,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var entity = await dbContext.GuildQueueItems
+            .AsNoTracking()
+            .Where(item => item.GuildId == guildId &&
+                           item.State == QueueItemState.Playing &&
+                           item.TrackIdentifier == trackIdentifier)
+            .OrderByDescending(item => item.Position)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return entity is null ? null : QueueItemMapper.ToRecord(entity);
+    }
+
     public async Task<QueueItemRecord> EnqueueAsync(
         ulong guildId,
         string trackIdentifier,

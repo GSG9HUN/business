@@ -219,6 +219,20 @@ public class LavaLinkServiceIntegrationTests
             return Task.FromResult(item);
         }
 
+        public Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
+            ulong guildId,
+            string trackIdentifier,
+            CancellationToken cancellationToken = default)
+        {
+            var item = _items.GetValueOrDefault(guildId, [])
+                .Where(queueItem => queueItem.State == QueueItemState.Playing &&
+                                    queueItem.TrackIdentifier == trackIdentifier)
+                .OrderByDescending(queueItem => queueItem.Position)
+                .FirstOrDefault();
+
+            return Task.FromResult(item);
+        }
+
         public Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
             var items = _items.GetValueOrDefault(guildId, []);

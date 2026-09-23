@@ -15,6 +15,11 @@ public interface IQueueRepository
 
     Task<QueueItemRecord?> GetByIdAsync(long queueItemId, CancellationToken cancellationToken = default);
 
+    Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
+        ulong guildId,
+        string trackIdentifier,
+        CancellationToken cancellationToken = default);
+
     Task<QueueItemRecord> EnqueueAsync(
         ulong guildId,
         string trackIdentifier,
