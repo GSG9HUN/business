@@ -39,16 +39,24 @@ public class LavaLinkService(
         await lavalinkNodeConnectionService.ConnectAsync();
     }
 
-    public async Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
-        TrackSearchMode trackSearchMode)
+    public async Task PlayAsyncUrl(
+        IDiscordChannel voiceStateChannel,
+        Uri url,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null)
     {
-        await playbackRequestService.PlayAsyncUrl(voiceStateChannel, url, message, trackSearchMode);
+        await playbackRequestService.PlayAsyncUrl(voiceStateChannel, url, message, trackSearchMode, requestedBy);
     }
 
-    public async Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
-        TrackSearchMode trackSearchMode)
+    public async Task PlayAsyncQuery(
+        IDiscordChannel voiceStateChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null)
     {
-        await playbackRequestService.PlayAsyncQuery(voiceStateChannel, query, message, trackSearchMode);
+        await playbackRequestService.PlayAsyncQuery(voiceStateChannel, query, message, trackSearchMode, requestedBy);
     }
 
     public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
@@ -64,6 +72,11 @@ public class LavaLinkService(
     public async Task SkipAsync(IDiscordMessage message, IDiscordMember? member)
     {
         await playbackControlService.SkipAsync(message, member);
+    }
+
+    public async Task PreviousAsync(IDiscordMessage message, IDiscordMember? member)
+    {
+        await playbackControlService.PreviousAsync(message, member);
     }
 
     public async Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member)

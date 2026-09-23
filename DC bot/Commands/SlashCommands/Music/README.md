@@ -63,6 +63,17 @@ text command pipeline.
 
 ---
 
+### PreviousSlashCommand.cs
+
+**Command:** `/previous`
+
+**Delegates to:** `PreviousCommand`
+
+**Behavior:** Requires a guild context, defers the interaction, and starts the previous track through the existing text
+command pipeline.
+
+---
+
 ### LeaveSlashCommand.cs
 
 **Command:** `/leave`

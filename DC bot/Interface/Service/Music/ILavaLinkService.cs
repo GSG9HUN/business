@@ -8,14 +8,23 @@ public interface ILavaLinkService
 {
     Task PauseAsync(IDiscordMessage message, IDiscordMember? member);
 
-    Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message,
-        TrackSearchMode trackSearchMode);
+    Task PlayAsyncUrl(
+        IDiscordChannel toDiscordChannel,
+        Uri result,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null);
 
-    Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message,
-        TrackSearchMode trackSearchMode);
+    Task PlayAsyncQuery(
+        IDiscordChannel toDiscordChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null);
 
     Task ConnectAsync();
     Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
+    Task PreviousAsync(IDiscordMessage message, IDiscordMember? member);
     Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
     Task Init(ulong guildId);
     event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;

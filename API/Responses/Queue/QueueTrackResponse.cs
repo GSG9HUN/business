@@ -6,4 +6,5 @@ public sealed record QueueTrackResponse(
     string Author,
     int Duration,
     string TrackUri,
-    string? ArtworkUri);
+    string? ArtworkUri,
+    string? RequestedBy);

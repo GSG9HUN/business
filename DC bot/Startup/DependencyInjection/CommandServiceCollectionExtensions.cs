@@ -35,6 +35,7 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<ICommand, PlayCommand>()
             .AddSingleton<ICommand, SkipCommand>()
+            .AddSingleton<ICommand, PreviousCommand>()
             .AddSingleton<ICommand, ClearCommand>()
             .AddSingleton<ICommand, LeaveCommand>()
             .AddSingleton<ICommand, PauseCommand>()
@@ -66,6 +67,7 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<JoinSlashCommand>()
             .AddTransient<PlaySlashCommand>()
             .AddTransient<SkipSlashCommand>()
+            .AddTransient<PreviousSlashCommand>()
             .AddTransient<PauseSlashCommand>()
             .AddTransient<ResumeSlashCommand>()
             .AddTransient<LeaveSlashCommand>()
@@ -89,6 +91,7 @@ public static class CommandServiceCollectionExtensions
                 typeof(JoinSlashCommand),
                 typeof(PlaySlashCommand),
                 typeof(SkipSlashCommand),
+                typeof(PreviousSlashCommand),
                 typeof(PauseSlashCommand),
                 typeof(ResumeSlashCommand),
                 typeof(LeaveSlashCommand),

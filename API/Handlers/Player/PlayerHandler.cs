@@ -1,5 +1,6 @@
 using API.Mapping;
 using API.Responses.Playback;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Models.Playback;
 using DC_bot.Interface.Service.Persistence.Playback;
@@ -13,12 +14,13 @@ public static class PlayerHandler
     public static async Task<IResult> GetSnapshotAsync(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
+        IGuildBotStatusRepository botStatusRepository,
         IPlaybackStateRepository playbackStateRepository,
         IQueueRepository queueRepository,
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
             httpContext,
             userRepository,
             guildId,
@@ -28,11 +30,16 @@ public static class PlayerHandler
             return accessError;
         }
 
+        var guild = await userRepository.GetGuildForUserAsync(discordUserId, guildId, cancellationToken);
+        var botStatuses = await botStatusRepository.GetByGuildIdsAsync([guildId], cancellationToken);
         var state = await playbackStateRepository.GetOrCreateAsync(guildId, cancellationToken);
         var queuedItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
+        var currentQueueItem = state.QueueItemId is null
+            ? null
+            : await queueRepository.GetByIdAsync(state.QueueItemId.Value, cancellationToken);
         var currentTrack = state.CurrentTrackIdentifier is null
             ? null
-            : TrackResponseMapper.TryMapPlaybackTrack(state.CurrentTrackIdentifier);
+            : TrackResponseMapper.TryMapPlaybackTrack(state.CurrentTrackIdentifier, currentQueueItem?.RequestedBy);
         var isPaused = currentTrack is not null && state.IsPaused;
         var positionSeconds = currentTrack is null
             ? 0
@@ -40,6 +47,9 @@ public static class PlayerHandler
 
         return HttpResults.Ok(new PlaybackStatusResponse(
             guildId.ToString(),
+            guild?.Name ?? string.Empty,
+            guild is null ? null : GuildResponseMapper.MapGuild(guild).IconUrl,
+            GuildResponseMapper.MapBotStatus(botStatuses.GetValueOrDefault(guildId)),
             currentTrack,
             currentTrack is not null && !isPaused,
             isPaused,

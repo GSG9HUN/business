@@ -14,6 +14,8 @@ public static class PlaybackEndpoints
         
         playback.MapPost("/{commandName}", PlaybackHandlers.ExecuteAsync)
             .AddEndpointFilter<CommandNameValidationFilter>();
+
+        playback.MapPatch("/repeat-mode", PlaybackHandlers.SetRepeatModeAsync);
         
         return group;
     }

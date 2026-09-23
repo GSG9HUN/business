@@ -12,6 +12,7 @@ internal static class QueueItemMapper
             entity.GuildId,
             entity.Position,
             entity.TrackIdentifier,
+            entity.RequestedBy,
             entity.State,
             entity.AddedAtUtc,
             entity.PlayedAtUtc,

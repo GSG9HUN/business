@@ -114,6 +114,10 @@ public static class LocalizationKeys
     public const string SkipCommandQueueIsEmpty = "skip_command_queue_is_empty";
     public const string SkipCommandDescription = "skip_command_description";
 
+    // Previous Command
+    public const string PreviousCommandDescription = "previous_command_description";
+    public const string PreviousCommandError = "previous_command_error";
+
     // Shuffle Command
     public const string ShuffleCommandDescription = "shuffle_command_description";
     public const string ShuffleCommandError = "shuffle_command_error";

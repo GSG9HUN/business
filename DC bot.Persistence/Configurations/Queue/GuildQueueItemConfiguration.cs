@@ -31,6 +31,10 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
             .HasColumnName("track_identifier")
             .IsRequired();
 
+        builder.Property(entity => entity.RequestedBy)
+            .HasColumnName("requested_by")
+            .HasMaxLength(128);
+
         builder.Property(entity => entity.State)
             .HasColumnName("state")
             .HasConversion<short>()

@@ -56,9 +56,15 @@ public static class QueueHandlers
             return HttpResults.BadRequest(new { ErrorMessage = "Query is required." });
         }
 
+        var user = await userRepository.GetUserAsync(discordUserId, cancellationToken);
+        var requestedBy = string.IsNullOrWhiteSpace(user?.GlobalName)
+            ? user?.Username
+            : user.GlobalName;
+
         var payloadJson = JsonSerializer.Serialize(new QueueEnqueueCommandPayload(
             request.Query.Trim(),
-            string.IsNullOrWhiteSpace(request.SearchMode) ? null : request.SearchMode.Trim()));
+            string.IsNullOrWhiteSpace(request.SearchMode) ? null : request.SearchMode.Trim(),
+            requestedBy));
 
         var command = await commandsRepository.EnqueueAsync(
             guildId,
@@ -73,11 +79,11 @@ public static class QueueHandlers
     public static async Task<IResult> ClearAsync(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
-        IQueueRepository queueRepository,
+        IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
             httpContext,
             userRepository,
             guildId,
@@ -87,18 +93,57 @@ public static class QueueHandlers
             return accessError;
         }
 
-        await queueRepository.MarkAllQueuedAsSkippedAsync(guildId, cancellationToken);
-        return HttpResults.Ok(new QueueResponse(guildId.ToString(), 0, []));
+        var command = await commandsRepository.EnqueueAsync(
+            guildId,
+            discordUserId,
+            "clear",
+            cancellationToken);
+
+        return BotControlCommandHttpMapper.ToAccepted(command);
+    }
+
+    public static async Task<IResult> RemoveAsync(
+        HttpContext httpContext,
+        int trackNumber,
+        IMobileAppUserRepository userRepository,
+        IBotControlCommandsRepository commandsRepository,
+        CancellationToken cancellationToken)
+    {
+        var guildId = (ulong)httpContext.Items["guildId"]!;
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+            httpContext,
+            userRepository,
+            guildId,
+            cancellationToken);
+        if (accessError is not null)
+        {
+            return accessError;
+        }
+
+        if (trackNumber <= 0)
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Track number must be greater than zero." });
+        }
+
+        var payloadJson = JsonSerializer.Serialize(new QueueRemoveCommandPayload(trackNumber));
+        var command = await commandsRepository.EnqueueAsync(
+            guildId,
+            discordUserId,
+            "remove",
+            payloadJson,
+            cancellationToken);
+
+        return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
     public static async Task<IResult> ShuffleAsync(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
-        IQueueRepository queueRepository,
+        IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
             httpContext,
             userRepository,
             guildId,
@@ -108,19 +153,64 @@ public static class QueueHandlers
             return accessError;
         }
 
-        var queueItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
-        if (queueItems.Count < 2)
+        var command = await commandsRepository.EnqueueAsync(
+            guildId,
+            discordUserId,
+            "shuffle",
+            cancellationToken);
+
+        return BotControlCommandHttpMapper.ToAccepted(command);
+    }
+
+    public static Task<IResult> MoveUpAsync(
+        HttpContext httpContext,
+        int trackIndex,
+        IMobileAppUserRepository userRepository,
+        IBotControlCommandsRepository commandsRepository,
+        CancellationToken cancellationToken) =>
+        MoveAsync(httpContext, trackIndex, "moveUp", userRepository, commandsRepository, cancellationToken);
+
+    public static Task<IResult> MoveDownAsync(
+        HttpContext httpContext,
+        int trackIndex,
+        IMobileAppUserRepository userRepository,
+        IBotControlCommandsRepository commandsRepository,
+        CancellationToken cancellationToken) =>
+        MoveAsync(httpContext, trackIndex, "moveDown", userRepository, commandsRepository, cancellationToken);
+
+    private static async Task<IResult> MoveAsync(
+        HttpContext httpContext,
+        int trackIndex,
+        string commandType,
+        IMobileAppUserRepository userRepository,
+        IBotControlCommandsRepository commandsRepository,
+        CancellationToken cancellationToken)
+    {
+        var guildId = (ulong)httpContext.Items["guildId"]!;
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+            httpContext,
+            userRepository,
+            guildId,
+            cancellationToken);
+        if (accessError is not null)
         {
-            return HttpResults.Conflict(new { ErrorMessage = "There are not enough tracks in the queue to shuffle." });
+            return accessError;
         }
 
-        var shuffledIdentifiers = queueItems.Select(item => item.TrackIdentifier).ToList();
-        Shuffle(shuffledIdentifiers);
+        if (trackIndex < 0)
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Track index must be greater than or equal to zero." });
+        }
 
-        await queueRepository.ReorderQueuedItemsAsync(guildId, shuffledIdentifiers, cancellationToken);
+        var payloadJson = JsonSerializer.Serialize(new QueueMoveCommandPayload(trackIndex));
+        var command = await commandsRepository.EnqueueAsync(
+            guildId,
+            discordUserId,
+            commandType,
+            payloadJson,
+            cancellationToken);
 
-        var updatedItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
-        return HttpResults.Ok(MapQueue(guildId, updatedItems));
+        return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
     private static QueueResponse MapQueue(ulong guildId, IReadOnlyList<QueueItemRecord> queueItems)
@@ -129,7 +219,7 @@ public static class QueueHandlers
         var position = 1;
         foreach (var item in queueItems)
         {
-            var mappedTrack = TrackResponseMapper.TryMapQueueTrack(item.TrackIdentifier, position);
+            var mappedTrack = TrackResponseMapper.TryMapQueueTrack(item.TrackIdentifier, position, item.RequestedBy);
             if (mappedTrack is null)
             {
                continue;
@@ -141,24 +231,7 @@ public static class QueueHandlers
         return new QueueResponse(guildId.ToString(), tracks.Count, tracks);
     }
 
-    private static void Shuffle(IList<string> values)
-    {
-        var original = values.ToArray();
-
-        for (var attempt = 0; attempt < 10; attempt++)
-        {
-            for (var index = values.Count - 1; index > 0; index--)
-            {
-                var swapIndex = Random.Shared.Next(index + 1);
-                (values[index], values[swapIndex]) = (values[swapIndex], values[index]);
-            }
-
-            if (!values.SequenceEqual(original))
-            {
-                return;
-            }
-        }
-    }
-
-    private sealed record QueueEnqueueCommandPayload(string Query, string? SearchMode);
+    private sealed record QueueEnqueueCommandPayload(string Query, string? SearchMode, string? RequestedBy);
+    private sealed record QueueRemoveCommandPayload(int TrackNumber);
+    private sealed record QueueMoveCommandPayload(int TrackIndex);
 }

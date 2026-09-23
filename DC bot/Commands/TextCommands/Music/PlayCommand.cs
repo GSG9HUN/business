@@ -43,12 +43,12 @@ public class PlayCommand(
         if (Uri.TryCreate(query, UriKind.Absolute, out var url))
         {
             logger.PlayCommandStartUrl();
-            await lavaLinkService.PlayAsyncUrl(voiceChannel, url, message, trackSearchMode);
+            await lavaLinkService.PlayAsyncUrl(voiceChannel, url, message, trackSearchMode, message.Author.Username);
         }
         else
         {
             logger.PlayCommandStartQuery();
-            await lavaLinkService.PlayAsyncQuery(voiceChannel, query, message, trackSearchMode);
+            await lavaLinkService.PlayAsyncQuery(voiceChannel, query, message, trackSearchMode, message.Author.Username);
         }
 
         logger.CommandExecuted(Name);
