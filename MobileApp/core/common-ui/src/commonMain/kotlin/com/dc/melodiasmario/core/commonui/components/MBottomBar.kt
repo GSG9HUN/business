@@ -98,7 +98,7 @@ private fun MBottomBarItem(
                 text = label,
                 color = contentColor,
                 fontSize = 11.sp,
-                lineHeight = 13,
+                lineHeight = 13.sp,
                 fontWeight = if (item.selected) FontWeight.Bold else null,
             )
         }

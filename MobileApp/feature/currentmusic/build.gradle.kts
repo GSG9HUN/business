@@ -16,7 +16,7 @@ compose.resources {
 
 kotlin {
     android {
-        namespace = "com.dc.melodiasmario.feature.currentmusic"
+        namespace = "com.dc.melodiasmario.feature.currenttrack"
         compileSdk {
             version = release(36) {
                 minorApiLevel = 1
@@ -58,6 +58,8 @@ kotlin {
             dependencies {
                 implementation(project(":core:common"))
                 implementation(project(":core:common-ui"))
+                implementation(project(":core:domain"))
+                implementation(project(":core:model"))
 
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)

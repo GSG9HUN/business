@@ -1,6 +1,8 @@
 package com.dc.melodiasmario.feature.profile.presentation
 
-sealed interface ProfileEffect {
+import com.dc.melodiasmario.core.common.presentation.MviEffect
+
+sealed interface ProfileEffect : MviEffect {
     data object NavigateBack : ProfileEffect
     data object NavigateToLogin : ProfileEffect
     data object OpenLanguageSelector : ProfileEffect

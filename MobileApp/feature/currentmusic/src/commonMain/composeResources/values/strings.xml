@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="currenttrack_topbar_title">Szerver neve</string>
+    <string name="currenttrack_topbar_subtitle">Bot online - voice csatorna neve</string>
+    <string name="currenttrack_add_content_description">Zene hozzáadása a sorhoz</string>
+    <string name="currenttrack_profile_content_description">Profil megnyitása</string>
+    <string name="currenttrack_empty_title">Nincs lejátszás</string>
+    <string name="currenttrack_empty_message">A bot most nem játszik zenét ebben a voice csatornában.</string>
+    <string name="currenttrack_next_section_title">KÖVETKEZIK</string>
+    <string name="currenttrack_queue_empty">Nincs több szám a sorban.</string>
+    <string name="currenttrack_music_icon_content_description">Zene ikon</string>
+    <string name="currenttrack_add_to_queue_title">Zene hozzáadása</string>
+    <string name="currenttrack_add_to_queue_placeholder">URL vagy keresés</string>
+    <string name="currenttrack_add_to_queue_action">Hozzáadás</string>
+    <string name="currenttrack_cancel">Mégse</string>
+    <string name="currenttrack_more_title">Lejátszási műveletek</string>
+    <string name="currenttrack_more_message">Válassz műveletet az aktuális sorhoz.</string>
+    <string name="currenttrack_shuffle_action">Keverés</string>
+    <string name="currenttrack_clear_queue_action">Sor ürítése</string>
+    <string name="currenttrack_preview_error">Nem sikerült lekérdezni az aktuális zenét.</string>
+    <string name="currenttrack_repeat_content_description">Ismétlés mód váltása</string>
+    <string name="currenttrack_previous_content_description">Előző szám</string>
+    <string name="currenttrack_play_content_description">Lejátszás</string>
+    <string name="currenttrack_pause_content_description">Szüneteltetés</string>
+    <string name="currenttrack_next_content_description">Következő szám</string>
+    <string name="currenttrack_more_content_description">További lejátszási műveletek</string>
+
+    <string name="currenttrack_added_to_queue">Hozzáadva a sorhoz.</string>
+    <string name="currenttrack_removed_from_queue">Eltávolítva a sorból.</string>
+    <string name="currenttrack_cleared_queue">Sor kiürítve.</string>
+    <string name="currenttrack_repeat_mode_changed">Ismétlési mód módosítva.</string>
+    <string name="currenttrack_queue_shuffled">Sor keverve.</string>
+    <string name="currenttrack_playback_updated">Lejátszás frissítve.</string>
+    <string name="currenttrack_moved_up_in_queue">Szám feljebb mozgatva.</string>
+    <string name="currenttrack_moved_down_in_queue">Szám lejjebb mozgatva.</string>
+
+    <string name="currenttrack_load_failed">Nem sikerült betölteni az aktuális számot.</string>
+    <string name="currenttrack_add_to_queue_failed">A sorhoz adás még nincs bekötve.</string>
+    <string name="currenttrack_remove_from_queue_failed">A sorból eltávolítás még nem elérhető.</string>
+    <string name="currenttrack_clear_queue_failed">Nem sikerült kiüríteni a sort.</string>
+    <string name="currenttrack_next_track_failed">Nem sikerült átugrani a számot.</string>
+    <string name="currenttrack_previous_track_failed">Az előző szám még nem elérhető.</string>
+    <string name="currenttrack_repeat_mode_change_failed">Nem sikerült módosítani az ismétlési módot.</string>
+    <string name="currenttrack_shuffle_queue_failed">Nem sikerült megkeverni a sort.</string>
+    <string name="currenttrack_play_pause_toggle_failed">Nem sikerült frissíteni a lejátszást.</string>
+    <string name="currenttrack_move_up_failed">A feljebb mozgatás még nem elérhető.</string>
+    <string name="currenttrack_move_down_failed">A lejjebb mozgatás még nem elérhető.</string>
+</resources>

@@ -17,4 +17,11 @@ class GuildRepositoryImpl(
         return guildRemoteDataSource
             .getGuilds(accessToken = accessToken)
     }
+
+    override suspend fun getSelectedGuild(guildId: String): Guild? {
+        val accessToken = authorizedSessionProvider.getValidSession()
+
+        return guildRemoteDataSource
+            .getSelectedGuild(accessToken = accessToken, guildId = guildId)
+    }
 }

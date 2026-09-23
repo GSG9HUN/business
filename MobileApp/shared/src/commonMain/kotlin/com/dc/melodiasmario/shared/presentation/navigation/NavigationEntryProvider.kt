@@ -4,7 +4,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.entryProvider
 import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
-import com.dc.melodiasmario.feature.currentmusic.presentation.navigation.currentMusicEntry
+import com.dc.melodiasmario.feature.currenttrack.presentation.navigation.currentTrackEntry
 import com.dc.melodiasmario.feature.guild.presentation.navigation.guildSelectorEntry
 import com.dc.melodiasmario.feature.login.presentation.navigation.loginEntry
 import com.dc.melodiasmario.feature.playlist.presentation.navigation.playlistSongsEntry
@@ -60,7 +60,15 @@ fun navigationEntryProvider(
 
     queueEntry()
 
-    currentMusicEntry()
+    currentTrackEntry(
+        onGuildClicked = {
+            backStack.replaceAll(AppRoute.GuildSelector)
+        },
+        onProfileClicked = {
+            backStack.navigate(AppRoute.MyProfile)
+        },
+        toastHostState = toastHostState,
+    )
 
     playlistSongEntry()
 
