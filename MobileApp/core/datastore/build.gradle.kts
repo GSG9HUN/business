@@ -46,5 +46,18 @@ kotlin {
                 implementation(libs.androidx.runner)
             }
         }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.androidx.core)
+                implementation(libs.robolectric)
+            }
+        }
+
+        getByName("androidMain") {
+            dependencies {
+                implementation(libs.androidx.datastore.preferences)
+            }
+        }
     }
 }

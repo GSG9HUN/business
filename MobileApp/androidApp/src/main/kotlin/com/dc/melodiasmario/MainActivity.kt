@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.dc.melodiasmario.core.domain.auth.usecase.AuthDeepLinkDispatcher
+import com.dc.melodiasmario.core.domain.auth.usecase.RefreshSessionUseCase
 import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
 import com.dc.melodiasmario.core.data.settings.UserSettingsStore
 import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
@@ -15,6 +16,7 @@ class MainActivity : ComponentActivity() {
     private val userSettingsStore: UserSettingsStore by inject()
     private val userSettingsStorage: UserSettingsStorage by inject()
     private val appLocaleController: AppLocaleController by inject()
+    private val refreshSessionUseCase: RefreshSessionUseCase by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,7 @@ class MainActivity : ComponentActivity() {
                 userSettingsStore = userSettingsStore,
                 userSettingsStorage = userSettingsStorage,
                 appLocaleController = appLocaleController,
+                refreshSessionUseCase = refreshSessionUseCase,
             )
         }
     }
