@@ -4,8 +4,8 @@ public interface IMusicQueueService
 {
     public Task<bool> HasTracks(ulong guildId);
 
-    public Task Enqueue(ulong guildId, ILavaLinkTrack track);
-    public Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks);
+    public Task Enqueue(ulong guildId, ILavaLinkTrack track, string? requestedBy = null);
+    public Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks, string? requestedBy = null);
     public Task<ILavaLinkTrack?> Dequeue(ulong guildId);
 
     public Task<IReadOnlyCollection<ILavaLinkTrack>> ViewQueue(ulong guildId);

@@ -21,8 +21,12 @@ public class PlaybackRequestService(
     ITrackPlaybackService trackPlaybackService,
     ILogger<PlaybackRequestService> logger) : IPlaybackRequestService
 {
-    public Task PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url, IDiscordMessage message,
-        TrackSearchMode trackSearchMode)
+    public Task PlayAsyncUrl(
+        IDiscordChannel voiceStateChannel,
+        Uri url,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null)
     {
         return PlayAsync(
             voiceStateChannel,
@@ -32,11 +36,16 @@ public class PlaybackRequestService(
             "LoadTracksAsyncUrl",
             "PlayAsyncUrl.NotFound",
             "Failed to load track from URL",
-            logger.FailedToFindMusicWithUrl);
+            logger.FailedToFindMusicWithUrl,
+            requestedBy);
     }
 
-    public Task PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query, IDiscordMessage message,
-        TrackSearchMode trackSearchMode)
+    public Task PlayAsyncQuery(
+        IDiscordChannel voiceStateChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode trackSearchMode,
+        string? requestedBy = null)
     {
         return PlayAsync(
             voiceStateChannel,
@@ -46,7 +55,8 @@ public class PlaybackRequestService(
             "LoadTracksAsyncQuery",
             "PlayAsyncQuery.NotFound",
             "Failed to load track from query",
-            logger.FailedToFindMusicWithQuery);
+            logger.FailedToFindMusicWithQuery,
+            requestedBy);
     }
 
     private async Task PlayAsync(
@@ -57,7 +67,8 @@ public class PlaybackRequestService(
         string loadOperation,
         string notFoundOperation,
         string loadFailureMessage,
-        Action<string> logNotFound)
+        Action<string> logNotFound,
+        string? requestedBy)
     {
         logger.LogDebug(
             "Playback request started. Guild: {GuildId}, Channel: {ChannelId}, SearchMode: {SearchMode}, Operation: {Operation}",
@@ -104,6 +115,6 @@ public class PlaybackRequestService(
         logger.LogDebug("Playback request loaded tracks for guild {GuildId}. IsPlaylist: {IsPlaylist}",
             guildId,
             loadResult.IsPlaylist);
-        await trackPlaybackService.PlayTheFoundMusicAsync(loadResult, connection, textChannel);
+        await trackPlaybackService.PlayTheFoundMusicAsync(loadResult, connection, textChannel, requestedBy);
     }
 }

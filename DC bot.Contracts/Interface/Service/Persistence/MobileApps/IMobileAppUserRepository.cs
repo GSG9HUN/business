@@ -8,5 +8,6 @@ public interface IMobileAppUserRepository
     Task SyncUserGuildsAsync(ulong discordUserId, IReadOnlyCollection<MobileAppUserGuildUpsertRecord> guilds, CancellationToken ct = default);
     Task<MobileAppUserRecord?> GetUserAsync(ulong discordUserId, CancellationToken ct = default);
     Task<IReadOnlyList<MobileAppUserGuildRecord>> GetGuildsForUserAsync(ulong discordUserId, CancellationToken ct = default);
+    Task<MobileAppUserGuildRecord?> GetGuildForUserAsync(ulong discordUserId, ulong guildId, CancellationToken ct = default);
     Task<bool> HasGuildAccessAsync(ulong discordUserId, ulong guildId, CancellationToken ct = default);
 }

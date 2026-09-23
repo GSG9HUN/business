@@ -20,7 +20,7 @@ public class CommandNameValidationFilter: IEndpointFilter
                 Message = "Invalid playback command.",
                 Errors = new Dictionary<string, string[]>
                 {
-                    ["commandName"] = ["Allowed values: pause, resume, skip, leave, stop, repeat, repeatList."]
+                    ["commandName"] = ["Allowed values: pause, resume, skip, previous, leave, stop, repeat, repeatList."]
                 }
             });
         }
@@ -36,6 +36,7 @@ public class CommandNameValidationFilter: IEndpointFilter
             "pause" => "pause",
             "resume" => "resume",
             "skip" => "skip",
+            "previous" => "previous",
             "leave" => "leave",
             "stop" => "leave",
             "repeat" => "repeat",

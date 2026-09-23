@@ -154,6 +154,26 @@ public class MobileAppUserRepository(IDbContextFactory<BotDbContext> dbContextFa
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<MobileAppUserGuildRecord?> GetGuildForUserAsync(
+        ulong discordUserId,
+        ulong guildId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await dbContext.UserGuilds.AsNoTracking()
+            .Where(g => g.DiscordUserId == discordUserId && g.GuildId == guildId)
+            .Select(g => new MobileAppUserGuildRecord(
+                g.GuildId,
+                g.Name,
+                g.IconHash,
+                g.Permissions,
+                g.IsOwner,
+                g.LastSeenAtUtc
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<bool> HasGuildAccessAsync(ulong discordUserId, ulong guildId,
         CancellationToken cancellationToken = default)
     {

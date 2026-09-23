@@ -13,14 +13,33 @@ public interface IQueueRepository
 
     Task<QueueItemRecord?> GetPreviousItemAsync(ulong guildId, CancellationToken cancellationToken = default);
 
+    Task<QueueItemRecord?> GetByIdAsync(long queueItemId, CancellationToken cancellationToken = default);
+
+    Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
+        ulong guildId,
+        string trackIdentifier,
+        CancellationToken cancellationToken = default);
+
     Task<QueueItemRecord> EnqueueAsync(
         ulong guildId,
         string trackIdentifier,
         CancellationToken cancellationToken = default);
 
+    Task<QueueItemRecord> EnqueueAsync(
+        ulong guildId,
+        string trackIdentifier,
+        string? requestedBy,
+        CancellationToken cancellationToken = default);
+
     Task EnqueueManyAsync(
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
+        CancellationToken cancellationToken = default);
+
+    Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        string? requestedBy,
         CancellationToken cancellationToken = default);
 
     Task ReorderQueuedItemsAsync(

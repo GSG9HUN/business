@@ -9,6 +9,7 @@ public class GuildQueueItemEntity
     public ulong GuildId { get; set; }
     public int Position { get; set; }
     public string TrackIdentifier { get; set; } = string.Empty;
+    public string? RequestedBy { get; set; }
     public QueueItemState State { get; set; }
     public DateTimeOffset AddedAtUtc { get; set; }
     public DateTimeOffset? PlayedAtUtc { get; set; }

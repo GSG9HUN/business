@@ -210,6 +210,29 @@ public class LavaLinkServiceIntegrationTests
             return Task.FromResult(item);
         }
 
+        public Task<QueueItemRecord?> GetByIdAsync(long queueItemId, CancellationToken cancellationToken = default)
+        {
+            var item = _items.Values
+                .SelectMany(guildItems => guildItems)
+                .FirstOrDefault(queueItem => queueItem.Id == queueItemId);
+
+            return Task.FromResult(item);
+        }
+
+        public Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
+            ulong guildId,
+            string trackIdentifier,
+            CancellationToken cancellationToken = default)
+        {
+            var item = _items.GetValueOrDefault(guildId, [])
+                .Where(queueItem => queueItem.State == QueueItemState.Playing &&
+                                    queueItem.TrackIdentifier == trackIdentifier)
+                .OrderByDescending(queueItem => queueItem.Position)
+                .FirstOrDefault();
+
+            return Task.FromResult(item);
+        }
+
         public Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default)
         {
             var items = _items.GetValueOrDefault(guildId, []);
@@ -229,7 +252,19 @@ public class LavaLinkServiceIntegrationTests
             return Task.FromResult<QueueItemRecord?>(items[index]);
         }
 
-        public Task<QueueItemRecord> EnqueueAsync(ulong guildId, string trackIdentifier, CancellationToken cancellationToken = default)
+        public Task<QueueItemRecord> EnqueueAsync(
+            ulong guildId,
+            string trackIdentifier,
+            CancellationToken cancellationToken = default)
+        {
+            return EnqueueAsync(guildId, trackIdentifier, requestedBy: null, cancellationToken);
+        }
+
+        public Task<QueueItemRecord> EnqueueAsync(
+            ulong guildId,
+            string trackIdentifier,
+            string? requestedBy,
+            CancellationToken cancellationToken = default)
         {
             var items = _items.GetValueOrDefault(guildId);
             if (items is null)
@@ -239,16 +274,28 @@ public class LavaLinkServiceIntegrationTests
             }
 
             var nextPosition = items.Count == 0 ? 0 : items.Max(item => item.Position) + 1;
-            var record = new QueueItemRecord(_nextId++, guildId, nextPosition, trackIdentifier, QueueItemState.Queued, DateTimeOffset.UtcNow, null, null);
+            var record = new QueueItemRecord(_nextId++, guildId, nextPosition, trackIdentifier, requestedBy, QueueItemState.Queued, DateTimeOffset.UtcNow, null, null);
             items.Add(record);
             return Task.FromResult(record);
         }
 
-        public async Task EnqueueManyAsync(ulong guildId, IReadOnlyList<string> trackIdentifiers, CancellationToken cancellationToken = default)
+        public Task EnqueueManyAsync(
+            ulong guildId,
+            IReadOnlyList<string> trackIdentifiers,
+            CancellationToken cancellationToken = default)
+        {
+            return EnqueueManyAsync(guildId, trackIdentifiers, requestedBy: null, cancellationToken);
+        }
+
+        public async Task EnqueueManyAsync(
+            ulong guildId,
+            IReadOnlyList<string> trackIdentifiers,
+            string? requestedBy,
+            CancellationToken cancellationToken = default)
         {
             foreach (var trackIdentifier in trackIdentifiers)
             {
-                await EnqueueAsync(guildId, trackIdentifier, cancellationToken);
+                await EnqueueAsync(guildId, trackIdentifier, requestedBy, cancellationToken);
             }
         }
 

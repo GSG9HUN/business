@@ -4,7 +4,6 @@ using API.Services.Auth;
 using DC_bot.DependencyInjection;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 LoadDotEnv();
