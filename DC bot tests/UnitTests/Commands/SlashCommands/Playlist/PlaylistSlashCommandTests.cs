@@ -1,5 +1,6 @@
 using DC_bot.Commands.SlashCommands.Playlist;
 using DC_bot.Interface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.SlashCommands;
 using Moq;
@@ -269,7 +270,7 @@ public class PlaylistSlashCommandTests : SlashCommandTestBase
         Assert.Contains("Playlist 'road trip' loaded into the queue with 1 tracks.", context.TextResponses);
         MusicQueueServiceMock.Verify(service => service.EnqueueMany(
             123UL,
-            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == track)), Times.Once);
+            It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks => tracks.Single().Track == track)), Times.Once);
         TrackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
             It.IsAny<Lavalink4NET.Players.ILavalinkPlayer>(),
             context.Channel,

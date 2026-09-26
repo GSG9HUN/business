@@ -11,12 +11,13 @@ This folder contains music-domain service interfaces.
 ```csharp
 public interface ILavaLinkService
 {
-    Task PauseAsync(IDiscordMessage message, IDiscordMember? member);
+    Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member);
     Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message, TrackSearchMode trackSearchMode);
     Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message, TrackSearchMode trackSearchMode);
     Task ConnectAsync();
-    Task SkipAsync(IDiscordMessage message, IDiscordMember? member);
-    Task ResumeAsync(IDiscordMessage message, IDiscordMember? member);
+    Task<PlaybackControlResult> SkipAsync(IDiscordMessage message, IDiscordMember? member);
+    Task<PlaybackControlResult> PreviousAsync(IDiscordMessage message, IDiscordMember? member);
+    Task<PlaybackControlResult> ResumeAsync(IDiscordMessage message, IDiscordMember? member);
     Task Init(ulong guildId);
     event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
     Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);

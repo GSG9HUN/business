@@ -10,6 +10,7 @@ using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Repositories;
 using DC_bot.Repositories.Playback;
 using DC_bot.Repositories.Queue;
+using Lavalink4NET;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Payloads.Events;
@@ -59,7 +60,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
         await currentTrackService.SetCurrentTrackAsync(
             guildId,
             CreateTrack("ended-current", "Ended Current", claimedCurrentItem.Id));
-        await musicQueueService.Enqueue(guildId, CreateTrack("ended-next", "Ended Next"));
+        await musicQueueService.Enqueue(guildId, CreateTrack("ended-next", "Ended Next"), null, null);
 
         var player = CreatePlayer(guildId);
         var channel = CreateTextChannel(guildId);
@@ -133,6 +134,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
         QueueRepository queueRepository)
     {
         return new TrackEndedHandlerService(
+            Mock.Of<IAudioService>(),
             repeatService,
             currentTrackService,
             musicQueueService,
@@ -140,6 +142,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             trackNotificationService,
             progressiveTimerService,
             queueRepository,
+            new LavalinkTrackSerializer(),
             Mock.Of<ILogger<TrackEndedHandlerService>>());
     }
 

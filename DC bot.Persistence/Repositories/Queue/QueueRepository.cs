@@ -106,9 +106,22 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         string? requestedBy,
         CancellationToken cancellationToken = default)
     {
+        return await EnqueueAsync(guildId, trackIdentifier, sourceQuery: null, sourceSearchMode: null, requestedBy,
+            cancellationToken);
+    }
+
+    public async Task<QueueItemRecord> EnqueueAsync(
+        ulong guildId,
+        string trackIdentifier,
+        string? sourceQuery,
+        string? sourceSearchMode,
+        string? requestedBy,
+        CancellationToken cancellationToken = default)
+    {
         return await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
             dbContextFactory,
-            (dbContext, ct) => EnqueueAsync(dbContext, guildId, trackIdentifier, requestedBy, ct),
+            (dbContext, ct) => EnqueueAsync(dbContext, guildId, trackIdentifier, sourceQuery, sourceSearchMode,
+                requestedBy, ct),
             cancellationToken);
     }
 
@@ -126,6 +139,18 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         string? requestedBy,
         CancellationToken cancellationToken = default)
     {
+        await EnqueueManyAsync(guildId, trackIdentifiers, sourceQuery: null, sourceSearchMode: null, requestedBy,
+            cancellationToken);
+    }
+
+    public async Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        string? sourceQuery,
+        string? sourceSearchMode,
+        string? requestedBy,
+        CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(trackIdentifiers);
 
         if (trackIdentifiers.Count == 0)
@@ -133,9 +158,32 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             return;
         }
 
+        var queueItems = trackIdentifiers
+            .Select(trackIdentifier => new QueueItemToEnqueue(
+                trackIdentifier,
+                sourceQuery,
+                sourceSearchMode,
+                requestedBy))
+            .ToList();
+
+        await EnqueueManyAsync(guildId, queueItems, cancellationToken);
+    }
+
+    public async Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<QueueItemToEnqueue> queueItems,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(queueItems);
+
+        if (queueItems.Count == 0)
+        {
+            return;
+        }
+
         await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
             dbContextFactory,
-            (dbContext, ct) => EnqueueManyAsync(dbContext, guildId, trackIdentifiers, requestedBy, ct),
+            (dbContext, ct) => EnqueueManyAsync(dbContext, guildId, queueItems, ct),
             cancellationToken);
     }
 
@@ -157,10 +205,55 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             cancellationToken);
     }
 
+    public Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken = default)
+    {
+        return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => RemoveQueuedItemAtAsync(dbContext, guildId, trackNumber, ct),
+            cancellationToken);
+    }
+
     public Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default)
     {
         return UpdateStateAsync(queueItemId, QueueItemState.Playing, setPlayedAt: false, setSkippedAt: false,
             cancellationToken);
+    }
+
+    public async Task UpdateTrackIdentifierAsync(
+        long queueItemId,
+        string trackIdentifier,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(trackIdentifier);
+
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await dbContext.GuildQueueItems
+            .FirstOrDefaultAsync(item => item.Id == queueItemId, cancellationToken);
+        if (entity is null)
+        {
+            return;
+        }
+
+        entity.TrackIdentifier = trackIdentifier;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ClearSourceMetadataAsync(long queueItemId, CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await dbContext.GuildQueueItems
+            .FirstOrDefaultAsync(item => item.Id == queueItemId, cancellationToken);
+        if (entity is null)
+        {
+            return;
+        }
+
+        entity.SourceQuery = null;
+        entity.SourceSearchMode = null;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public Task MarkPlayedAsync(long queueItemId, CancellationToken cancellationToken = default)
@@ -196,6 +289,8 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         BotDbContext dbContext,
         ulong guildId,
         string trackIdentifier,
+        string? sourceQuery,
+        string? sourceSearchMode,
         string? requestedBy,
         CancellationToken cancellationToken)
     {
@@ -219,6 +314,8 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             GuildId = guildId,
             Position = maxPosition + 1,
             TrackIdentifier = trackIdentifier,
+            SourceQuery = NormalizeSourceQuery(sourceQuery),
+            SourceSearchMode = NormalizeSourceSearchMode(sourceSearchMode),
             RequestedBy = NormalizeRequestedBy(requestedBy),
             State = QueueItemState.Queued,
             AddedAtUtc = DateTimeOffset.UtcNow
@@ -233,8 +330,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
     private static async Task EnqueueManyAsync(
         BotDbContext dbContext,
         ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        string? requestedBy,
+        IReadOnlyList<QueueItemToEnqueue> queueItems,
         CancellationToken cancellationToken)
     {
         await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
@@ -242,7 +338,7 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         var queuedItemCount = await dbContext.GuildQueueItems
             .CountAsync(item => item.GuildId == guildId && item.State == QueueItemState.Queued, cancellationToken);
 
-        if (queuedItemCount + trackIdentifiers.Count > MaxQueuedItemsPerGuild)
+        if (queuedItemCount + queueItems.Count > MaxQueuedItemsPerGuild)
         {
             throw new InvalidOperationException($"Queue cannot contain more than {MaxQueuedItemsPerGuild} queued tracks.");
         }
@@ -253,16 +349,20 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             .MaxAsync(cancellationToken) ?? -1;
 
         var addedAtUtc = DateTimeOffset.UtcNow;
-        var normalizedRequestedBy = NormalizeRequestedBy(requestedBy);
-        var entities = new List<GuildQueueItemEntity>(trackIdentifiers.Count);
-        for (var index = 0; index < trackIdentifiers.Count; index++)
+        var entities = new List<GuildQueueItemEntity>(queueItems.Count);
+        for (var index = 0; index < queueItems.Count; index++)
         {
+            var queueItem = queueItems[index];
+            ArgumentException.ThrowIfNullOrWhiteSpace(queueItem.TrackIdentifier);
+
             entities.Add(new GuildQueueItemEntity
             {
                 GuildId = guildId,
                 Position = maxPosition + index + 1,
-                TrackIdentifier = trackIdentifiers[index],
-                RequestedBy = normalizedRequestedBy,
+                TrackIdentifier = queueItem.TrackIdentifier,
+                SourceQuery = NormalizeSourceQuery(queueItem.SourceQuery),
+                SourceSearchMode = NormalizeSourceSearchMode(queueItem.SourceSearchMode),
+                RequestedBy = NormalizeRequestedBy(queueItem.RequestedBy),
                 State = QueueItemState.Queued,
                 AddedAtUtc = addedAtUtc
             });
@@ -332,6 +432,60 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    private static async Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        BotDbContext dbContext,
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken)
+    {
+        var queuedEntities = await dbContext.GuildQueueItems
+            .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+            .OrderBy(item => item.Position)
+            .ToListAsync(cancellationToken);
+
+        var removeIndex = trackNumber - 1;
+        if (trackNumber < 1 || removeIndex >= queuedEntities.Count)
+        {
+            return new QueueItemRemovalRecord(false, queuedEntities.Count, null);
+        }
+
+        var removedEntity = queuedEntities[removeIndex];
+        var removedRecord = QueueItemMapper.ToRecord(removedEntity);
+        var survivors = queuedEntities
+            .Where((_, index) => index != removeIndex)
+            .ToList();
+
+        var originalPositions = queuedEntities
+            .Select(item => item.Position)
+            .OrderBy(position => position)
+            .ToArray();
+
+        var maxPosition = await dbContext.GuildQueueItems
+            .Where(item => item.GuildId == guildId)
+            .Select(item => (int?)item.Position)
+            .MaxAsync(cancellationToken) ?? -1;
+
+        var temporaryPositionBase = checked(maxPosition + queuedEntities.Count + 1);
+        for (var index = 0; index < survivors.Count; index++)
+        {
+            survivors[index].Position = temporaryPositionBase + index;
+        }
+
+        removedEntity.State = QueueItemState.Skipped;
+        removedEntity.SkippedAtUtc = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        for (var index = 0; index < survivors.Count; index++)
+        {
+            survivors[index].Position = originalPositions[index];
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new QueueItemRemovalRecord(true, queuedEntities.Count, removedRecord);
+    }
+
     private static async Task UpdateQueueItemPositionAsync(
         BotDbContext dbContext,
         long queueItemId,
@@ -372,6 +526,12 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         entity.State = state;
+        if (state == QueueItemState.Playing)
+        {
+            entity.PlayedAtUtc = null;
+            entity.SkippedAtUtc = null;
+        }
+
         if (setPlayedAt)
         {
             entity.PlayedAtUtc = DateTimeOffset.UtcNow;
@@ -394,6 +554,27 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
 
         var trimmed = requestedBy.Trim();
         return trimmed.Length <= 128 ? trimmed : trimmed[..128];
+    }
+
+    private static string? NormalizeSourceQuery(string? sourceQuery)
+    {
+        if (string.IsNullOrWhiteSpace(sourceQuery))
+        {
+            return null;
+        }
+
+        return sourceQuery.Trim();
+    }
+
+    private static string? NormalizeSourceSearchMode(string? sourceSearchMode)
+    {
+        if (string.IsNullOrWhiteSpace(sourceSearchMode))
+        {
+            return null;
+        }
+
+        var trimmed = sourceSearchMode.Trim();
+        return trimmed.Length <= 64 ? trimmed : trimmed[..64];
     }
 
     public async Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default)

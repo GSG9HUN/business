@@ -24,7 +24,7 @@ public class PlaySlashCommandEndToEndTests : SlashCommandPipelineEndToEndTestBas
                 voiceChannel,
                 "madeon imperium",
                 It.IsAny<IDiscordMessage>(),
-                TrackSearchMode.YouTube),
+                TrackSearchMode.YouTube,null),
             Times.Once);
         Assert.Contains("Request accepted.", context.TextResponses);
     }

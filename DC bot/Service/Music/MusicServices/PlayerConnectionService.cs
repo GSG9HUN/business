@@ -12,6 +12,7 @@ namespace DC_bot.Service.Music.MusicServices;
 
 public class PlayerConnectionService(
     IAudioService audioService,
+    ILavalinkNodeConnectionService lavalinkNodeConnectionService,
     IValidationService validationService,
     IResponseBuilder responseBuilder,
     ILogger<PlayerConnectionService> logger) : IPlayerConnectionService
@@ -51,6 +52,7 @@ public class PlayerConnectionService(
         ILavalinkPlayer? connection;
         try
         {
+            await lavalinkNodeConnectionService.ConnectAsync().ConfigureAwait(false);
             await _stalePlayerCleanupService.DisconnectBeforeJoinAsync(guildId, cancellationToken).ConfigureAwait(false);
 
             connection = await audioService.Players.JoinAsync(

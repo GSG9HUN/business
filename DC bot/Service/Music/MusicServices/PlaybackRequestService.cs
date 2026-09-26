@@ -115,6 +115,12 @@ public class PlaybackRequestService(
         logger.LogDebug("Playback request loaded tracks for guild {GuildId}. IsPlaylist: {IsPlaylist}",
             guildId,
             loadResult.IsPlaylist);
-        await trackPlaybackService.PlayTheFoundMusicAsync(loadResult, connection, textChannel, requestedBy);
+        await trackPlaybackService.PlayTheFoundMusicAsync(
+            loadResult,
+            connection,
+            textChannel,
+            requestedBy,
+            query,
+            trackSearchMode);
     }
 }

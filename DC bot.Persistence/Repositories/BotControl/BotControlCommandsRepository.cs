@@ -39,7 +39,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
         CancellationToken cancellationToken)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var botCommand = new BotControlCommandEntity
@@ -56,6 +56,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
             dbContext.BotControlCommands.Add(botCommand);
         
             await dbContext.SaveChangesAsync(cancellationToken);
+            await NotifyCommandCreatedAsync(dbContext, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         
             return MapToRecord(botCommand);
@@ -67,6 +68,20 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
         }
     }
 
+    private static Task NotifyCommandCreatedAsync(
+        BotDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            return Task.CompletedTask;
+        }
+
+        return dbContext.Database.ExecuteSqlRawAsync(
+            "NOTIFY bot_control_commands;",
+            cancellationToken);
+    }
+
     public Task<BotControlCommandRecord?> ClaimNextPendingAsync(CancellationToken cancellationToken)
     {
         return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
@@ -75,14 +90,27 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
             cancellationToken);
     }
 
-    public Task MarkDoneAsync(string commandId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<BotControlCommandRecord>> GetStartedAsync(CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(commandId, BotControlCommandState.Done, null, cancellationToken);
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var commands = await dbContext.BotControlCommands
+            .AsNoTracking()
+            .Where(command => command.Status == BotControlCommandState.Started)
+            .OrderBy(command => command.ClaimedAtUtc ?? command.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return commands.Select(MapToRecord).ToList();
     }
 
-    public Task MarkFailedAsync(string commandId, string errorMessage, CancellationToken cancellationToken)
+    public Task MarkDoneAsync(string commandId, string? resultJson, CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(commandId, BotControlCommandState.Failed, errorMessage, cancellationToken);
+        return UpdateStatusAsync(commandId, BotControlCommandState.Done, null, resultJson, cancellationToken);
+    }
+
+    public Task MarkFailedAsync(string commandId, string errorMessage, string? resultJson, CancellationToken cancellationToken)
+    {
+        return UpdateStatusAsync(commandId, BotControlCommandState.Failed, errorMessage, resultJson, cancellationToken);
     }
 
     private static async Task<BotControlCommandRecord?> ClaimNextPendingAsync(
@@ -111,6 +139,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
         string commandId,
         BotControlCommandState status,
         string? errorMessage,
+        string? resultJson,
         CancellationToken cancellationToken)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -123,6 +152,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
 
             command.Status = status;
             command.ErrorMessage = errorMessage;
+            command.ResultJson = resultJson;
             command.CompletedAtUtc = DateTimeOffset.UtcNow;
 
             await db.SaveChangesAsync(cancellationToken);
@@ -147,6 +177,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
             entity.ErrorMessage,
             entity.CreatedAtUtc,
             entity.ClaimedAtUtc,
-            entity.CompletedAtUtc);
+            entity.CompletedAtUtc,
+            entity.ResultJson);
     }
 }

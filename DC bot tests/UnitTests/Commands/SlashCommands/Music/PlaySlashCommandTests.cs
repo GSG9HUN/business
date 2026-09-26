@@ -94,7 +94,8 @@ public class PlaySlashCommandTests : SlashCommandTestBase
                 voiceChannel,
                 It.Is<Uri>(uri => uri.Host.Contains("youtube", StringComparison.OrdinalIgnoreCase)),
                 It.IsAny<IDiscordMessage>(),
-                TrackSearchMode.YouTube),
+                TrackSearchMode.YouTube,
+                "SlashUser"),
             Times.Once);
         Assert.Contains("Request accepted.", context.TextResponses);
     }
@@ -120,7 +121,8 @@ public class PlaySlashCommandTests : SlashCommandTestBase
                 voiceChannel,
                 Query,
                 It.IsAny<IDiscordMessage>(),
-                TrackSearchMode.YouTube),
+                TrackSearchMode.YouTube,
+                "SlashUser"),
             Times.Once);
         Assert.Contains("Request accepted.", context.TextResponses);
     }

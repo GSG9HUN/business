@@ -27,7 +27,7 @@ public class TextCommandRegistrationIntegrationTests
         {
             var commands = provider.GetServices<ICommand>().ToArray();
 
-            Assert.Equal(24, commands.Length);
+            Assert.Equal(25, commands.Length);
             Assert.Equal(
                 [
                     "tag",
@@ -36,6 +36,7 @@ public class TextCommandRegistrationIntegrationTests
                     "help",
                     "play",
                     "skip",
+                    "previous",
                     "clear",
                     "leave",
                     "pause",

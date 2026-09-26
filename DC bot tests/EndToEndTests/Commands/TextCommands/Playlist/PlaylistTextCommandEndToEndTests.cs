@@ -139,7 +139,7 @@ public class PlaylistTextCommandEndToEndTests
         Assert.Contains("Playlist 'renamed-e2e' deleted.", responses);
         musicQueueService.Verify(service => service.EnqueueMany(
             GuildId,
-            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == loadedTrack)), Times.Once);
+            It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks => tracks.Single().Track == loadedTrack)), Times.Once);
         trackPlaybackService.Verify(service => service.TryPlayNextTrackAsync(
             player.Object,
             It.IsAny<IDiscordChannel>(),

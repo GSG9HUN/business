@@ -69,7 +69,11 @@ public class LoadPlaylistCommand(
                 if (!isValid || connection is null) return;
 
                 playbackEventHandlerService.RegisterPlaybackFinishedHandler(guildId, connection, message.Channel);
-                await musicQueueService.EnqueueMany(guildId, tracks);
+                await musicQueueService.EnqueueMany(
+                    guildId,
+                    tracks
+                        .Select(track => new QueueTrackToEnqueue(track, SourceQuery: null, SourceSearchMode: null, RequestedBy: null))
+                        .ToList());
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.LoadPlaylistCommandLoaded,
                     safePlaylistName, tracks.Count);
 

@@ -52,6 +52,10 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("payload_json");
 
+                    b.Property<string>("ResultJson")
+                        .HasColumnType("text")
+                        .HasColumnName("result_json");
+
                     b.Property<short>("Status")
                         .HasColumnType("smallint")
                         .HasColumnName("status");
@@ -564,6 +568,15 @@ namespace DC_bot.Persistence.Migrations
                     b.Property<DateTimeOffset?>("SkippedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("skipped_at_utc");
+
+                    b.Property<string>("SourceQuery")
+                        .HasColumnType("text")
+                        .HasColumnName("source_query");
+
+                    b.Property<string>("SourceSearchMode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_search_mode");
 
                     b.Property<short>("State")
                         .ValueGeneratedOnAdd()
