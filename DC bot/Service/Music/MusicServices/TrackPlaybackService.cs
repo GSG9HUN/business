@@ -21,7 +21,9 @@ public class TrackPlaybackService(
         TrackLoadResult searchQuery,
         ILavalinkPlayer connection,
         IDiscordChannel textChannel,
-        string? requestedBy = null)
+        string? requestedBy,
+        string? sourceQuery,
+        TrackSearchMode? sourceSearchMode)
     {
         var musicTracks = searchQuery.IsPlaylist ? searchQuery.Tracks.ToList() : [searchQuery.Track!];
         var guildId = textChannel.Guild.Id;
@@ -34,12 +36,22 @@ public class TrackPlaybackService(
         {
             await musicQueueService.EnqueueMany(
                 guildId,
-                musicTracks.Select(track => new LavaLinkTrackWrapper(track)).ToList(),
-                requestedBy);
+                musicTracks
+                    .Select(track => new QueueTrackToEnqueue(
+                        new LavaLinkTrackWrapper(track),
+                        GetTrackSourceQuery(track),
+                        sourceSearchMode,
+                        requestedBy))
+                    .ToList());
         }
         else
         {
-            await musicQueueService.Enqueue(guildId, new LavaLinkTrackWrapper(musicTracks[0]), requestedBy);
+            await musicQueueService.Enqueue(
+                guildId,
+                new LavaLinkTrackWrapper(musicTracks[0]),
+                sourceQuery,
+                sourceSearchMode,
+                requestedBy);
         }
 
         if (connection.CurrentTrack == null)
@@ -124,5 +136,10 @@ public class TrackPlaybackService(
                 localizationService.Get(guildId, ValidationErrorKeys.LavalinkError),
                 "TryPlayNextTrackAsync.Error");
         }
+    }
+
+    private static string? GetTrackSourceQuery(Lavalink4NET.Tracks.LavalinkTrack track)
+    {
+        return track.Uri?.ToString();
     }
 }

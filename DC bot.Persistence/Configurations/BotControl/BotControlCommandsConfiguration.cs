@@ -50,6 +50,9 @@ public class BotControlCommandsConfiguration : IEntityTypeConfiguration<BotContr
 
         builder.Property(entity => entity.CompletedAtUtc)
             .HasColumnName("completed_at_utc");
+        
+        builder.Property(command => command.ResultJson)
+            .HasColumnName("result_json");
 
         builder.HasIndex(entity => entity.Status);
     }

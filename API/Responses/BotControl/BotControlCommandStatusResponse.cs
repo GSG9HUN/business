@@ -6,6 +6,7 @@ public sealed record BotControlCommandStatusResponse(
     string Type,
     string State,
     string? ErrorMessage,
+    string? ResultJson,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? ClaimedAtUtc,
     DateTimeOffset? CompletedAtUtc);

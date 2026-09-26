@@ -1,8 +1,9 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Persistence;
+using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -25,13 +26,25 @@ public class MusicQueueService(
         return tracks;
     }
 
-    public async Task Enqueue(ulong guildId, ILavaLinkTrack track, string? requestedBy = null)
+    public async Task Enqueue(ulong guildId, ILavaLinkTrack track, string? sourceQuery, TrackSearchMode? sourceSearchMode, string? requestedBy = null)
     {
-        await queueRepository.EnqueueAsync(guildId, _trackSerializer.Serialize(track), requestedBy);
+        if (sourceQuery is null && sourceSearchMode is null)
+        {
+            await queueRepository.EnqueueAsync(guildId, _trackSerializer.Serialize(track), requestedBy);
+            _logger.LogInformation("Track enqueued for guild {GuildId}: {Author} - {Title}", guildId, track.Author, track.Title);
+            return;
+        }
+
+        await queueRepository.EnqueueAsync(
+            guildId,
+            _trackSerializer.Serialize(track),
+            sourceQuery,
+            SerializeSearchMode(sourceSearchMode),
+            requestedBy);
         _logger.LogInformation("Track enqueued for guild {GuildId}: {Author} - {Title}", guildId, track.Author, track.Title);
     }
 
-    public async Task EnqueueMany(ulong guildId, IReadOnlyCollection<ILavaLinkTrack> tracks, string? requestedBy = null)
+    public async Task EnqueueMany(ulong guildId, IReadOnlyCollection<QueueTrackToEnqueue> tracks)
     {
         ArgumentNullException.ThrowIfNull(tracks);
         if (tracks.Count == 0)
@@ -39,12 +52,16 @@ public class MusicQueueService(
             return;
         }
 
-        var trackIdentifiers = tracks
-            .Select(_trackSerializer.Serialize)
+        var queueItems = tracks
+            .Select(track => new QueueItemToEnqueue(
+                _trackSerializer.Serialize(track.Track),
+                track.SourceQuery,
+                SerializeSearchMode(track.SourceSearchMode),
+                track.RequestedBy))
             .ToList();
 
-        await queueRepository.EnqueueManyAsync(guildId, trackIdentifiers, requestedBy);
-        _logger.LogInformation("{TrackCount} tracks enqueued for guild {GuildId} in bulk.", trackIdentifiers.Count, guildId);
+        await queueRepository.EnqueueManyAsync(guildId, queueItems);
+        _logger.LogInformation("{TrackCount} tracks enqueued for guild {GuildId} in bulk.", queueItems.Count, guildId);
     }
 
     public async Task<ILavaLinkTrack?> Dequeue(ulong guildId)
@@ -164,6 +181,58 @@ public class MusicQueueService(
         _logger.LogInformation("Queue clear completed for guild {GuildId}.", guildId);
     }
 
+    public async Task<QueueShuffleResult> ShuffleQueue(ulong guildId)
+    {
+        var queue = await GetQueue(guildId);
+        if (queue.Count < 2)
+        {
+            return new QueueShuffleResult(false, queue.Count);
+        }
+
+        var shuffled = queue.OrderBy(_ => Random.Shared.Next()).ToList();
+        await SetQueue(guildId, new Queue<ILavaLinkTrack>(shuffled));
+
+        return new QueueShuffleResult(true, shuffled.Count);
+    }
+
+    public async Task<QueueRemoveResult> RemoveAt(ulong guildId, int trackNumber)
+    {
+        var queue = await GetQueue(guildId);
+        var tracks = queue.ToList();
+        var index = trackNumber - 1;
+
+        if (index < 0 || index >= tracks.Count)
+        {
+            return new QueueRemoveResult(false, trackNumber, tracks.Count, null);
+        }
+
+        var removedTrack = tracks[index];
+        tracks.RemoveAt(index);
+        await SetQueue(guildId, new Queue<ILavaLinkTrack>(tracks));
+
+        return new QueueRemoveResult(true, trackNumber, tracks.Count + 1, removedTrack.Title);
+    }
+
+    public async Task<QueueMoveResult> Move(ulong guildId, int trackIndex, bool moveUp)
+    {
+        var queue = await GetQueue(guildId);
+        var tracks = queue.ToList();
+        var targetIndex = moveUp ? trackIndex - 1 : trackIndex + 1;
+
+        if (trackIndex < 0 ||
+            trackIndex >= tracks.Count ||
+            targetIndex < 0 ||
+            targetIndex >= tracks.Count)
+        {
+            return new QueueMoveResult(false, trackIndex, targetIndex, tracks.Count);
+        }
+
+        (tracks[trackIndex], tracks[targetIndex]) = (tracks[targetIndex], tracks[trackIndex]);
+        await SetQueue(guildId, new Queue<ILavaLinkTrack>(tracks));
+
+        return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
+    }
+
     private async Task SaveQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
     {
         if (shuffledQueue.Count > MaxQueueSize)
@@ -182,5 +251,27 @@ public class MusicQueueService(
         await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);
         _logger.LogInformation("Queue reorder persisted for guild {GuildId}. Track count: {TrackCount}", guildId,
             reorderedTrackIdentifiers.Count);
+    }
+    
+    private static string? SerializeSearchMode(TrackSearchMode? sourceSearchMode)
+    {
+        if (sourceSearchMode is null)
+        {
+            return null;
+        }
+
+        var mode = sourceSearchMode.Value;
+        
+        if (mode == TrackSearchMode.YouTube) return nameof(TrackSearchMode.YouTube);
+        if (mode == TrackSearchMode.YouTubeMusic) return nameof(TrackSearchMode.YouTubeMusic);
+        if (mode == TrackSearchMode.SoundCloud) return nameof(TrackSearchMode.SoundCloud);
+        if (mode == TrackSearchMode.Spotify) return nameof(TrackSearchMode.Spotify);
+        if (mode == TrackSearchMode.AppleMusic) return nameof(TrackSearchMode.AppleMusic);
+        if (mode == TrackSearchMode.Deezer) return nameof(TrackSearchMode.Deezer);
+        if (mode == TrackSearchMode.YandexMusic) return nameof(TrackSearchMode.YandexMusic);
+        if (mode == TrackSearchMode.Bandcamp) return nameof(TrackSearchMode.Bandcamp);
+        if (mode == TrackSearchMode.None) return nameof(TrackSearchMode.None);
+
+        return null;
     }
 }

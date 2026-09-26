@@ -126,11 +126,11 @@ public abstract class PlayCommandTestBase
     {
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
-                It.IsAny<TrackSearchMode>()),
+                It.IsAny<TrackSearchMode>(), null),
             Times.Never);
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
-                It.IsAny<TrackSearchMode>()),
+                It.IsAny<TrackSearchMode>(), null),
             Times.Never);
     }
 
@@ -138,11 +138,11 @@ public abstract class PlayCommandTestBase
     {
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
-                trackSearchMode),
+                trackSearchMode, null),
             Times.Never);
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
-                trackSearchMode),
+                trackSearchMode, null),
             Times.Once);
     }
 
@@ -150,11 +150,11 @@ public abstract class PlayCommandTestBase
     {
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncQuery(It.IsAny<IDiscordChannel>(), It.IsAny<string>(), It.IsAny<IDiscordMessage>(),
-                trackSearchMode),
+                trackSearchMode, null),
             Times.Once);
         LavaLinkServiceMock.Verify(
             l => l.PlayAsyncUrl(It.IsAny<IDiscordChannel>(), It.IsAny<Uri>(), It.IsAny<IDiscordMessage>(),
-                trackSearchMode),
+                trackSearchMode, null),
             Times.Never);
     }
 }

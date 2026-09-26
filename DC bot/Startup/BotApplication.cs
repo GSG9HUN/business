@@ -1,4 +1,5 @@
 using DC_bot.Db;
+using DC_bot.Interface.Service.BotControl;
 using DC_bot.Service;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,9 +20,18 @@ internal static class BotApplication
         BotHandlerRegistrar.RegisterHandlers(services);
 
         var botService = services.GetRequiredService<BotService>();
+        var botControlWorker = services.GetRequiredService<IBotControlWorker>();
         try
         {
-            await botService.StartAsync(isTestEnvironment, cancellationToken);
+            var botTask = botService.StartAsync(isTestEnvironment, cancellationToken);
+            if (isTestEnvironment)
+            {
+                await botTask;
+                return;
+            }
+
+            var botControlWorkerTask = botControlWorker.RunAsync(cancellationToken);
+            await Task.WhenAll(botTask, botControlWorkerTask);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

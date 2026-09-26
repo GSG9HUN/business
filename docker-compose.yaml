@@ -23,6 +23,9 @@ services:
     image: ghcr.io/lavalink-devs/lavalink:4.2.1
     container_name: dc-bot-lavalink
     restart: unless-stopped
+    depends_on:
+      yt-cipher:
+        condition: service_started
     environment:
       LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:-nagyon_eros_jelszo}
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
@@ -31,6 +34,7 @@ services:
       DEEZER_ARL: ${DEEZER_ARL:-}
       YANDEX_MUSIC_ACCESS_TOKEN: ${YANDEX_MUSIC_ACCESS_TOKEN:-}
       YOUTUBE_REFRESH_TOKEN: ${YOUTUBE_REFRESH_TOKEN:-}
+      YT_CIPHER_API_TOKEN: ${YT_CIPHER_API_TOKEN:-}
     ports:
       - "127.0.0.1:2333:2333"
     volumes:
@@ -45,6 +49,20 @@ services:
       dc-bot-network:
         aliases:
           - lavalink
+
+  yt-cipher:
+    image: ghcr.io/kikkia/yt-cipher:master
+    container_name: dc-bot-yt-cipher
+    restart: unless-stopped
+    environment:
+      API_TOKEN: ${YT_CIPHER_API_TOKEN:-}
+      HOST: 0.0.0.0
+      PORT: 8001
+      OVERRIDE_PLAYER_VARIANT: IAS
+    networks:
+      dc-bot-network:
+        aliases:
+          - yt-cipher
 
   discord-api:
     build:

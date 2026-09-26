@@ -266,6 +266,23 @@ public class LavaLinkServiceIntegrationTests
             string? requestedBy,
             CancellationToken cancellationToken = default)
         {
+            return EnqueueAsync(
+                guildId,
+                trackIdentifier,
+                sourceQuery: null,
+                sourceSearchMode: null,
+                requestedBy,
+                cancellationToken);
+        }
+
+        public Task<QueueItemRecord> EnqueueAsync(
+            ulong guildId,
+            string trackIdentifier,
+            string? sourceQuery,
+            string? sourceSearchMode,
+            string? requestedBy,
+            CancellationToken cancellationToken = default)
+        {
             var items = _items.GetValueOrDefault(guildId);
             if (items is null)
             {
@@ -274,7 +291,18 @@ public class LavaLinkServiceIntegrationTests
             }
 
             var nextPosition = items.Count == 0 ? 0 : items.Max(item => item.Position) + 1;
-            var record = new QueueItemRecord(_nextId++, guildId, nextPosition, trackIdentifier, requestedBy, QueueItemState.Queued, DateTimeOffset.UtcNow, null, null);
+            var record = new QueueItemRecord(
+                _nextId++,
+                guildId,
+                nextPosition,
+                trackIdentifier,
+                sourceQuery,
+                sourceSearchMode,
+                requestedBy,
+                QueueItemState.Queued,
+                DateTimeOffset.UtcNow,
+                null,
+                null);
             items.Add(record);
             return Task.FromResult(record);
         }
@@ -293,9 +321,44 @@ public class LavaLinkServiceIntegrationTests
             string? requestedBy,
             CancellationToken cancellationToken = default)
         {
+            await EnqueueManyAsync(
+                guildId,
+                trackIdentifiers,
+                sourceQuery: null,
+                sourceSearchMode: null,
+                requestedBy,
+                cancellationToken);
+        }
+
+        public async Task EnqueueManyAsync(
+            ulong guildId,
+            IReadOnlyList<string> trackIdentifiers,
+            string? sourceQuery,
+            string? sourceSearchMode,
+            string? requestedBy,
+            CancellationToken cancellationToken = default)
+        {
             foreach (var trackIdentifier in trackIdentifiers)
             {
-                await EnqueueAsync(guildId, trackIdentifier, requestedBy, cancellationToken);
+                await EnqueueAsync(guildId, trackIdentifier, sourceQuery, sourceSearchMode, requestedBy,
+                    cancellationToken);
+            }
+        }
+
+        public async Task EnqueueManyAsync(
+            ulong guildId,
+            IReadOnlyList<QueueItemToEnqueue> queueItems,
+            CancellationToken cancellationToken = default)
+        {
+            foreach (var queueItem in queueItems)
+            {
+                await EnqueueAsync(
+                    guildId,
+                    queueItem.TrackIdentifier,
+                    queueItem.SourceQuery,
+                    queueItem.SourceSearchMode,
+                    queueItem.RequestedBy,
+                    cancellationToken);
             }
         }
 
@@ -332,6 +395,18 @@ public class LavaLinkServiceIntegrationTests
                 return Task.CompletedTask;
             }
 
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateTrackIdentifierAsync(long queueItemId, string trackIdentifier, CancellationToken cancellationToken = default)
+        {
+            Update(queueItemId, item => item with { TrackIdentifier = trackIdentifier });
+            return Task.CompletedTask;
+        }
+
+        public Task ClearSourceMetadataAsync(long queueItemId, CancellationToken cancellationToken = default)
+        {
+            Update(queueItemId, item => item with { SourceQuery = null, SourceSearchMode = null });
             return Task.CompletedTask;
         }
 

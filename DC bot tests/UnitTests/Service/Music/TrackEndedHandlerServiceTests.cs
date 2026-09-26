@@ -6,9 +6,12 @@ using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Service.Music.MusicServices;
+using DC_bot.Wrapper;
+using Lavalink4NET;
 using Lavalink4NET.Events.Players;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Payloads.Events;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,6 +22,7 @@ namespace DC_bot_tests.UnitTests.Service.Music;
 public class TrackEndedHandlerServiceTests
 {
     private const ulong GuildId = 111UL;
+    private readonly Mock<IAudioService> _audioServiceMock = new();
     private readonly Mock<ICurrentTrackService> _currentTrackServiceMock = new();
     private readonly Mock<IDiscordGuild> _guildMock = new();
     private readonly Mock<ILogger<TrackEndedHandlerService>> _loggerMock = new();
@@ -39,6 +43,7 @@ public class TrackEndedHandlerServiceTests
         _textChannelMock.Setup(c => c.Guild).Returns(_guildMock.Object);
 
         _service = new TrackEndedHandlerService(
+            _audioServiceMock.Object,
             _repeatServiceMock.Object,
             _currentTrackServiceMock.Object,
             _musicQueueServiceMock.Object,
@@ -46,6 +51,7 @@ public class TrackEndedHandlerServiceTests
             _trackNotificationServiceMock.Object,
             _progressiveTimerServiceMock.Object,
             _queueRepositoryMock.Object,
+            new LavalinkTrackSerializer(),
             _loggerMock.Object);
     }
 
@@ -104,6 +110,79 @@ public class TrackEndedHandlerServiceTests
         _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(_playerMock.Object, _textChannelMock.Object),
             Times.Once);
         _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleTrackEndedAsync_LoadFailed_QueueHasTracks_PlaysNext()
+    {
+        var args = CreateTrackEndedEventArgs(TrackEndReason.LoadFailed);
+
+        _musicQueueServiceMock.Setup(q => q.HasTracks(GuildId)).ReturnsAsync(true);
+
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(_playerMock.Object, _textChannelMock.Object),
+            Times.Once);
+        _repeatServiceMock.Verify(r => r.IsRepeatingAsync(It.IsAny<ulong>()), Times.Never);
+        _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleTrackEndedAsync_LoadFailed_WithSourceQuery_ReloadsTrackAndUpdatesStoredIdentifier()
+    {
+        const long queueItemId = 10;
+        const string sourceQuery = "https://www.youtube.com/watch?v=abc123";
+        var failedTrack = TrackTestHelper.CreateTrackWrapper("Old", "Artist", "old-id", queueItemId: queueItemId);
+        var reloadedTrack = new LavalinkTrack
+        {
+            Author = "Artist",
+            Title = "Reloaded",
+            Identifier = "new-id",
+            Duration = TimeSpan.FromSeconds(120),
+            SourceName = "youtube",
+            Uri = new Uri(sourceQuery)
+        };
+        var queueItem = CreateQueueItemRecord(
+            queueItemId,
+            failedTrack.ToString(),
+            QueueItemState.Playing,
+            sourceQuery,
+            nameof(TrackSearchMode.YouTube));
+        var args = CreateTrackEndedEventArgs(TrackEndReason.LoadFailed, failedTrack.ToLavalinkTrack());
+
+        _queueRepositoryMock
+            .Setup(q => q.GetPlayingItemByTrackIdentifierAsync(GuildId, failedTrack.ToString(), CancellationToken.None))
+            .ReturnsAsync(queueItem);
+        _audioServiceMock
+            .Setup(a => a.Tracks.LoadTracksAsync(sourceQuery, TrackSearchMode.YouTube, default, It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<TrackLoadResult>(new TrackLoadResult(reloadedTrack, null)));
+
+        await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
+
+        _queueRepositoryMock.Verify(q => q.MarkSkippedAsync(queueItemId, CancellationToken.None), Times.Once);
+        _queueRepositoryMock.Verify(q => q.UpdateTrackIdentifierAsync(
+                queueItemId,
+                It.Is<string>(identifier => !string.IsNullOrWhiteSpace(identifier)),
+                CancellationToken.None),
+            Times.Once);
+        _queueRepositoryMock.Verify(q => q.ClearSourceMetadataAsync(queueItemId, CancellationToken.None), Times.Once);
+        _queueRepositoryMock.Verify(q => q.MarkPlayingAsync(queueItemId, CancellationToken.None), Times.Once);
+        _playerMock.Verify(p => p.PlayAsync(reloadedTrack, It.IsAny<TrackPlayProperties>(), CancellationToken.None), Times.Once);
+        _trackNotificationServiceMock.Verify(n => n.NotifyNowPlayingAsync(
+                _textChannelMock.Object,
+                It.Is<ILavaLinkTrack>(track => IsReloadedQueueTrack(track, queueItemId)),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<TimeSpan>()),
+            Times.Once);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+                GuildId,
+                It.Is<ILavaLinkTrack>(track => IsReloadedQueueTrack(track, queueItemId)),
+                CancellationToken.None),
+            Times.Once);
+        _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(
+                It.IsAny<ILavalinkPlayer>(),
+                It.IsAny<IDiscordChannel>()),
+            Times.Never);
     }
 
     #endregion
@@ -195,7 +274,6 @@ public class TrackEndedHandlerServiceTests
 
     [Theory]
     [InlineData(TrackEndReason.Replaced)]
-    [InlineData(TrackEndReason.LoadFailed)]
     [InlineData(TrackEndReason.Cleanup)]
     public async Task HandleTrackEndedAsync_NonFinishedReason_DoesNothing(TrackEndReason reason)
     {
@@ -211,7 +289,8 @@ public class TrackEndedHandlerServiceTests
     [Theory]
     [InlineData(TrackEndReason.Finished)]
     [InlineData(TrackEndReason.Stopped)]
-    public async Task HandleTrackEndedAsync_FinishedOrStopped_ProcessesTrackEnd(TrackEndReason reason)
+    [InlineData(TrackEndReason.LoadFailed)]
+    public async Task HandleTrackEndedAsync_PlaybackContinuationReason_ProcessesTrackEnd(TrackEndReason reason)
     {
         var args = CreateTrackEndedEventArgs(reason);
         _repeatServiceMock.Setup(r => r.IsRepeatingAsync(GuildId)).ReturnsAsync(false);
@@ -292,10 +371,14 @@ public class TrackEndedHandlerServiceTests
 
         _musicQueueServiceMock.Verify(q => q.EnqueueMany(
                 GuildId,
-                It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Count == 2),
-                null),
+                It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks =>
+                    tracks.Count == 2 &&
+                    tracks.All(track =>
+                        track.SourceQuery == null &&
+                        track.SourceSearchMode == null &&
+                        track.RequestedBy == null))),
             Times.Once);
-        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<ILavaLinkTrack>(), null), Times.Never);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<ILavaLinkTrack>(), null, null, null), Times.Never);
         _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(_playerMock.Object, _textChannelMock.Object),
             Times.Once);
         _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(It.IsAny<IDiscordChannel>()), Times.Never);
@@ -335,7 +418,7 @@ public class TrackEndedHandlerServiceTests
 
         await _service.HandleTrackEndedAsync(_playerMock.Object, args, _textChannelMock.Object);
 
-        _musicQueueServiceMock.Verify(q => q.Enqueue(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(), null), Times.Never);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(), null, null, null), Times.Never);
         _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(It.IsAny<ILavalinkPlayer>(), It.IsAny<IDiscordChannel>()), Times.Never);
         _trackNotificationServiceMock.Verify(n => n.NotifyQueueEmptyAsync(_textChannelMock.Object), Times.Once);
     }
@@ -360,18 +443,29 @@ public class TrackEndedHandlerServiceTests
     private static QueueItemRecord CreateQueueItemRecord(
         long id,
         string trackIdentifier,
-        QueueItemState state)
+        QueueItemState state,
+        string? sourceQuery = null,
+        string? sourceSearchMode = null)
     {
         return new QueueItemRecord(
             id,
             GuildId,
             Position: 0,
             trackIdentifier,
+            sourceQuery,
+            sourceSearchMode,
             RequestedBy: null,
             state,
             DateTimeOffset.UtcNow,
             PlayedAtUtc: null,
             SkippedAtUtc: null);
+    }
+
+    private static bool IsReloadedQueueTrack(ILavaLinkTrack track, long queueItemId)
+    {
+        return track.Title == "Reloaded" &&
+               track is LavaLinkTrackWrapper wrapper &&
+               wrapper.QueueItemId == queueItemId;
     }
     #endregion
 }

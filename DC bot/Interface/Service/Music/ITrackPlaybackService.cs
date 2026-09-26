@@ -10,7 +10,9 @@ public interface ITrackPlaybackService
         TrackLoadResult searchQuery,
         ILavalinkPlayer connection,
         IDiscordChannel textChannel,
-        string? requestedBy = null);
+        string? requestedBy,
+        string? sourceQuery,
+        TrackSearchMode? sourceSearchMode);
     Task PlayTrackFromQueueAsync(ILavalinkPlayer player, IDiscordChannel textChannel);
     Task TryPlayNextTrackAsync(ILavalinkPlayer player, IDiscordChannel textChannel, ulong guildId);
 }

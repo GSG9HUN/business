@@ -1,4 +1,5 @@
-﻿using API.Errors;
+using API.Errors;
+using DC_bot.BotControl;
 using static Microsoft.AspNetCore.Http.Results;
 
 namespace API.Validation;
@@ -8,10 +9,8 @@ public class CommandNameValidationFilter: IEndpointFilter
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var routeValues = context.HttpContext.Request.RouteValues;
-
         var commandName = routeValues["commandName"]?.ToString();
-        //TODO majd kiszervezni a commandName-ket valahova.
-        
+
         if (!TryNormalize(commandName, out var normalizedCommand))
         {
             return BadRequest(new
@@ -33,14 +32,14 @@ public class CommandNameValidationFilter: IEndpointFilter
     {
         normalizedCommand = commandName?.Trim().ToLowerInvariant() switch
         {
-            "pause" => "pause",
-            "resume" => "resume",
-            "skip" => "skip",
-            "previous" => "previous",
-            "leave" => "leave",
-            "stop" => "leave",
-            "repeat" => "repeat",
-            "repeatlist" => "repeatList",
+            BotControlCommandTypes.Pause => BotControlCommandTypes.Pause,
+            BotControlCommandTypes.Resume => BotControlCommandTypes.Resume,
+            BotControlCommandTypes.Skip => BotControlCommandTypes.Skip,
+            BotControlCommandTypes.Previous => BotControlCommandTypes.Previous,
+            BotControlCommandTypes.Leave => BotControlCommandTypes.Leave,
+            BotControlCommandTypes.Stop => BotControlCommandTypes.Leave,
+            BotControlCommandTypes.Repeat => BotControlCommandTypes.Repeat,
+            "repeatlist" => BotControlCommandTypes.RepeatList,
             _ => string.Empty
         };
 

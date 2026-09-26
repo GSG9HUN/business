@@ -21,6 +21,7 @@ internal static class BotControlCommandHttpMapper
             command.Type,
             ToStateText(command.State),
             command.ErrorMessage,
+            command.ResultJson,
             command.CreatedAtUtc,
             command.ClaimedAtUtc,
             command.CompletedAtUtc);

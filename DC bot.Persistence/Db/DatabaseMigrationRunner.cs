@@ -16,5 +16,19 @@ public static class DatabaseMigrationRunner
         {
             await dbContext.Database.MigrateAsync();
         }
+
+        await EnsureQueueSourceMetadataColumnsAsync(dbContext);
+    }
+
+    private static Task EnsureQueueSourceMetadataColumnsAsync(BotDbContext dbContext)
+    {
+        return dbContext.Database.ExecuteSqlRawAsync(
+            """
+            ALTER TABLE guild_queue_item
+                ADD COLUMN IF NOT EXISTS source_query text;
+
+            ALTER TABLE guild_queue_item
+                ADD COLUMN IF NOT EXISTS source_search_mode character varying(64);
+            """);
     }
 }
