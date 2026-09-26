@@ -107,13 +107,13 @@ public class ReactionActionDispatcherTests
 
         lavaLinkServiceMock
             .Setup(service => service.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         lavaLinkServiceMock
             .Setup(service => service.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         lavaLinkServiceMock
             .Setup(service => service.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
 
         localizationServiceMock
             .Setup(service => service.Get(123UL, LocalizationKeys.ReactionHandlerRepeatOn))

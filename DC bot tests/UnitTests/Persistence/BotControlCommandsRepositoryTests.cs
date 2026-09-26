@@ -93,7 +93,7 @@ public class BotControlCommandsRepositoryTests
         var repository = new BotControlCommandsRepository(factory);
         var command = await repository.EnqueueAsync(42UL, 99UL, "pause", CancellationToken.None);
 
-        await repository.MarkDoneAsync(command.CommandId, CancellationToken.None);
+        await repository.MarkDoneAsync(command.CommandId, null, CancellationToken.None);
 
         await using var dbContext = factory.CreateDbContext();
         var saved = Assert.Single(dbContext.BotControlCommands);
@@ -109,7 +109,7 @@ public class BotControlCommandsRepositoryTests
         var repository = new BotControlCommandsRepository(factory);
         var command = await repository.EnqueueAsync(42UL, 99UL, "pause", CancellationToken.None);
 
-        await repository.MarkFailedAsync(command.CommandId, "boom", CancellationToken.None);
+        await repository.MarkFailedAsync(command.CommandId, "boom", null, CancellationToken.None);
 
         var result = await repository.GetByCommandIdAsync(command.CommandId, CancellationToken.None);
 

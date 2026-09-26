@@ -198,7 +198,9 @@ Routes:
 ```json
 {
   "query": "https://example.com/track",
-  "searchMode": null
+  "searchMode": null,
+  "voiceChannelId": "123456789012345678",
+  "textChannelId": "234567890123456789"
 }
 ```
 
@@ -209,6 +211,9 @@ Notes:
 - `trackIndex` is 0-based for move requests.
 - `duration` is expressed in seconds.
 - `artworkUri` and `requestedBy` may be `null`.
+- `voiceChannelId` and `textChannelId` are optional Discord snowflake strings.
+- If `voiceChannelId` is omitted, the bot resolves the user's current voice channel when executing the command.
+- If `textChannelId` is omitted or invalid, the bot falls back to the resolved voice channel chat when it can send messages there.
 - Queue write routes enqueue bot-control commands and return `202 Accepted` with command data.
 
 ### StatusEndpoints.cs

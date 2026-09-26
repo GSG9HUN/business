@@ -31,6 +31,14 @@ public interface IQueueRepository
         string? requestedBy,
         CancellationToken cancellationToken = default);
 
+    Task<QueueItemRecord> EnqueueAsync(
+        ulong guildId,
+        string trackIdentifier,
+        string? sourceQuery,
+        string? sourceSearchMode,
+        string? requestedBy,
+        CancellationToken cancellationToken = default);
+
     Task EnqueueManyAsync(
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
@@ -42,12 +50,34 @@ public interface IQueueRepository
         string? requestedBy,
         CancellationToken cancellationToken = default);
 
+    Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        string? sourceQuery,
+        string? sourceSearchMode,
+        string? requestedBy,
+        CancellationToken cancellationToken = default);
+
+    Task EnqueueManyAsync(
+        ulong guildId,
+        IReadOnlyList<QueueItemToEnqueue> queueItems,
+        CancellationToken cancellationToken = default);
+
     Task ReorderQueuedItemsAsync(
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
         CancellationToken cancellationToken = default);
 
+    Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken = default);
+
     Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default);
+
+    Task UpdateTrackIdentifierAsync(long queueItemId, string trackIdentifier, CancellationToken cancellationToken = default);
+
+    Task ClearSourceMetadataAsync(long queueItemId, CancellationToken cancellationToken = default);
 
     Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default);
 
@@ -57,3 +87,8 @@ public interface IQueueRepository
     Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default);
     Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default);
 }
+
+public sealed record QueueItemRemovalRecord(
+    bool Success,
+    int QueueSize,
+    QueueItemRecord? RemovedItem);

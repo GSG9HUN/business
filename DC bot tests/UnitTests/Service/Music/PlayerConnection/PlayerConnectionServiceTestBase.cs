@@ -1,5 +1,6 @@
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET;
@@ -16,6 +17,7 @@ public abstract class PlayerConnectionServiceTestBase
     protected readonly Mock<IDiscordChannel> ChannelMock = new();
     protected readonly Mock<IDiscordGuild> GuildMock = new();
     protected readonly Mock<ILogger<PlayerConnectionService>> LoggerMock = new();
+    protected readonly Mock<ILavalinkNodeConnectionService> LavalinkNodeConnectionServiceMock = new();
     protected readonly Mock<IDiscordMessage> MessageMock = new();
     protected readonly Mock<IPlayerManager> PlayerManagerMock = new();
     protected readonly Mock<IResponseBuilder> ResponseBuilderMock = new();
@@ -31,6 +33,7 @@ public abstract class PlayerConnectionServiceTestBase
 
         Service = new PlayerConnectionService(
             AudioServiceMock.Object,
+            LavalinkNodeConnectionServiceMock.Object,
             ValidationServiceMock.Object,
             ResponseBuilderMock.Object,
             LoggerMock.Object);

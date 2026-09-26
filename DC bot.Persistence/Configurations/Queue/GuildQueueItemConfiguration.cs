@@ -31,6 +31,13 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
             .HasColumnName("track_identifier")
             .IsRequired();
 
+        builder.Property(entity => entity.SourceQuery)
+            .HasColumnName("source_query");
+
+        builder.Property(entity => entity.SourceSearchMode)
+            .HasColumnName("source_search_mode")
+            .HasMaxLength(64);
+
         builder.Property(entity => entity.RequestedBy)
             .HasColumnName("requested_by")
             .HasMaxLength(128);

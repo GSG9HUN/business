@@ -71,9 +71,9 @@ public class TrackPlaybackServiceTests
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync(track);
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
+        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
 
-        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>()), Times.Once);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>(), null, null, null), Times.Once);
         _playerMock.Verify(p => p.PlayAsync(track.ToLavalinkTrack(), It.IsAny<TrackPlayProperties>(), CancellationToken.None),
             Times.Once);
         _trackNotificationServiceMock.Verify(
@@ -91,7 +91,7 @@ public class TrackPlaybackServiceTests
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync((ILavaLinkTrack?)null);
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
+        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
 
         _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), CancellationToken.None),
             Times.Never);
@@ -110,9 +110,9 @@ public class TrackPlaybackServiceTests
             .Setup(l => l.Get(LocalizationKeys.PlayCommandMusicAddedQueue))
             .Returns("Added to queue:");
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
+        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
 
-        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>()), Times.Once);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>(), null, null, null), Times.Once);
         _trackNotificationServiceMock.Verify(
             n => n.SendSafeAsync(_textChannelMock.Object,
                 It.Is<string>(s => s.Contains("Artist2") && s.Contains("New")), It.IsAny<string>()),
@@ -134,13 +134,24 @@ public class TrackPlaybackServiceTests
             .Setup(l => l.Get(LocalizationKeys.PlayCommandListAddedQueue))
             .Returns("Playlist added to queue");
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
+        await _service.PlayTheFoundMusicAsync(
+            searchQuery,
+            _playerMock.Object,
+            _textChannelMock.Object,
+            null,
+            "https://example.com/playlist",
+            TrackSearchMode.YouTube);
 
         _musicQueueServiceMock.Verify(q => q.EnqueueMany(
                 GuildId,
-                It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Count == 2)),
+                It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks =>
+                    tracks.Count == 2 &&
+                    tracks.All(track =>
+                        track.SourceQuery == "https://example.com/track" &&
+                        track.SourceSearchMode == TrackSearchMode.YouTube &&
+                        track.RequestedBy == null))),
             Times.Once);
-        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>()), Times.Never);
+        _musicQueueServiceMock.Verify(q => q.Enqueue(GuildId, It.IsAny<LavaLinkTrackWrapper>(), It.IsAny<string?>(), It.IsAny<TrackSearchMode?>(), It.IsAny<string?>()), Times.Never);
         _trackNotificationServiceMock.Verify(
             n => n.SendSafeAsync(_textChannelMock.Object, "Playlist added to queue", It.IsAny<string>()),
             Times.Once);
@@ -161,7 +172,7 @@ public class TrackPlaybackServiceTests
             .Setup(l => l.Get(ValidationErrorKeys.LavalinkError))
             .Returns("Lavalink error");
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object);
+        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
 
         _trackNotificationServiceMock.Verify(
             n => n.SendSafeAsync(_textChannelMock.Object, "Lavalink error", It.IsAny<string>()),

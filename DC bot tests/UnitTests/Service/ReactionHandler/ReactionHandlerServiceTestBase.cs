@@ -59,11 +59,11 @@ public abstract class ReactionHandlerServiceTestBase
     protected void SetupSuccessfulPlaybackOperations()
     {
         LavaLinkServiceMock.Setup(x => x.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         LavaLinkServiceMock.Setup(x => x.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         LavaLinkServiceMock.Setup(x => x.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
     }
 
     protected void ResetLogger()

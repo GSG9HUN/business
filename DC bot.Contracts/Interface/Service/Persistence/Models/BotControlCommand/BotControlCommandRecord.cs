@@ -10,4 +10,5 @@ public sealed record BotControlCommandRecord(
     string? ErrorMessage,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? ClaimedAtUtc,
-    DateTimeOffset? CompletedAtUtc);
+    DateTimeOffset? CompletedAtUtc,
+    string? ResultJson);
