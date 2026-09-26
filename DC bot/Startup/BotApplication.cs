@@ -23,15 +23,37 @@ internal static class BotApplication
         var botControlWorker = services.GetRequiredService<IBotControlWorker>();
         try
         {
-            var botTask = botService.StartAsync(isTestEnvironment, cancellationToken);
+            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var botTask = botService.StartAsync(isTestEnvironment, linkedCancellation.Token);
             if (isTestEnvironment)
             {
                 await botTask;
                 return;
             }
 
-            var botControlWorkerTask = botControlWorker.RunAsync(cancellationToken);
-            await Task.WhenAll(botTask, botControlWorkerTask);
+            var botControlWorkerTask = botControlWorker.RunAsync(linkedCancellation.Token);
+            var completedTask = await Task.WhenAny(botTask, botControlWorkerTask);
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                await linkedCancellation.CancelAsync();
+            }
+
+            try
+            {
+                await Task.WhenAll(botTask, botControlWorkerTask);
+            }
+            catch (OperationCanceledException) when (
+                cancellationToken.IsCancellationRequested ||
+                completedTask.IsFaulted)
+            {
+                if (completedTask.IsFaulted)
+                {
+                    await completedTask;
+                }
+
+                throw;
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

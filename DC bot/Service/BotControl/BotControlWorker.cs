@@ -15,17 +15,21 @@ public sealed class BotControlWorker(
     : IBotControlWorker
 {
     private static readonly TimeSpan ErrorDelay = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan NotificationWaitTimeout = TimeSpan.FromSeconds(30);
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Bot control worker started.");
 
+        await RecoverStartedCommandsAsync(cancellationToken);
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
+                await notifier.EnsureListeningAsync(cancellationToken);
                 await DrainPendingCommandsAsync(cancellationToken);
-                await notifier.WaitForCommandAsync(cancellationToken);
+                await WaitForCommandOrTimeoutAsync(cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -39,6 +43,47 @@ public sealed class BotControlWorker(
         }
 
         logger.LogInformation("Bot control worker stopped.");
+    }
+
+    private async Task RecoverStartedCommandsAsync(CancellationToken cancellationToken)
+    {
+        var startedCommands = await commandsRepository.GetStartedAsync(cancellationToken);
+        foreach (var command in startedCommands)
+        {
+            var result = resultFactory.Failure(
+                command,
+                "Command was interrupted before completion.",
+                "Interrupted",
+                shouldNotifyDiscord: false);
+
+            await commandsRepository.MarkFailedAsync(
+                command.CommandId,
+                result.Message,
+                result.ResultJson,
+                cancellationToken);
+        }
+
+        if (startedCommands.Count > 0)
+        {
+            logger.LogWarning(
+                "Recovered {CommandCount} interrupted bot control commands by marking them failed.",
+                startedCommands.Count);
+        }
+    }
+
+    private async Task WaitForCommandOrTimeoutAsync(CancellationToken cancellationToken)
+    {
+        using var waitCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        waitCancellation.CancelAfter(NotificationWaitTimeout);
+
+        try
+        {
+            await notifier.WaitForCommandAsync(waitCancellation.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Bounded wait prevents missed notifications from leaving pending commands stuck forever.
+        }
     }
 
     private async Task DrainPendingCommandsAsync(CancellationToken cancellationToken)
@@ -83,12 +128,11 @@ public sealed class BotControlWorker(
                     command,
                     "Command failed.",
                     "UnexpectedError",
-                    new { error = ex.Message },
                     shouldNotifyDiscord: false);
 
                 await commandsRepository.MarkFailedAsync(
                     command.CommandId,
-                    ex.Message,
+                    result.Message,
                     result.ResultJson,
                     cancellationToken);
             }

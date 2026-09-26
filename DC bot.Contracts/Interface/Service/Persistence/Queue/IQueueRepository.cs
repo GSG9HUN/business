@@ -68,6 +68,11 @@ public interface IQueueRepository
         IReadOnlyList<string> trackIdentifiers,
         CancellationToken cancellationToken = default);
 
+    Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken = default);
+
     Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default);
 
     Task UpdateTrackIdentifierAsync(long queueItemId, string trackIdentifier, CancellationToken cancellationToken = default);
@@ -82,3 +87,8 @@ public interface IQueueRepository
     Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default);
     Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default);
 }
+
+public sealed record QueueItemRemovalRecord(
+    bool Success,
+    int QueueSize,
+    QueueItemRecord? RemovedItem);

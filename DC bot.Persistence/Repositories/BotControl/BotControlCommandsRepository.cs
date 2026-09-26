@@ -39,7 +39,7 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
         CancellationToken cancellationToken)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var botCommand = new BotControlCommandEntity
@@ -56,8 +56,8 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
             dbContext.BotControlCommands.Add(botCommand);
         
             await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             await NotifyCommandCreatedAsync(dbContext, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         
             return MapToRecord(botCommand);
         }
@@ -88,6 +88,19 @@ public class BotControlCommandsRepository(IDbContextFactory<BotDbContext> dbCont
             dbContextFactory,
             ClaimNextPendingAsync,
             cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<BotControlCommandRecord>> GetStartedAsync(CancellationToken cancellationToken)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var commands = await dbContext.BotControlCommands
+            .AsNoTracking()
+            .Where(command => command.Status == BotControlCommandState.Started)
+            .OrderBy(command => command.ClaimedAtUtc ?? command.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return commands.Select(MapToRecord).ToList();
     }
 
     public Task MarkDoneAsync(string commandId, string? resultJson, CancellationToken cancellationToken)

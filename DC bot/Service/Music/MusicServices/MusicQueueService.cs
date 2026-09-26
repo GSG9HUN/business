@@ -197,20 +197,26 @@ public class MusicQueueService(
 
     public async Task<QueueRemoveResult> RemoveAt(ulong guildId, int trackNumber)
     {
-        var queue = await GetQueue(guildId);
-        var tracks = queue.ToList();
-        var index = trackNumber - 1;
-
-        if (index < 0 || index >= tracks.Count)
+        var result = await queueRepository.RemoveQueuedItemAtAsync(guildId, trackNumber);
+        if (!result.Success || result.RemovedItem is null)
         {
-            return new QueueRemoveResult(false, trackNumber, tracks.Count, null);
+            return new QueueRemoveResult(false, trackNumber, result.QueueSize, null);
         }
 
-        var removedTrack = tracks[index];
-        tracks.RemoveAt(index);
-        await SetQueue(guildId, new Queue<ILavaLinkTrack>(tracks));
+        ILavaLinkTrack? removedTrack = null;
+        try
+        {
+            removedTrack = _trackSerializer.Deserialize(result.RemovedItem.TrackIdentifier, result.RemovedItem.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Removed queue item could not be parsed for guild {GuildId}. QueueItemId: {QueueItemId}",
+                guildId,
+                result.RemovedItem.Id);
+        }
 
-        return new QueueRemoveResult(true, trackNumber, tracks.Count + 1, removedTrack.Title);
+        return new QueueRemoveResult(true, trackNumber, result.QueueSize, removedTrack?.Title);
     }
 
     public async Task<QueueMoveResult> Move(ulong guildId, int trackIndex, bool moveUp)

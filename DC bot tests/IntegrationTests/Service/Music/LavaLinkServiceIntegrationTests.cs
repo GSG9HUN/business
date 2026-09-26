@@ -381,6 +381,39 @@ public class LavaLinkServiceIntegrationTests
             return Task.CompletedTask;
         }
 
+        public Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+            ulong guildId,
+            int trackNumber,
+            CancellationToken cancellationToken = default)
+        {
+            var items = _items.GetValueOrDefault(guildId, []);
+            var queuedItems = items
+                .Where(item => item.State == QueueItemState.Queued)
+                .OrderBy(item => item.Position)
+                .ToList();
+            var removeIndex = trackNumber - 1;
+
+            if (trackNumber < 1 || removeIndex >= queuedItems.Count)
+            {
+                return Task.FromResult(new QueueItemRemovalRecord(false, queuedItems.Count, null));
+            }
+
+            var removedItem = queuedItems[removeIndex];
+            var itemIndex = items.FindIndex(item => item.Id == removedItem.Id);
+            items[itemIndex] = removedItem with { State = QueueItemState.Skipped, SkippedAtUtc = DateTimeOffset.UtcNow };
+
+            var survivors = queuedItems
+                .Where(item => item.Id != removedItem.Id)
+                .ToList();
+            for (var index = 0; index < survivors.Count; index++)
+            {
+                var survivorIndex = items.FindIndex(item => item.Id == survivors[index].Id);
+                items[survivorIndex] = items[survivorIndex] with { Position = index };
+            }
+
+            return Task.FromResult(new QueueItemRemovalRecord(true, queuedItems.Count, removedItem));
+        }
+
         public Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default)
         {
             foreach (var guildItems in _items.Values)

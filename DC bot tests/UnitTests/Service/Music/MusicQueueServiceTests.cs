@@ -369,8 +369,8 @@ public class MusicQueueServiceTests
     public async Task RemoveAt_WhenTrackNumberIsInvalid_ReturnsFailure()
     {
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
-            .ReturnsAsync([CreateRecord(ValidTrackIdentifier)]);
+            .Setup(repository => repository.RemoveQueuedItemAtAsync(GuildId, 2, CancellationToken.None))
+            .ReturnsAsync(new QueueItemRemovalRecord(false, 1, null));
 
         var result = await _service.RemoveAt(GuildId, 2);
 
@@ -381,17 +381,17 @@ public class MusicQueueServiceTests
         _queueRepositoryMock.Verify(
             repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
             Times.Never);
+        _queueRepositoryMock.Verify(
+            repository => repository.RemoveQueuedItemAtAsync(GuildId, 2, CancellationToken.None),
+            Times.Once);
     }
 
     [Fact]
     public async Task RemoveAt_WhenTrackNumberIsValid_PersistsQueueWithoutRemovedTrack()
     {
         var first = CreateTrackMock("track-id-a");
-        var second = CreateTrackMock("track-id-b");
         var serializer = new Mock<ITrackSerializer>();
-        serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-a", null)).Returns(first.Object);
-        serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-b", null)).Returns(second.Object);
-        serializer.Setup(trackSerializer => trackSerializer.Serialize(second.Object)).Returns("track-id-b");
+        serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-a", 1)).Returns(first.Object);
         var service = new MusicQueueService(
             _queueRepositoryMock.Object,
             _repeatListRepositoryMock.Object,
@@ -399,19 +399,19 @@ public class MusicQueueServiceTests
             serializer.Object);
 
         _queueRepositoryMock
-            .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
-            .ReturnsAsync([CreateRecord("track-id-a"), CreateRecord("track-id-b", 2, 1)]);
+            .Setup(repository => repository.RemoveQueuedItemAtAsync(GuildId, 1, CancellationToken.None))
+            .ReturnsAsync(new QueueItemRemovalRecord(true, 2, CreateRecord("track-id-a")));
 
         var result = await service.RemoveAt(GuildId, 1);
 
         Assert.True(result.Success);
         Assert.Equal("Title", result.RemovedTrackTitle);
         _queueRepositoryMock.Verify(
-            repository => repository.ReorderQueuedItemsAsync(
-                GuildId,
-                It.Is<IReadOnlyList<string>>(tracks => tracks.Count == 1 && tracks[0] == "track-id-b"),
-                CancellationToken.None),
+            repository => repository.RemoveQueuedItemAtAsync(GuildId, 1, CancellationToken.None),
             Times.Once);
+        _queueRepositoryMock.Verify(
+            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
+            Times.Never);
     }
 
     [Fact]

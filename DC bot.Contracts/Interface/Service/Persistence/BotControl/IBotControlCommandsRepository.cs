@@ -22,6 +22,7 @@ public interface IBotControlCommandsRepository
         CancellationToken cancellationToken);
     
     Task<BotControlCommandRecord?> ClaimNextPendingAsync(CancellationToken ct);
+    Task<IReadOnlyList<BotControlCommandRecord>> GetStartedAsync(CancellationToken ct);
     Task MarkDoneAsync(string commandId, string? resultJson, CancellationToken ct);
     Task MarkFailedAsync(string commandId, string errorMessage, string? resultJson, CancellationToken ct);
 }

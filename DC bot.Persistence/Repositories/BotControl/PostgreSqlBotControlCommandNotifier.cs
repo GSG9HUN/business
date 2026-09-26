@@ -12,6 +12,11 @@ public sealed class PostgreSqlBotControlCommandNotifier(
     private const string ChannelName = "bot_control_commands";
     private NpgsqlConnection? _connection;
 
+    public async Task EnsureListeningAsync(CancellationToken cancellationToken)
+    {
+        _ = await GetOpenConnectionAsync(cancellationToken);
+    }
+
     public async Task WaitForCommandAsync(CancellationToken cancellationToken)
     {
         var connection = await GetOpenConnectionAsync(cancellationToken);

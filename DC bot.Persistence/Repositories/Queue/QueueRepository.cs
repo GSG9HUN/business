@@ -205,6 +205,17 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
             cancellationToken);
     }
 
+    public Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken = default)
+    {
+        return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            dbContextFactory,
+            (dbContext, ct) => RemoveQueuedItemAtAsync(dbContext, guildId, trackNumber, ct),
+            cancellationToken);
+    }
+
     public Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default)
     {
         return UpdateStateAsync(queueItemId, QueueItemState.Playing, setPlayedAt: false, setSkippedAt: false,
@@ -419,6 +430,60 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
+        BotDbContext dbContext,
+        ulong guildId,
+        int trackNumber,
+        CancellationToken cancellationToken)
+    {
+        var queuedEntities = await dbContext.GuildQueueItems
+            .Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+            .OrderBy(item => item.Position)
+            .ToListAsync(cancellationToken);
+
+        var removeIndex = trackNumber - 1;
+        if (trackNumber < 1 || removeIndex >= queuedEntities.Count)
+        {
+            return new QueueItemRemovalRecord(false, queuedEntities.Count, null);
+        }
+
+        var removedEntity = queuedEntities[removeIndex];
+        var removedRecord = QueueItemMapper.ToRecord(removedEntity);
+        var survivors = queuedEntities
+            .Where((_, index) => index != removeIndex)
+            .ToList();
+
+        var originalPositions = queuedEntities
+            .Select(item => item.Position)
+            .OrderBy(position => position)
+            .ToArray();
+
+        var maxPosition = await dbContext.GuildQueueItems
+            .Where(item => item.GuildId == guildId)
+            .Select(item => (int?)item.Position)
+            .MaxAsync(cancellationToken) ?? -1;
+
+        var temporaryPositionBase = checked(maxPosition + queuedEntities.Count + 1);
+        for (var index = 0; index < survivors.Count; index++)
+        {
+            survivors[index].Position = temporaryPositionBase + index;
+        }
+
+        removedEntity.State = QueueItemState.Skipped;
+        removedEntity.SkippedAtUtc = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        for (var index = 0; index < survivors.Count; index++)
+        {
+            survivors[index].Position = originalPositions[index];
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new QueueItemRemovalRecord(true, queuedEntities.Count, removedRecord);
     }
 
     private static async Task UpdateQueueItemPositionAsync(

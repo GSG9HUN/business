@@ -34,22 +34,18 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.MoveDown => HandleMoveAsync(command, moveUp: false, cancellationToken),
             BotControlCommandTypes.Pause => HandlePlaybackControlAsync(
                 command,
-                "Playback paused.",
                 static (service, message, member) => service.PauseAsync(message, member),
                 cancellationToken),
             BotControlCommandTypes.Resume => HandlePlaybackControlAsync(
                 command,
-                "Playback resumed.",
                 static (service, message, member) => service.ResumeAsync(message, member),
                 cancellationToken),
             BotControlCommandTypes.Skip => HandlePlaybackControlAsync(
                 command,
-                "Track skipped.",
                 static (service, message, member) => service.SkipAsync(message, member),
                 cancellationToken),
             BotControlCommandTypes.Previous => HandlePlaybackControlAsync(
                 command,
-                "Previous track requested.",
                 static (service, message, member) => service.PreviousAsync(message, member),
                 cancellationToken),
             BotControlCommandTypes.Repeat => HandleRepeatAsync(command, cancellationToken),
@@ -221,8 +217,7 @@ public sealed class BotControlCommandDispatcher(
 
     private async Task<BotControlCommandResult> HandlePlaybackControlAsync(
         BotControlCommandRecord command,
-        string successMessage,
-        Func<ILavaLinkService, IDiscordMessage, IDiscordMember?, Task> operation,
+        Func<ILavaLinkService, IDiscordMessage, IDiscordMember?, Task<PlaybackControlResult>> operation,
         CancellationToken cancellationToken)
     {
         var context = await botControlContextResolver.ResolveAsync(command, null, cancellationToken);
@@ -250,11 +245,21 @@ public sealed class BotControlCommandDispatcher(
                 shouldNotifyDiscord: context.CanSendDiscordResponse);
         }
 
-        await operation(lavaLinkService, runtimeContext.Message, runtimeContext.Member);
+        var controlResult = await operation(lavaLinkService, runtimeContext.Message, runtimeContext.Member);
+        if (!controlResult.Success)
+        {
+            return botControlResultFactory.Failure(
+                command,
+                controlResult.Message,
+                controlResult.ErrorCode ?? "PlaybackControlFailed",
+                voiceChannelId: context.VoiceChannelId,
+                textChannelId: context.TextChannelId,
+                shouldNotifyDiscord: context.CanSendDiscordResponse);
+        }
 
         return botControlResultFactory.Success(
             command,
-            successMessage,
+            controlResult.Message,
             voiceChannelId: context.VoiceChannelId,
             textChannelId: context.TextChannelId,
             shouldNotifyDiscord: context.CanSendDiscordResponse);
