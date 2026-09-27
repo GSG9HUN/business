@@ -12,6 +12,8 @@ internal static class QueueItemMapper
             entity.GuildId,
             entity.Position,
             entity.TrackIdentifier,
+            entity.SourceQuery,
+            entity.SourceSearchMode,
             entity.RequestedBy,
             entity.State,
             entity.AddedAtUtc,

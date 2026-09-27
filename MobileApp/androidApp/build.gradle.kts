@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+﻿import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -16,15 +16,24 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:di"))
-    implementation(project(":feature:playlistsong"))
-    implementation(project(":feature:currentmusic"))
-    implementation(project(":feature:guild"))
-    implementation(project(":feature:login"))
-    implementation(project(":feature:playlist"))
-    implementation(project(":feature:profile"))
-    implementation(project(":feature:queue"))
-    implementation(project(":feature:removesong"))
-    implementation(project(":feature:settings"))
+    implementation(project(":feature:playlistsong:presentation"))
+    implementation(project(":feature:playlistsong:ui"))
+    implementation(project(":feature:currenttrack:presentation"))
+    implementation(project(":feature:currenttrack:ui"))
+    implementation(project(":feature:guild:presentation"))
+    implementation(project(":feature:guild:ui"))
+    implementation(project(":feature:login:presentation"))
+    implementation(project(":feature:login:ui"))
+    implementation(project(":feature:playlist:presentation"))
+    implementation(project(":feature:playlist:ui"))
+    implementation(project(":feature:profile:presentation"))
+    implementation(project(":feature:profile:ui"))
+    implementation(project(":feature:queue:presentation"))
+    implementation(project(":feature:queue:ui"))
+    implementation(project(":feature:removesong:presentation"))
+    implementation(project(":feature:removesong:ui"))
+    implementation(project(":feature:settings:presentation"))
+    implementation(project(":feature:settings:ui"))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -68,3 +77,5 @@ android {
         compose = true
     }
 }
+
+

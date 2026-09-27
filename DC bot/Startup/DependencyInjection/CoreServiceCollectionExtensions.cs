@@ -5,10 +5,12 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.IO;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.BotControl;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.IO;
 using DC_bot.Service;
+using DC_bot.Service.BotControl;
 using DC_bot.Service.Core;
 using DC_bot.Service.Presentation;
 using DC_bot.Service.ReactionHandler;
@@ -31,6 +33,11 @@ public static class CoreServiceCollectionExtensions
             .AddSingleton<IDiscordMessageFactory, DiscordMessageWrapperFactory>()
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<BotService>()
+            .AddSingleton<IBotControlCommandDispatcher, BotControlCommandDispatcher>()
+            .AddSingleton<IBotControlContextResolver, BotControlContextResolver>()
+            .AddSingleton<IBotControlResultFactory, BotControlResultFactory>()
+            .AddSingleton<IBotControlDiscordResponseService, BotControlDiscordResponseService>()
+            .AddSingleton<IBotControlWorker, BotControlWorker>()
             .AddSingleton<ReactionActionDispatcher>()
             .AddSingleton<ReactionContextFactory>()
             .AddSingleton(provider => new ReactionControlMessageService(

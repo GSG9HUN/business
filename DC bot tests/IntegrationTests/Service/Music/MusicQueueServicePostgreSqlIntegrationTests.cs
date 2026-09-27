@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Service.Music.MusicServices;
 using DC_bot.Wrapper;
 using DC_bot_tests.IntegrationTests.Persistence;
@@ -32,8 +33,13 @@ public class MusicQueueServicePostgreSqlIntegrationTests
         var second = CreateTrack("track-2", "Second");
         var third = CreateTrack("track-3", "Third");
 
-        await service.Enqueue(guildId, first);
-        await service.EnqueueMany(guildId, [second, third]);
+        await service.Enqueue(guildId, first, null, null);
+        await service.EnqueueMany(
+            guildId,
+            [
+                new QueueTrackToEnqueue(second, null, null, null),
+                new QueueTrackToEnqueue(third, null, null, null)
+            ]);
 
         Assert.True(await service.HasTracks(guildId));
         Assert.Equal(["First", "Second", "Third"], (await service.ViewQueue(guildId)).Select(track => track.Title));

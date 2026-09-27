@@ -2,6 +2,7 @@ using System.Text.Json;
 using API.Mapping;
 using API.Requests.Playlists;
 using API.Responses.Playlists;
+using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.MobileApps;
@@ -250,7 +251,7 @@ public static class PlaylistHandlers
         var command = await commandsRepository.EnqueueAsync(
             playlist.GuildId,
             discordUserId,
-            "addSong",
+            BotControlCommandTypes.AddSong,
             payloadJson,
             cancellationToken);
 
@@ -284,7 +285,7 @@ public static class PlaylistHandlers
         var command = await commandsRepository.EnqueueAsync(
             playlist.GuildId,
             discordUserId,
-            "loadPlaylist",
+            BotControlCommandTypes.LoadPlaylist,
             payloadJson,
             cancellationToken);
 
@@ -326,7 +327,7 @@ public static class PlaylistHandlers
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            "savePlaylist",
+            BotControlCommandTypes.SavePlaylist,
             payloadJson,
             cancellationToken);
 
@@ -378,10 +379,4 @@ public static class PlaylistHandlers
             TrackResponseMapper.SumDurations(tracks),
             responseTracks);
     }
-
-    private sealed record PlaylistCommandPayload(string PlaylistId, string PlaylistName);
-
-    private sealed record PlaylistTrackCommandPayload(string PlaylistId, string PlaylistName, string SongUrl);
-
-    private sealed record PlaylistImportCommandPayload(string Name, string Url);
 }

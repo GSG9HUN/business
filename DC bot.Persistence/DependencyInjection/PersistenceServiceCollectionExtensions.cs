@@ -21,6 +21,7 @@ using DC_bot.Repositories.Queue;
 using DC_bot.Repositories.Status;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.DependencyInjection;
 
@@ -44,6 +45,9 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IBotRuntimeStatusRepository, BotRuntimeStatusRepository>()
             .AddSingleton<IGuildBotStatusRepository, GuildBotStatusRepository>()
             .AddSingleton<IMobileAppUserSettingsRepository, MobileAppUserSettingsRepository>()
+            .AddSingleton<IBotControlCommandNotifier>(provider => new PostgreSqlBotControlCommandNotifier(
+                postgresConnectionString,
+                provider.GetRequiredService<ILogger<PostgreSqlBotControlCommandNotifier>>()))
             .AddSingleton<IBotControlCommandsRepository, BotControlCommandsRepository>();
     }
 }

@@ -100,7 +100,7 @@ public class LavaLinkServiceTests
             TrackSearchMode.YouTube);
 
         _playbackRequestServiceMock.Verify(
-            p => p.PlayAsyncUrl(_voiceChannelMock.Object, url, _messageMock.Object, TrackSearchMode.YouTube),
+            p => p.PlayAsyncUrl(_voiceChannelMock.Object, url, _messageMock.Object, TrackSearchMode.YouTube, null),
             Times.Once);
     }
 
@@ -111,7 +111,7 @@ public class LavaLinkServiceTests
             TrackSearchMode.YouTube);
 
         _playbackRequestServiceMock.Verify(
-            p => p.PlayAsyncQuery(_voiceChannelMock.Object, "test query", _messageMock.Object, TrackSearchMode.YouTube),
+            p => p.PlayAsyncQuery(_voiceChannelMock.Object, "test query", _messageMock.Object, TrackSearchMode.YouTube, null),
             Times.Once);
     }
 

@@ -63,13 +63,13 @@ public class ReactionHandlerDispatchIntegrationTests
 
         lavaLinkServiceMock
             .Setup(service => service.PauseAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         lavaLinkServiceMock
             .Setup(service => service.ResumeAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
         lavaLinkServiceMock
             .Setup(service => service.SkipAsync(It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordMember?>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(PlaybackControlResult.Succeeded("ok"));
 
         var service = new ReactionHandlerService(
             lavaLinkServiceMock.Object,

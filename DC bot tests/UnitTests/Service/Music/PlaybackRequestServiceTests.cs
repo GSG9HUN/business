@@ -73,7 +73,7 @@ public class PlaybackRequestServiceTests
             Times.Never);
         _trackPlaybackServiceMock.Verify(
             p => p.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), It.IsAny<ILavalinkPlayer>(),
-                It.IsAny<IDiscordChannel>()),
+                It.IsAny<IDiscordChannel>(), null, It.IsAny<string?>(), It.IsAny<TrackSearchMode?>()),
             Times.Never);
     }
 
@@ -93,7 +93,7 @@ public class PlaybackRequestServiceTests
             Times.Never);
         _trackPlaybackServiceMock.Verify(
             p => p.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), It.IsAny<ILavalinkPlayer>(),
-                It.IsAny<IDiscordChannel>()),
+                It.IsAny<IDiscordChannel>(), null, It.IsAny<string?>(), It.IsAny<TrackSearchMode?>()),
             Times.Never);
     }
 
@@ -120,7 +120,7 @@ public class PlaybackRequestServiceTests
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
         _trackPlaybackServiceMock.Verify(
             t => t.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), It.IsAny<ILavalinkPlayer>(),
-                It.IsAny<IDiscordChannel>()),
+                It.IsAny<IDiscordChannel>(), null, It.IsAny<string?>(), It.IsAny<TrackSearchMode?>()),
             Times.Never);
     }
 
@@ -151,7 +151,7 @@ public class PlaybackRequestServiceTests
             Times.Once);
         _trackPlaybackServiceMock.Verify(
             t => t.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), It.IsAny<ILavalinkPlayer>(),
-                It.IsAny<IDiscordChannel>()),
+                It.IsAny<IDiscordChannel>(), null, It.IsAny<string?>(), It.IsAny<TrackSearchMode?>()),
             Times.Never);
     }
 
@@ -175,7 +175,13 @@ public class PlaybackRequestServiceTests
         _playbackEventHandlerServiceMock.Verify(
             h => h.RegisterPlaybackFinishedHandler(GuildId, _playerMock.Object, _textChannelMock.Object), Times.Once);
         _trackPlaybackServiceMock.Verify(
-            t => t.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), _playerMock.Object, _textChannelMock.Object),
+            t => t.PlayTheFoundMusicAsync(
+                It.IsAny<TrackLoadResult>(),
+                _playerMock.Object,
+                _textChannelMock.Object,
+                null,
+                url.ToString(),
+                TrackSearchMode.YouTube),
             Times.Once);
     }
 
@@ -200,7 +206,7 @@ public class PlaybackRequestServiceTests
             r => r.SendValidationErrorAsync(_messageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
         _trackPlaybackServiceMock.Verify(
             t => t.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), It.IsAny<ILavalinkPlayer>(),
-                It.IsAny<IDiscordChannel>()),
+                It.IsAny<IDiscordChannel>(), null, It.IsAny<string?>(), It.IsAny<TrackSearchMode?>()),
             Times.Never);
     }
 
@@ -250,7 +256,13 @@ public class PlaybackRequestServiceTests
         _playbackEventHandlerServiceMock.Verify(
             h => h.RegisterPlaybackFinishedHandler(GuildId, _playerMock.Object, _textChannelMock.Object), Times.Once);
         _trackPlaybackServiceMock.Verify(
-            t => t.PlayTheFoundMusicAsync(It.IsAny<TrackLoadResult>(), _playerMock.Object, _textChannelMock.Object),
+            t => t.PlayTheFoundMusicAsync(
+                It.IsAny<TrackLoadResult>(),
+                _playerMock.Object,
+                _textChannelMock.Object,
+                null,
+                query,
+                TrackSearchMode.YouTube),
             Times.Once);
     }
 }

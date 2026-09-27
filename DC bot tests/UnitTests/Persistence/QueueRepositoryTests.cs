@@ -271,5 +271,49 @@ public class QueueRepositoryTests
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             repo.ReorderQueuedItemsAsync(1ul, null!));
     }
+
+    [Fact]
+    public async Task RemoveQueuedItemAtAsync_WhenTrackNumberIsValid_MarksItemSkippedAndCompactsQueuedPositions()
+    {
+        var factory = CreateFactory();
+        var repo = new QueueRepository(factory);
+
+        await repo.EnqueueAsync(1ul, "track-a");
+        var removed = await repo.EnqueueAsync(1ul, "track-b");
+        await repo.EnqueueAsync(1ul, "track-c");
+
+        var result = await repo.RemoveQueuedItemAtAsync(1ul, 2);
+
+        Assert.True(result.Success);
+        Assert.Equal(3, result.QueueSize);
+        Assert.NotNull(result.RemovedItem);
+        Assert.Equal(removed.Id, result.RemovedItem.Id);
+
+        var queued = await repo.GetQueuedItemsAsync(1ul);
+        Assert.Equal(["track-a", "track-c"], queued.Select(item => item.TrackIdentifier));
+        Assert.Equal([0, 1], queued.Select(item => item.Position));
+
+        var skipped = await repo.GetPreviousItemAsync(1ul);
+        Assert.NotNull(skipped);
+        Assert.Equal(removed.Id, skipped.Id);
+    }
+
+    [Fact]
+    public async Task RemoveQueuedItemAtAsync_WhenTrackNumberIsInvalid_ReturnsFailureAndLeavesQueueUntouched()
+    {
+        var factory = CreateFactory();
+        var repo = new QueueRepository(factory);
+
+        await repo.EnqueueAsync(1ul, "track-a");
+
+        var result = await repo.RemoveQueuedItemAtAsync(1ul, 2);
+
+        Assert.False(result.Success);
+        Assert.Equal(1, result.QueueSize);
+        Assert.Null(result.RemovedItem);
+
+        var queued = await repo.GetQueuedItemsAsync(1ul);
+        Assert.Equal(["track-a"], queued.Select(item => item.TrackIdentifier));
+    }
 }
 

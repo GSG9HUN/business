@@ -26,18 +26,25 @@ public class PlaybackControlService(
     ITrackSerializer trackSerializer,
     ILogger<PlaybackControlService> logger) : IPlaybackControlService
 {
-    public async Task PauseAsync(IDiscordMessage message, IDiscordMember? member)
+    public async Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member)
     {
         var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null || channel == null) return;
+        if (!isValid || connection == null || channel == null)
+        {
+            return PlaybackControlResult.Failed(
+                "Could not resolve an active Lavalink player.",
+                "PlaybackPlayerNotFound");
+        }
 
         if (connection.CurrentTrack == null)
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.PauseCommandError), "PauseAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPlaying();
-            return;
+            return PlaybackControlResult.Failed(
+                localizationService.Get(guildId, LocalizationKeys.PauseCommandError),
+                "NoCurrentTrack");
         }
 
         try
@@ -48,26 +55,35 @@ public class PlaybackControlService(
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
+            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse));
         }
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "PauseAsync");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return PlaybackControlResult.Failed("Lavalink operation failed.", "LavalinkError");
         }
     }
 
-    public async Task ResumeAsync(IDiscordMessage message, IDiscordMember? member)
+    public async Task<PlaybackControlResult> ResumeAsync(IDiscordMessage message, IDiscordMember? member)
     {
         var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null || channel == null) return;
+        if (!isValid || connection == null || channel == null)
+        {
+            return PlaybackControlResult.Failed(
+                "Could not resolve an active Lavalink player.",
+                "PlaybackPlayerNotFound");
+        }
 
         if (connection.CurrentTrack == null)
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.ResumeCommandError), "ResumeAsync.NoTrack");
             logger.ThereIsNoTrackCurrentlyPaused();
-            return;
+            return PlaybackControlResult.Failed(
+                localizationService.Get(guildId, LocalizationKeys.ResumeCommandError),
+                "NoCurrentTrack");
         }
 
         try
@@ -78,26 +94,35 @@ public class PlaybackControlService(
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
+            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse));
         }
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "ResumeAsync");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return PlaybackControlResult.Failed("Lavalink operation failed.", "LavalinkError");
         }
     }
 
-    public async Task SkipAsync(IDiscordMessage message, IDiscordMember? member)
+    public async Task<PlaybackControlResult> SkipAsync(IDiscordMessage message, IDiscordMember? member)
     {
         var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null || channel == null) return;
+        if (!isValid || connection == null || channel == null)
+        {
+            return PlaybackControlResult.Failed(
+                "Could not resolve an active Lavalink player.",
+                "PlaybackPlayerNotFound");
+        }
 
         if (connection.CurrentTrack == null && !(await musicQueueService.HasTracks(channel.Guild.Id)))
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
             logger.LogInformation("Skip requested for guild {GuildId}, but no current or queued track exists.", guildId);
-            return;
+            return PlaybackControlResult.Failed(
+                localizationService.Get(guildId, LocalizationKeys.SkipCommandError),
+                "NoCurrentOrQueuedTrack");
         }
 
         try
@@ -105,19 +130,26 @@ public class PlaybackControlService(
             progressiveTimerService.Stop(guildId);
             await connection.StopAsync();
             logger.LogInformation("Skip requested for guild {GuildId}. Current playback stopped.", guildId);
+            return PlaybackControlResult.Succeeded("Track skipped.");
         }
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "SkipAsync");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return PlaybackControlResult.Failed("Lavalink operation failed.", "LavalinkError");
         }
     }
 
-    public async Task PreviousAsync(IDiscordMessage message, IDiscordMember? member)
+    public async Task<PlaybackControlResult> PreviousAsync(IDiscordMessage message, IDiscordMember? member)
     {
         var (connection, channel, guildId, isValid) =
             await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null || channel == null) return;
+        if (!isValid || connection == null || channel == null)
+        {
+            return PlaybackControlResult.Failed(
+                "Could not resolve an active Lavalink player.",
+                "PlaybackPlayerNotFound");
+        }
 
         var previousItem = await queueRepository.GetPreviousItemAsync(guildId);
         if (previousItem is null)
@@ -125,7 +157,9 @@ public class PlaybackControlService(
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.PreviousCommandError), "PreviousAsync.NoTrack");
             logger.LogInformation("Previous requested for guild {GuildId}, but no previous track exists.", guildId);
-            return;
+            return PlaybackControlResult.Failed(
+                localizationService.Get(guildId, LocalizationKeys.PreviousCommandError),
+                "NoPreviousTrack");
         }
 
         try
@@ -151,11 +185,13 @@ public class PlaybackControlService(
                 guildId,
                 previousTrack.Author,
                 previousTrack.Title);
+            return PlaybackControlResult.Succeeded("Previous track requested.");
         }
         catch (Exception ex)
         {
             logger.LavalinkOperationFailed(ex, "PreviousAsync");
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
+            return PlaybackControlResult.Failed("Lavalink operation failed.", "LavalinkError");
         }
     }
 

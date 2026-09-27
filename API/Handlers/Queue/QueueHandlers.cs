@@ -2,6 +2,7 @@ using System.Text.Json;
 using API.Requests.Queue;
 using API.Responses.Queue;
 using API.Mapping;
+using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
@@ -61,15 +62,27 @@ public static class QueueHandlers
             ? user?.Username
             : user.GlobalName;
 
+        if (!TryParseOptionalChannelId(request.VoiceChannelId, out var voiceChannelId))
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "VoiceChannelId must be a valid Discord snowflake." });
+        }
+
+        if (!TryParseOptionalChannelId(request.TextChannelId, out var textChannelId))
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "TextChannelId must be a valid Discord snowflake." });
+        }
+
         var payloadJson = JsonSerializer.Serialize(new QueueEnqueueCommandPayload(
             request.Query.Trim(),
             string.IsNullOrWhiteSpace(request.SearchMode) ? null : request.SearchMode.Trim(),
-            requestedBy));
+            requestedBy,
+            voiceChannelId,
+            textChannelId));
 
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            "play",
+            BotControlCommandTypes.Play,
             payloadJson,
             cancellationToken);
 
@@ -96,7 +109,7 @@ public static class QueueHandlers
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            "clear",
+            BotControlCommandTypes.Clear,
             cancellationToken);
 
         return BotControlCommandHttpMapper.ToAccepted(command);
@@ -129,7 +142,7 @@ public static class QueueHandlers
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            "remove",
+            BotControlCommandTypes.Remove,
             payloadJson,
             cancellationToken);
 
@@ -156,7 +169,7 @@ public static class QueueHandlers
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            "shuffle",
+            BotControlCommandTypes.Shuffle,
             cancellationToken);
 
         return BotControlCommandHttpMapper.ToAccepted(command);
@@ -168,7 +181,7 @@ public static class QueueHandlers
         IMobileAppUserRepository userRepository,
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken) =>
-        MoveAsync(httpContext, trackIndex, "moveUp", userRepository, commandsRepository, cancellationToken);
+        MoveAsync(httpContext, trackIndex, BotControlCommandTypes.MoveUp, userRepository, commandsRepository, cancellationToken);
 
     public static Task<IResult> MoveDownAsync(
         HttpContext httpContext,
@@ -176,7 +189,7 @@ public static class QueueHandlers
         IMobileAppUserRepository userRepository,
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken) =>
-        MoveAsync(httpContext, trackIndex, "moveDown", userRepository, commandsRepository, cancellationToken);
+        MoveAsync(httpContext, trackIndex, BotControlCommandTypes.MoveDown, userRepository, commandsRepository, cancellationToken);
 
     private static async Task<IResult> MoveAsync(
         HttpContext httpContext,
@@ -231,7 +244,21 @@ public static class QueueHandlers
         return new QueueResponse(guildId.ToString(), tracks.Count, tracks);
     }
 
-    private sealed record QueueEnqueueCommandPayload(string Query, string? SearchMode, string? RequestedBy);
-    private sealed record QueueRemoveCommandPayload(int TrackNumber);
-    private sealed record QueueMoveCommandPayload(int TrackIndex);
+    private static bool TryParseOptionalChannelId(string? value, out ulong? channelId)
+    {
+        channelId = null;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        if (!ulong.TryParse(value.Trim(), out var parsedChannelId))
+        {
+            return false;
+        }
+
+        channelId = parsedChannelId;
+        return true;
+    }
 }

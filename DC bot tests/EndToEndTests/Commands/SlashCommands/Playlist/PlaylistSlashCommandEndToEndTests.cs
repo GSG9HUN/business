@@ -1,5 +1,6 @@
 using DC_bot.Commands.SlashCommands.Playlist;
 using DC_bot.Interface;
+using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.SlashCommands;
 using Moq;
@@ -88,7 +89,7 @@ public class PlaylistSlashCommandEndToEndTests : SlashCommandPipelineEndToEndTes
         Assert.Contains("Playlist 'renamed mix' deleted.", context.TextResponses);
         MusicQueueServiceMock.Verify(service => service.EnqueueMany(
             GuildId,
-            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == loadedTrack)), Times.Once);
+            It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks => tracks.Single().Track == loadedTrack)), Times.Once);
         TrackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
             It.IsAny<Lavalink4NET.Players.ILavalinkPlayer>(),
             context.Channel,

@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence.Playback;
+using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET.Players;
@@ -33,6 +34,9 @@ public abstract class PlaybackControlServiceTestBase
     protected readonly Mock<IDiscordVoiceState> VoiceStateMock = new();
     protected readonly Mock<IDiscordChannel> VoiceChannelMock = new();
     protected readonly Mock<ILocalizationService> LocalizationServiceMock = new();
+    protected readonly Mock<ICurrentTrackService> CurrentTrackServiceMock = new();
+    protected readonly Mock<IQueueRepository> QueueRepositoryMock = new();
+    protected readonly Mock<ITrackSerializer> TrackSerializer = new();
 
     protected PlaybackControlServiceTestBase()
     {
@@ -71,6 +75,9 @@ public abstract class PlaybackControlServiceTestBase
             PlaybackEventHandlerServiceMock.Object,
             ProgressiveTimerServiceMock.Object,
             PlaybackStateRepositoryMock.Object,
+            CurrentTrackServiceMock.Object,
+            QueueRepositoryMock.Object,
+            TrackSerializer.Object,
             LoggerMock.Object);
     }
 

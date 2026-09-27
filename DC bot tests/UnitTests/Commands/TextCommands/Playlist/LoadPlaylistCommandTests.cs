@@ -74,10 +74,10 @@ public class LoadPlaylistCommandTests : PlaylistCommandTestBase
             MessageMock.Object.Channel), Times.Once);
         _musicQueueServiceMock.Verify(service => service.EnqueueMany(
             GuildId,
-            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks =>
+            It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks =>
                 tracks.Count == 2 &&
-                tracks.ElementAt(0) == firstTrack &&
-                tracks.ElementAt(1) == secondTrack)), Times.Once);
+                tracks.ElementAt(0).Track == firstTrack &&
+                tracks.ElementAt(1).Track == secondTrack)), Times.Once);
         _trackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
             _playerMock.Object,
             MessageMock.Object.Channel,
@@ -101,7 +101,7 @@ public class LoadPlaylistCommandTests : PlaylistCommandTestBase
 
         _musicQueueServiceMock.Verify(service => service.EnqueueMany(
             GuildId,
-            It.Is<IReadOnlyCollection<ILavaLinkTrack>>(tracks => tracks.Single() == queuedTrack)), Times.Once);
+            It.Is<IReadOnlyCollection<QueueTrackToEnqueue>>(tracks => tracks.Single().Track == queuedTrack)), Times.Once);
         _trackPlaybackServiceMock.Verify(service => service.TryPlayNextTrackAsync(
             It.IsAny<ILavalinkPlayer>(),
             It.IsAny<IDiscordChannel>(),
@@ -130,7 +130,7 @@ public class LoadPlaylistCommandTests : PlaylistCommandTestBase
             It.IsAny<CancellationToken>()), Times.Never);
         _musicQueueServiceMock.Verify(service => service.EnqueueMany(
             It.IsAny<ulong>(),
-            It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Never);
+            It.IsAny<IReadOnlyCollection<QueueTrackToEnqueue>>()), Times.Never);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class LoadPlaylistCommandTests : PlaylistCommandTestBase
             It.IsAny<CancellationToken>()), Times.Never);
         _musicQueueServiceMock.Verify(service => service.EnqueueMany(
             It.IsAny<ulong>(),
-            It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Never);
+            It.IsAny<IReadOnlyCollection<QueueTrackToEnqueue>>()), Times.Never);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class LoadPlaylistCommandTests : PlaylistCommandTestBase
 
         _musicQueueServiceMock.Verify(service => service.EnqueueMany(
             It.IsAny<ulong>(),
-            It.IsAny<IReadOnlyCollection<ILavaLinkTrack>>()), Times.Never);
+            It.IsAny<IReadOnlyCollection<QueueTrackToEnqueue>>()), Times.Never);
         ResponseBuilderMock.Verify(response => response.SendSuccessAsync(
             It.IsAny<IDiscordMessage>(),
             It.IsAny<string>(),

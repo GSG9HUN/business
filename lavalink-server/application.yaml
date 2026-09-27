@@ -16,6 +16,11 @@ plugins:
       - WEBEMBEDDED
       - ANDROID_VR
       - TV
+      - TVHTML5_SIMPLY
+    remoteCipher:
+      url: "http://yt-cipher:8001"
+      password: "${YT_CIPHER_API_TOKEN:}"
+      userAgent: "melodias-mario"
     oauth:
       enabled: true
       refreshToken: "${YOUTUBE_REFRESH_TOKEN:}"
@@ -54,9 +59,9 @@ lavalink:
   pluginsDir: ./plugins
 
   plugins:
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.1"
-      repository: "https://maven.lavalink.dev/releases"
-      snapshot: false
+    - dependency: "dev.lavalink.youtube:youtube-plugin:f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3"
+      repository: "https://maven.lavalink.dev/snapshots"
+      snapshot: true
 
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.3"
       repository: "https://maven.lavalink.dev/releases"
@@ -94,6 +99,11 @@ lavalink:
       rotation: true
       channelMix: true
       lowPass: true
+
+    timeouts:
+      connectTimeoutMs: 10000
+      connectionRequestTimeoutMs: 10000
+      socketTimeoutMs: 10000
 
 logging:
   level:

@@ -183,14 +183,14 @@ public abstract class SlashCommandTestBase
                 It.IsAny<IDiscordChannel>(),
                 It.IsAny<Uri>(),
                 It.IsAny<IDiscordMessage>(),
-                It.IsAny<TrackSearchMode>()),
+                It.IsAny<TrackSearchMode>(), null),
             Times.Never);
         LavaLinkServiceMock.Verify(
             service => service.PlayAsyncQuery(
                 It.IsAny<IDiscordChannel>(),
                 It.IsAny<string>(),
                 It.IsAny<IDiscordMessage>(),
-                It.IsAny<TrackSearchMode>()),
+                It.IsAny<TrackSearchMode>(), null),
             Times.Never);
     }
 
