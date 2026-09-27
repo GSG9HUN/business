@@ -66,6 +66,13 @@ public interface IQueueRepository
     Task ReorderQueuedItemsAsync(
         ulong guildId,
         IReadOnlyList<string> trackIdentifiers,
+        CancellationToken cancellationToken = default) =>
+        ReorderQueuedItemsAsync(guildId, trackIdentifiers, realtimeEventName: null, cancellationToken);
+
+    Task ReorderQueuedItemsAsync(
+        ulong guildId,
+        IReadOnlyList<string> trackIdentifiers,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default);
 
     Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(

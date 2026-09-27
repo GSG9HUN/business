@@ -3,6 +3,8 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
+using DC_bot.BotControl;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Logging;
 using Lavalink4NET;
@@ -23,6 +25,7 @@ public class TrackEndedHandlerService(
     ITrackNotificationService trackNotificationService,
     IProgressiveTimerService progressiveTimerService,
     IQueueRepository queueRepository,
+    IPlaybackStateRepository playbackStateRepository,
     ITrackSerializer trackSerializer,
     ILogger<TrackEndedHandlerService> logger) : ITrackEndedHandlerService
 {
@@ -67,7 +70,10 @@ public class TrackEndedHandlerService(
             await player.PlayAsync(repeatTrack.ToLavalinkTrack());
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, repeatTrack, TimeSpan.Zero,
                 repeatTrack.Duration);
-            await currentTrackService.SetCurrentTrackAsync(guildId, repeatTrack);
+            await currentTrackService.SetCurrentTrackAsync(
+                guildId,
+                repeatTrack,
+                MobileRealtimeEventNames.PlaybackStarted);
             logger.Repeating(repeatTrack.Author, repeatTrack.Title);
             return;
         }
@@ -76,7 +82,10 @@ public class TrackEndedHandlerService(
 
         if (await TryRepeatListAndPlayAsync(player, textChannel, guildId)) return;
 
-        await currentTrackService.SetCurrentTrackAsync(guildId, null);
+        await currentTrackService.SetCurrentTrackAsync(
+            guildId,
+            null,
+            MobileRealtimeEventNames.PlaybackStopped);
         await trackNotificationService.NotifyQueueEmptyAsync(textChannel);
     }
 
@@ -139,6 +148,7 @@ public class TrackEndedHandlerService(
             logger.LogWarning(ex,
                 "Failed to reload queue item {QueueItemId} from source query after Lavalink load failure.",
                 queueItem.Id);
+            await NotifyPlaybackLoadFailedAsync(queueItem);
             return false;
         }
 
@@ -148,6 +158,7 @@ public class TrackEndedHandlerService(
             logger.LogWarning(
                 "Reloaded queue item {QueueItemId} from source query, but Lavalink returned no playable track.",
                 queueItem.Id);
+            await NotifyPlaybackLoadFailedAsync(queueItem);
             return false;
         }
 
@@ -165,13 +176,26 @@ public class TrackEndedHandlerService(
             wrappedTrack,
             wrappedTrack.StartPosition ?? TimeSpan.Zero,
             wrappedTrack.Duration);
-        await currentTrackService.SetCurrentTrackAsync(textChannel.Guild.Id, wrappedTrack);
+        await currentTrackService.SetCurrentTrackAsync(
+            textChannel.Guild.Id,
+            wrappedTrack,
+            MobileRealtimeEventNames.PlaybackStarted);
 
         logger.LogInformation(
             "Reloaded and restarted failed queue item {QueueItemId} from source query for guild {GuildId}.",
             queueItem.Id,
             textChannel.Guild.Id);
         return true;
+    }
+
+    private async Task NotifyPlaybackLoadFailedAsync(
+        Interface.Service.Persistence.Models.Queue.QueueItemRecord queueItem)
+    {
+        await playbackStateRepository.SetCurrentTrackAsync(
+            queueItem.GuildId,
+            queueItem.TrackIdentifier,
+            queueItem.Id,
+            MobileRealtimeEventNames.PlaybackLoadFailed);
     }
 
     private static bool TryParseSearchMode(string? sourceSearchMode, out TrackSearchMode searchMode)

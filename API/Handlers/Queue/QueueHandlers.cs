@@ -1,11 +1,9 @@
 using System.Text.Json;
 using API.Requests.Queue;
-using API.Responses.Queue;
 using API.Mapping;
 using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.MobileApps;
-using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
@@ -31,7 +29,7 @@ public static class QueueHandlers
         }
 
         var queueItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
-        return HttpResults.Ok(MapQueue(guildId, queueItems));
+        return HttpResults.Ok(QueueResponseMapper.Map(guildId, queueItems));
     }
 
     public static async Task<IResult> EnqueueAsync(
@@ -224,24 +222,6 @@ public static class QueueHandlers
             cancellationToken);
 
         return BotControlCommandHttpMapper.ToAccepted(command);
-    }
-
-    private static QueueResponse MapQueue(ulong guildId, IReadOnlyList<QueueItemRecord> queueItems)
-    {
-        var tracks = new List<QueueTrackResponse>(queueItems.Count);
-        var position = 1;
-        foreach (var item in queueItems)
-        {
-            var mappedTrack = TrackResponseMapper.TryMapQueueTrack(item.TrackIdentifier, position, item.RequestedBy);
-            if (mappedTrack is null)
-            {
-               continue;
-            }
-            tracks.Add(mappedTrack);
-            position++;
-        }
-
-        return new QueueResponse(guildId.ToString(), tracks.Count, tracks);
     }
 
     private static bool TryParseOptionalChannelId(string? value, out ulong? channelId)

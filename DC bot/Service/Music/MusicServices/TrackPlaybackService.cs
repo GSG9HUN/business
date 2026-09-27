@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.BotControl;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
@@ -79,7 +80,10 @@ public class TrackPlaybackService(
                 return;
             }
 
-            await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+            await currentTrackService.SetCurrentTrackAsync(
+                guildId,
+                nextTrack,
+                MobileRealtimeEventNames.PlaybackStarted);
             logger.LogInformation("Started playback from queue for guild {GuildId}: {Author} - {Title}",
                 guildId,
                 nextTrack.Author,
@@ -123,7 +127,10 @@ public class TrackPlaybackService(
             await player.PlayAsync(nextTrack.ToLavalinkTrack());
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
                 nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
-            await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+            await currentTrackService.SetCurrentTrackAsync(
+                guildId,
+                nextTrack,
+                MobileRealtimeEventNames.PlaybackStarted);
             logger.LogInformation("Started next queued track for guild {GuildId}: {Author} - {Title}",
                 guildId,
                 nextTrack.Author,

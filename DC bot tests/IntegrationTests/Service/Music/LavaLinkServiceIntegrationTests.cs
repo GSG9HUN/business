@@ -362,7 +362,11 @@ public class LavaLinkServiceIntegrationTests
             }
         }
 
-        public Task ReorderQueuedItemsAsync(ulong guildId, IReadOnlyList<string> trackIdentifiers, CancellationToken cancellationToken = default)
+        public Task ReorderQueuedItemsAsync(
+            ulong guildId,
+            IReadOnlyList<string> trackIdentifiers,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             var items = _items.GetValueOrDefault(guildId, []);
             var ordered = new List<QueueItemRecord>(trackIdentifiers.Count);
@@ -512,7 +516,12 @@ public class LavaLinkServiceIntegrationTests
             return Task.FromResult(newState);
         }
 
-        public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
+        public Task SetRepeatStateAsync(
+            ulong guildId,
+            bool isRepeating,
+            bool isRepeatingList,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
                 guildId,
@@ -532,7 +541,12 @@ public class LavaLinkServiceIntegrationTests
             return Task.CompletedTask;
         }
 
-        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, long? queueItemId, CancellationToken cancellationToken = default)
+        public Task SetCurrentTrackAsync(
+            ulong guildId,
+            string? trackIdentifier,
+            long? queueItemId,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
 
             var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
@@ -556,7 +570,12 @@ public class LavaLinkServiceIntegrationTests
             return Task.CompletedTask;
         }
 
-        public Task SetPlaybackPositionAsync(ulong guildId, TimeSpan position, bool isPaused, CancellationToken cancellationToken = default)
+        public Task SetPlaybackPositionAsync(
+            ulong guildId,
+            TimeSpan position,
+            bool isPaused,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(
                 guildId,

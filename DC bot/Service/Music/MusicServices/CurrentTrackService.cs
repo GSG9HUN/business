@@ -40,7 +40,11 @@ public class CurrentTrackService(
         }
     }
 
-    public async Task SetCurrentTrackAsync(ulong guildId, ILavaLinkTrack? track, CancellationToken cancellationToken = default)
+    public async Task SetCurrentTrackAsync(
+        ulong guildId,
+        ILavaLinkTrack? track,
+        string? realtimeEventName = null,
+        CancellationToken cancellationToken = default)
     {
         var identifier = track is null ? null : _trackSerializer.Serialize(track);
     
@@ -50,7 +54,7 @@ public class CurrentTrackService(
             queueItemId = wrapper.QueueItemId;
         }
         
-        await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, queueItemId, cancellationToken);
+        await playbackStateRepository.SetCurrentTrackAsync(guildId, identifier, queueItemId, realtimeEventName, cancellationToken);
         if (track is null)
         {
             _logger.LogInformation("Current track cleared for guild {GuildId}.", guildId);

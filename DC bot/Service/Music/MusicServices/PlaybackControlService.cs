@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.BotControl;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
@@ -51,7 +52,11 @@ public class PlaybackControlService(
         {
             await connection.PauseAsync();
             progressiveTimerService.Pause(guildId);
-            await playbackStateRepository.SetPlaybackPositionAsync(guildId, GetCurrentPosition(connection), true);
+            await playbackStateRepository.SetPlaybackPositionAsync(
+                guildId,
+                GetCurrentPosition(connection),
+                true,
+                MobileRealtimeEventNames.PlaybackPaused);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
@@ -90,7 +95,11 @@ public class PlaybackControlService(
         {
             await connection.ResumeAsync();
             await progressiveTimerService.ResumeAsync(guildId);
-            await playbackStateRepository.SetPlaybackPositionAsync(guildId, GetCurrentPosition(connection), false);
+            await playbackStateRepository.SetPlaybackPositionAsync(
+                guildId,
+                GetCurrentPosition(connection),
+                false,
+                MobileRealtimeEventNames.PlaybackResumed);
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
@@ -173,11 +182,21 @@ public class PlaybackControlService(
                 await queueRepository.MarkSkippedAsync(currentWrappedTrack.QueueItemId.Value);
             }
 
-            await currentTrackService.SetCurrentTrackAsync(guildId, null);
+            await currentTrackService.SetCurrentTrackAsync(
+                guildId,
+                null,
+                MobileRealtimeEventNames.CurrentTrackChanged);
             await connection.PlayAsync(previousTrack.ToLavalinkTrack());
             await queueRepository.MarkPlayingAsync(previousItem.Id);
-            await currentTrackService.SetCurrentTrackAsync(guildId, previousTrack);
-            await playbackStateRepository.SetPlaybackPositionAsync(guildId, TimeSpan.Zero, false);
+            await currentTrackService.SetCurrentTrackAsync(
+                guildId,
+                previousTrack,
+                MobileRealtimeEventNames.PlaybackPreviousStarted);
+            await playbackStateRepository.SetPlaybackPositionAsync(
+                guildId,
+                TimeSpan.Zero,
+                false,
+                MobileRealtimeEventNames.PlaybackPositionChanged);
             await trackNotificationService.NotifyNowPlayingAsync(channel, previousTrack,
                 previousTrack.StartPosition ?? TimeSpan.Zero, previousTrack.Duration);
 
@@ -207,7 +226,11 @@ public class PlaybackControlService(
             if (connection.CurrentTrack != null) await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
             await connection.DisconnectAsync().ConfigureAwait(false);
-            await playbackStateRepository.SetCurrentTrackAsync(guildId, null, null);
+            await playbackStateRepository.SetCurrentTrackAsync(
+                guildId,
+                null,
+                null,
+                MobileRealtimeEventNames.PlaybackStopped);
             logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);
         }
         catch (Exception ex)

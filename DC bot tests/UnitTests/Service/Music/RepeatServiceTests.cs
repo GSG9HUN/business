@@ -142,13 +142,23 @@ public class RepeatServiceTests
             return Task.FromResult(state);
         }
 
-        public Task SetRepeatStateAsync(ulong guildId, bool isRepeating, bool isRepeatingList, CancellationToken cancellationToken = default)
+        public Task SetRepeatStateAsync(
+            ulong guildId,
+            bool isRepeating,
+            bool isRepeatingList,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             _states[guildId] = new PlaybackStateRecord(guildId, isRepeating, isRepeatingList, null, null, DateTimeOffset.UtcNow);
             return Task.CompletedTask;
         }
 
-        public Task SetCurrentTrackAsync(ulong guildId, string? trackIdentifier, long? queueItemId, CancellationToken cancellationToken = default)
+        public Task SetCurrentTrackAsync(
+            ulong guildId,
+            string? trackIdentifier,
+            long? queueItemId,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, null, DateTimeOffset.UtcNow));
             _states[guildId] = state with
@@ -163,7 +173,12 @@ public class RepeatServiceTests
             return Task.CompletedTask;
         }
 
-        public Task SetPlaybackPositionAsync(ulong guildId, TimeSpan position, bool isPaused, CancellationToken cancellationToken = default)
+        public Task SetPlaybackPositionAsync(
+            ulong guildId,
+            TimeSpan position,
+            bool isPaused,
+            string? realtimeEventName = null,
+            CancellationToken cancellationToken = default)
         {
             var state = _states.GetValueOrDefault(guildId, new PlaybackStateRecord(guildId, false, false, null, null, DateTimeOffset.UtcNow));
             _states[guildId] = state with

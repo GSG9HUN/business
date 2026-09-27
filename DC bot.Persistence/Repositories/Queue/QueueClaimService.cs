@@ -1,3 +1,4 @@
+using DC_bot.BotControl;
 using DC_bot.Db;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,11 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> dbContex
 
             entity.State = QueueItemState.Playing;
             await dbContext.SaveChangesAsync(cancellationToken);
+            await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(
+                dbContext,
+                guildId,
+                MobileRealtimeEventNames.QueueItemClaimed,
+                cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             return QueueItemMapper.ToRecord(entity);

@@ -1,3 +1,4 @@
+using DC_bot.BotControl;
 using DC_bot.Db;
 using DC_bot.Entities.Playback;
 using DC_bot.Interface.Service.Persistence.Models.Playback;
@@ -10,7 +11,8 @@ namespace DC_bot.Repositories.Playback;
 
 public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IPlaybackStateRepository
 {
-    public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
+    public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId,
+        CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -63,6 +65,7 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         ulong guildId,
         bool isRepeating,
         bool isRepeatingList,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -91,6 +94,11 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 cancellationToken);
             if (inserted)
             {
+                await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                    dbContext,
+                    guildId,
+                    realtimeEventName ?? MobileRealtimeEventNames.RepeatModeChanged,
+                    cancellationToken);
                 return;
             }
 
@@ -100,13 +108,19 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         ApplyRepeatState(state, isRepeating, isRepeatingList);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+            dbContext,
+            guildId,
+            realtimeEventName ?? MobileRealtimeEventNames.RepeatModeChanged,
+            cancellationToken);
     }
-    
+
 
     public async Task SetCurrentTrackAsync(
         ulong guildId,
         string? trackIdentifier,
         long? queueItemId,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -137,6 +151,11 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 cancellationToken);
             if (inserted)
             {
+                await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                    dbContext,
+                    guildId,
+                    realtimeEventName ?? GetCurrentTrackEventName(trackIdentifier),
+                    cancellationToken);
                 return;
             }
 
@@ -146,12 +165,18 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         ApplyCurrentTrack(state, trackIdentifier, queueItemId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+            dbContext,
+            guildId,
+            realtimeEventName ?? GetCurrentTrackEventName(trackIdentifier),
+            cancellationToken);
     }
 
     public async Task SetPlaybackPositionAsync(
         ulong guildId,
         TimeSpan position,
         bool isPaused,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -180,6 +205,11 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
                 cancellationToken);
             if (inserted)
             {
+                await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                    dbContext,
+                    guildId,
+                    realtimeEventName ?? GetPlaybackPositionEventName(isPaused),
+                    cancellationToken);
                 return;
             }
 
@@ -187,8 +217,26 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         }
 
         ApplyPlaybackPosition(state, position, isPaused);
-
         await dbContext.SaveChangesAsync(cancellationToken);
+        await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+            dbContext,
+            guildId,
+            realtimeEventName ?? GetPlaybackPositionEventName(isPaused),
+            cancellationToken);
+    }
+
+    private static string GetCurrentTrackEventName(string? trackIdentifier)
+    {
+        return trackIdentifier is null
+            ? MobileRealtimeEventNames.PlaybackStopped
+            : MobileRealtimeEventNames.CurrentTrackChanged;
+    }
+
+    private static string GetPlaybackPositionEventName(bool isPaused)
+    {
+        return isPaused
+            ? MobileRealtimeEventNames.PlaybackPaused
+            : MobileRealtimeEventNames.PlaybackResumed;
     }
 
     private static void ApplyRepeatState(
