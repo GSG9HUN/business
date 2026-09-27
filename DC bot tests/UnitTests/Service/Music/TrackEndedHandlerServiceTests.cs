@@ -1,9 +1,11 @@
 using DC_bot.Interface;
+using DC_bot.BotControl;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Service.Music.MusicServices;
 using DC_bot.Wrapper;
@@ -35,6 +37,7 @@ public class TrackEndedHandlerServiceTests
     private readonly Mock<ITrackPlaybackService> _trackPlaybackServiceMock = new();
     private readonly Mock<IProgressiveTimerService> _progressiveTimerServiceMock = new();
     private readonly Mock<IQueueRepository> _queueRepositoryMock = new();
+    private readonly Mock<IPlaybackStateRepository> _playbackStateRepositoryMock = new();
 
     public TrackEndedHandlerServiceTests()
     {
@@ -51,6 +54,7 @@ public class TrackEndedHandlerServiceTests
             _trackNotificationServiceMock.Object,
             _progressiveTimerServiceMock.Object,
             _queueRepositoryMock.Object,
+            _playbackStateRepositoryMock.Object,
             new LavalinkTrackSerializer(),
             _loggerMock.Object);
     }
@@ -177,6 +181,7 @@ public class TrackEndedHandlerServiceTests
         _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
                 GuildId,
                 It.Is<ILavaLinkTrack>(track => IsReloadedQueueTrack(track, queueItemId)),
+                MobileRealtimeEventNames.PlaybackStarted,
                 CancellationToken.None),
             Times.Once);
         _trackPlaybackServiceMock.Verify(p => p.PlayTrackFromQueueAsync(

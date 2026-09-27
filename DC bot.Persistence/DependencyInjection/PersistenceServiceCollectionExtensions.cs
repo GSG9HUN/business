@@ -41,6 +41,7 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IRepeatListRepository, RepeatListRepository>()
             .AddSingleton<IDbStatusCheck, DbStatusCheck>()
             .AddSingleton<IMobileAppUserRepository, MobileAppUserRepository>()
+            .AddSingleton<IMobileRealtimeMembershipRepository, MobileRealtimeMembershipRepository>()
             .AddSingleton<IMobileAppSessionRepository, MobileAppSessionRepository>()
             .AddSingleton<IBotRuntimeStatusRepository, BotRuntimeStatusRepository>()
             .AddSingleton<IGuildBotStatusRepository, GuildBotStatusRepository>()

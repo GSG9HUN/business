@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
+using DC_bot.BotControl;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -169,7 +170,7 @@ public class MusicQueueService(
     {
         _logger.LogInformation("Queue reorder requested for guild {GuildId}. Incoming track count: {TrackCount}", guildId,
             shuffledQueue.Count);
-        await SaveQueue(guildId, shuffledQueue);
+        await SaveQueue(guildId, shuffledQueue, MobileRealtimeEventNames.QueueItemMoved);
     }
 
     public async Task ClearQueue(ulong guildId)
@@ -190,7 +191,7 @@ public class MusicQueueService(
         }
 
         var shuffled = queue.OrderBy(_ => Random.Shared.Next()).ToList();
-        await SetQueue(guildId, new Queue<ILavaLinkTrack>(shuffled));
+        await SaveQueue(guildId, new Queue<ILavaLinkTrack>(shuffled), MobileRealtimeEventNames.QueueShuffled);
 
         return new QueueShuffleResult(true, shuffled.Count);
     }
@@ -234,12 +235,12 @@ public class MusicQueueService(
         }
 
         (tracks[trackIndex], tracks[targetIndex]) = (tracks[targetIndex], tracks[trackIndex]);
-        await SetQueue(guildId, new Queue<ILavaLinkTrack>(tracks));
+        await SaveQueue(guildId, new Queue<ILavaLinkTrack>(tracks), MobileRealtimeEventNames.QueueItemMoved);
 
         return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
     }
 
-    private async Task SaveQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue)
+    private async Task SaveQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue, string realtimeEventName)
     {
         if (shuffledQueue.Count > MaxQueueSize)
         {
@@ -254,7 +255,7 @@ public class MusicQueueService(
             .Select(_trackSerializer.Serialize)
             .ToList();
 
-        await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers);
+        await queueRepository.ReorderQueuedItemsAsync(guildId, reorderedTrackIdentifiers, realtimeEventName);
         _logger.LogInformation("Queue reorder persisted for guild {GuildId}. Track count: {TrackCount}", guildId,
             reorderedTrackIdentifiers.Count);
     }

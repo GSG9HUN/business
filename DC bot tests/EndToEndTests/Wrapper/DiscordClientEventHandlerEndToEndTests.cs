@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Guilds;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Wrapper;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -22,10 +23,11 @@ public class DiscordClientEventHandlerEndToEndTests
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var guildBotStatusRepositoryMock = new Mock<IGuildBotStatusRepository>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            localizationServiceMock.Object, lavaLinkServiceMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object, guildBotStatusRepositoryMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
@@ -48,10 +50,11 @@ public class DiscordClientEventHandlerEndToEndTests
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var guildBotStatusRepositoryMock = new Mock<IGuildBotStatusRepository>();
         loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         var eventHandler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            localizationServiceMock.Object, lavaLinkServiceMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object, guildBotStatusRepositoryMock.Object);
 
         await eventHandler.OnGuildAvailable(null!, null!);
 
@@ -91,9 +94,10 @@ public class DiscordClientEventHandlerEndToEndTests
         var guildDataRepositoryMock = new Mock<IGuildDataRepository>();
         var localizationServiceMock = new Mock<ILocalizationService>();
         var lavaLinkServiceMock = new Mock<ILavaLinkService>();
+        var guildBotStatusRepositoryMock = new Mock<IGuildBotStatusRepository>();
 
         var handler = new DiscordClientEventHandler(loggerMock.Object, guildDataRepositoryMock.Object,
-            localizationServiceMock.Object, lavaLinkServiceMock.Object);
+            localizationServiceMock.Object, lavaLinkServiceMock.Object, guildBotStatusRepositoryMock.Object);
 
         try
         {

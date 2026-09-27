@@ -64,6 +64,7 @@ public class CurrentTrackServiceTests
             guildId,
             null,
             null,
+            null,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -83,6 +84,7 @@ public class CurrentTrackServiceTests
         repo.Verify(r => r.SetCurrentTrackAsync(
             guildId,
             "some-identifier",
+            null,
             null,
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -116,6 +118,7 @@ public class CurrentTrackServiceTests
             guildId,
             It.IsAny<string>(),
             99L,
+            null,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -133,6 +136,7 @@ public class CurrentTrackServiceTests
         repo.Verify(r => r.SetCurrentTrackAsync(
             guildId,
             It.IsAny<string>(),
+            null,
             null,
             It.IsAny<CancellationToken>()), Times.Once);
     }

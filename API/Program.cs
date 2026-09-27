@@ -1,6 +1,14 @@
 using System.Text;
 using API.Endpoints;
+using API.Realtime;
+using API.Realtime.Listening;
+using API.Realtime.Publishing;
+using API.Realtime.Publishing.Interface;
+using API.Realtime.Snapshots;
+using API.Realtime.Snapshots.Interface;
 using API.Services.Auth;
+using API.Snapshots.Playback;
+using API.Snapshots.Playback.Interface;
 using DC_bot.DependencyInjection;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,7 +45,13 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<DiscordOAuthService>();
 builder.Services.AddSingleton<AppTokenService>()
     .AddSingleton<OAuthStateStore>()
-    .AddSingleton<AuthTicketStore>();
+    .AddScoped<IRealtimeSnapshotProvider, RealtimeSnapshotProvider>()
+    .AddScoped<IBotControlRealtimePublisher, BotControlRealtimePublisher>()
+    .AddScoped<IGuildRealtimePublisher, GuildRealtimePublisher>()
+    .AddScoped<IPlaybackSnapshotService, PlaybackSnapshotService>()
+    .AddSingleton(new PostgresRealtimeOptions(postgresConnectionString))
+    .AddSingleton<AuthTicketStore>()
+    .AddHostedService<MobileRealtimePostgresListener>();
 
 var jwtKey = builder.Configuration["AppAuth:SigningKey"]
              ?? throw new InvalidOperationException("Missing AppAuth:SigningKey.");
@@ -57,10 +71,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30)
         };
+
+        options.Events = new JwtBearerEvents()
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && 
+                    path.StartsWithSegments("/hubs/mobile"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -73,6 +105,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<MobileUpdatesHub>("/hubs/mobile")
+    .RequireAuthorization();
 
 var api = app.MapGroup("/api");
 api.MapGuildEndpoints()

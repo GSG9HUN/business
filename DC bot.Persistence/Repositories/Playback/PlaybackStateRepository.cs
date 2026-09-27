@@ -1,3 +1,4 @@
+using DC_bot.BotControl;
 using DC_bot.Db;
 using DC_bot.Entities.Playback;
 using DC_bot.Interface.Service.Persistence.Models.Playback;
@@ -10,7 +11,8 @@ namespace DC_bot.Repositories.Playback;
 
 public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IPlaybackStateRepository
 {
-    public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
+    public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId,
+        CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -63,132 +65,173 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
         ulong guildId,
         bool isRepeating,
         bool isRepeatingList,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
-
-        var state = await dbContext.GuildPlaybackStates
-            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
-
-        if (state is null)
+        try
         {
-            state = new GuildPlaybackStateEntity
-            {
-                GuildId = guildId,
-                IsRepeating = isRepeating,
-                IsRepeatingList = isRepeatingList,
-                IsPaused = false,
-                PositionSeconds = 0,
-                PositionUpdatedAtUtc = null,
-                UpdatedAtUtc = DateTimeOffset.UtcNow
-            };
-            dbContext.GuildPlaybackStates.Add(state);
+            await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
-            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
-                dbContext,
-                cancellationToken);
-            if (inserted)
+            var state = await dbContext.GuildPlaybackStates
+                .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+            if (state is null)
             {
-                return;
+                state = new GuildPlaybackStateEntity
+                {
+                    GuildId = guildId,
+                    IsRepeating = isRepeating,
+                    IsRepeatingList = isRepeatingList,
+                    IsPaused = false,
+                    PositionSeconds = 0,
+                    PositionUpdatedAtUtc = null,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow
+                };
+                dbContext.GuildPlaybackStates.Add(state);
+            }
+            else
+            {
+                ApplyRepeatState(state, isRepeating, isRepeatingList);
             }
 
-            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                dbContext,
+                guildId,
+                realtimeEventName ?? MobileRealtimeEventNames.RepeatModeChanged,
+                cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
-
-        ApplyRepeatState(state, isRepeating, isRepeatingList);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
-    
+
 
     public async Task SetCurrentTrackAsync(
         ulong guildId,
         string? trackIdentifier,
         long? queueItemId,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
-
-        var state = await dbContext.GuildPlaybackStates
-            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
-
-        if (state is null)
+        try
         {
-            state = new GuildPlaybackStateEntity
-            {
-                GuildId = guildId,
-                IsRepeating = false,
-                IsRepeatingList = false,
-                IsPaused = false,
-                PositionSeconds = 0,
-                PositionUpdatedAtUtc = trackIdentifier is null ? null : DateTimeOffset.UtcNow,
-                CurrentTrackIdentifier = trackIdentifier,
-                QueueItemId = queueItemId,
-                UpdatedAtUtc = DateTimeOffset.UtcNow
-            };
-            dbContext.GuildPlaybackStates.Add(state);
+            await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
-            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
-                dbContext,
-                cancellationToken);
-            if (inserted)
+            var state = await dbContext.GuildPlaybackStates
+                .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+            if (state is null)
             {
-                return;
+                state = new GuildPlaybackStateEntity
+                {
+                    GuildId = guildId,
+                    IsRepeating = false,
+                    IsRepeatingList = false,
+                    IsPaused = false,
+                    PositionSeconds = 0,
+                    PositionUpdatedAtUtc = trackIdentifier is null ? null : DateTimeOffset.UtcNow,
+                    CurrentTrackIdentifier = trackIdentifier,
+                    QueueItemId = queueItemId,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow
+                };
+                dbContext.GuildPlaybackStates.Add(state);
+            }
+            else
+            {
+                ApplyCurrentTrack(state, trackIdentifier, queueItemId);
             }
 
-            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                dbContext,
+                guildId,
+                realtimeEventName ?? GetCurrentTrackEventName(trackIdentifier),
+                cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
-
-        ApplyCurrentTrack(state, trackIdentifier, queueItemId);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task SetPlaybackPositionAsync(
         ulong guildId,
         TimeSpan position,
         bool isPaused,
+        string? realtimeEventName = null,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
-
-        var state = await dbContext.GuildPlaybackStates
-            .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
-
-        if (state is null)
+        try
         {
-            state = new GuildPlaybackStateEntity
-            {
-                GuildId = guildId,
-                IsRepeating = false,
-                IsRepeatingList = false,
-                IsPaused = isPaused,
-                PositionSeconds = ToPositionSeconds(position),
-                PositionUpdatedAtUtc = DateTimeOffset.UtcNow,
-                UpdatedAtUtc = DateTimeOffset.UtcNow
-            };
-            dbContext.GuildPlaybackStates.Add(state);
+            await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
 
-            var inserted = await PostgreSqlConcurrencyHelper.SaveChangesIgnoringUniqueViolationAsync(
-                dbContext,
-                cancellationToken);
-            if (inserted)
+            var state = await dbContext.GuildPlaybackStates
+                .FirstOrDefaultAsync(s => s.GuildId == guildId, cancellationToken);
+
+            if (state is null)
             {
-                return;
+                state = new GuildPlaybackStateEntity
+                {
+                    GuildId = guildId,
+                    IsRepeating = false,
+                    IsRepeatingList = false,
+                    IsPaused = isPaused,
+                    PositionSeconds = ToPositionSeconds(position),
+                    PositionUpdatedAtUtc = DateTimeOffset.UtcNow,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow
+                };
+                dbContext.GuildPlaybackStates.Add(state);
+            }
+            else
+            {
+                ApplyPlaybackPosition(state, position, isPaused);
             }
 
-            state = await dbContext.GuildPlaybackStates.FirstAsync(s => s.GuildId == guildId, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                dbContext,
+                guildId,
+                realtimeEventName ?? GetPlaybackPositionEventName(isPaused),
+                cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
 
-        ApplyPlaybackPosition(state, position, isPaused);
+    private static string GetCurrentTrackEventName(string? trackIdentifier)
+    {
+        return trackIdentifier is null
+            ? MobileRealtimeEventNames.PlaybackStopped
+            : MobileRealtimeEventNames.CurrentTrackChanged;
+    }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+    private static string GetPlaybackPositionEventName(bool isPaused)
+    {
+        return isPaused
+            ? MobileRealtimeEventNames.PlaybackPaused
+            : MobileRealtimeEventNames.PlaybackResumed;
     }
 
     private static void ApplyRepeatState(

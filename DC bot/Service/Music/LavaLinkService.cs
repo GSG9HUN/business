@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.BotControl;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Presentation;
@@ -113,7 +114,10 @@ public class LavaLinkService(
             return;
         }
 
-        await currentTrackService.SetCurrentTrackAsync(guildId, nextTrack);
+        await currentTrackService.SetCurrentTrackAsync(
+            guildId,
+            nextTrack,
+            MobileRealtimeEventNames.PlaybackStarted);
         logger.LogInformation("Started queue playback for guild {GuildId}: {Author} - {Title}",
             guildId,
             nextTrack.Author,

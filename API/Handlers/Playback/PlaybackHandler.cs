@@ -1,5 +1,6 @@
 using API.Mapping;
 using API.Requests.Playback;
+using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Playback;
@@ -74,6 +75,7 @@ public static class PlaybackHandlers
                     guildId,
                     isRepeating: false,
                     isRepeatingList: false,
+                    MobileRealtimeEventNames.RepeatModeChanged,
                     cancellationToken);
                 await repeatListRepository.ClearAsync(guildId, cancellationToken);
                 break;
@@ -83,6 +85,7 @@ public static class PlaybackHandlers
                     guildId,
                     isRepeating: true,
                     isRepeatingList: false,
+                    MobileRealtimeEventNames.RepeatModeChanged,
                     cancellationToken);
                 await repeatListRepository.ClearAsync(guildId, cancellationToken);
                 break;
@@ -104,6 +107,7 @@ public static class PlaybackHandlers
                     guildId,
                     isRepeating: false,
                     isRepeatingList: true,
+                    MobileRealtimeEventNames.RepeatModeChanged,
                     cancellationToken);
                 break;
         }

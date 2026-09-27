@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.BotControl;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
@@ -174,7 +175,10 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(),
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ILavaLinkTrack>(),
+            It.IsAny<string?>(),
             CancellationToken.None), Times.Never);
     }
 
@@ -196,7 +200,10 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(),
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ILavaLinkTrack>(),
+            It.IsAny<string?>(),
             CancellationToken.None), Times.Never);
     }
 
@@ -221,7 +228,10 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(It.IsAny<IDiscordChannel>(), It.IsAny<ILavaLinkTrack>(), It.IsAny<TimeSpan>(),
                 It.IsAny<TimeSpan>()), Times.Never);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(It.IsAny<ulong>(), It.IsAny<ILavaLinkTrack>(),
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ILavaLinkTrack>(),
+            It.IsAny<string?>(),
             CancellationToken.None), Times.Never);
     }
 
@@ -245,7 +255,11 @@ public class LavaLinkServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, nextTrack, TimeSpan.Zero, nextTrack.Duration),
             Times.Once);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(GuildId, nextTrack, CancellationToken.None),
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+                GuildId,
+                nextTrack,
+                MobileRealtimeEventNames.PlaybackStarted,
+                CancellationToken.None),
             Times.Once);
         _responseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);

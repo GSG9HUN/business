@@ -2,6 +2,7 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Guilds;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Wrapper;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,13 +17,14 @@ public class DiscordClientEventHandlerTests
     private readonly Mock<ILocalizationService> _localizationServiceMock = new();
     private readonly Mock<ILogger<DiscordClientEventHandler>> _loggerMock = new();
     private readonly Mock<IGuildDataRepository> _guildDataRepositoryMock = new();
+    private readonly Mock<IGuildBotStatusRepository> _guildBotStatusRepositoryMock = new();
 
     public DiscordClientEventHandlerTests()
     {
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         _eventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
-            _localizationServiceMock.Object, _lavaLinkServiceMock.Object);
+            _localizationServiceMock.Object, _lavaLinkServiceMock.Object, _guildBotStatusRepositoryMock.Object);
     }
 
     #region OnGuildAvailable Tests
@@ -31,7 +33,7 @@ public class DiscordClientEventHandlerTests
     public void Constructor_InitializesWithProperDependencies()
     {
         var testEventHandler = new DiscordClientEventHandler(_loggerMock.Object, _guildDataRepositoryMock.Object,
-            _localizationServiceMock.Object, _lavaLinkServiceMock.Object);
+            _localizationServiceMock.Object, _lavaLinkServiceMock.Object, _guildBotStatusRepositoryMock.Object);
 
         Assert.NotNull(testEventHandler);
     }

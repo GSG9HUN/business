@@ -1,3 +1,4 @@
+using DC_bot.BotControl;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
@@ -34,7 +35,11 @@ public class RepeatService(
     public async Task SetRepeatingAsync(ulong guildId, bool value)
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
-        await playbackStateRepository.SetRepeatStateAsync(guildId, value, state.IsRepeatingList);
+        await playbackStateRepository.SetRepeatStateAsync(
+            guildId,
+            value,
+            state.IsRepeatingList,
+            MobileRealtimeEventNames.RepeatModeChanged);
         _logger.LogInformation(
             "Single-track repeat state updated for guild {GuildId}. Previous: {PreviousValue}, New: {NewValue}",
             guildId,
@@ -54,7 +59,11 @@ public class RepeatService(
     public async Task SetRepeatingListAsync(ulong guildId, bool value)
     {
         var state = await playbackStateRepository.GetOrCreateAsync(guildId);
-        await playbackStateRepository.SetRepeatStateAsync(guildId, state.IsRepeating, value);
+        await playbackStateRepository.SetRepeatStateAsync(
+            guildId,
+            state.IsRepeating,
+            value,
+            MobileRealtimeEventNames.RepeatModeChanged);
         _logger.LogInformation(
             "Repeat-list state updated for guild {GuildId}. Previous: {PreviousValue}, New: {NewValue}",
             guildId,

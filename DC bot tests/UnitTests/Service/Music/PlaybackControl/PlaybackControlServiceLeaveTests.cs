@@ -43,6 +43,9 @@ public class PlaybackControlServiceLeaveTests : PlaybackControlServiceTestBase
         PlaybackEventHandlerServiceMock.Verify(h => h.CleanupGuildAsync(GuildId), Times.Once);
         ProgressiveTimerServiceMock.Verify(t => t.Stop(GuildId), Times.Once);
         PlayerMock.Verify(p => p.DisconnectAsync(CancellationToken.None), Times.Once);
+        GuildBotStatusRepositoryMock.Verify(
+            repository => repository.MarkDisconnectedVoiceAsync(GuildId, It.IsAny<CancellationToken>()),
+            Times.Once);
         Assert.Equal(["cleanup", "stop", "disconnect"], calls);
     }
 
@@ -57,6 +60,9 @@ public class PlaybackControlServiceLeaveTests : PlaybackControlServiceTestBase
         PlayerMock.Verify(p => p.StopAsync(CancellationToken.None), Times.Never);
         PlaybackEventHandlerServiceMock.Verify(h => h.CleanupGuildAsync(GuildId), Times.Once);
         PlayerMock.Verify(p => p.DisconnectAsync(CancellationToken.None), Times.Once);
+        GuildBotStatusRepositoryMock.Verify(
+            repository => repository.MarkDisconnectedVoiceAsync(GuildId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -71,5 +77,8 @@ public class PlaybackControlServiceLeaveTests : PlaybackControlServiceTestBase
 
         ResponseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(MessageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
+        GuildBotStatusRepositoryMock.Verify(
+            repository => repository.MarkDisconnectedVoiceAsync(It.IsAny<ulong>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }
