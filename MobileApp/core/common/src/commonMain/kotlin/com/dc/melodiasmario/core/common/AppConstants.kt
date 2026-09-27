@@ -3,7 +3,7 @@ package com.dc.melodiasmario.core.common
 object AppConstants {
 
     object URLs{
-        const val BaseUrl = "http://192.168.100.6:5281/api"
+        const val BaseUrl = "http://192.168.100.84:5281/api"
 
     }
 

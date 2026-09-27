@@ -51,18 +51,12 @@ public class BotControlContextResolver(
         ulong commandUserId,
         ulong? channelContextVoiceChannelId)
     {
-        if (channelContextVoiceChannelId is not null)
-        {
-            var requestedChannel = await BotControlDiscordChannelResolver.TryGetGuildChannelAsync(guild, channelContextVoiceChannelId.Value);
-
-            return BotControlDiscordChannelResolver.IsVoiceCapableChannel(requestedChannel) ? requestedChannel?.Id : null;
-        }
-
         var member = await TryGetMemberAsync(guild, commandUserId);
         var voiceChannel = member?.VoiceState is null
             ? null
             : await member.VoiceState.GetChannelAsync();
 
+        if (channelContextVoiceChannelId is not null && voiceChannel?.Id != channelContextVoiceChannelId) return null;
         return BotControlDiscordChannelResolver.IsVoiceCapableChannel(voiceChannel) ? voiceChannel?.Id : null;
     }
 

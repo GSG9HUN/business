@@ -11,9 +11,11 @@ They should be stable, explicit, and decoupled from EF Core entities. This allow
 ## Feature Folders
 
 - `Auth/` - Discord OAuth DTOs and mobile session responses
+- `BotControl/` - command acceptance and command status responses
 - `Guilds/` - guild summary and status responses
 - `Playback/` - playback status responses
 - `Playlists/` - playlist summary/detail/track responses
+- `Profile/` - mobile user profile and settings responses
 - `Queue/` - queue and queue-track responses
 
 ## What Belongs Here

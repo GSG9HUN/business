@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.BotControl;
+using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
@@ -62,7 +63,7 @@ public class TrackPlaybackService(
             if (nextTrack == null)
             {
                 logger.LogWarning("Playback request for guild {GuildId} enqueued tracks, but no track could be dequeued.", guildId);
-                return;
+                throw new TrackLoadException(sourceQuery ?? "", "No queued track could be started");
             }
 
             try
@@ -77,7 +78,7 @@ public class TrackPlaybackService(
                 await trackNotificationService.SendSafeAsync(textChannel,
                     localizationService.Get(guildId, ValidationErrorKeys.LavalinkError),
                     "PlayTheFoundMusicAsync.Error");
-                return;
+                throw new TrackLoadException(sourceQuery ?? "", "Playback could not be started; the queue may be partially updated", ex);
             }
 
             await currentTrackService.SetCurrentTrackAsync(

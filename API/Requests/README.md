@@ -11,7 +11,9 @@ This separation matters because client payloads often differ from internal data.
 ## Feature Folders
 
 - `Auth/` - app session exchange and refresh/logout request bodies
+- `Playback/` - repeat-mode request bodies
 - `Playlists/` - playlist create, rename, save, and track-add request bodies
+- `Profile/` - profile settings request bodies
 - `Queue/` - queue enqueue request bodies
 
 ## What Belongs Here

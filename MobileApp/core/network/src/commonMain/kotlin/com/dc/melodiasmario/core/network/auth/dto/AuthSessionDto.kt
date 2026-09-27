@@ -9,11 +9,11 @@ data class AuthSessionDto(
     val refreshToken: String,
     val expiresInSeconds: Int,
     val expiresAtMillis: Long,
-)
-
-fun AuthSessionDto.toDomain() = AuthSession(
-    accessToken = accessToken,
-    refreshToken = refreshToken,
-    expiresInSeconds = expiresInSeconds,
-    expiresAtMillis = expiresAtMillis,
-)
+) {
+    fun toDomain() = AuthSession(
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+        expiresInSeconds = expiresInSeconds,
+        expiresAtMillis = expiresAtMillis,
+    )
+}

@@ -49,3 +49,16 @@ Desktop.ini
 .codex
 .agents
 .claude
+.omx-state-locks/
+.omx-state-locks.identity.json
+.codex/*
+!.codex/agents/
+!.codex/agents/**
+!.codex/skills/
+!.codex/skills/**
+.codex/skills/.system/**
+!.codex/prompts/
+!.codex/prompts/**
+
+# OMX local runtime files
+.omx/

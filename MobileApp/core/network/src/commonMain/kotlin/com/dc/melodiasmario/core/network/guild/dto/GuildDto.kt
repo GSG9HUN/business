@@ -11,10 +11,8 @@ data class GuildDto(
     val iconUrl: String? = null,
     val accessLevel: String,
     val botStatus: BotStatusDto
-)
-
-fun GuildDto.toDomain(): Guild {
-    return Guild(
+) {
+    fun toDomain() = Guild(
         id = guildId.toString(),
         name = name.ifBlank { guildId.toString() },
         iconUrl = iconUrl,
@@ -22,6 +20,7 @@ fun GuildDto.toDomain(): Guild {
         botStatus = botStatus.toDomain(),
     )
 }
+
 private fun String.toGuildAccessLevel(): GuildAccessLevel {
     return when (this.lowercase()) {
         "admin" -> GuildAccessLevel.Admin

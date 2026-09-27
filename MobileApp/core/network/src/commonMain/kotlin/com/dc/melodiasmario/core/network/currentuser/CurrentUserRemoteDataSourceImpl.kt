@@ -1,6 +1,5 @@
 package com.dc.melodiasmario.core.network.currentuser
 
-import com.dc.melodiasmario.core.network.currentuser.dto.toDomain
 import com.dc.melodiasmario.core.model.currentuser.CurrentUser
 import org.koin.core.annotation.Single
 

@@ -18,8 +18,7 @@ public static class BotControlCommandTypes
     public const string Clear = "clear";
     public const string Remove = "remove";
     public const string Shuffle = "shuffle";
-    public const string MoveUp = "moveUp";
-    public const string MoveDown = "moveDown";
+    public const string MoveToIndex = "moveToIndex";
     public const string Repeat = "repeat";
     public const string RepeatList = "repeatList";
     public const string CreatePlaylist = "createPlaylist";

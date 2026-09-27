@@ -35,6 +35,7 @@ fun MArtwork(
 ) {
     val colors = MelodiasMarioThemeTokens.current
     val shape = RoundedCornerShape(14.dp)
+    val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
     Box(
         modifier = modifier
             .clip(shape)
@@ -50,9 +51,9 @@ fun MArtwork(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (!imageUrl.isNullOrBlank()) {
+        if (!artworkUrl.isNullOrBlank()) {
             SubcomposeAsyncImage(
-                model = imageUrl,
+                model = artworkUrl,
                 contentDescription = contentDescription,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -95,6 +96,28 @@ private fun ArtworkFallback(
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(colors.textPrimary),
     )
+}
+
+private fun String.toHighResolutionArtworkUrl(): String {
+    return trim()
+        .replaceYoutubeThumbnailQuality()
+        .replaceDiscordImageSize()
+}
+
+private fun String.replaceYoutubeThumbnailQuality(): String {
+    if (!contains("ytimg.com", ignoreCase = true)) return this
+
+    return replace("/default.jpg", "/sddefault.jpg")
+        .replace("/mqdefault.jpg", "/sddefault.jpg")
+        .replace("/hqdefault.jpg", "/sddefault.jpg")
+}
+
+private fun String.replaceDiscordImageSize(): String {
+    if (!contains("cdn.discordapp.com", ignoreCase = true)) return this
+
+    return replace(Regex("([?&]size=)\\d+")) { match ->
+        "${match.groupValues[1]}512"
+    }
 }
 
 @Preview

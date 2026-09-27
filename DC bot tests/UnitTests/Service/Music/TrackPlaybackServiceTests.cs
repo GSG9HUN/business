@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Exceptions.Music;
 using DC_bot.BotControl;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
@@ -88,7 +89,7 @@ public class TrackPlaybackServiceTests
     }
 
     [Fact]
-    public async Task PlayTheFoundMusicAsync_SingleTrack_NoCurrentTrack_DequeueReturnsNull_DoesNothing()
+    public async Task PlayTheFoundMusicAsync_SingleTrack_NoCurrentTrack_DequeueReturnsNull_Throws()
     {
         var track = TrackTestHelper.CreateTrackWrapper();
         var searchQuery = new TrackLoadResult(track, null);
@@ -96,7 +97,8 @@ public class TrackPlaybackServiceTests
         _playerMock.Setup(p => p.CurrentTrack).Returns((LavalinkTrack?)null);
         _musicQueueServiceMock.Setup(q => q.Dequeue(GuildId)).ReturnsAsync((ILavaLinkTrack?)null);
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
+        await Assert.ThrowsAsync<TrackLoadException>(() =>
+            _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null));
 
         _playerMock.Verify(p => p.PlayAsync(It.IsAny<LavalinkTrack>(), It.IsAny<TrackPlayProperties>(), CancellationToken.None),
             Times.Never);
@@ -163,7 +165,7 @@ public class TrackPlaybackServiceTests
     }
 
     [Fact]
-    public async Task PlayTheFoundMusicAsync_PlayAsyncThrows_LogsErrorAndNotifies()
+    public async Task PlayTheFoundMusicAsync_PlayAsyncThrows_NotifiesAndPropagatesFailure()
     {
         var track = TrackTestHelper.CreateTrackWrapper();
         var searchQuery = new TrackLoadResult(track, null);
@@ -177,7 +179,8 @@ public class TrackPlaybackServiceTests
             .Setup(l => l.Get(ValidationErrorKeys.LavalinkError))
             .Returns("Lavalink error");
 
-        await _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null);
+        await Assert.ThrowsAsync<TrackLoadException>(() =>
+            _service.PlayTheFoundMusicAsync(searchQuery, _playerMock.Object, _textChannelMock.Object, null, null, null));
 
         _trackNotificationServiceMock.Verify(
             n => n.SendSafeAsync(_textChannelMock.Object, "Lavalink error", It.IsAny<string>()),

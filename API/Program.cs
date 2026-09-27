@@ -7,6 +7,7 @@ using API.Realtime.Publishing.Interface;
 using API.Realtime.Snapshots;
 using API.Realtime.Snapshots.Interface;
 using API.Services.Auth;
+using API.Services.MusicSearch;
 using API.Snapshots.Playback;
 using API.Snapshots.Playback.Interface;
 using DC_bot.DependencyInjection;
@@ -41,6 +42,7 @@ var postgresConnectionString =
 builder.Services.AddOpenApi();
 builder.Services.AddPersistenceServices(postgresConnectionString);
 builder.Services.AddMemoryCache();
+builder.Services.AddMusicSearch(builder.Configuration);
 
 builder.Services.AddHttpClient<DiscordOAuthService>();
 builder.Services.AddSingleton<AppTokenService>()
@@ -105,6 +107,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
+
+app.MapHub<MobileUpdatesHub>("/hubs/mobile")
+    .RequireAuthorization();
 
 app.MapHub<MobileUpdatesHub>("/hubs/mobile")
     .RequireAuthorization();
@@ -118,7 +124,8 @@ api.MapGuildEndpoints()
     .MapCommandEndpoints()
     .MapPlaylistEndpoints()
     .MapStatusEndpoints()
-    .MapQueueEndpoints();
+    .MapQueueEndpoints()
+    .MapMusicSearchEndpoints();
 
 app.Run();
 

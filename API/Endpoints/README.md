@@ -161,8 +161,7 @@ Routes:
 - `DELETE /api/guilds/{guildId}/queue` - enqueue a clear-queue command
 - `DELETE /api/guilds/{guildId}/queue/{trackNumber}` - enqueue a remove-track command by 1-based queue number
 - `POST /api/guilds/{guildId}/queue/shuffle` - enqueue a shuffle command
-- `PATCH /api/guilds/{guildId}/queue/{trackIndex}/move-up` - enqueue a move-up command by 0-based queue index
-- `PATCH /api/guilds/{guildId}/queue/{trackIndex}/move-down` - enqueue a move-down command by 0-based queue index
+- `PATCH /api/guilds/{guildId}/queue/{trackIndex}/move-to/{targetIndex}` - enqueue a move command between 0-based queue indexes
 
 `GET /api/guilds/{guildId}/queue` response:
 
