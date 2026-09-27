@@ -32,6 +32,7 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
     public DbSet<BotControlCommandEntity> BotControlCommands => Set<BotControlCommandEntity>();
     public DbSet<MobileAppUserEntity> MobileAppUsers => Set<MobileAppUserEntity>();
     public DbSet<UserGuildEntity> UserGuilds => Set<UserGuildEntity>();
+    public DbSet<MobileRealtimeGuildMembershipEntity> MobileRealtimeGuildMemberships => Set<MobileRealtimeGuildMembershipEntity>();
     public DbSet<MobileAppSessionEntity> MobileAppSessions => Set<MobileAppSessionEntity>();
     public DbSet<BotRuntimeStatusEntity> BotRuntimeStatus => Set<BotRuntimeStatusEntity>();
     public DbSet<GuildBotStatusEntity> GuildBotStatus => Set<GuildBotStatusEntity>();
@@ -51,6 +52,7 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new MobileAppUserSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new MobileAppSessionsConfiguration());
         modelBuilder.ApplyConfiguration(new UserGuildsConfiguration());
+        modelBuilder.ApplyConfiguration(new MobileRealtimeGuildMembershipsConfiguration());
         modelBuilder.ApplyConfiguration(new BotRuntimeStatusConfiguration());
         modelBuilder.ApplyConfiguration(new GuildBotStatusConfiguration());
         base.OnModelCreating(modelBuilder);

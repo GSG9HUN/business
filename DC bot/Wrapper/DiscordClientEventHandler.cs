@@ -2,8 +2,10 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Guilds;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Logging;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +15,8 @@ public class DiscordClientEventHandler(
     ILogger<DiscordClientEventHandler> logger,
     IGuildDataRepository guildDataRepository,
     ILocalizationService localizationService,
-    ILavaLinkService lavaLinkService)
+    ILavaLinkService lavaLinkService,
+    IGuildBotStatusRepository guildBotStatusRepository)
 {
     private readonly DiscordConnectionEventLogger _connectionEventLogger = new(logger);
     private readonly DiscordVoiceEventLogger _voiceEventLogger = new(logger);
@@ -77,10 +80,10 @@ public class DiscordClientEventHandler(
 
     public Task OnVoiceStateUpdated(DiscordClient sender, VoiceStateUpdatedEventArgs e)
     {
-        return HandleEventAsync(nameof(OnVoiceStateUpdated), () =>
+        return HandleEventAsync(nameof(OnVoiceStateUpdated), async () =>
         {
             _voiceEventLogger.LogVoiceStateUpdated(sender, e);
-            return Task.CompletedTask;
+            await UpdateGuildBotStatusAsync(sender, e);
         });
     }
 
@@ -112,5 +115,65 @@ public class DiscordClientEventHandler(
         {
             logger.DiscordClientEventFailed(exception, eventName);
         }
+    }
+
+    private async Task UpdateGuildBotStatusAsync(DiscordClient sender, VoiceStateUpdatedEventArgs e)
+    {
+        if (e.GuildId is null or 0 || !sender.Guilds.TryGetValue(e.GuildId.Value, out var guild))
+        {
+            return;
+        }
+
+        var isBotVoiceState = sender.CurrentUser.Id == e.UserId;
+        var botVoiceChannel = ResolveBotVoiceChannel(sender, guild, e);
+
+        if (botVoiceChannel is null)
+        {
+            if (isBotVoiceState)
+            {
+                await guildBotStatusRepository.MarkDisconnectedVoiceAsync(e.GuildId.Value);
+            }
+
+            return;
+        }
+
+        await guildBotStatusRepository.UpsertConnectedVoiceAsync(
+            e.GuildId.Value,
+            botVoiceChannel.Id,
+            botVoiceChannel.Name,
+            GetVoiceUserCount(botVoiceChannel));
+    }
+
+    private static DiscordChannel? ResolveBotVoiceChannel(
+        DiscordClient sender,
+        DiscordGuild guild,
+        VoiceStateUpdatedEventArgs e)
+    {
+        if (sender.CurrentUser.Id == e.UserId)
+        {
+            return TryGetGuildChannel(guild, e.After?.ChannelId ?? e.ChannelId);
+        }
+
+        if (!guild.Members.TryGetValue(sender.CurrentUser.Id, out var botMember))
+        {
+            return null;
+        }
+
+        return TryGetGuildChannel(guild, botMember.VoiceState?.ChannelId);
+    }
+
+    private static DiscordChannel? TryGetGuildChannel(DiscordGuild guild, ulong? channelId)
+    {
+        if (channelId is null or 0)
+        {
+            return null;
+        }
+
+        return guild.Channels.TryGetValue(channelId.Value, out var channel) ? channel : null;
+    }
+
+    private static int GetVoiceUserCount(DiscordChannel channel)
+    {
+        return channel.Users?.Count ?? 0;
     }
 }

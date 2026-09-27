@@ -8,6 +8,7 @@ namespace API.Realtime;
 [Authorize]
 public sealed class MobileUpdatesHub(
     IMobileAppUserRepository mobileAppUserRepository,
+    IMobileRealtimeMembershipRepository mobileRealtimeMembershipRepository,
     ILogger<MobileUpdatesHub> logger) : Hub
 {
     public override Task OnConnectedAsync()
@@ -31,7 +32,7 @@ public sealed class MobileUpdatesHub(
         return base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = TryGetDiscordUserId();
 
@@ -51,7 +52,11 @@ public sealed class MobileUpdatesHub(
                 userId);
         }
 
-        return base.OnDisconnectedAsync(exception);
+        await mobileRealtimeMembershipRepository.RemoveConnectionMembershipsAsync(
+            Context.ConnectionId,
+            CancellationToken.None);
+
+        await base.OnDisconnectedAsync(exception);
     }
 
     public async Task JoinGuildAsync(string guildId)
@@ -93,12 +98,13 @@ public sealed class MobileUpdatesHub(
 
         await Groups.AddToGroupAsync(
             Context.ConnectionId,
-            MobileUpdateGroups.Guild(parsedGuildId),
+            MobileUpdateGroups.UserGuild(parsedGuildId, userId),
             Context.ConnectionAborted);
 
-        await Groups.AddToGroupAsync(
+        await mobileRealtimeMembershipRepository.UpsertGuildMembershipAsync(
             Context.ConnectionId,
-            MobileUpdateGroups.UserGuild(parsedGuildId, userId),
+            userId,
+            parsedGuildId,
             Context.ConnectionAborted);
 
         logger.LogInformation(
@@ -123,8 +129,12 @@ public sealed class MobileUpdatesHub(
             return;
         }
 
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, MobileUpdateGroups.Guild(parsedGuildId));
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, MobileUpdateGroups.UserGuild(parsedGuildId, userId));
+        await mobileRealtimeMembershipRepository.RemoveGuildMembershipAsync(
+            Context.ConnectionId,
+            userId,
+            parsedGuildId,
+            Context.ConnectionAborted);
 
         logger.LogInformation(
             "Mobile realtime guild leave completed. ConnectionId: {ConnectionId}, UserId: {UserId}, GuildId: {GuildId}",

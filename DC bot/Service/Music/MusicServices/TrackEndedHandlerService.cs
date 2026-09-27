@@ -135,6 +135,7 @@ public class TrackEndedHandlerService(
         if (string.IsNullOrWhiteSpace(queueItem.SourceQuery) ||
             !TryParseSearchMode(queueItem.SourceSearchMode, out var searchMode))
         {
+            await NotifyPlaybackLoadFailedAsync(queueItem);
             return false;
         }
 

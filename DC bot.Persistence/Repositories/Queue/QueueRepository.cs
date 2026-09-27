@@ -589,38 +589,50 @@ public class QueueRepository(IDbContextFactory<BotDbContext> dbContextFactory) :
         CancellationToken cancellationToken)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        var entity =
-            await dbContext.GuildQueueItems.FirstOrDefaultAsync(item => item.Id == queueItemId, cancellationToken);
-        if (entity is null)
+        try
         {
-            return;
-        }
+            var entity =
+                await dbContext.GuildQueueItems.FirstOrDefaultAsync(item => item.Id == queueItemId, cancellationToken);
+            if (entity is null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return;
+            }
 
-        var previousState = entity.State;
-        entity.State = state;
-        if (state == QueueItemState.Playing)
+            var previousState = entity.State;
+            entity.State = state;
+            if (state == QueueItemState.Playing)
+            {
+                entity.PlayedAtUtc = null;
+                entity.SkippedAtUtc = null;
+            }
+
+            if (setPlayedAt)
+            {
+                entity.PlayedAtUtc = DateTimeOffset.UtcNow;
+            }
+
+            if (setSkippedAt)
+            {
+                entity.SkippedAtUtc = DateTimeOffset.UtcNow;
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(
+                dbContext,
+                entity.GuildId,
+                GetStateChangeEventName(previousState, state),
+                cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
         {
-            entity.PlayedAtUtc = null;
-            entity.SkippedAtUtc = null;
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
         }
-
-        if (setPlayedAt)
-        {
-            entity.PlayedAtUtc = DateTimeOffset.UtcNow;
-        }
-
-        if (setSkippedAt)
-        {
-            entity.SkippedAtUtc = DateTimeOffset.UtcNow;
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(
-            dbContext,
-            entity.GuildId,
-            GetStateChangeEventName(previousState, state),
-            cancellationToken);
     }
 
     private static string GetStateChangeEventName(QueueItemState previousState, QueueItemState newState)

@@ -2,6 +2,7 @@
 using API.Realtime.Publishing.Interface;
 using API.Realtime.Snapshots.Interface;
 using DC_bot.BotControl;
+using DC_bot.Interface.Service.Persistence.MobileApps;
 using Microsoft.AspNetCore.SignalR;
 
 namespace API.Realtime.Publishing;
@@ -9,6 +10,7 @@ namespace API.Realtime.Publishing;
 public sealed class GuildRealtimePublisher(
     IHubContext<MobileUpdatesHub> hubContext,
     IRealtimeSnapshotProvider snapshotProvider,
+    IMobileRealtimeMembershipRepository mobileRealtimeMembershipRepository,
     ILogger<GuildRealtimePublisher> logger) : IGuildRealtimePublisher
 {
     public async Task PublishPlaybackAsync(
@@ -120,23 +122,31 @@ public sealed class GuildRealtimePublisher(
         TPayload payload,
         CancellationToken cancellationToken)
     {
-        var group = MobileUpdateGroups.Guild(guildId);
+        var subscribedUserIds = await mobileRealtimeMembershipRepository.GetAuthorizedSubscribedUserIdsAsync(
+            guildId,
+            cancellationToken);
         
-        await hubContext.Clients
-            .Group(group)
-            .SendAsync(eventName, payload, cancellationToken);
-        
-        if (eventName != genericEventName)
+        foreach (var userId in subscribedUserIds)
         {
+            var group = MobileUpdateGroups.UserGuild(guildId, userId);
+
             await hubContext.Clients
                 .Group(group)
-                .SendAsync(genericEventName, payload, cancellationToken);
+                .SendAsync(eventName, payload, cancellationToken);
+        
+            if (eventName != genericEventName)
+            {
+                await hubContext.Clients
+                    .Group(group)
+                    .SendAsync(genericEventName, payload, cancellationToken);
+            }
         }
 
         logger.LogInformation(
-            "Published guild realtime event. GuildId: {GuildId}, EventName: {EventName}, GenericEventName: {GenericEventName}",
+            "Published guild realtime event. GuildId: {GuildId}, EventName: {EventName}, GenericEventName: {GenericEventName}, SubscriberCount: {SubscriberCount}",
             guildId,
             eventName,
-            genericEventName);
+            genericEventName,
+            subscribedUserIds.Count);
     }
 }

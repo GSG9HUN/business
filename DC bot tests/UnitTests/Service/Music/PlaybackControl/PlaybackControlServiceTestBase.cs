@@ -2,6 +2,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
@@ -37,6 +38,7 @@ public abstract class PlaybackControlServiceTestBase
     protected readonly Mock<ICurrentTrackService> CurrentTrackServiceMock = new();
     protected readonly Mock<IQueueRepository> QueueRepositoryMock = new();
     protected readonly Mock<ITrackSerializer> TrackSerializer = new();
+    protected readonly Mock<IGuildBotStatusRepository> GuildBotStatusRepositoryMock = new();
 
     protected PlaybackControlServiceTestBase()
     {
@@ -78,6 +80,7 @@ public abstract class PlaybackControlServiceTestBase
             CurrentTrackServiceMock.Object,
             QueueRepositoryMock.Object,
             TrackSerializer.Object,
+            GuildBotStatusRepositoryMock.Object,
             LoggerMock.Object);
     }
 

@@ -101,6 +101,14 @@ public class PlayerConnectionServiceJoinTests : PlayerConnectionServiceTestBase
 
         Assert.True(result.isValid);
         Assert.Equal(111UL, result.guildId);
+        GuildBotStatusRepositoryMock.Verify(
+            repository => repository.UpsertConnectedVoiceAsync(
+                111UL,
+                222UL,
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

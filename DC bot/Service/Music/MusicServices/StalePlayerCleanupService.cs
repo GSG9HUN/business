@@ -1,3 +1,4 @@
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using Lavalink4NET;
 using Microsoft.Extensions.Logging;
 
@@ -5,6 +6,7 @@ namespace DC_bot.Service.Music.MusicServices;
 
 internal sealed class StalePlayerCleanupService(
     IAudioService audioService,
+    IGuildBotStatusRepository guildBotStatusRepository,
     ILogger<PlayerConnectionService> logger)
 {
     internal async Task DisconnectBeforeJoinAsync(ulong guildId, CancellationToken cancellationToken)
@@ -23,5 +25,6 @@ internal sealed class StalePlayerCleanupService(
             existingPlayer.VoiceChannelId);
 
         await existingPlayer.DisconnectAsync(cancellationToken).ConfigureAwait(false);
+        await guildBotStatusRepository.MarkDisconnectedVoiceAsync(guildId, cancellationToken).ConfigureAwait(false);
     }
 }

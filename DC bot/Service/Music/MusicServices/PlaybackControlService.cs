@@ -4,6 +4,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
@@ -25,6 +26,7 @@ public class PlaybackControlService(
     ICurrentTrackService currentTrackService,
     IQueueRepository queueRepository,
     ITrackSerializer trackSerializer,
+    IGuildBotStatusRepository guildBotStatusRepository,
     ILogger<PlaybackControlService> logger) : IPlaybackControlService
 {
     public async Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member)
@@ -226,6 +228,7 @@ public class PlaybackControlService(
             if (connection.CurrentTrack != null) await connection.StopAsync();
             progressiveTimerService.Stop(guildId);
             await connection.DisconnectAsync().ConfigureAwait(false);
+            await guildBotStatusRepository.MarkDisconnectedVoiceAsync(guildId);
             await playbackStateRepository.SetCurrentTrackAsync(
                 guildId,
                 null,

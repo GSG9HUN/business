@@ -2,6 +2,7 @@ using DC_bot.Constants;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Presentation;
 using Lavalink4NET;
 using Lavalink4NET.Extensions;
@@ -15,10 +16,11 @@ public class PlayerConnectionService(
     ILavalinkNodeConnectionService lavalinkNodeConnectionService,
     IValidationService validationService,
     IResponseBuilder responseBuilder,
+    IGuildBotStatusRepository guildBotStatusRepository,
     ILogger<PlayerConnectionService> logger) : IPlayerConnectionService
 {
     private readonly PlayerConnectionRetryPolicy _connectionRetryPolicy = new(validationService);
-    private readonly StalePlayerCleanupService _stalePlayerCleanupService = new(audioService, logger);
+    private readonly StalePlayerCleanupService _stalePlayerCleanupService = new(audioService, guildBotStatusRepository, logger);
 
     public async Task<(ILavalinkPlayer? connection, IDiscordChannel? channel, ulong guildId, bool isValid)>
         TryJoinAndValidateAsync(
@@ -81,6 +83,13 @@ public class PlayerConnectionService(
             
             if (validationConnectionResult is { IsValid: true })
             {
+                await guildBotStatusRepository.UpsertConnectedVoiceAsync(
+                    guildId,
+                    channel.Id,
+                    channel.Name,
+                    GetVoiceUserCount(channel),
+                    cancellationToken).ConfigureAwait(false);
+
                 logger.LogInformation("Joined and validated voice channel. Guild: {GuildId}, Channel: {ChannelId}",
                     guildId,
                     channel.Id);
@@ -194,4 +203,15 @@ public class PlayerConnectionService(
         }
     }
 
+    private static int GetVoiceUserCount(IDiscordChannel channel)
+    {
+        try
+        {
+            return channel.ToDiscordChannel().Users?.Count ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 }
