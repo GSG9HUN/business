@@ -2,6 +2,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Service.Music.MusicServices;
 using DC_bot.Wrapper;
 using DC_bot_tests.IntegrationTests.Persistence;
@@ -51,7 +52,8 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             trackPlaybackService.Object,
             trackNotificationService.Object,
             Mock.Of<IProgressiveTimerService>(),
-            queueRepository);
+            queueRepository,
+            playbackStateRepository);
 
         var currentTrack = CreateTrack("ended-current", "Ended Current");
         await queueRepository.EnqueueAsync(guildId, currentTrack.ToString());
@@ -103,7 +105,8 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             trackPlaybackService.Object,
             trackNotificationService.Object,
             Mock.Of<IProgressiveTimerService>(),
-            queueRepository);
+            queueRepository,
+            playbackStateRepository);
 
         var first = CreateTrack("repeat-list-first", "Repeat List First");
         var second = CreateTrack("repeat-list-second", "Repeat List Second");
@@ -131,7 +134,8 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
         ITrackPlaybackService trackPlaybackService,
         ITrackNotificationService trackNotificationService,
         IProgressiveTimerService progressiveTimerService,
-        QueueRepository queueRepository)
+        QueueRepository queueRepository,
+        IPlaybackStateRepository playbackStateRepository)
     {
         return new TrackEndedHandlerService(
             Mock.Of<IAudioService>(),
@@ -142,6 +146,7 @@ public class TrackEndedHandlerServicePostgreSqlIntegrationTests
             trackNotificationService,
             progressiveTimerService,
             queueRepository,
+            playbackStateRepository,
             new LavalinkTrackSerializer(),
             Mock.Of<ILogger<TrackEndedHandlerService>>());
     }

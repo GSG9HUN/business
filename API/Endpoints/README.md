@@ -220,6 +220,82 @@ Notes:
 
 Maps `/api/status` health/status routes.
 
+### MobileUpdatesHub
+
+Maps the authenticated SignalR realtime route.
+
+Route:
+
+- `/hubs/mobile` - SignalR hub for mobile realtime updates
+
+Authentication:
+
+- REST endpoints continue to use `Authorization: Bearer <access token>`.
+- WebSocket/SSE hub connections may pass the same JWT as `access_token` query value on `/hubs/mobile`.
+- The server reads `access_token` only for the `/hubs/mobile` path. Do not log the query token value.
+
+Callable hub methods:
+
+- `JoinGuildAsync(string guildId)` - subscribes this connection to guild-scoped updates after checking current guild access.
+- `LeaveGuildAsync(string guildId)` - removes this connection from that guild subscription.
+- `JoinUserUpdatesAsync()` - subscribes this connection to user-scoped updates.
+- `LeaveUserUpdatesAsync()` - removes this connection from user-scoped updates.
+
+Guild subscription behavior:
+
+- `guildId` must be a Discord snowflake string.
+- `JoinGuildAsync` rejects the call when the authenticated user no longer has access to the guild.
+- Active guild subscriptions are persisted in `mobile_realtime_guild_memberships`.
+- Playback, queue, and guild bot status events are delivered only to users that are both subscribed and still present in `user_guilds` at publish time.
+- If guild access is revoked after a connection joined, later guild snapshot events are no longer delivered to that user even if the SignalR connection remains open.
+
+Emitted guild events:
+
+- `PlaybackStarted`
+- `PlaybackPaused`
+- `PlaybackResumed`
+- `PlaybackStopped`
+- `PlaybackPreviousStarted`
+- `PlaybackPositionChanged`
+- `PlaybackLoadFailed`
+- `CurrentTrackChanged`
+- `RepeatModeChanged`
+- `PlaybackSnapshotChanged`
+- `QueueItemAdded`
+- `QueueItemsAdded`
+- `QueueItemClaimed`
+- `QueueItemMoved`
+- `QueueItemRemoved`
+- `QueueCleared`
+- `QueueShuffled`
+- `QueueSnapshotChanged`
+- `BotJoinedVoiceChannel`
+- `BotLeftVoiceChannel`
+- `BotVoiceUserCountChanged`
+- `GuildBotStatusChanged`
+
+Guild event payloads:
+
+- playback events send a `PlaybackSnapshotEvent`
+- queue events send a `QueueSnapshotEvent`
+- guild bot status events send a `GuildBotStatusEvent`
+
+Each guild event payload includes:
+
+- `guildId` - Discord snowflake string
+- `eventName` - specific event name
+- `updatedAtUtc` - server-side event timestamp
+- `snapshot` - current REST-equivalent snapshot for that feature
+
+Emitted bot-control user-guild events:
+
+- `BotControlCommandStarted`
+- `BotControlCommandSucceeded`
+- `BotControlCommandFailed`
+- `BotControlCommandUpdated`
+
+Bot-control event payloads include command id, guild id, user id, command type, state, error message, result JSON, and command timestamps.
+
 ## Notes
 
 - Keep endpoint files focused on routing only.

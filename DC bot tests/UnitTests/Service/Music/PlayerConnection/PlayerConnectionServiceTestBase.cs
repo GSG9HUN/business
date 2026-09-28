@@ -1,6 +1,7 @@
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.MusicServices;
 using Lavalink4NET;
@@ -21,6 +22,7 @@ public abstract class PlayerConnectionServiceTestBase
     protected readonly Mock<IDiscordMessage> MessageMock = new();
     protected readonly Mock<IPlayerManager> PlayerManagerMock = new();
     protected readonly Mock<IResponseBuilder> ResponseBuilderMock = new();
+    protected readonly Mock<IGuildBotStatusRepository> GuildBotStatusRepositoryMock = new();
     protected readonly PlayerConnectionService Service;
     protected readonly Mock<IValidationService> ValidationServiceMock = new();
 
@@ -36,6 +38,7 @@ public abstract class PlayerConnectionServiceTestBase
             LavalinkNodeConnectionServiceMock.Object,
             ValidationServiceMock.Object,
             ResponseBuilderMock.Object,
+            GuildBotStatusRepositoryMock.Object,
             LoggerMock.Object);
     }
 

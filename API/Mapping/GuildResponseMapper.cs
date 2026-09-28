@@ -14,7 +14,7 @@ internal static class GuildResponseMapper
         new(
             guild.GuildId,
             guild.Name,
-            BuildGuildIconUrl(guild.GuildId, guild.IconHash),
+            MapGuildIconUrl(guild),
             GetAccessLevel(guild),
             MapBotStatus(botStatus));
 
@@ -30,6 +30,9 @@ internal static class GuildResponseMapper
         guild.IsOwner || (guild.Permissions & AdministratorPermission) != 0
             ? "Admin"
             : "Member";
+
+    public static string? MapGuildIconUrl(MobileAppUserGuildRecord guild) =>
+        BuildGuildIconUrl(guild.GuildId, guild.IconHash);
 
     private static string? BuildGuildIconUrl(ulong guildId, string? iconHash)
     {

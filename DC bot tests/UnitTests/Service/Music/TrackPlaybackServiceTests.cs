@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.BotControl;
 using DC_bot.Interface;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -79,7 +80,11 @@ public class TrackPlaybackServiceTests
         _trackNotificationServiceMock.Verify(
             n => n.NotifyNowPlayingAsync(_textChannelMock.Object, track, It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()),
             Times.Once);
-        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(GuildId, track, CancellationToken.None), Times.Once);
+        _currentTrackServiceMock.Verify(c => c.SetCurrentTrackAsync(
+            GuildId,
+            track,
+            MobileRealtimeEventNames.PlaybackStarted,
+            CancellationToken.None), Times.Once);
     }
 
     [Fact]

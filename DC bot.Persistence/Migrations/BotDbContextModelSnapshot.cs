@@ -330,6 +330,38 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("mobile_app_users", (string)null);
                 });
 
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileRealtimeGuildMembershipEntity", b =>
+                {
+                    b.Property<string>("ConnectionId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("connection_id");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("discord_user_id");
+
+                    b.Property<DateTimeOffset>("JoinedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at_utc")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("ConnectionId", "GuildId");
+
+                    b.HasIndex("ConnectionId");
+
+                    b.HasIndex("DiscordUserId", "GuildId");
+
+                    b.HasIndex("GuildId", "DiscordUserId");
+
+                    b.ToTable("mobile_realtime_guild_memberships", (string)null);
+                });
+
             modelBuilder.Entity("DC_bot.Entities.MobileApps.UserGuildEntity", b =>
                 {
                     b.Property<decimal>("DiscordUserId")
@@ -641,6 +673,15 @@ namespace DC_bot.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.MobileApps.MobileRealtimeGuildMembershipEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.MobileApps.UserGuildEntity", null)
+                        .WithMany()
+                        .HasForeignKey("DiscordUserId", "GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DC_bot.Entities.MobileApps.UserGuildEntity", b =>

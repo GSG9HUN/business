@@ -1,4 +1,5 @@
 using DC_bot.Interface;
+using DC_bot.BotControl;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence;
 using DC_bot.Interface.Service.Persistence.Models;
@@ -212,6 +213,7 @@ public class MusicQueueServiceTests
                     tracks.Count == 2 &&
                     tracks[0] == "track-id-b" &&
                     tracks[1] == "track-id-a"),
+                MobileRealtimeEventNames.QueueItemMoved,
                 CancellationToken.None),
             Times.Once);
     }
@@ -361,7 +363,11 @@ public class MusicQueueServiceTests
         Assert.True(result.Success);
         Assert.Equal(2, result.TrackCount);
         _queueRepositoryMock.Verify(
-            repository => repository.ReorderQueuedItemsAsync(GuildId, It.Is<IReadOnlyList<string>>(tracks => tracks.Count == 2), CancellationToken.None),
+            repository => repository.ReorderQueuedItemsAsync(
+                GuildId,
+                It.Is<IReadOnlyList<string>>(tracks => tracks.Count == 2),
+                MobileRealtimeEventNames.QueueShuffled,
+                CancellationToken.None),
             Times.Once);
     }
 
@@ -464,6 +470,7 @@ public class MusicQueueServiceTests
                     tracks.Count == 2 &&
                     tracks[0] == "track-id-b" &&
                     tracks[1] == "track-id-a"),
+                MobileRealtimeEventNames.QueueItemMoved,
                 CancellationToken.None),
             Times.Once);
     }
