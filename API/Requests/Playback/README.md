@@ -17,4 +17,4 @@ Request body for explicitly setting repeat mode.
 ## Notes
 
 - Request DTOs should stay transport-only.
-- Repeat behavior is executed by the bot process through bot-control/music services.
+- Unlike command-submission endpoints, `PlaybackHandlers.SetRepeatModeAsync` updates persisted playback state and the repeat-list snapshot directly and returns `204 No Content`; it does not enqueue a bot-control command.
