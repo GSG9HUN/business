@@ -17,13 +17,24 @@ import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCas
 import com.dc.melodiasmario.core.domain.queue.usecase.RemoveFromQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
+import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUseCase
+import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveRealtimeConnectionStateUseCase
+import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
+import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
+import com.dc.melodiasmario.core.model.realtime.RealtimeConnectionState
+import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
@@ -43,19 +54,40 @@ class CurrentTrackViewModel(
     private val moveTrackUpUseCase: MoveTrackUpUseCase,
     private val moveTrackDownUseCase: MoveTrackDownUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
+    private val observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase,
+    private val observeRealtimeConnectionStateUseCase: ObserveRealtimeConnectionStateUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CurrentTrackUiState())
     val uiState: StateFlow<CurrentTrackUiState> = _uiState.asStateFlow()
     private val events = MutableSharedFlow<CurrentTrackEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<CurrentTrackEffect>()
     val effect = _effect.asSharedFlow()
+    private val realtimeRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private var currentGuildId: String? = null
+    private var currentUserId: String? = null
+    private var realtimeJob: Job? = null
+    private var pollingJob: Job? = null
+    private var connectionStateJob: Job? = null
 
     init {
         collectEvents()
+        collectRealtimeRefreshRequests()
     }
 
     fun onEvent(event: CurrentTrackEvent) {
+        if (event.isCommandEvent()) {
+            if (!startCommandIfIdle()) return
+
+            viewModelScope.launch {
+                try {
+                    handleCommandEvent(event)
+                } finally {
+                    finishCommand()
+                }
+            }
+            return
+        }
+
         viewModelScope.launch {
             events.emit(event)
         }
@@ -69,11 +101,24 @@ class CurrentTrackViewModel(
         }
     }
 
+    @OptIn(FlowPreview::class)
+    private fun collectRealtimeRefreshRequests() {
+        viewModelScope.launch {
+            realtimeRefreshRequests
+                .debounce(CurrentTrackRealtimeRefreshDebounceMillis)
+                .collect {
+                    refresh(showLoading = false)
+                }
+        }
+    }
+
     private suspend fun handleEvent(event: CurrentTrackEvent) {
         when (event) {
             is CurrentTrackEvent.LoadCurrentTrack -> {
                 loadCurrentUser()
                 getCurrentTrack(event.guildId, showLoading = true)
+                startRealtime(event.guildId)
+                observeRealtimeConnectionState()
             }
 
             CurrentTrackEvent.SyncCurrentTrack -> refresh(showLoading = false)
@@ -82,11 +127,26 @@ class CurrentTrackViewModel(
             CurrentTrackEvent.GuildClicked -> _effect.emit(CurrentTrackEffect.NavigateToGuildSelector)
             CurrentTrackEvent.ProfileClicked -> _effect.emit(CurrentTrackEffect.NavigateToProfile)
             CurrentTrackEvent.AddToQueueClicked -> openDialog(CurrentTrackDialog.AddToQueue)
-            CurrentTrackEvent.AddToQueueConfirmed -> addToQueue()
+            CurrentTrackEvent.AddToQueueConfirmed -> runCommandIfIdle { handleCommandEvent(event) }
             CurrentTrackEvent.DialogDismissed -> closeDialog()
+            is CurrentTrackEvent.RemoveFromQueueClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.MoreClicked -> openDialog(CurrentTrackDialog.MoreActions)
+            CurrentTrackEvent.NextClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.PreviousClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.RepeatClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.ShuffleClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.PlayPauseClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            is CurrentTrackEvent.MoveUpClicked -> runCommandIfIdle { handleCommandEvent(event) }
+            is CurrentTrackEvent.MoveDownClicked -> runCommandIfIdle { handleCommandEvent(event) }
+        }
+    }
+
+    private suspend fun handleCommandEvent(event: CurrentTrackEvent) {
+        when (event) {
+            CurrentTrackEvent.AddToQueueConfirmed -> addToQueue()
             is CurrentTrackEvent.RemoveFromQueueClicked -> removeFromQueue(event.index)
             CurrentTrackEvent.ClearQueueClicked -> clearQueue()
-            CurrentTrackEvent.MoreClicked -> openDialog(CurrentTrackDialog.MoreActions)
             CurrentTrackEvent.NextClicked -> nextTrack()
             CurrentTrackEvent.PreviousClicked -> previousTrack()
             CurrentTrackEvent.RepeatClicked -> repeat()
@@ -94,7 +154,46 @@ class CurrentTrackViewModel(
             CurrentTrackEvent.PlayPauseClicked -> playPause()
             is CurrentTrackEvent.MoveUpClicked -> moveTrackUp(event.index)
             is CurrentTrackEvent.MoveDownClicked -> moveTrackDown(event.index)
+            else -> Unit
         }
+    }
+
+    private suspend fun runCommandIfIdle(action: suspend () -> Unit) {
+        if (!startCommandIfIdle()) return
+
+        try {
+            action()
+        } finally {
+            finishCommand()
+        }
+    }
+
+    private fun startCommandIfIdle(): Boolean {
+        if (_uiState.value.actions.isCommandInFlight) return false
+
+        _uiState.update {
+            it.copy(actions = it.actions.copy(isCommandInFlight = true))
+        }
+        return true
+    }
+
+    private fun finishCommand() {
+        _uiState.update {
+            it.copy(actions = it.actions.copy(isCommandInFlight = false))
+        }
+    }
+
+    private fun CurrentTrackEvent.isCommandEvent(): Boolean {
+        return this is CurrentTrackEvent.AddToQueueConfirmed ||
+            this is CurrentTrackEvent.RemoveFromQueueClicked ||
+            this is CurrentTrackEvent.ClearQueueClicked ||
+            this is CurrentTrackEvent.NextClicked ||
+            this is CurrentTrackEvent.PreviousClicked ||
+            this is CurrentTrackEvent.RepeatClicked ||
+            this is CurrentTrackEvent.ShuffleClicked ||
+            this is CurrentTrackEvent.PlayPauseClicked ||
+            this is CurrentTrackEvent.MoveUpClicked ||
+            this is CurrentTrackEvent.MoveDownClicked
     }
 
     private suspend fun getCurrentTrack(
@@ -118,6 +217,7 @@ class CurrentTrackViewModel(
     private suspend fun loadCurrentUser() {
         getCurrentUserUseCase().collect { result ->
             if (result is Resource.Success) {
+                currentUserId = result.data.id
                 _uiState.update {
                     it.copy(
                         header = it.header.copy(
@@ -144,7 +244,7 @@ class CurrentTrackViewModel(
         addToQueueUseCase(guildId, urlOrQuery).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.AddedToQueue,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.AddToQueueFailed,
             onLoading = {
                 it.copy(addToQueue = it.addToQueue.copy(isLoading = true))
@@ -157,7 +257,6 @@ class CurrentTrackViewModel(
             },
             afterSuccess = {
                 closeDialog()
-                refresh()
             },
         )
     }
@@ -168,7 +267,7 @@ class CurrentTrackViewModel(
         clearQueueUseCase(guildId).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.ClearedQueue,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.ClearQueueFailed,
             onLoading = {
                 it.copy(actions = it.actions.copy(isClearQueueLoading = true))
@@ -179,9 +278,6 @@ class CurrentTrackViewModel(
             onError = { state, _ ->
                 state.copy(actions = state.actions.copy(isClearQueueLoading = false))
             },
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -191,11 +287,8 @@ class CurrentTrackViewModel(
         removeFromQueueUseCase(guildId, trackNumber).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.RemovedFromQueue,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.RemoveFromQueueFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -204,11 +297,8 @@ class CurrentTrackViewModel(
         moveTrackUpUseCase(guildId, index).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.MovedUpInQueue,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.MoveUpInQueueFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -217,11 +307,8 @@ class CurrentTrackViewModel(
         moveTrackDownUseCase(guildId, index).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.MovedDownInQueue,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.MoveDownInQueueFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -230,10 +317,8 @@ class CurrentTrackViewModel(
         nextTrackUseCase(guildId).runAction(
             state = _uiState,
             effects = _effect,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.NextTrackFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -242,10 +327,8 @@ class CurrentTrackViewModel(
         previousTrackUseCase(guildId).runAction(
             state = _uiState,
             effects = _effect,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.PreviousTrackFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -257,9 +340,6 @@ class CurrentTrackViewModel(
             effects = _effect,
             successEffect = CurrentTrackEffect.RepeatModeChanged,
             failureEffect = CurrentTrackEffect.RepeatModeChangeFailed,
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
@@ -275,7 +355,7 @@ class CurrentTrackViewModel(
         shuffleQueueUseCase(guildId).runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.QueueShuffled,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.ShuffleQueueFailed,
             onLoading = {
                 it.copy(actions = it.actions.copy(isShuffleQueueLoading = true))
@@ -285,9 +365,6 @@ class CurrentTrackViewModel(
             },
             onError = { state, _ ->
                 state.copy(actions = state.actions.copy(isShuffleQueueLoading = false))
-            },
-            afterSuccess = {
-                refresh()
             },
         )
     }
@@ -302,7 +379,7 @@ class CurrentTrackViewModel(
         action.runAction(
             state = _uiState,
             effects = _effect,
-            successEffect = CurrentTrackEffect.PlayPauseToggled,
+            successEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.PlayPauseToggleFailed,
             onLoading = {
                 it.copy(actions = it.actions.copy(isPlayPauseLoading = true))
@@ -313,15 +390,13 @@ class CurrentTrackViewModel(
             onError = { state, _ ->
                 state.copy(actions = state.actions.copy(isPlayPauseLoading = false))
             },
-            afterSuccess = {
-                refresh()
-            },
         )
     }
 
     private fun openDialog(dialog: CurrentTrackDialog) {
         _uiState.update { it.copy(dialog = dialog) }
     }
+
     private fun closeDialog() {
         _uiState.update {
             it.copy(
@@ -330,6 +405,7 @@ class CurrentTrackViewModel(
             )
         }
     }
+
     private fun onLoading() {
         _uiState.update {
             it.copy(
@@ -369,5 +445,126 @@ class CurrentTrackViewModel(
             )
         }
         _effect.emit(CurrentTrackEffect.LoadCurrentTrackFailed)
+    }
+
+    private fun startRealtime(guildId: String) {
+        realtimeJob?.cancel()
+
+        realtimeJob = viewModelScope.launch {
+            observeGuildRealtimeUseCase(guildId).collect { event ->
+                handleRealtimeEvent(event)
+            }
+        }
+    }
+
+    private fun observeRealtimeConnectionState() {
+        connectionStateJob?.cancel()
+        connectionStateJob = viewModelScope.launch {
+            observeRealtimeConnectionStateUseCase().collect { state ->
+                when (state) {
+                    RealtimeConnectionState.Connected -> stopPollingFallback()
+                    RealtimeConnectionState.Disconnected,
+                    RealtimeConnectionState.Reconnecting -> startPollingFallback()
+                    RealtimeConnectionState.Connecting -> Unit
+                }
+            }
+        }
+    }
+
+    private fun startPollingFallback() {
+        if (pollingJob?.isActive == true) return
+
+        pollingJob = viewModelScope.launch {
+            while (isActive) {
+                delay(CurrentTrackPollingFallbackIntervalMillis)
+                refresh(showLoading = false)
+            }
+        }
+    }
+
+    private fun stopPollingFallback() {
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
+    private suspend fun handleRealtimeEvent(event: RealtimeEvent) {
+        when (event.eventName) {
+            MobileRealtimeEventNames.BotControlCommandSucceeded -> {
+                handleBotControlCommandSucceeded(event)
+            }
+
+            MobileRealtimeEventNames.BotControlCommandFailed,
+            MobileRealtimeEventNames.BotControlCommandInterrupted -> {
+                handleBotControlCommandFailed(event)
+            }
+
+            MobileRealtimeEventNames.PlaybackSnapshotChanged,
+            MobileRealtimeEventNames.CurrentTrackChanged,
+            MobileRealtimeEventNames.PlaybackStarted,
+            MobileRealtimeEventNames.PlaybackPaused,
+            MobileRealtimeEventNames.PlaybackResumed,
+            MobileRealtimeEventNames.PlaybackStopped,
+            MobileRealtimeEventNames.PlaybackSkipped,
+            MobileRealtimeEventNames.PlaybackPreviousStarted,
+            MobileRealtimeEventNames.PlaybackLoadFailed,
+            MobileRealtimeEventNames.RepeatModeChanged,
+            MobileRealtimeEventNames.QueueSnapshotChanged,
+            MobileRealtimeEventNames.QueueItemAdded,
+            MobileRealtimeEventNames.QueueItemsAdded,
+            MobileRealtimeEventNames.QueueItemRemoved,
+            MobileRealtimeEventNames.QueueCleared,
+            MobileRealtimeEventNames.QueueShuffled,
+            MobileRealtimeEventNames.QueueItemMoved,
+            MobileRealtimeEventNames.QueueItemClaimed,
+            MobileRealtimeEventNames.QueueCompacted,
+            MobileRealtimeEventNames.RepeatListSnapshotChanged,
+            MobileRealtimeEventNames.GuildBotStatusChanged,
+            MobileRealtimeEventNames.BotJoinedVoiceChannel,
+            MobileRealtimeEventNames.BotLeftVoiceChannel,
+            MobileRealtimeEventNames.BotVoiceUserCountChanged -> {
+                scheduleRealtimeRefresh()
+            }
+        }
+    }
+
+    private suspend fun handleBotControlCommandSucceeded(event: RealtimeEvent) {
+        val commandEvent = event as? BotControlCommandRealtimeEvent ?: return
+        if (!commandEvent.isCurrentUserCommand()) return
+
+        _effect.emit(CurrentTrackEffect.BotCommandSucceeded(commandEvent.type))
+        scheduleRealtimeRefresh()
+    }
+
+    private suspend fun handleBotControlCommandFailed(event: RealtimeEvent) {
+        val commandEvent = event as? BotControlCommandRealtimeEvent ?: return
+        if (!commandEvent.isCurrentUserCommand()) return
+
+        _effect.emit(
+            CurrentTrackEffect.BotCommandFailed(
+                commandType = commandEvent.type,
+                errorKey = commandEvent.errorKey,
+            )
+        )
+        scheduleRealtimeRefresh()
+    }
+
+    private fun BotControlCommandRealtimeEvent.isCurrentUserCommand(): Boolean {
+        return currentUserId?.let { userId == it } ?: true
+    }
+
+    private fun scheduleRealtimeRefresh() {
+        realtimeRefreshRequests.tryEmit(Unit)
+    }
+
+    override fun onCleared() {
+        realtimeJob?.cancel()
+        pollingJob?.cancel()
+        connectionStateJob?.cancel()
+        super.onCleared()
+    }
+
+    private companion object {
+        const val CurrentTrackPollingFallbackIntervalMillis = 15_000L
+        const val CurrentTrackRealtimeRefreshDebounceMillis = 500L
     }
 }

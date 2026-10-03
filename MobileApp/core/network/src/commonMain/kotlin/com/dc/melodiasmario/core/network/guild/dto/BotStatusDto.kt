@@ -8,10 +8,10 @@ data class BotStatusDto(
     val isOnline: Boolean,
     val connectedVoiceChannelName: String? = null,
     val connectedVoiceUserCount: Int,
-)
-
-fun BotStatusDto.toDomain() = BotStatus(
-    isOnline = isOnline,
-    connectedVoiceChannelName = connectedVoiceChannelName,
-    connectedVoiceUserCount = connectedVoiceUserCount
-)
+) {
+    fun toDomain() = BotStatus(
+        isOnline = isOnline,
+        connectedVoiceChannelName = connectedVoiceChannelName,
+        connectedVoiceUserCount = connectedVoiceUserCount,
+    )
+}

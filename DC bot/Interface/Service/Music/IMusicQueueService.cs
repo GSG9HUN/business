@@ -27,6 +27,7 @@ public interface IMusicQueueService
     Task<QueueShuffleResult> ShuffleQueue(ulong guildId);
     Task<QueueRemoveResult> RemoveAt(ulong guildId, int trackNumber);
     Task<QueueMoveResult> Move(ulong guildId, int trackIndex, bool moveUp);
+    Task<QueueMoveResult> MoveToIndex(ulong guildId, int trackIndex, int targetIndex);
 }
 
 public sealed record QueueShuffleResult(bool Success, int TrackCount);

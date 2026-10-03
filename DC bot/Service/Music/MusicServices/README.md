@@ -151,7 +151,31 @@ These services split music functionality into focused responsibilities. Each imp
 - `TryJoinAndValidateAsync()` - Destroy a stale disconnected Lavalink player if one exists, then join the voice channel and validate the new connection
 - `TryGetAndValidateExistingPlayerAsync()` - Validate an existing player and reject disconnected player state before playback controls run
 
+**Join readiness behavior:**
+
+- `TryJoinAndValidateAsync()` starts the Lavalink node before attempting the voice join
+- after `JoinAsync`, validation is delegated to `PlayerConnectionRetryPolicy`
+- the retry path checks both the player returned by `JoinAsync` and the player manager lookup for the guild
+- this protects first-call join/play flows where Discord voice state, Lavalink player state, and the player manager become consistent a few hundred milliseconds after the join call returns
+- validation errors are sent only after the retry budget is exhausted
+
 **Lifecycle:** Both methods accept optional `CancellationToken` values. Join cleanup, Lavalink join, and retry delay paths pass the token through so shutdown can interrupt waits instead of being swallowed as a validation error.
+
+---
+
+### PlayerConnectionRetryPolicy.cs
+
+**Purpose:** Retry player readiness checks after a voice join.
+
+**Key Methods:**
+
+- `ValidateJoinedPlayerAsync()` - Retry validation for the returned join connection and the player manager's guild player until one becomes connected or the retry budget is exhausted
+
+**Notes:**
+
+- Handles the race where the bot has entered the voice channel, but Lavalink4NET does not yet report a connected player
+- Preserves the manager validation error when no joined connection exists and no player appears during retry
+- Uses the caller's `CancellationToken` for retry delays
 
 ---
 

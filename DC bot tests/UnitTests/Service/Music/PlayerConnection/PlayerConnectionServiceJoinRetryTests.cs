@@ -30,6 +30,32 @@ public class PlayerConnectionServiceJoinRetryTests : PlayerConnectionServiceTest
     }
 
     [Fact]
+    public async Task TryJoinAndValidateAsync_PlayerAppearsInManagerOnRetry_ReturnsValid()
+    {
+        SetupJoinAsyncWithInterface();
+
+        var playerMock = new Mock<ILavalinkPlayer>();
+        SetupConnectedPlayer(playerMock);
+
+        ValidationServiceMock
+            .SetupSequence(v => v.ValidatePlayerAsync(AudioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(false, ValidationErrorKeys.LavalinkError, null))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, playerMock.Object));
+
+        ValidationServiceMock
+            .Setup(v => v.ValidateConnectionAsync(playerMock.Object))
+            .ReturnsAsync(new ConnectionValidationResult(true, string.Empty, playerMock.Object));
+
+        var result = await Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
+
+        Assert.True(result.isValid);
+        Assert.Same(playerMock.Object, result.connection);
+        ResponseBuilderMock.Verify(
+            r => r.SendValidationErrorAsync(It.IsAny<IDiscordMessage>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task TryJoinAndValidateAsync_WhenCancellationRequestedDuringRetry_PropagatesCancellation()
     {
         using var cancellation = new CancellationTokenSource();

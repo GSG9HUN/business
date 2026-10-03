@@ -1,7 +1,9 @@
 ﻿package com.dc.melodiasmario.feature.currenttrack.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +30,10 @@ import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.formatter.toDurationLabel
+import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
+import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_artist_requested_by
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_more
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_next
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_pause
@@ -36,12 +41,11 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_p
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_previous
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_repeat
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_repeat_one
-import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
-import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
-import kotlin.math.max
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingCard(
     currentTrack: CurrentTrack,
@@ -61,6 +65,16 @@ fun NowPlayingCard(
 ) {
     val colors = MelodiasMarioThemeTokens.current
     val track = currentTrack.currentTrack ?: return
+    val artistText = track.requestedBy
+        ?.takeIf { it.isNotBlank() }
+        ?.let { requestedBy ->
+            stringResource(
+                Res.string.currenttrack_artist_requested_by,
+                track.artist,
+                requestedBy,
+            )
+        }
+        ?: track.artist
     var displayedPositionSeconds by remember(
         track.id,
         currentTrack.positionSeconds,
@@ -106,7 +120,14 @@ fun NowPlayingCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             MText(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        initialDelayMillis = TrackTitleMarqueeInitialDelayMillis,
+                        repeatDelayMillis = TrackTitleMarqueeRepeatDelayMillis,
+                        velocity = TrackTitleMarqueeVelocity,
+                    ),
                 text = track.title,
                 color = colors.textPrimary,
                 textAlign = TextAlign.Start,
@@ -114,12 +135,12 @@ fun NowPlayingCard(
                 lineHeight = 26.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Clip,
             )
 
             MText(
                 modifier = Modifier.fillMaxWidth(),
-                text = track.artist,
+                text = artistText,
                 color = colors.textSecondary,
                 textAlign = TextAlign.Start,
                 fontSize = 13.sp,
@@ -216,6 +237,10 @@ private fun RepeatMode.toRepeatIcon() = when (this) {
     RepeatMode.ONE -> Res.drawable.ic_player_repeat_one
 }
 
+private const val TrackTitleMarqueeInitialDelayMillis = 1_000
+private const val TrackTitleMarqueeRepeatDelayMillis = 1_500
+private val TrackTitleMarqueeVelocity = 32.dp
+
 
 @Preview
 @Composable
@@ -223,9 +248,10 @@ fun NowPlayingCardPreview() {
     val currentTrack = CurrentTrack(
         currentTrack = com.dc.melodiasmario.core.model.currenttrack.Track(
             id = "1",
-            title = "Sample Track",
+            title = "Sample Track With A Very Long Title That Needs To Scroll Smoothly",
             artist = "Sample Artist",
             durationSeconds = 24000,
+            requestedBy = "GSG9HUN",
         ),
         positionSeconds = 3720,
     )

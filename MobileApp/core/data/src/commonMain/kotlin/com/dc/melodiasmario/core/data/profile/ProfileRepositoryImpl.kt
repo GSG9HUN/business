@@ -6,8 +6,6 @@ import com.dc.melodiasmario.core.model.profile.ProfileData
 import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
 import com.dc.melodiasmario.core.model.settings.UserSettings
 import com.dc.melodiasmario.core.network.profile.ProfileRemoteDataSource
-import com.dc.melodiasmario.core.network.profile.dto.toDomain
-import com.dc.melodiasmario.core.network.profile.dto.toProfileSettingsData
 import com.dc.melodiasmario.core.network.profile.dto.toUpdateProfileSettingsDto
 import org.koin.core.annotation.Single
 

@@ -2,6 +2,7 @@ package com.dc.melodiasmario.core.data.currenttrack
 
 import com.dc.melodiasmario.core.data.auth.AuthorizedSessionProvider
 import com.dc.melodiasmario.core.domain.currenttrack.CurrentTrackRepository
+import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.currenttrack.PlaybackStatus
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.network.currenttrack.CurrentTrackRemoteDataSource
@@ -20,30 +21,30 @@ class CurrentTrackRepositoryImpl(
         )
     }
 
-    override suspend fun nextTrack(guildId: String) {
+    override suspend fun nextTrack(guildId: String): BotControlCommand {
         val accessToken = authorizedSessionProvider.getValidSession()
-        currentTrackRemoteDataSource.nextTrack(
+        return currentTrackRemoteDataSource.nextTrack(
             accessToken = accessToken,
             guildId = guildId,
         )
     }
 
-    override suspend fun previousTrack(guildId: String) {
+    override suspend fun previousTrack(guildId: String): BotControlCommand {
         val accessToken = authorizedSessionProvider.getValidSession()
-        currentTrackRemoteDataSource.previousTrack(
+        return currentTrackRemoteDataSource.previousTrack(
             accessToken = accessToken,
             guildId = guildId,
         )
     }
 
-    override suspend fun play(guildId: String) {
+    override suspend fun play(guildId: String): BotControlCommand {
         val accessToken = authorizedSessionProvider.getValidSession()
-        currentTrackRemoteDataSource.play(accessToken = accessToken, guildId = guildId)
+        return currentTrackRemoteDataSource.play(accessToken = accessToken, guildId = guildId)
     }
 
-    override suspend fun pause(guildId: String) {
+    override suspend fun pause(guildId: String): BotControlCommand {
         val accessToken = authorizedSessionProvider.getValidSession()
-        currentTrackRemoteDataSource.pause(accessToken = accessToken, guildId = guildId)
+        return currentTrackRemoteDataSource.pause(accessToken = accessToken, guildId = guildId)
     }
 
     override suspend fun setRepeatMode(guildId: String, repeatMode: RepeatMode) {

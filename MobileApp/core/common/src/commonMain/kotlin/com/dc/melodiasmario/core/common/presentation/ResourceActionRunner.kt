@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-suspend fun <State, Effect : MviEffect> Flow<Resource<Unit>>.runAction(
+suspend fun <State, Effect : MviEffect, Data> Flow<Resource<Data>>.runAction(
     state: MutableStateFlow<State>,
     effects: MutableSharedFlow<Effect>,
     successEffect: Effect? = null,
