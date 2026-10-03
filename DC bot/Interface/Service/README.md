@@ -51,6 +51,21 @@ Persistence repository contracts used by services moved to `../../../DC bot.Cont
 
 ---
 
+### BotControl/
+
+Bot-control execution contracts used by the bot worker for API-originated commands.
+
+**Files:**
+
+- `IBotControlWorker.cs`
+- `IBotControlCommandDispatcher.cs`
+- `IBotControlContextResolver.cs`
+- `IBotControlDiscordResponseSink.cs`
+- `IBotControlResultFactory.cs`
+- `Models/` - command execution context and result records
+
+---
+
 ### Presentation/
 
 Response and presentation interfaces.

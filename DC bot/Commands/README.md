@@ -20,6 +20,7 @@ aligned between both command surfaces.
 
 Text command implementations grouped by domain.
 
+- `README.md` - text command flow and domain group overview
 - `Music/` - `PlayCommand`, `PauseCommand`, `ResumeCommand`, `SkipCommand`, `JoinCommand`, `LeaveCommand`
 - `Queue/` - `ViewQueueCommand`, `ShuffleCommand`, `RepeatCommand`, `RepeatListCommand`, `ClearCommand`
 - `Playlist/` - `CreatePlaylistCommand`, `SavePlaylistCommand`, `DeletePlaylistCommand`, `AddSongToPlaylistCommand`, `RemoveSongFromPlaylistCommand`, `ListPlaylistsCommand`, `ViewPlaylistCommand`, `LoadPlaylistCommand`, `RenamePlaylistCommand`

@@ -1,6 +1,7 @@
 package com.dc.melodiasmario.core.network.currenttrack
 
 import com.dc.melodiasmario.core.common.AppConstants
+import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.PlaybackStatusDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.SetRepeatModeRequestDto
 import io.ktor.client.HttpClient
@@ -27,25 +28,25 @@ class CurrentTrackApiService(
         }.body<PlaybackStatusDto>()
     }
 
-    suspend fun nextTrack(accessToken: String, guildId: String) {
+    suspend fun nextTrack(accessToken: String, guildId: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/playback/skip") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun previousTrack(accessToken: String, guildId: String) {
+    suspend fun previousTrack(accessToken: String, guildId: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/playback/previous") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun play(accessToken: String, guildId: String) {
+    suspend fun play(accessToken: String, guildId: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/playback/resume") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun pause(accessToken: String, guildId: String) {
+    suspend fun pause(accessToken: String, guildId: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/playback/pause") {
             header("Authorization", "Bearer $accessToken")
         }.body()

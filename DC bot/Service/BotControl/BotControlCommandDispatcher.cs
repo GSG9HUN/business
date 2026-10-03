@@ -32,6 +32,7 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Remove => HandleRemoveAsync(command, cancellationToken),
             BotControlCommandTypes.MoveUp => HandleMoveAsync(command, moveUp: true, cancellationToken),
             BotControlCommandTypes.MoveDown => HandleMoveAsync(command, moveUp: false, cancellationToken),
+            BotControlCommandTypes.MoveToIndex => HandleMoveToIndexAsync(command, cancellationToken),
             BotControlCommandTypes.Pause => HandlePlaybackControlAsync(
                 command,
                 static (service, message, member) => service.PauseAsync(message, member),
@@ -209,6 +210,39 @@ public sealed class BotControlCommandDispatcher(
         return botControlResultFactory.Success(
             command,
             moveUp ? "Track moved up." : "Track moved down.",
+            new { from = moveResult.From, to = moveResult.To },
+            context.VoiceChannelId,
+            context.TextChannelId,
+            context.CanSendDiscordResponse);
+    }
+
+    private async Task<BotControlCommandResult> HandleMoveToIndexAsync(
+        BotControlCommandRecord command,
+        CancellationToken cancellationToken)
+    {
+        if (!TryDeserializePayload<QueueMoveToIndexCommandPayload>(command, out var payload, out var errorResult))
+        {
+            return errorResult!;
+        }
+
+        var context = await botControlContextResolver.ResolveAsync(command, null, cancellationToken);
+        var moveResult = await musicQueueService.MoveToIndex(command.GuildId, payload!.TrackIndex, payload.TargetIndex);
+
+        if (!moveResult.Success)
+        {
+            return botControlResultFactory.Failure(
+                command,
+                "Track cannot be moved to that position.",
+                "InvalidTrackIndex",
+                new { payload.TrackIndex, payload.TargetIndex, queueSize = moveResult.QueueSize },
+                context.VoiceChannelId,
+                context.TextChannelId,
+                context.CanSendDiscordResponse);
+        }
+
+        return botControlResultFactory.Success(
+            command,
+            "Track moved.",
             new { from = moveResult.From, to = moveResult.To },
             context.VoiceChannelId,
             context.TextChannelId,

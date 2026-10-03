@@ -27,8 +27,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_offline
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_online
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_unknown
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_move_down_content_description
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_move_up_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_remove_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
@@ -63,6 +61,7 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_preview_error
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_previous_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_profile_content_description
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_drag_handle_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_repeat_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_topbar_title
@@ -106,12 +105,10 @@ fun CurrentTrackScreen(
             Res.string.currenttrack_play_content_description
         }
     )
-    val moveUpContentDescription =
-        stringResource(CommonUiRes.string.queue_action_move_up_content_description)
-    val moveDownContentDescription =
-        stringResource(CommonUiRes.string.queue_action_move_down_content_description)
     val removeContentDescription =
         stringResource(CommonUiRes.string.queue_action_remove_content_description)
+    val dragHandleContentDescription =
+        stringResource(Res.string.currenttrack_queue_drag_handle_content_description)
 
     SetTopBarConfig(
         TopBarConfig(
@@ -213,12 +210,12 @@ fun CurrentTrackScreen(
                 } else {
                     itemsIndexed(uiState.queue.tracks) { index, track ->
                         QueueTrackCard(
+                            queueNumber = index + 1,
                             track = track,
+                            removeContentDescription = removeContentDescription,
+                            dragHandleContentDescription = dragHandleContentDescription,
                             isFirst = index == 0,
                             isLast = index == uiState.queue.tracks.lastIndex,
-                            moveUpContentDescription = moveUpContentDescription,
-                            moveDownContentDescription = moveDownContentDescription,
-                            removeContentDescription = removeContentDescription,
                             onRemove = {
                                 onEvent(
                                     CurrentTrackEvent.RemoveFromQueueClicked(
@@ -282,7 +279,6 @@ fun CurrentTrackScreen(
                     enabled = !uiState.actions.isClearQueueLoading,
                 ),
             ),
-            dismissText = stringResource(Res.string.currenttrack_cancel),
             onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
         )
     }

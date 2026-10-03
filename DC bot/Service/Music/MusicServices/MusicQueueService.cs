@@ -240,6 +240,33 @@ public class MusicQueueService(
         return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
     }
 
+    public async Task<QueueMoveResult> MoveToIndex(ulong guildId, int trackIndex, int targetIndex)
+    {
+        var queue = await GetQueue(guildId);
+        var tracks = queue.ToList();
+
+        if (trackIndex < 0 ||
+            trackIndex >= tracks.Count ||
+            targetIndex < 0 ||
+            targetIndex >= tracks.Count)
+        {
+            return new QueueMoveResult(false, trackIndex, targetIndex, tracks.Count);
+        }
+
+        if (trackIndex == targetIndex)
+        {
+            return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
+        }
+
+        var track = tracks[trackIndex];
+        tracks.RemoveAt(trackIndex);
+        tracks.Insert(targetIndex, track);
+
+        await SaveQueue(guildId, new Queue<ILavaLinkTrack>(tracks), MobileRealtimeEventNames.QueueItemMoved);
+
+        return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
+    }
+
     private async Task SaveQueue(ulong guildId, Queue<ILavaLinkTrack> shuffledQueue, string realtimeEventName)
     {
         if (shuffledQueue.Count > MaxQueueSize)

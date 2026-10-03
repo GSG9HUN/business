@@ -33,6 +33,7 @@
     <string name="currenttrack_playback_updated">Lejátszás frissítve.</string>
     <string name="currenttrack_moved_up_in_queue">Szám feljebb mozgatva.</string>
     <string name="currenttrack_moved_down_in_queue">Szám lejjebb mozgatva.</string>
+    <string name="currenttrack_moved_in_queue">Szám áthelyezve.</string>
 
     <string name="currenttrack_load_failed">Nem sikerült betölteni az aktuális számot.</string>
     <string name="currenttrack_add_to_queue_failed">A sorhoz adás még nincs bekötve.</string>
@@ -45,4 +46,24 @@
     <string name="currenttrack_play_pause_toggle_failed">Nem sikerült frissíteni a lejátszást.</string>
     <string name="currenttrack_move_up_failed">A feljebb mozgatás még nem elérhető.</string>
     <string name="currenttrack_move_down_failed">A lejjebb mozgatás még nem elérhető.</string>
+    <string name="currenttrack_move_to_index_failed">Az áthelyezés nem sikerült.</string>
+
+    <string name="currenttrack_bot_command_accepted">Parancs elküldve.</string>
+    <string name="currenttrack_bot_command_error_unknown">Nem sikerült végrehajtani a parancsot.</string>
+    <string name="currenttrack_bot_command_error_user_not_in_voice_channel">Előbb lépj be egy voice csatornába.</string>
+    <string name="currenttrack_bot_command_error_player_not_found">A bot jelenleg nem játszik ebben a szerveren.</string>
+    <string name="currenttrack_bot_command_error_no_current_track">Nincs aktuálisan lejátszott zene.</string>
+    <string name="currenttrack_bot_command_error_no_current_or_queued_track">Nincs aktuális vagy sorban álló zene.</string>
+    <string name="currenttrack_bot_command_error_no_previous_track">Nincs előző zene.</string>
+    <string name="currenttrack_bot_command_error_lavalink">Nem sikerült elérni a lejátszót.</string>
+    <string name="currenttrack_bot_command_error_queue_too_small">Legalább két zene kell a keveréshez.</string>
+    <string name="currenttrack_bot_command_error_invalid_track_number">Érvénytelen sorszámú zene.</string>
+    <string name="currenttrack_bot_command_error_invalid_track_index">Ezt a zenét nem lehet arra mozgatni.</string>
+    <string name="currenttrack_bot_command_error_repeat_list_already_enabled">A lista ismétlés már be van kapcsolva.</string>
+    <string name="currenttrack_bot_command_error_repeat_already_enabled">Az egy zene ismétlés már be van kapcsolva.</string>
+    <string name="currenttrack_bot_command_error_play_not_implemented">A mobilos lejátszás indítás még nincs bekötve.</string>
+    <string name="currenttrack_bot_command_error_discord_context_not_found">Nem sikerült feloldani a Discord csatornát.</string>
+    <string name="currenttrack_bot_command_error_interrupted">A parancs megszakadt végrehajtás közben.</string>
+    <string name="currenttrack_artist_requested_by">%1$s - kérte: %2$s</string>
+    <string name="currenttrack_queue_drag_handle_content_description">Sorba rendezesi fogantyu</string>
 </resources>

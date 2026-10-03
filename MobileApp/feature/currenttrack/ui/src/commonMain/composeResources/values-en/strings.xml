@@ -33,6 +33,7 @@
     <string name="currenttrack_playback_updated">Playback updated.</string>
     <string name="currenttrack_moved_up_in_queue">Track moved up.</string>
     <string name="currenttrack_moved_down_in_queue">Track moved down.</string>
+    <string name="currenttrack_moved_in_queue">Track moved.</string>
 
     <string name="currenttrack_load_failed">Failed to load current track.</string>
     <string name="currenttrack_add_to_queue_failed">Add to queue is not wired yet.</string>
@@ -45,4 +46,23 @@
     <string name="currenttrack_play_pause_toggle_failed">Failed to update playback.</string>
     <string name="currenttrack_move_up_failed">Move up is not available yet.</string>
     <string name="currenttrack_move_down_failed">Move down is not available yet.</string>
+    <string name="currenttrack_move_to_index_failed">Could not move track.</string>
+    <string name="currenttrack_bot_command_accepted">Command sent.</string>
+    <string name="currenttrack_bot_command_error_unknown">The command could not be completed.</string>
+    <string name="currenttrack_bot_command_error_user_not_in_voice_channel">Join a voice channel first.</string>
+    <string name="currenttrack_bot_command_error_player_not_found">The bot is not playing on this server right now.</string>
+    <string name="currenttrack_bot_command_error_no_current_track">There is no current track.</string>
+    <string name="currenttrack_bot_command_error_no_current_or_queued_track">There is no current or queued track.</string>
+    <string name="currenttrack_bot_command_error_no_previous_track">There is no previous track.</string>
+    <string name="currenttrack_bot_command_error_lavalink">The player could not be reached.</string>
+    <string name="currenttrack_bot_command_error_queue_too_small">At least two tracks are needed to shuffle.</string>
+    <string name="currenttrack_bot_command_error_invalid_track_number">Invalid track number.</string>
+    <string name="currenttrack_bot_command_error_invalid_track_index">That track cannot be moved in that direction.</string>
+    <string name="currenttrack_bot_command_error_repeat_list_already_enabled">Repeat list is already enabled.</string>
+    <string name="currenttrack_bot_command_error_repeat_already_enabled">Single-track repeat is already enabled.</string>
+    <string name="currenttrack_bot_command_error_play_not_implemented">Starting playback from mobile is not wired yet.</string>
+    <string name="currenttrack_bot_command_error_discord_context_not_found">Could not resolve the Discord channel.</string>
+    <string name="currenttrack_bot_command_error_interrupted">The command was interrupted before completion.</string>
+    <string name="currenttrack_artist_requested_by">%1$s - requested by %2$s</string>
+    <string name="currenttrack_queue_drag_handle_content_description">Queue reorder handle</string>
 </resources>

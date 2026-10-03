@@ -189,6 +189,46 @@ public static class QueueHandlers
         CancellationToken cancellationToken) =>
         MoveAsync(httpContext, trackIndex, BotControlCommandTypes.MoveDown, userRepository, commandsRepository, cancellationToken);
 
+    public static async Task<IResult> MoveToIndexAsync(
+        HttpContext httpContext,
+        int trackIndex,
+        int targetIndex,
+        IMobileAppUserRepository userRepository,
+        IBotControlCommandsRepository commandsRepository,
+        CancellationToken cancellationToken)
+    {
+        var guildId = (ulong)httpContext.Items["guildId"]!;
+        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+            httpContext,
+            userRepository,
+            guildId,
+            cancellationToken);
+        if (accessError is not null)
+        {
+            return accessError;
+        }
+
+        if (trackIndex < 0)
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Track index must be greater than or equal to zero." });
+        }
+
+        if (targetIndex < 0)
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Target index must be greater than or equal to zero." });
+        }
+
+        var payloadJson = JsonSerializer.Serialize(new QueueMoveToIndexCommandPayload(trackIndex, targetIndex));
+        var command = await commandsRepository.EnqueueAsync(
+            guildId,
+            discordUserId,
+            BotControlCommandTypes.MoveToIndex,
+            payloadJson,
+            cancellationToken);
+
+        return BotControlCommandHttpMapper.ToAccepted(command);
+    }
+
     private static async Task<IResult> MoveAsync(
         HttpContext httpContext,
         int trackIndex,

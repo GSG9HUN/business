@@ -1,6 +1,5 @@
 package com.dc.melodiasmario.core.network.auth
 
-import com.dc.melodiasmario.core.network.auth.dto.toDomain
 import com.dc.melodiasmario.core.model.auth.AuthSession
 import com.dc.melodiasmario.core.model.auth.DiscordLoginUrl
 import org.koin.core.annotation.Single

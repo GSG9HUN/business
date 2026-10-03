@@ -121,7 +121,7 @@ class SecureAuthSessionStorageImplTest {
         )
     }
 
-    private object TestAuthSessionCipher : AuthSessionCipher {
+    private object TestAuthSessionCipher : AuthSessionCipher() {
         const val PREFIX = "encrypted:"
 
         override fun encrypt(plainText: String): String = PREFIX + plainText

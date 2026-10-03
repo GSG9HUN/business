@@ -11,6 +11,8 @@ public sealed record QueueRemoveCommandPayload(int TrackNumber);
 
 public sealed record QueueMoveCommandPayload(int TrackIndex);
 
+public sealed record QueueMoveToIndexCommandPayload(int TrackIndex, int TargetIndex);
+
 public sealed record PlaylistCommandPayload(string PlaylistId, string PlaylistName);
 
 public sealed record PlaylistTrackCommandPayload(string PlaylistId, string PlaylistName, string SongUrl);

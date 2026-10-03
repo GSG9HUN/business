@@ -6,6 +6,9 @@ sealed interface CurrentTrackEffect : MviEffect {
     data object NavigateToGuildSelector : CurrentTrackEffect
     data object NavigateToProfile : CurrentTrackEffect
     data object LoadCurrentTrackFailed : CurrentTrackEffect
+    data object BotCommandAccepted : CurrentTrackEffect
+    data class BotCommandSucceeded(val commandType: String) : CurrentTrackEffect
+    data class BotCommandFailed(val commandType: String, val errorKey: String?) : CurrentTrackEffect
     data object AddedToQueue : CurrentTrackEffect
     data object AddToQueueFailed : CurrentTrackEffect
     data object RemovedFromQueue : CurrentTrackEffect

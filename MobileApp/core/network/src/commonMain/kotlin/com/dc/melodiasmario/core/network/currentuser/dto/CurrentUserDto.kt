@@ -9,11 +9,11 @@ data class CurrentUserDto(
     val displayName: String,
     val username: String,
     val avatarUrl: String?
-)
-
-fun CurrentUserDto.toDomain() = CurrentUser(
-    id = discordUserId,
-    displayName = displayName,
-    username = username,
-    avatarUrl = avatarUrl
-)
+) {
+    fun toDomain() = CurrentUser(
+        id = discordUserId,
+        displayName = displayName,
+        username = username,
+        avatarUrl = avatarUrl,
+    )
+}
