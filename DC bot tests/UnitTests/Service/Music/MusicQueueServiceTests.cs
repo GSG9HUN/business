@@ -489,7 +489,7 @@ public class MusicQueueServiceTests
         Assert.Equal(1, result.To);
         Assert.Equal(1, result.QueueSize);
         _queueRepositoryMock.Verify(
-            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
+            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<string?>(), CancellationToken.None),
             Times.Never);
     }
 
