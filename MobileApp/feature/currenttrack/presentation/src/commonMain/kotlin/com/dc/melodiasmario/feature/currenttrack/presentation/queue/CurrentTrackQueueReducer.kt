@@ -8,6 +8,7 @@ internal object CurrentTrackQueueReducer {
         fromIndex: Int,
         toIndex: Int,
     ): CurrentTrackUiState {
+        if (fromIndex !in state.queue.tracks.indices || toIndex !in state.queue.tracks.indices) return state
         val tracks = state.queue.tracks.toMutableList()
         val item = tracks.removeAt(fromIndex)
         tracks.add(toIndex, item)
