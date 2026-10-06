@@ -1,15 +1,12 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation.search
 
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.common.TrackSearchPrefix
 import com.dc.melodiasmario.core.common.presentation.runAction
+import com.dc.melodiasmario.core.commonui.music.model.MAddMusicMode
+import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
 import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
-import com.dc.melodiasmario.core.model.search.MusicSearchResult
-import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEffect
-import com.dc.melodiasmario.feature.currenttrack.presentation.addmusic.CurrentTrackAddMusicMode
-import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackSearchUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -66,20 +63,20 @@ internal class CurrentTrackSearchController(
         }
     }
 
-    fun onProviderChanged(provider: TrackSearchPrefix) {
+    fun onProviderChanged(providerId: String) {
         cancelInFlightSearch()
-        state.update { CurrentTrackSearchReducer.providerChanged(it, provider) }
+        state.update { CurrentTrackSearchReducer.providerChanged(it, providerId) }
 
-        if (state.value.search.query.trim().length >= MinSearchQueryLength) {
+        if (state.value.addMusic.query.trim().length >= MinSearchQueryLength) {
             submit()
         }
     }
 
-    fun onKindChanged(kind: MusicSearchResultKind) {
+    fun onKindChanged(kind: MMusicSearchKind) {
         cancelInFlightSearch()
         state.update { CurrentTrackSearchReducer.kindChanged(it, kind) }
 
-        if (state.value.search.query.trim().length >= MinSearchQueryLength) {
+        if (state.value.addMusic.query.trim().length >= MinSearchQueryLength) {
             submit()
         }
     }
@@ -97,7 +94,7 @@ internal class CurrentTrackSearchController(
     }
 
     fun loadNextPage() {
-        val search = state.value.search
+        val search = state.value.addMusic
         if (search.nextPageToken == null || search.isLoadingNextPage || search.isSearching) return
 
         val requestKey = nextRequestKey()
@@ -106,19 +103,17 @@ internal class CurrentTrackSearchController(
         }
     }
 
-    fun selectResult(result: MusicSearchResult) {
-        state.update { CurrentTrackSearchReducer.resultSelected(it, result) }
+    fun selectResult(resultId: String) {
+        state.update { CurrentTrackSearchReducer.resultSelected(it, resultId = resultId) }
     }
 
-    fun updateMode(mode: CurrentTrackAddMusicMode) {
+    fun updateMode(mode: MAddMusicMode) {
         state.update { CurrentTrackSearchReducer.modeChanged(it, mode) }
     }
 
     fun clear() {
         cancelInFlightSearch()
-        state.update {
-            it.copy(search = CurrentTrackSearchUiState())
-        }
+        state.update(CurrentTrackSearchReducer::reset)
     }
 
     fun cancel() {
@@ -131,14 +126,17 @@ internal class CurrentTrackSearchController(
         append: Boolean,
     ) {
         val guildId = currentGuildIdProvider() ?: return
-        val search = state.value.search
+        val search = state.value.addMusic
         val query = search.query.trim()
+
+        val provider = search.selectedProviderId.toTrackSearchPrefixOrDefault()
+        val kind = search.selectedKind.toDomainKind()
         if (query.length < MinSearchQueryLength) return
 
         searchMusicUseCase(
             guildId = guildId,
-            provider = search.selectedProvider,
-            kind = search.selectedKind,
+            provider = provider,
+            kind = kind,
             query = query,
             pageToken = if (append) search.nextPageToken else null,
         ).collect { result ->

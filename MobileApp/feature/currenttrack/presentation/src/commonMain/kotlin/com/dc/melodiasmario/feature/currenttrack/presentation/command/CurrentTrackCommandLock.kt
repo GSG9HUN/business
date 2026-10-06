@@ -11,14 +11,20 @@ internal class CurrentTrackCommandLock(
         if (state.value.actions.isCommandInFlight) return false
 
         state.update {
-            it.copy(actions = it.actions.copy(isCommandInFlight = true))
+            it.copy(
+                actions = it.actions.copy(isCommandInFlight = true),
+                addMusic = it.addMusic.copy(commandInFlight = true),
+            )
         }
         return true
     }
 
     fun finish() {
         state.update {
-            it.copy(actions = it.actions.copy(isCommandInFlight = false))
+            it.copy(
+                actions = it.actions.copy(isCommandInFlight = false),
+                addMusic = it.addMusic.copy(commandInFlight = false),
+            )
         }
     }
 }
