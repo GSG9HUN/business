@@ -40,6 +40,9 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.commonui.guild.botStatusText
+import com.dc.melodiasmario.core.commonui.music.components.MAddMusicSheet
+import com.dc.melodiasmario.core.commonui.music.components.rememberMAddMusicLabels
+import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
 import com.dc.melodiasmario.core.commonui.reorder.calculateReorderDropTargetIndex
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
@@ -47,10 +50,6 @@ import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.model.currenttrack.Track
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_content_description
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_action
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_placeholder
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_title
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_cancel
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_clear_queue_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_message
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_title
@@ -71,13 +70,11 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_topbar_title
 import com.dc.melodiasmario.feature.currenttrack.presentation.dialog.CurrentTrackDialog
-import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackAddToQueueUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackHeaderUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackPlaybackUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackQueueUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
-import com.dc.melodiasmario.feature.currenttrack.ui.components.AddMusicSheet
 import com.dc.melodiasmario.feature.currenttrack.ui.components.CurrentTrackPlaceholder
 import com.dc.melodiasmario.feature.currenttrack.ui.components.NowPlayingCard
 import com.dc.melodiasmario.feature.currenttrack.ui.components.QueueEmptyCard
@@ -289,10 +286,9 @@ fun CurrentTrackScreen(
     }
 
     if (uiState.dialog is CurrentTrackDialog.AddToQueue) {
-        AddMusicSheet(
-            searchState = uiState.search,
-            addToQueueState = uiState.addToQueue,
-            commandInFlight = uiState.actions.isCommandInFlight,
+        MAddMusicSheet(
+            state = uiState.addMusic,
+            labels = rememberMAddMusicLabels(),
             onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
             onModeChanged = { onEvent(CurrentTrackEvent.AddMusicModeChanged(it)) },
             onManualDraftChanged = { onEvent(CurrentTrackEvent.AddToQueueDraftChanged(it)) },
@@ -405,8 +401,9 @@ fun CurrentTrackScreenAddToQueueDialogPreview() {
                 queue = CurrentTrackQueueUiState(
                     tracks = previewNextTracks,
                 ),
-                addToQueue = CurrentTrackAddToQueueUiState(
-                    draft = "https://open.spotify.com/track/sample",
+                addMusic = MAddMusicSheetState(
+                    manualDraft = "https://open.spotify.com/track/sample",
+                    canSubmitManual = true,
                 ),
                 dialog = CurrentTrackDialog.AddToQueue,
             ),

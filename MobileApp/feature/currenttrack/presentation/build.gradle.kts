@@ -46,6 +46,7 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 implementation(project(":core:common"))
+                implementation(project(":core:common-ui"))
                 implementation(project(":core:domain"))
                 implementation(project(":core:model"))
 

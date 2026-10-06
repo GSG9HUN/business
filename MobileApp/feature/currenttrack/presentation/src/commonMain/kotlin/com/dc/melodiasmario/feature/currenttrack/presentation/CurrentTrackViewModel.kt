@@ -20,6 +20,7 @@ import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUse
 import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveRealtimeConnectionStateUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
+import com.dc.melodiasmario.core.commonui.music.validation.canSubmitMusicInput
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
 import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
@@ -198,12 +199,12 @@ class CurrentTrackViewModel(
             CurrentTrackEvent.PlayPauseClicked -> runCommandIfIdle { handleCommandEvent(event) }
             is CurrentTrackEvent.MoveToIndexClicked -> runCommandIfIdle { handleCommandEvent(event) }
             is CurrentTrackEvent.SearchQueryChanged -> searchController.onQueryChanged(event.query)
-            is CurrentTrackEvent.SearchProviderChanged -> searchController.onProviderChanged(event.provider)
+            is CurrentTrackEvent.SearchProviderChanged -> searchController.onProviderChanged(event.providerId)
             is CurrentTrackEvent.SearchKindChanged -> searchController.onKindChanged(event.kind)
             CurrentTrackEvent.SearchSubmitted -> searchController.submit()
             CurrentTrackEvent.SearchRetryClicked -> searchController.retry()
             CurrentTrackEvent.SearchNextPageRequested -> searchController.loadNextPage()
-            is CurrentTrackEvent.SearchResultClicked -> searchController.selectResult(event.result)
+            is CurrentTrackEvent.SearchResultClicked -> searchController.selectResult(event.resultId)
             CurrentTrackEvent.SelectedSearchResultAddClicked -> runCommandIfIdle {
                 handleCommandEvent(event)
             }
@@ -291,7 +292,12 @@ class CurrentTrackViewModel(
 
     private fun updateAddToQueueDraft(value: String) {
         _uiState.update {
-            it.copy(addToQueue = it.addToQueue.copy(draft = value))
+            it.copy(
+                addMusic = it.addMusic.copy(
+                    manualDraft = value,
+                    canSubmitManual = value.canSubmitMusicInput(),
+                )
+            )
         }
     }
 
@@ -304,7 +310,11 @@ class CurrentTrackViewModel(
         _uiState.update {
             it.copy(
                 dialog = CurrentTrackDialog.None,
-                addToQueue = it.addToQueue.copy(draft = ""),
+                addMusic = it.addMusic.copy(
+                    manualDraft = "",
+                    canSubmitManual = false,
+                    isManualLoading = false,
+                ),
             )
         }
     }

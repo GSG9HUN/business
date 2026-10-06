@@ -74,14 +74,15 @@ internal class CurrentTrackCommandHandler(
     }
 
     private suspend fun addToQueue() {
-        val urlOrQuery = state.value.addToQueue.draft.trim()
-        if (!state.value.addToQueue.canSubmit) return
+        val urlOrQuery = state.value.addMusic.manualDraft.trim()
+        if (!state.value.addMusic.canSubmitManual) return
 
         enqueueQuery(urlOrQuery, closeAfterAccepted = true)
     }
 
     private suspend fun addSelectedSearchResultToQueue() {
-        val result = state.value.search.selectedResult ?: return
+        val addMusic = state.value.addMusic
+        val result = addMusic.results.firstOrNull { it.id == addMusic.selectedResultId } ?: return
         val canonicalUrl = result.canonicalUrl ?: return
 
         enqueueQuery(canonicalUrl, closeAfterAccepted = true)
@@ -210,7 +211,7 @@ internal class CurrentTrackCommandHandler(
         isLoading: Boolean,
     ): CurrentTrackUiState {
         return currentState.copy(
-            addToQueue = currentState.addToQueue.copy(isLoading = isLoading)
+            addMusic = currentState.addMusic.copy(isManualLoading = isLoading)
         )
     }
 
