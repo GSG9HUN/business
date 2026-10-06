@@ -186,6 +186,7 @@ fun MQueueTrackCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MQueueRemoveButton(
+                    modifier = Modifier.zIndex(2f),
                     contentDescription = removeContentDescription,
                     onClick = onRemove,
                 )

@@ -31,6 +31,9 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_next_track_failed
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_play_pause_toggle_failed
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_playback_updated
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_track_paused
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_track_resumed
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_track_skipped
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_previous_track_failed
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_shuffled
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_remove_from_queue_failed
@@ -130,6 +133,10 @@ internal data class CurrentTrackCommandMessages(
     private val queueShuffled: String,
     private val movedInQueue: String,
     private val repeatModeChanged: String,
+    private val addedToQueue: String,
+    private val trackSkipped: String,
+    private val trackPaused: String,
+    private val trackResumed: String,
     private val playPauseToggleFailed: String,
     private val nextTrackFailed: String,
     private val previousTrackFailed: String,
@@ -155,10 +162,10 @@ internal data class CurrentTrackCommandMessages(
     private val interrupted: String,
 ) {
     fun successMessageFor(commandType: String): String = when (commandType) {
-        BotControlCommandTypes.Play,
-        BotControlCommandTypes.Pause,
-        BotControlCommandTypes.Resume,
-        BotControlCommandTypes.Skip,
+        BotControlCommandTypes.Play -> addedToQueue
+        BotControlCommandTypes.Pause -> trackPaused
+        BotControlCommandTypes.Resume -> trackResumed
+        BotControlCommandTypes.Skip -> trackSkipped
         BotControlCommandTypes.Previous -> playbackUpdated
 
         BotControlCommandTypes.Clear -> clearedQueue
@@ -218,6 +225,10 @@ internal fun currentTrackCommandMessages() = CurrentTrackCommandMessages(
     queueShuffled = stringResource(Res.string.currenttrack_queue_shuffled),
     movedInQueue = stringResource(Res.string.currenttrack_moved_in_queue),
     repeatModeChanged = stringResource(Res.string.currenttrack_repeat_mode_changed),
+    addedToQueue = stringResource(Res.string.currenttrack_added_to_queue),
+    trackSkipped = stringResource(Res.string.currenttrack_track_skipped),
+    trackPaused = stringResource(Res.string.currenttrack_track_paused),
+    trackResumed = stringResource(Res.string.currenttrack_track_resumed),
     playPauseToggleFailed = stringResource(Res.string.currenttrack_play_pause_toggle_failed),
     nextTrackFailed = stringResource(Res.string.currenttrack_next_track_failed),
     previousTrackFailed = stringResource(Res.string.currenttrack_previous_track_failed),

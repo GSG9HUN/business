@@ -26,6 +26,9 @@
   <string name="currenttrack_repeat_mode_changed">Ismétlési mód módosítva.</string>
   <string name="currenttrack_queue_shuffled">Sor keverve.</string>
   <string name="currenttrack_playback_updated">Lejátszás frissítve.</string>
+  <string name="currenttrack_track_skipped">Szám átugorva.</string>
+  <string name="currenttrack_track_paused">Lejátszás szüneteltetve.</string>
+  <string name="currenttrack_track_resumed">Lejátszás folytatva.</string>
   <string name="currenttrack_moved_in_queue">Szám áthelyezve.</string>
   <string name="currenttrack_load_failed">Nem sikerült betölteni az aktuális számot.</string>
   <string name="currenttrack_search_failed">Nem sikerült a keresés. Próbáld újra.</string>

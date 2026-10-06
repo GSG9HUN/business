@@ -27,6 +27,9 @@
     <string name="currenttrack_repeat_mode_changed">Repeat mode changed.</string>
     <string name="currenttrack_queue_shuffled">Queue shuffled.</string>
     <string name="currenttrack_playback_updated">Playback updated.</string>
+    <string name="currenttrack_track_skipped">Track skipped.</string>
+    <string name="currenttrack_track_paused">Track paused.</string>
+    <string name="currenttrack_track_resumed">Track resumed.</string>
     <string name="currenttrack_moved_in_queue">Track moved.</string>
 
     <string name="currenttrack_load_failed">Failed to load current track.</string>

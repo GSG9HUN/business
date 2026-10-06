@@ -186,9 +186,7 @@ class CurrentTrackViewModel(
             CurrentTrackEvent.AddToQueueConfirmed -> runCommandIfIdle { handleCommandEvent(event) }
             CurrentTrackEvent.DialogDismissed -> closeDialog()
             is CurrentTrackEvent.RemoveFromQueueClicked -> runCommandIfIdle {
-                handleCommandEvent(
-                    event
-                )
+                handleCommandEvent(event)
             }
 
             CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event) }
