@@ -32,7 +32,6 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":core:common"))
-                implementation(project(":core:model"))
 
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.compose.runtime)

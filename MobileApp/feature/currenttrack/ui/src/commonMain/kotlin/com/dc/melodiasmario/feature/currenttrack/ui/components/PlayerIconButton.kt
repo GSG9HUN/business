@@ -8,7 +8,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,15 +30,19 @@ fun PlayerIconButton(
     val colors = MelodiasMarioThemeTokens.current
 
     Surface(
-        modifier = Modifier.size(40.dp),
+        modifier = Modifier.size(48.dp),
         shape = CircleShape,
-        color = Color.Transparent,
+        color = if (selected) {
+            colors.primaryAlt.copy(alpha = 0.18f)
+        } else {
+            colors.elevated
+        },
         enabled = enabled,
         onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Image(
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(24.dp),
                 painter = painterResource(icon),
                 contentDescription = contentDescription,
                 colorFilter = ColorFilter.tint(

@@ -2,12 +2,16 @@ package com.dc.melodiasmario.core.commonui.designsystem.components.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
@@ -23,8 +27,8 @@ fun MMoreActionsDialog(
     title: String,
     message: String,
     actions: List<MMoreAction>,
-    dismissText: String,
     onDismiss: () -> Unit,
+    dismissText: String? = null,
 ) {
     val colors = MelodiasMarioThemeTokens.current
     val primaryAction = actions.firstOrNull()
@@ -35,9 +39,12 @@ fun MMoreActionsDialog(
         containerColor = colors.surface,
         title = {
             MText(
+                modifier = Modifier.fillMaxWidth(),
                 text = title,
                 color = colors.textPrimary,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
             )
         },
         text = {
@@ -73,8 +80,10 @@ fun MMoreActionsDialog(
                         )
                     }
                 }
-                OutlinedButton(onClick = onDismiss) {
-                    MText(text = dismissText, color = colors.textSecondary)
+                dismissText?.let { text ->
+                    OutlinedButton(onClick = onDismiss) {
+                        MText(text = text, color = colors.textSecondary)
+                    }
                 }
             }
         },

@@ -52,6 +52,10 @@ Subcomponents:
 
 Message/embed response construction and sending.
 
+### BotControl/
+
+Bot-side execution of commands submitted by the API. The bot worker claims persisted commands, resolves Discord context, dispatches music/queue/playback actions, and persists command results for API realtime updates.
+
 ### SlashCommands/
 
 Slash command execution adapters that turn DSharpPlus interaction contexts into the existing text command pipeline.
@@ -89,4 +93,5 @@ Lavalink / PostgreSQL / Discord
 - `DC bot.Contracts/Interface/Service/Persistence/` - persistence contracts
 - `DC bot.Persistence/` - repository implementations
 - `Commands/` - service consumers
+- `API/Handlers/BotControl/` - API command creation/status boundary
 

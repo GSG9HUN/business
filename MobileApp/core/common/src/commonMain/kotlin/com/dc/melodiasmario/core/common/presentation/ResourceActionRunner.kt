@@ -6,13 +6,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-suspend fun <State, Effect : MviEffect> Flow<Resource<Unit>>.runAction(
+suspend fun <State, Effect : MviEffect, Data> Flow<Resource<Data>>.runAction(
     state: MutableStateFlow<State>,
     effects: MutableSharedFlow<Effect>,
     successEffect: Effect? = null,
     failureEffect: Effect,
     onLoading: ((State) -> State)? = null,
     onSuccess: ((State) -> State)? = null,
+    onSuccessWithData: ((State, Data) -> State)? = null,
     onError: ((State, Throwable) -> State)? = null,
     afterSuccess: (suspend () -> Unit)? = null,
 ) {
@@ -27,6 +28,9 @@ suspend fun <State, Effect : MviEffect> Flow<Resource<Unit>>.runAction(
             is Resource.Success -> {
                 onSuccess?.let { reducer ->
                     state.update(reducer)
+                }
+                onSuccessWithData?.let { reducer ->
+                    state.update { reducer(it, result.data) }
                 }
                 successEffect?.let { effects.emit(it) }
                 afterSuccess?.invoke()

@@ -48,6 +48,8 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.microsoft.signalr)
+                implementation(libs.rxjava3)
             }
         }
         iosMain {

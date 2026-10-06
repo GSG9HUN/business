@@ -19,13 +19,3 @@ data class PlaylistDto(
         )
     }
 }
-
-@Serializable
-data class RenamePlaylistRequestDto(
-    val newName: String
-)
-
-@Serializable
-data class CreatePlaylistRequestDto(
-    val playlistName: String
-)

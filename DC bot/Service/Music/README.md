@@ -70,6 +70,20 @@ Deezer, Yandex Music, and Bandcamp. Unknown absolute URLs resolve to `TrackSearc
 
 ---
 
+### MusicPlaybackArchitectureAndFixPlan.md
+
+**Purpose:** Architecture and fix-plan note for playback, queue, repeat-list, previous, API, and MobileApp flows.
+
+**Covers:**
+
+- expected Discord playback flow
+- expected API and MobileApp realtime flow
+- repeat-list and previous behavior rules
+- join/play first-call readiness failure points
+- implementation areas for future queue/repeat/previous hardening
+
+---
+
 ## Subfolders
 
 ### MusicServices/
@@ -86,6 +100,7 @@ Granular music component services.
 - `PlaybackEventHandlerService.cs`
 - `PlaybackRequestService.cs`
 - `PlayerConnectionService.cs`
+- `PlayerConnectionRetryPolicy.cs`
 - `RepeatService.cs`
 - `TrackEndedHandlerService.cs`
 - `TrackFormatterService.cs`

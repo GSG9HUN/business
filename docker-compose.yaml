@@ -84,6 +84,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       LAVALINK_HOSTNAME: lavalink
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD:-nagyon_eros_jelszo}
+      LAVALINK_PORT: 2333
+      LAVALINK_SECURED: false
     ports:
       - "5281:8080"
     networks:

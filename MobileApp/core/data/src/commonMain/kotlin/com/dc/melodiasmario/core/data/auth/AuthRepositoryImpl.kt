@@ -11,24 +11,28 @@ import org.koin.core.annotation.Single
 @Single(binds = [AuthRepository::class])
 class AuthRepositoryImpl (
     private val authRemoteDataSource: AuthRemoteDataSource,
-    private val secureAuthSessionStorage: SecureAuthSessionStorage
+    private val secureAuthSessionStorage: SecureAuthSessionStorage,
+    private val authSessionMemoryCache: AuthSessionMemoryCache,
 ): AuthRepository {
     override suspend fun startDiscordLogin(): DiscordLoginUrl = authRemoteDataSource.startDiscordLogin()
 
     override suspend fun exchangeTicket(ticket: String): AuthSession {
         val session = authRemoteDataSource.exchangeTicket(ticket = ticket)
         secureAuthSessionStorage.saveSession(session)
+        authSessionMemoryCache.save(session)
         return session
     }
 
     override suspend fun refreshSession(refreshToken: String): AuthSession {
         val session = authRemoteDataSource.refreshSession(refreshToken = refreshToken)
         secureAuthSessionStorage.saveSession(session)
+        authSessionMemoryCache.save(session)
         return session
     }
 
     override suspend fun logout(refreshToken: String) {
         authRemoteDataSource.logout(refreshToken = refreshToken)
         secureAuthSessionStorage.clearSession()
+        authSessionMemoryCache.clear()
     }
 }

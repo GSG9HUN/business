@@ -220,11 +220,10 @@ public class MusicQueueService(
         return new QueueRemoveResult(true, trackNumber, result.QueueSize, removedTrack?.Title);
     }
 
-    public async Task<QueueMoveResult> Move(ulong guildId, int trackIndex, bool moveUp)
+    public async Task<QueueMoveResult> MoveToIndex(ulong guildId, int trackIndex, int targetIndex)
     {
         var queue = await GetQueue(guildId);
         var tracks = queue.ToList();
-        var targetIndex = moveUp ? trackIndex - 1 : trackIndex + 1;
 
         if (trackIndex < 0 ||
             trackIndex >= tracks.Count ||
@@ -234,7 +233,15 @@ public class MusicQueueService(
             return new QueueMoveResult(false, trackIndex, targetIndex, tracks.Count);
         }
 
-        (tracks[trackIndex], tracks[targetIndex]) = (tracks[targetIndex], tracks[trackIndex]);
+        if (trackIndex == targetIndex)
+        {
+            return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
+        }
+
+        var track = tracks[trackIndex];
+        tracks.RemoveAt(trackIndex);
+        tracks.Insert(targetIndex, track);
+
         await SaveQueue(guildId, new Queue<ILavaLinkTrack>(tracks), MobileRealtimeEventNames.QueueItemMoved);
 
         return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);

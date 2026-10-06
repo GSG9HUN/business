@@ -9,7 +9,7 @@ public sealed record QueueEnqueueCommandPayload(
 
 public sealed record QueueRemoveCommandPayload(int TrackNumber);
 
-public sealed record QueueMoveCommandPayload(int TrackIndex);
+public sealed record QueueMoveToIndexCommandPayload(int TrackIndex, int TargetIndex);
 
 public sealed record PlaylistCommandPayload(string PlaylistId, string PlaylistName);
 
