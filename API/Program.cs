@@ -112,9 +112,6 @@ app.UseRateLimiter();
 app.MapHub<MobileUpdatesHub>("/hubs/mobile")
     .RequireAuthorization();
 
-app.MapHub<MobileUpdatesHub>("/hubs/mobile")
-    .RequireAuthorization();
-
 var api = app.MapGroup("/api");
 api.MapGuildEndpoints()
     .MapProfileEndpoints()
