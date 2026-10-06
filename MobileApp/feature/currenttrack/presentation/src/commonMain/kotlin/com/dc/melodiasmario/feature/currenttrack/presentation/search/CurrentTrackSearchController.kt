@@ -1,6 +1,5 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation.search
 
-import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.common.presentation.runAction
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicMode
 import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
@@ -11,6 +10,7 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -139,34 +139,24 @@ internal class CurrentTrackSearchController(
             kind = kind,
             query = query,
             pageToken = if (append) search.nextPageToken else null,
-        ).collect { result ->
-            if (requestKey != searchRequestKey) return@collect
-
-            when (result) {
-                Resource.Loading -> {
-                    state.update { CurrentTrackSearchReducer.searchLoading(it, append) }
-                }
-
-                is Resource.Success -> {
-                    state.update {
-                        CurrentTrackSearchReducer.searchLoaded(
-                            state = it,
-                            page = result.data,
-                            append = append,
-                        )
-                    }
-                }
-
-                is Resource.Error -> {
-                    state.update {
-                        CurrentTrackSearchReducer.searchFailed(
-                            state = it,
-                            error = result.error,
-                        )
-                    }
-                }
-            }
-        }
+        )
+            .filter { requestKey == searchRequestKey }
+            .runAction(
+                state = state,
+                effects = effects,
+                failureEffect = CurrentTrackEffect.SearchFailed,
+                onLoading = { currentState ->
+                    CurrentTrackSearchReducer.searchLoading(currentState, append)
+                },
+                onSuccessWithData = { currentState, page ->
+                    CurrentTrackSearchReducer.searchLoaded(
+                        state = currentState,
+                        page = page,
+                        append = append,
+                    )
+                },
+                onError = CurrentTrackSearchReducer::searchFailed,
+            )
     }
 
     private fun cancelInFlightSearch() {

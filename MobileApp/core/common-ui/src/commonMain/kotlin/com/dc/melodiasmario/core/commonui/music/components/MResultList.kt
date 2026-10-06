@@ -3,7 +3,7 @@ package com.dc.melodiasmario.core.commonui.music.components
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,7 +22,10 @@ fun MResultList(
         modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(state.results, key = { it.id }) { result ->
+        itemsIndexed(
+            items = state.results,
+            key = { index, result -> "${result.id}:$index" },
+        ) { _, result ->
             MSearchResultRow(
                 result = result,
                 labels = labels,

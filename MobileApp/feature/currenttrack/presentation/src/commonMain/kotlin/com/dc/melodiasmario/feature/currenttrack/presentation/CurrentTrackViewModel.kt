@@ -3,6 +3,7 @@ package com.dc.melodiasmario.feature.currenttrack.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
+import com.dc.melodiasmario.core.common.presentation.runAction
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
@@ -261,13 +262,22 @@ class CurrentTrackViewModel(
         showLoading: Boolean,
     ) {
         currentGuildId = guildId
-        getCurrentTrackUseCase(guildId).collect { result ->
-            when (result) {
-                Resource.Loading -> if (showLoading) onLoading()
-                is Resource.Success -> onGetCurrentTrackSuccess(result.data)
-                is Resource.Error -> onGetCurrentTrackError(result.error)
-            }
-        }
+        getCurrentTrackUseCase(guildId).runAction(
+            state = _uiState,
+            effects = _effect,
+            failureEffect = CurrentTrackEffect.LoadCurrentTrackFailed,
+            onLoading = if (showLoading) {
+                { currentState -> currentState.loading() }
+            } else {
+                null
+            },
+            onSuccessWithData = { currentState, currentTrack ->
+                currentState.currentTrackLoaded(currentTrack)
+            },
+            onError = { currentState, error ->
+                currentState.currentTrackFailed(error)
+            },
+        )
     }
 
     private suspend fun refresh(showLoading: Boolean = false) {
@@ -319,45 +329,38 @@ class CurrentTrackViewModel(
         }
     }
 
-    private fun onLoading() {
-        _uiState.update {
-            it.copy(
-                isLoading = true,
-                errorMessage = null,
-            )
-        }
+    private fun CurrentTrackUiState.loading(): CurrentTrackUiState {
+        return copy(
+            isLoading = true,
+            errorMessage = null,
+        )
     }
 
-    private fun onGetCurrentTrackSuccess(currentTrack: CurrentTrack) {
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                errorMessage = null,
-                header = it.header.copy(
-                    guildName = currentTrack.guildName,
-                    guildIconUrl = currentTrack.guildIconUrl,
-                    guildBotStatus = currentTrack.guildBotStatus,
-                ),
-                playback = it.playback.copy(
-                    currentTrack = currentTrack,
-                    isPlaying = currentTrack.isPlaying,
-                    repeatMode = currentTrack.repeatMode,
-                ),
-                queue = it.queue.copy(
-                    tracks = currentTrack.queuedTracks,
-                ),
-            )
-        }
+    private fun CurrentTrackUiState.currentTrackLoaded(currentTrack: CurrentTrack): CurrentTrackUiState {
+        return copy(
+            isLoading = false,
+            errorMessage = null,
+            header = header.copy(
+                guildName = currentTrack.guildName,
+                guildIconUrl = currentTrack.guildIconUrl,
+                guildBotStatus = currentTrack.guildBotStatus,
+            ),
+            playback = playback.copy(
+                currentTrack = currentTrack,
+                isPlaying = currentTrack.isPlaying,
+                repeatMode = currentTrack.repeatMode,
+            ),
+            queue = queue.copy(
+                tracks = currentTrack.queuedTracks,
+            ),
+        )
     }
 
-    private suspend fun onGetCurrentTrackError(error: Throwable) {
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                errorMessage = error.message,
-            )
-        }
-        _effect.emit(CurrentTrackEffect.LoadCurrentTrackFailed)
+    private fun CurrentTrackUiState.currentTrackFailed(error: Throwable): CurrentTrackUiState {
+        return copy(
+            isLoading = false,
+            errorMessage = error.message,
+        )
     }
 
     private suspend fun handleRealtimeEvent(event: RealtimeEvent) {

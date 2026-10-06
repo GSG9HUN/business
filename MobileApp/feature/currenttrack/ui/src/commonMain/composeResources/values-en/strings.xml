@@ -30,6 +30,7 @@
     <string name="currenttrack_moved_in_queue">Track moved.</string>
 
     <string name="currenttrack_load_failed">Failed to load current track.</string>
+    <string name="currenttrack_search_failed">Search failed. Please try again.</string>
     <string name="currenttrack_add_to_queue_failed">Add to queue is not wired yet.</string>
     <string name="currenttrack_remove_from_queue_failed">Remove from queue is not available yet.</string>
     <string name="currenttrack_clear_queue_failed">Failed to clear queue.</string>

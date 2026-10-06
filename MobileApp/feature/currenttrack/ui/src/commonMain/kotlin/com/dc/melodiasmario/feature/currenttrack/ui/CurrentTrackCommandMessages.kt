@@ -38,6 +38,7 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_repeat_mode_change_failed
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_repeat_mode_changed
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_queue_failed
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_search_failed
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEffect
 import org.jetbrains.compose.resources.stringResource
 
@@ -50,6 +51,7 @@ internal data class CurrentTrackEffectMessages(
     private val queueShuffled: String,
     private val playbackUpdated: String,
     private val loadFailed: String,
+    private val searchFailed: String,
     private val addToQueueFailed: String,
     private val removeFromQueueFailed: String,
     private val clearQueueFailed: String,
@@ -82,7 +84,7 @@ internal data class CurrentTrackEffectMessages(
         CurrentTrackEffect.PlayPauseToggled -> success(playbackUpdated)
         CurrentTrackEffect.MoveToIndexFailed -> error(moveToIndexFailed)
         CurrentTrackEffect.LoadCurrentTrackFailed -> error(loadFailed)
-        CurrentTrackEffect.SearchFailed -> error(loadFailed)
+        CurrentTrackEffect.SearchFailed -> error(searchFailed)
         CurrentTrackEffect.AddToQueueFailed -> error(addToQueueFailed)
         CurrentTrackEffect.RemoveFromQueueFailed -> error(removeFromQueueFailed)
         CurrentTrackEffect.ClearQueueFailed -> error(clearQueueFailed)
@@ -108,6 +110,7 @@ internal fun currentTrackEffectMessages() = CurrentTrackEffectMessages(
     queueShuffled = stringResource(Res.string.currenttrack_queue_shuffled),
     playbackUpdated = stringResource(Res.string.currenttrack_playback_updated),
     loadFailed = stringResource(Res.string.currenttrack_load_failed),
+    searchFailed = stringResource(Res.string.currenttrack_search_failed),
     addToQueueFailed = stringResource(Res.string.currenttrack_add_to_queue_failed),
     removeFromQueueFailed = stringResource(Res.string.currenttrack_remove_from_queue_failed),
     clearQueueFailed = stringResource(Res.string.currenttrack_clear_queue_failed),

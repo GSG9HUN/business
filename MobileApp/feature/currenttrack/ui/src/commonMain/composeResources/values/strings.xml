@@ -28,6 +28,7 @@
   <string name="currenttrack_playback_updated">Lejátszás frissítve.</string>
   <string name="currenttrack_moved_in_queue">Szám áthelyezve.</string>
   <string name="currenttrack_load_failed">Nem sikerült betölteni az aktuális számot.</string>
+  <string name="currenttrack_search_failed">Nem sikerült a keresés. Próbáld újra.</string>
   <string name="currenttrack_add_to_queue_failed">A sorhoz adás még nincs bekötve.</string>
   <string name="currenttrack_remove_from_queue_failed">A sorból eltávolítás még nem elérhető.</string>
   <string name="currenttrack_clear_queue_failed">Nem sikerült kiüríteni a sort.</string>

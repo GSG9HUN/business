@@ -40,7 +40,8 @@ plugins:
       countryCode: "HU"
       playlistLoadLimit: 6
       albumLoadLimit: 6
-      resolveArtistsInSearch: true
+      # Avoid an extra artists API request failing otherwise successful track searches.
+      resolveArtistsInSearch: false
       preferPartnerApi: false
       preferV1SearchApi: true
     applemusic:

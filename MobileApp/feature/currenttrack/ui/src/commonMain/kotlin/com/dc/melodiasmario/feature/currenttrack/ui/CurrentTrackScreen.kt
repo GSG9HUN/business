@@ -218,7 +218,7 @@ fun CurrentTrackScreen(
                 } else {
                     itemsIndexed(
                         items = uiState.queue.tracks,
-                        key = { _, track -> track.id }
+                        key = { index, track -> "${track.id}:$index" }
                     ) { index, track ->
                         MQueueTrackCard(
                             modifier = Modifier.animateItem(),
