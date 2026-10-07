@@ -58,14 +58,14 @@ public class PlaybackRequestServiceTests
     }
 
     [Fact]
-    public async Task PlayAsyncUrl_InvalidJoinOrConnection_DoesNothing()
+    public async Task PlayAsyncUrl_InvalidJoinOrConnection_ThrowsWithoutPlayback()
     {
         _playerConnectionServiceMock
             .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
-        await _service.PlayAsyncUrl(_voiceChannelMock.Object, new Uri("https://example.com"), _messageMock.Object,
-            TrackSearchMode.YouTube);
+        await Assert.ThrowsAsync<TrackLoadException>(() => _service.PlayAsyncUrl(_voiceChannelMock.Object,
+            new Uri("https://example.com"), _messageMock.Object, TrackSearchMode.YouTube));
 
         _playbackEventHandlerServiceMock.Verify(
             h => h.RegisterPlaybackFinishedHandler(It.IsAny<ulong>(), It.IsAny<ILavalinkPlayer>(),
@@ -78,14 +78,14 @@ public class PlaybackRequestServiceTests
     }
 
     [Fact]
-    public async Task PlayAsyncQuery_InvalidJoinOrConnection_DoesNothing()
+    public async Task PlayAsyncQuery_InvalidJoinOrConnection_ThrowsWithoutPlayback()
     {
         _playerConnectionServiceMock
             .Setup(p => p.TryJoinAndValidateAsync(_messageMock.Object, _voiceChannelMock.Object, It.IsAny<CancellationToken>()))
             .ReturnsAsync((null, null, 0UL, false));
 
-        await _service.PlayAsyncQuery(_voiceChannelMock.Object, "test query", _messageMock.Object,
-            TrackSearchMode.YouTube);
+        await Assert.ThrowsAsync<TrackLoadException>(() => _service.PlayAsyncQuery(_voiceChannelMock.Object,
+            "test query", _messageMock.Object, TrackSearchMode.YouTube));
 
         _playbackEventHandlerServiceMock.Verify(
             h => h.RegisterPlaybackFinishedHandler(It.IsAny<ulong>(), It.IsAny<ILavalinkPlayer>(),

@@ -13,12 +13,12 @@ public static class QueueEndpoints
             .AddEndpointFilter<GuildIdValidationFilter>();
 
         queue.MapGet("", QueueHandlers.GetAsync);
-        queue.MapPost("/enqueue", QueueHandlers.EnqueueAsync);
+        queue.MapPost("/enqueue", QueueHandlers.EnqueueAsync)
+            .AddEndpointFilter<MusicEnqueueValidationFilter>();
         queue.MapDelete("", QueueHandlers.ClearAsync);
         queue.MapDelete("/{trackNumber:int}", QueueHandlers.RemoveAsync);
         queue.MapPost("/shuffle", QueueHandlers.ShuffleAsync);
-        queue.MapPatch("/{trackIndex:int}/move-up", QueueHandlers.MoveUpAsync);
-        queue.MapPatch("/{trackIndex:int}/move-down", QueueHandlers.MoveDownAsync);
+        queue.MapPatch("/{trackIndex:int}/move-to/{targetIndex:int}", QueueHandlers.MoveToIndexAsync);
 
         return group;
     }

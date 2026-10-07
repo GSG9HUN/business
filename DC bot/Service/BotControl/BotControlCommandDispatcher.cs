@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DC_bot.BotControl;
+using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.BotControl;
 using DC_bot.Interface.Service.BotControl.Models;
@@ -17,7 +18,8 @@ public sealed class BotControlCommandDispatcher(
     ILavaLinkService lavaLinkService,
     IRepeatService repeatService,
     ICurrentTrackService currentTrackService,
-    DiscordClient discordClient)
+    DiscordClient discordClient,
+    ITrackSearchResolverService trackSearchResolverService)
     : IBotControlCommandDispatcher
 {
     public Task<BotControlCommandResult> DispatchAsync(
@@ -30,8 +32,7 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Play => HandlePlayAsync(command, cancellationToken),
             BotControlCommandTypes.Shuffle => HandleShuffleAsync(command, cancellationToken),
             BotControlCommandTypes.Remove => HandleRemoveAsync(command, cancellationToken),
-            BotControlCommandTypes.MoveUp => HandleMoveAsync(command, moveUp: true, cancellationToken),
-            BotControlCommandTypes.MoveDown => HandleMoveAsync(command, moveUp: false, cancellationToken),
+            BotControlCommandTypes.MoveToIndex => HandleMoveToIndexAsync(command, cancellationToken),
             BotControlCommandTypes.Pause => HandlePlaybackControlAsync(
                 command,
                 static (service, message, member) => service.PauseAsync(message, member),
@@ -92,6 +93,12 @@ public sealed class BotControlCommandDispatcher(
                 shouldNotifyDiscord: false);
         }
 
+        if (!MobilePlayInput.TryParse(payload.Query, payload.SearchMode, trackSearchResolverService, out var input))
+        {
+            return botControlResultFactory.Failure(command, "Invalid music query, provider URL or search mode.",
+                "InvalidPlayInput", shouldNotifyDiscord: false);
+        }
+
         var context = await botControlContextResolver.ResolveAsync(
             command,
             new BotControlCommandChannelContext(payload.VoiceChannelId, payload.TextChannelId),
@@ -108,16 +115,29 @@ public sealed class BotControlCommandDispatcher(
                 shouldNotifyDiscord: context.CanSendDiscordResponse);
         }
 
-        _ = lavaLinkService;
+        var runtime = await TryCreateRuntimeContextAsync(command, context);
+        if (runtime?.Member.VoiceState?.Channel is not { } voiceChannel)
+            return botControlResultFactory.Failure(command, "Could not resolve Discord context for playback.",
+                "DiscordContextNotFound", voiceChannelId: context.VoiceChannelId,
+                textChannelId: context.TextChannelId, shouldNotifyDiscord: context.CanSendDiscordResponse);
 
-        return botControlResultFactory.Failure(
-            command,
-            "Mobile play command is not implemented yet.",
-            "PlayNotImplemented",
-            new { payload.Query, payload.SearchMode },
-            context.VoiceChannelId,
-            context.TextChannelId,
-            context.CanSendDiscordResponse);
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            if (input!.Url is { } url)
+                await lavaLinkService.PlayAsyncUrl(voiceChannel, url, runtime.Message, input.SearchMode, payload.RequestedBy);
+            else
+                await lavaLinkService.PlayAsyncQuery(voiceChannel, input.Query, runtime.Message, input.SearchMode, payload.RequestedBy);
+        }
+        catch (TrackLoadException)
+        {
+            return botControlResultFactory.Failure(command, "Could not load or play the selected music.",
+                "TrackLoadFailed", voiceChannelId: context.VoiceChannelId,
+                textChannelId: context.TextChannelId, shouldNotifyDiscord: context.CanSendDiscordResponse);
+        }
+        return botControlResultFactory.Success(command, "Music added to playback queue.",
+            voiceChannelId: context.VoiceChannelId, textChannelId: context.TextChannelId,
+            shouldNotifyDiscord: context.CanSendDiscordResponse);
     }
 
     private async Task<BotControlCommandResult> HandleShuffleAsync(
@@ -181,26 +201,25 @@ public sealed class BotControlCommandDispatcher(
             context.CanSendDiscordResponse);
     }
 
-    private async Task<BotControlCommandResult> HandleMoveAsync(
+    private async Task<BotControlCommandResult> HandleMoveToIndexAsync(
         BotControlCommandRecord command,
-        bool moveUp,
         CancellationToken cancellationToken)
     {
-        if (!TryDeserializePayload<QueueMoveCommandPayload>(command, out var payload, out var errorResult))
+        if (!TryDeserializePayload<QueueMoveToIndexCommandPayload>(command, out var payload, out var errorResult))
         {
             return errorResult!;
         }
 
         var context = await botControlContextResolver.ResolveAsync(command, null, cancellationToken);
-        var moveResult = await musicQueueService.Move(command.GuildId, payload!.TrackIndex, moveUp);
+        var moveResult = await musicQueueService.MoveToIndex(command.GuildId, payload!.TrackIndex, payload.TargetIndex);
 
         if (!moveResult.Success)
         {
             return botControlResultFactory.Failure(
                 command,
-                "Track cannot be moved in that direction.",
+                "Track cannot be moved to that position.",
                 "InvalidTrackIndex",
-                new { payload.TrackIndex, queueSize = moveResult.QueueSize },
+                new { payload.TrackIndex, payload.TargetIndex, queueSize = moveResult.QueueSize },
                 context.VoiceChannelId,
                 context.TextChannelId,
                 context.CanSendDiscordResponse);
@@ -208,7 +227,7 @@ public sealed class BotControlCommandDispatcher(
 
         return botControlResultFactory.Success(
             command,
-            moveUp ? "Track moved up." : "Track moved down.",
+            "Track moved.",
             new { from = moveResult.From, to = moveResult.To },
             context.VoiceChannelId,
             context.TextChannelId,
@@ -294,7 +313,7 @@ public sealed class BotControlCommandDispatcher(
         }
 
         await repeatService.SetRepeatingAsync(command.GuildId, true);
-        var currentTrack = await currentTrackService.GetCurrentTrackAsync(command.GuildId);
+        var currentTrack = await currentTrackService.GetCurrentTrackAsync(command.GuildId, cancellationToken);
 
         return botControlResultFactory.Success(
             command,
@@ -334,7 +353,7 @@ public sealed class BotControlCommandDispatcher(
         }
 
         var queue = await musicQueueService.ViewQueue(command.GuildId);
-        var currentTrack = await currentTrackService.GetCurrentTrackAsync(command.GuildId);
+        var currentTrack = await currentTrackService.GetCurrentTrackAsync(command.GuildId, cancellationToken);
 
         await repeatService.SaveRepeatListSnapshotAsync(command.GuildId, currentTrack, queue);
         await repeatService.SetRepeatingListAsync(command.GuildId, true);
@@ -373,8 +392,12 @@ public sealed class BotControlCommandDispatcher(
             ? cachedMember
             : await guild.GetMemberAsync(command.UserId);
 
+        if (context.VoiceChannelId is null) return null;
+        var voiceChannel = await BotControlDiscordChannelResolver.TryGetGuildChannelAsync(guild, context.VoiceChannelId.Value);
+        if (!BotControlDiscordChannelResolver.IsVoiceCapableChannel(voiceChannel)) return null;
+
         var wrappedChannel = new DiscordChannelWrapper(channel, guild: guild);
-        var wrappedMember = new BotControlDiscordMember(member, wrappedChannel);
+        var wrappedMember = new BotControlDiscordMember(member, new DiscordChannelWrapper(voiceChannel!, guild: guild));
         var message = new BotControlDiscordMessage(wrappedChannel, new DiscordUserWrapper(member));
 
         return new BotControlRuntimeContext(message, wrappedMember);

@@ -1,6 +1,7 @@
 package com.dc.melodiasmario.core.network.queue
 
 import com.dc.melodiasmario.core.common.AppConstants
+import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.queue.dto.EnqueueRequestDto
 import com.dc.melodiasmario.core.network.queue.dto.QueueDto
 import io.ktor.client.HttpClient
@@ -29,7 +30,7 @@ class QueueApiService(
         }.body()
     }
 
-    suspend fun addToQueue(accessToken: String, guildId: String, query: String) {
+    suspend fun addToQueue(accessToken: String, guildId: String, query: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/queue/enqueue") {
             header("Authorization", "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -37,32 +38,31 @@ class QueueApiService(
         }.body()
     }
 
-    suspend fun removeFromQueue(accessToken: String, guildId: String, trackNumber: String) {
+    suspend fun removeFromQueue(accessToken: String, guildId: String, trackNumber: String): BotControlCommandDto {
         return client.delete("$baseUrl/guilds/$guildId/queue/$trackNumber") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun clearQueue(accessToken: String, guildId: String) {
+    suspend fun clearQueue(accessToken: String, guildId: String): BotControlCommandDto {
         return client.delete("$baseUrl/guilds/$guildId/queue") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun shuffleQueue(accessToken: String, guildId: String) {
+    suspend fun shuffleQueue(accessToken: String, guildId: String): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/queue/shuffle") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }
 
-    suspend fun moveTrackUp(accessToken: String, guildId: String, trackIndex: Int) {
-        return client.patch("$baseUrl/guilds/$guildId/queue/$trackIndex/move-up") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
-    }
-
-    suspend fun moveTrackDown(accessToken: String, guildId: String, trackIndex: Int) {
-        return client.patch("$baseUrl/guilds/$guildId/queue/$trackIndex/move-down") {
+    suspend fun moveTrackToIndex(
+        accessToken: String,
+        guildId: String,
+        trackIndex: Int,
+        targetIndex: Int,
+    ): BotControlCommandDto {
+        return client.patch("$baseUrl/guilds/$guildId/queue/$trackIndex/move-to/$targetIndex") {
             header("Authorization", "Bearer $accessToken")
         }.body()
     }

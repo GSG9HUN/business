@@ -1,8 +1,6 @@
 using DC_bot.Interface;
 using DC_bot.BotControl;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Persistence;
-using DC_bot.Interface.Service.Persistence.Models;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
@@ -421,33 +419,36 @@ public class MusicQueueServiceTests
     }
 
     [Fact]
-    public async Task Move_WhenTargetIndexIsInvalid_ReturnsFailure()
+    public async Task MoveToIndex_WhenTargetIndexIsInvalid_ReturnsFailure()
     {
         _queueRepositoryMock
             .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
             .ReturnsAsync([CreateRecord(ValidTrackIdentifier)]);
 
-        var result = await _service.Move(GuildId, 0, moveUp: true);
+        var result = await _service.MoveToIndex(GuildId, 0, 1);
 
         Assert.False(result.Success);
         Assert.Equal(0, result.From);
-        Assert.Equal(-1, result.To);
+        Assert.Equal(1, result.To);
         Assert.Equal(1, result.QueueSize);
         _queueRepositoryMock.Verify(
-            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), CancellationToken.None),
+            repository => repository.ReorderQueuedItemsAsync(It.IsAny<ulong>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<string?>(), CancellationToken.None),
             Times.Never);
     }
 
     [Fact]
-    public async Task Move_WhenTargetIndexIsValid_PersistsReorderedQueue()
+    public async Task MoveToIndex_WhenTargetIndexIsValid_PersistsReorderedQueue()
     {
         var first = CreateTrackMock("track-id-a");
         var second = CreateTrackMock("track-id-b");
+        var third = CreateTrackMock("track-id-c");
         var serializer = new Mock<ITrackSerializer>();
         serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-a", null)).Returns(first.Object);
         serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-b", null)).Returns(second.Object);
+        serializer.Setup(trackSerializer => trackSerializer.Deserialize("track-id-c", null)).Returns(third.Object);
         serializer.Setup(trackSerializer => trackSerializer.Serialize(first.Object)).Returns("track-id-a");
         serializer.Setup(trackSerializer => trackSerializer.Serialize(second.Object)).Returns("track-id-b");
+        serializer.Setup(trackSerializer => trackSerializer.Serialize(third.Object)).Returns("track-id-c");
         var service = new MusicQueueService(
             _queueRepositoryMock.Object,
             _repeatListRepositoryMock.Object,
@@ -456,20 +457,25 @@ public class MusicQueueServiceTests
 
         _queueRepositoryMock
             .Setup(repository => repository.GetQueuedItemsAsync(GuildId, CancellationToken.None))
-            .ReturnsAsync([CreateRecord("track-id-a"), CreateRecord("track-id-b", 2, 1)]);
+            .ReturnsAsync([
+                CreateRecord("track-id-a"),
+                CreateRecord("track-id-b", 2, 1),
+                CreateRecord("track-id-c", 3, 2)
+            ]);
 
-        var result = await service.Move(GuildId, 1, moveUp: true);
+        var result = await service.MoveToIndex(GuildId, 0, 2);
 
         Assert.True(result.Success);
-        Assert.Equal(1, result.From);
-        Assert.Equal(0, result.To);
+        Assert.Equal(0, result.From);
+        Assert.Equal(2, result.To);
         _queueRepositoryMock.Verify(
             repository => repository.ReorderQueuedItemsAsync(
                 GuildId,
                 It.Is<IReadOnlyList<string>>(tracks =>
-                    tracks.Count == 2 &&
+                    tracks.Count == 3 &&
                     tracks[0] == "track-id-b" &&
-                    tracks[1] == "track-id-a"),
+                    tracks[1] == "track-id-c" &&
+                    tracks[2] == "track-id-a"),
                 MobileRealtimeEventNames.QueueItemMoved,
                 CancellationToken.None),
             Times.Once);

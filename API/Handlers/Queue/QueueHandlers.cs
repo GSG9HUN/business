@@ -173,26 +173,10 @@ public static class QueueHandlers
         return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
-    public static Task<IResult> MoveUpAsync(
+    public static async Task<IResult> MoveToIndexAsync(
         HttpContext httpContext,
         int trackIndex,
-        IMobileAppUserRepository userRepository,
-        IBotControlCommandsRepository commandsRepository,
-        CancellationToken cancellationToken) =>
-        MoveAsync(httpContext, trackIndex, BotControlCommandTypes.MoveUp, userRepository, commandsRepository, cancellationToken);
-
-    public static Task<IResult> MoveDownAsync(
-        HttpContext httpContext,
-        int trackIndex,
-        IMobileAppUserRepository userRepository,
-        IBotControlCommandsRepository commandsRepository,
-        CancellationToken cancellationToken) =>
-        MoveAsync(httpContext, trackIndex, BotControlCommandTypes.MoveDown, userRepository, commandsRepository, cancellationToken);
-
-    private static async Task<IResult> MoveAsync(
-        HttpContext httpContext,
-        int trackIndex,
-        string commandType,
+        int targetIndex,
         IMobileAppUserRepository userRepository,
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
@@ -213,11 +197,16 @@ public static class QueueHandlers
             return HttpResults.BadRequest(new { ErrorMessage = "Track index must be greater than or equal to zero." });
         }
 
-        var payloadJson = JsonSerializer.Serialize(new QueueMoveCommandPayload(trackIndex));
+        if (targetIndex < 0)
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Target index must be greater than or equal to zero." });
+        }
+
+        var payloadJson = JsonSerializer.Serialize(new QueueMoveToIndexCommandPayload(trackIndex, targetIndex));
         var command = await commandsRepository.EnqueueAsync(
             guildId,
             discordUserId,
-            commandType,
+            BotControlCommandTypes.MoveToIndex,
             payloadJson,
             cancellationToken);
 

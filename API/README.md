@@ -32,6 +32,18 @@ Use this folder for HTTP-facing error shapes, not domain logic.
 Contains endpoint handler implementations grouped by feature.
 Handlers orchestrate request processing and call services/repositories.
 
+### Realtime
+
+Contains SignalR hub, PostgreSQL notification listening, realtime event payloads, publishers, and snapshot providers used by MobileApp live updates.
+
+### Repositories
+
+Reserved for API-specific repository adapters. Prefer shared persistence contracts and `DC bot.Persistence` repositories unless the API needs a truly API-local persistence boundary.
+
+### Snapshots
+
+Contains read-model assembly services used by REST endpoints and realtime payloads.
+
 ### Mapping
 
 Contains mapping helpers that translate domain/service results into HTTP responses.
@@ -53,6 +65,10 @@ Contains API result wrapper types used between handlers, services, and HTTP mapp
 ### Services
 
 Contains API-owned infrastructure services, currently focused on authentication/session support.
+
+### Properties
+
+Contains local launch configuration.
 
 ### Validation
 
@@ -113,3 +129,4 @@ The uppercase `.env` keys are mapped into the internal .NET configuration keys u
 - Keep request/response DTOs feature-scoped under their matching subfolders.
 - Keep persistence access behind contracts from the contracts/persistence projects.
 - Do not put Discord bot command execution logic directly into this project.
+- Realtime events should carry snapshots that remain aligned with REST read endpoint behavior.

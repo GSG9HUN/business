@@ -624,7 +624,8 @@ namespace DC_bot.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GuildId", "Position")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"state\" = 0");
 
                     b.HasIndex("GuildId", "State", "Position");
 

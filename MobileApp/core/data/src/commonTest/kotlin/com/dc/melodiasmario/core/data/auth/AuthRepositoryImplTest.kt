@@ -18,7 +18,7 @@ class AuthRepositoryImplTest {
         val remote = FakeAuthRemoteDataSource(
             loginUrl = DiscordLoginUrl(authorizeUrl = "https://discord.test/login")
         )
-        val repository = AuthRepositoryImpl(remote, FakeSessionStorage())
+        val repository = AuthRepositoryImpl(remote, FakeSessionStorage(), AuthSessionMemoryCache())
 
         val result = repository.startDiscordLogin()
 
@@ -32,7 +32,8 @@ class AuthRepositoryImplTest {
         val storage = FakeSessionStorage()
         val repository = AuthRepositoryImpl(
             authRemoteDataSource = FakeAuthRemoteDataSource(exchangeSession = session),
-            secureAuthSessionStorage = storage
+            secureAuthSessionStorage = storage,
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val result = repository.exchangeTicket(ticket = "ticket")
@@ -48,7 +49,8 @@ class AuthRepositoryImplTest {
         val storage = FakeSessionStorage()
         val repository = AuthRepositoryImpl(
             authRemoteDataSource = FakeAuthRemoteDataSource(refreshSession = session),
-            secureAuthSessionStorage = storage
+            secureAuthSessionStorage = storage,
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val result = repository.refreshSession(refreshToken = "old-refresh")
@@ -61,7 +63,7 @@ class AuthRepositoryImplTest {
     fun logoutCallsRemoteLogoutAndClearsStoredSession(): TestResult = runTest {
         val remote = FakeAuthRemoteDataSource()
         val storage = FakeSessionStorage(session = authSession())
-        val repository = AuthRepositoryImpl(remote, storage)
+        val repository = AuthRepositoryImpl(remote, storage, AuthSessionMemoryCache())
 
         repository.logout(refreshToken = "refresh")
 
@@ -80,7 +82,8 @@ class AuthRepositoryImplTest {
                     "logout failed"
                 )
             ),
-            secureAuthSessionStorage = storage
+            secureAuthSessionStorage = storage,
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val exception = assertFailsWith<IllegalStateException> {

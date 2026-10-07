@@ -60,7 +60,8 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
             .HasColumnName("skipped_at_utc");
 
         builder.HasIndex(entity => new { entity.GuildId, entity.Position })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"state\" = 0");
 
         builder.HasIndex(entity => new { entity.GuildId, entity.State, entity.Position });
 

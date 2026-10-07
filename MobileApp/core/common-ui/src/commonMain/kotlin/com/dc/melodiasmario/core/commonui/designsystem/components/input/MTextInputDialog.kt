@@ -21,6 +21,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
@@ -49,9 +51,12 @@ fun MTextInputDialog(
         containerColor = colors.surface,
         title = {
             MText(
+                modifier = Modifier.fillMaxWidth(),
                 text = title,
                 color = colors.textPrimary,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
             )
         },
         text = {

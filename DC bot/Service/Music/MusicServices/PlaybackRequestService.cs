@@ -83,7 +83,7 @@ public class PlaybackRequestService(
         {
             logger.LogInformation("Playback request aborted after failed connection validation. Guild: {GuildId}",
                 voiceStateChannel.Guild.Id);
-            return;
+            throw new TrackLoadException(query, "Voice connection validation failed");
         }
 
         var textChannel = message.Channel;

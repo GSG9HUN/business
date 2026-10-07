@@ -6,6 +6,10 @@ sealed interface CurrentTrackEffect : MviEffect {
     data object NavigateToGuildSelector : CurrentTrackEffect
     data object NavigateToProfile : CurrentTrackEffect
     data object LoadCurrentTrackFailed : CurrentTrackEffect
+    data object SearchFailed : CurrentTrackEffect
+    data object BotCommandAccepted : CurrentTrackEffect
+    data class BotCommandSucceeded(val commandType: String) : CurrentTrackEffect
+    data class BotCommandFailed(val commandType: String, val errorKey: String?) : CurrentTrackEffect
     data object AddedToQueue : CurrentTrackEffect
     data object AddToQueueFailed : CurrentTrackEffect
     data object RemovedFromQueue : CurrentTrackEffect
@@ -20,8 +24,5 @@ sealed interface CurrentTrackEffect : MviEffect {
     data object ShuffleQueueFailed : CurrentTrackEffect
     data object PlayPauseToggled : CurrentTrackEffect
     data object PlayPauseToggleFailed : CurrentTrackEffect
-    data object MovedUpInQueue : CurrentTrackEffect
-    data object MoveUpInQueueFailed : CurrentTrackEffect
-    data object MovedDownInQueue : CurrentTrackEffect
-    data object MoveDownInQueueFailed : CurrentTrackEffect
+    data object MoveToIndexFailed : CurrentTrackEffect
 }

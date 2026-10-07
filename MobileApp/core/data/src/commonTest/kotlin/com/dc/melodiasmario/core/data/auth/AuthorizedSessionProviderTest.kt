@@ -17,7 +17,8 @@ class AuthorizedSessionProviderTest {
     fun getValidSessionThrowsWhenNoSessionExists(): TestResult = runTest {
         val provider = AuthorizedSessionProvider(
             secureAuthSessionStorage = FakeSessionStorage(),
-            authRepository = FakeAuthRepository()
+            authRepository = FakeAuthRepository(),
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val exception = assertFailsWith<Exception> {
@@ -38,7 +39,8 @@ class AuthorizedSessionProviderTest {
                     expiresAtMillis = futureMillis()
                 )
             ),
-            authRepository = repository
+            authRepository = repository,
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val accessToken = provider.getValidSession()
@@ -64,7 +66,8 @@ class AuthorizedSessionProviderTest {
                         expiresAtMillis = expiredMillis()
                     )
                 ),
-                authRepository = repository
+                authRepository = repository,
+                authSessionMemoryCache = AuthSessionMemoryCache()
             )
 
             provider.getValidSession()
@@ -88,7 +91,8 @@ class AuthorizedSessionProviderTest {
                     accessToken = "new-access",
                     refreshToken = "new-refresh"
                 )
-            )
+            ),
+            authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val accessToken = provider.getValidSession()

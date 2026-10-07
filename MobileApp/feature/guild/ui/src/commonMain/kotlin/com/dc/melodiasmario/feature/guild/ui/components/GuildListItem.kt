@@ -71,7 +71,9 @@ fun GuildListItem(
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
                     text = botStatusText(
-                        botStatus = guild.botStatus,
+                        isOnline = guild.botStatus?.isOnline,
+                        connectedVoiceChannelName = guild.botStatus?.connectedVoiceChannelName,
+                        connectedVoiceUserCount = guild.botStatus?.connectedVoiceUserCount ?: 0,
                         isOnlineText = stringResource(CommonUiRes.string.guild_status_online),
                         isOfflineText = stringResource(CommonUiRes.string.guild_status_offline),
                         unknownText = stringResource(CommonUiRes.string.guild_status_unknown),

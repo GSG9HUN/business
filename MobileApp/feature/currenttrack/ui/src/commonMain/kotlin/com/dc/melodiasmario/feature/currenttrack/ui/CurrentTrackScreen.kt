@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,17 +19,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.components.MErrorScreen
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
+import com.dc.melodiasmario.core.commonui.components.MQueueTrackCard
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreAction
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreActionsDialog
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.components.input.MTextInputDialog
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CommonUiRes
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_in_voice_channel
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_offline
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_online
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_unknown
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_move_down_content_description
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_move_up_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_remove_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
@@ -41,15 +40,16 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.commonui.guild.botStatusText
+import com.dc.melodiasmario.core.commonui.music.components.MAddMusicSheet
+import com.dc.melodiasmario.core.commonui.music.components.rememberMAddMusicLabels
+import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
+import com.dc.melodiasmario.core.commonui.reorder.calculateReorderDropTargetIndex
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.model.currenttrack.Track
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_content_description
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_action
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_placeholder
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_to_queue_title
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_cancel
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_clear_queue_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_message
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_title
@@ -63,20 +63,21 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_preview_error
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_previous_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_profile_content_description
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_drag_handle_content_description
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_move_down_action
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_move_up_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_repeat_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_topbar_title
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackDialog
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackAddToQueueUiState
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackHeaderUiState
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackPlaybackUiState
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackQueueUiState
+import com.dc.melodiasmario.feature.currenttrack.presentation.dialog.CurrentTrackDialog
+import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackHeaderUiState
+import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackPlaybackUiState
+import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackQueueUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackUiState
+import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import com.dc.melodiasmario.feature.currenttrack.ui.components.CurrentTrackPlaceholder
 import com.dc.melodiasmario.feature.currenttrack.ui.components.NowPlayingCard
 import com.dc.melodiasmario.feature.currenttrack.ui.components.QueueEmptyCard
-import com.dc.melodiasmario.feature.currenttrack.ui.components.QueueTrackCard
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -88,7 +89,9 @@ fun CurrentTrackScreen(
     val topBarTitleFallback = stringResource(Res.string.currenttrack_topbar_title)
     val topBarTitle = uiState.header.guildName.ifBlank { topBarTitleFallback }
     val topBarSubtitle = botStatusText(
-        botStatus = uiState.header.guildBotStatus,
+        isOnline = uiState.header.guildBotStatus?.isOnline,
+        connectedVoiceChannelName = uiState.header.guildBotStatus?.connectedVoiceChannelName,
+        connectedVoiceUserCount = uiState.header.guildBotStatus?.connectedVoiceUserCount ?: 0,
         isOnlineText = stringResource(CommonUiRes.string.guild_status_online),
         isOfflineText = stringResource(CommonUiRes.string.guild_status_offline),
         unknownText = stringResource(CommonUiRes.string.guild_status_unknown),
@@ -106,12 +109,14 @@ fun CurrentTrackScreen(
             Res.string.currenttrack_play_content_description
         }
     )
-    val moveUpContentDescription =
-        stringResource(CommonUiRes.string.queue_action_move_up_content_description)
-    val moveDownContentDescription =
-        stringResource(CommonUiRes.string.queue_action_move_down_content_description)
     val removeContentDescription =
         stringResource(CommonUiRes.string.queue_action_remove_content_description)
+    val dragHandleContentDescription =
+        stringResource(Res.string.currenttrack_queue_drag_handle_content_description)
+    val moveUpContentDescription = stringResource(Res.string.currenttrack_queue_move_up_action)
+    val moveDownContentDescription = stringResource(Res.string.currenttrack_queue_move_down_action)
+    val queueItemSpacing = ReorderableListDefaults.ItemSpacing
+    val queueItemSpacingPx = with(LocalDensity.current) { queueItemSpacing.toPx() }
 
     SetTopBarConfig(
         TopBarConfig(
@@ -174,7 +179,7 @@ fun CurrentTrackScreen(
                     end = 12.dp,
                     bottom = 96.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(queueItemSpacing),
             ) {
                 item {
                     NowPlayingCard(
@@ -211,14 +216,23 @@ fun CurrentTrackScreen(
                         QueueEmptyCard()
                     }
                 } else {
-                    itemsIndexed(uiState.queue.tracks) { index, track ->
-                        QueueTrackCard(
-                            track = track,
-                            isFirst = index == 0,
-                            isLast = index == uiState.queue.tracks.lastIndex,
+                    itemsIndexed(
+                        items = uiState.queue.tracks,
+                        key = { index, track -> "${track.id}:$index" }
+                    ) { index, track ->
+                        MQueueTrackCard(
+                            modifier = Modifier.animateItem(),
+                            queueNumber = index + 1,
+                            title = track.title,
+                            artist = track.artist,
+                            durationSeconds = track.durationSeconds,
+                            thumbnailUrl = track.thumbnailUrl,
+                            removeContentDescription = removeContentDescription,
+                            dragHandleContentDescription = dragHandleContentDescription,
                             moveUpContentDescription = moveUpContentDescription,
                             moveDownContentDescription = moveDownContentDescription,
-                            removeContentDescription = removeContentDescription,
+                            isFirst = index == 0,
+                            isLast = index == uiState.queue.tracks.lastIndex,
                             onRemove = {
                                 onEvent(
                                     CurrentTrackEvent.RemoveFromQueueClicked(
@@ -229,20 +243,41 @@ fun CurrentTrackScreen(
                             },
                             onMoveUp = {
                                 onEvent(
-                                    CurrentTrackEvent.MoveUpClicked(
+                                    CurrentTrackEvent.MoveToIndexClicked(
                                         trackId = track.id,
-                                        index = index,
+                                        fromIndex = index,
+                                        toIndex = index - 1,
                                     )
                                 )
                             },
                             onMoveDown = {
                                 onEvent(
-                                    CurrentTrackEvent.MoveDownClicked(
+                                    CurrentTrackEvent.MoveToIndexClicked(
                                         trackId = track.id,
-                                        index = index,
+                                        fromIndex = index,
+                                        toIndex = index + 1,
                                     )
                                 )
                             },
+                            onMoveDrop = { dragOffsetPx, itemHeightPx ->
+                                val targetIndex = calculateReorderDropTargetIndex(
+                                    fromIndex = index,
+                                    itemCount = uiState.queue.tracks.size,
+                                    dragOffsetPx = dragOffsetPx,
+                                    itemHeightPx = itemHeightPx,
+                                    itemSpacingPx = queueItemSpacingPx,
+                                )
+
+                                if (targetIndex != index) {
+                                    onEvent(
+                                        CurrentTrackEvent.MoveToIndexClicked(
+                                            trackId = track.id,
+                                            fromIndex = index,
+                                            toIndex = targetIndex,
+                                        )
+                                    )
+                                }
+                            }
                         )
                     }
                 }
@@ -251,17 +286,22 @@ fun CurrentTrackScreen(
     }
 
     if (uiState.dialog is CurrentTrackDialog.AddToQueue) {
-        MTextInputDialog(
-            title = stringResource(Res.string.currenttrack_add_to_queue_title),
-            value = uiState.addToQueue.draft,
-            onValueChange = { onEvent(CurrentTrackEvent.AddToQueueDraftChanged(it)) },
+        MAddMusicSheet(
+            state = uiState.addMusic,
+            labels = rememberMAddMusicLabels(),
             onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
-            onConfirm = { onEvent(CurrentTrackEvent.AddToQueueConfirmed) },
-            placeholder = stringResource(Res.string.currenttrack_add_to_queue_placeholder),
-            confirmText = stringResource(Res.string.currenttrack_add_to_queue_action),
-            dismissText = stringResource(Res.string.currenttrack_cancel),
-            enabled = !uiState.isLoading && !uiState.addToQueue.isLoading,
-            canConfirm = uiState.addToQueue.canSubmit,
+            onModeChanged = { onEvent(CurrentTrackEvent.AddMusicModeChanged(it)) },
+            onManualDraftChanged = { onEvent(CurrentTrackEvent.AddToQueueDraftChanged(it)) },
+            onManualConfirm = { onEvent(CurrentTrackEvent.AddToQueueConfirmed) },
+            onSearchQueryChanged = { onEvent(CurrentTrackEvent.SearchQueryChanged(it)) },
+            onSearchSubmitted = { onEvent(CurrentTrackEvent.SearchSubmitted) },
+            onProviderChanged = { onEvent(CurrentTrackEvent.SearchProviderChanged(it)) },
+            onKindChanged = { onEvent(CurrentTrackEvent.SearchKindChanged(it)) },
+            onResultClicked = { onEvent(CurrentTrackEvent.SearchResultClicked(it)) },
+            onSelectedResultAddClicked = { onEvent(CurrentTrackEvent.SelectedSearchResultAddClicked) },
+            onNextPageRequested = { onEvent(CurrentTrackEvent.SearchNextPageRequested) },
+            onSearchRetryClicked = { onEvent(CurrentTrackEvent.SearchRetryClicked) },
+            onCapabilitiesRetryClicked = { onEvent(CurrentTrackEvent.SearchCapabilitiesRetryClicked) },
         )
     }
 
@@ -282,7 +322,6 @@ fun CurrentTrackScreen(
                     enabled = !uiState.actions.isClearQueueLoading,
                 ),
             ),
-            dismissText = stringResource(Res.string.currenttrack_cancel),
             onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
         )
     }
@@ -362,8 +401,9 @@ fun CurrentTrackScreenAddToQueueDialogPreview() {
                 queue = CurrentTrackQueueUiState(
                     tracks = previewNextTracks,
                 ),
-                addToQueue = CurrentTrackAddToQueueUiState(
-                    draft = "https://open.spotify.com/track/sample",
+                addMusic = MAddMusicSheetState(
+                    manualDraft = "https://open.spotify.com/track/sample",
+                    canSubmitManual = true,
                 ),
                 dialog = CurrentTrackDialog.AddToQueue,
             ),

@@ -62,27 +62,13 @@ public class PlayerConnectionService(
                 channel.Id,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var validationPlayerResult = await validationService.ValidatePlayerAsync(audioService, guildId)
-                .ConfigureAwait(false);
-
-            if (validationPlayerResult.IsValid)
-            {
-                connection = validationPlayerResult.Player ?? connection;
-            }
-            else
-            {
-                logger.LogDebug(
-                    "Player manager lookup failed after join, validating the returned connection instead. Guild: {GuildId}, ErrorKey: {ErrorKey}",
-                    guildId,
-                    validationPlayerResult.ErrorKey);
-            }
-
             var validationConnectionResult = await _connectionRetryPolicy
-                .ValidateAsync(connection, cancellationToken)
+                .ValidateJoinedPlayerAsync(audioService, guildId, connection, cancellationToken)
                 .ConfigureAwait(false);
             
             if (validationConnectionResult is { IsValid: true })
             {
+                connection = validationConnectionResult.Connection ?? connection;
                 await guildBotStatusRepository.UpsertConnectedVoiceAsync(
                     guildId,
                     channel.Id,
