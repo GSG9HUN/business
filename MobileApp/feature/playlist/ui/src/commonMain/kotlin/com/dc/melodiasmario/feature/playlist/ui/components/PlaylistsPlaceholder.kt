@@ -14,9 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 
 @Composable
 fun PlaylistsPlaceholder(
@@ -70,5 +73,16 @@ fun PlaylistsPlaceholder(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = MmBackgroundPreviewColor)
+@Composable
+private fun PlaylistsPlaceholderPreview() {
+    MelodiasMarioTheme {
+        PlaylistsPlaceholder(
+            title = "No playlists yet",
+            contentText = "Create one to keep your favorite tracks close.",
+        )
     }
 }

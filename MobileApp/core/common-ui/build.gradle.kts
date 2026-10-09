@@ -46,7 +46,9 @@ kotlin {
         }
 
         commonTest { dependencies { implementation(libs.kotlin.test) } }
-        androidMain { dependencies { implementation(libs.compose.uiTooling) } }
+        androidMain { dependencies { implementation(libs.compose.uiTooling)
+            implementation(libs.core)
+        } }
         getByName("androidDeviceTest") {
             dependencies {
                 implementation(libs.androidx.core)

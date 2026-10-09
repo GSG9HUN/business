@@ -15,4 +15,10 @@ public interface IPlayerConnectionService
             IDiscordMessage message,
             IDiscordChannel? channel,
             CancellationToken cancellationToken = default);
+
+    Task ExecuteWithExistingPlayerAsync(
+        IDiscordMessage message,
+        IDiscordChannel? channel,
+        Func<ILavalinkPlayer, ulong, Task> operation,
+        CancellationToken cancellationToken = default);
 }

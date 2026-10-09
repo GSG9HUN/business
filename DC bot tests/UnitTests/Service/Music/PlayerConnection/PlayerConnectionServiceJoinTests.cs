@@ -155,4 +155,25 @@ public class PlayerConnectionServiceJoinTests : PlayerConnectionServiceTestBase
         ResponseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(MessageMock.Object, ValidationErrorKeys.LavalinkError), Times.Once);
     }
+
+    [Fact]
+    public async Task TryJoinAndValidateAsync_StatusPersistenceFails_StillReturnsConnectedPlayer()
+    {
+        SetupJoinAsyncWithInterface();
+        var player = new Mock<ILavalinkPlayer>();
+        ValidationServiceMock.Setup(v => v.ValidatePlayerAsync(AudioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, player.Object));
+        ValidationServiceMock.Setup(v => v.ValidateConnectionAsync(player.Object))
+            .ReturnsAsync(new ConnectionValidationResult(true, string.Empty, player.Object));
+        GuildBotStatusRepositoryMock.Setup(r => r.UpsertConnectedVoiceAsync(
+                111UL, 222UL, It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+
+        var result = await Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
+
+        Assert.True(result.isValid);
+        Assert.Same(player.Object, result.connection);
+        ResponseBuilderMock.Verify(r => r.SendValidationErrorAsync(MessageMock.Object,
+            It.IsAny<string>()), Times.Never);
+    }
 }

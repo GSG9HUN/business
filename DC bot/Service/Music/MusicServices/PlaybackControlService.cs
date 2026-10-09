@@ -62,7 +62,8 @@ public class PlaybackControlService(
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse),
                 connection.CurrentTrack.Title);
-            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.PauseCommandResponse));
+            return PlaybackControlResult.Succeeded(localizationService.Get(guildId,
+                LocalizationKeys.PauseCommandResponse));
         }
         catch (Exception ex)
         {
@@ -96,7 +97,7 @@ public class PlaybackControlService(
         try
         {
             await connection.ResumeAsync();
-            await progressiveTimerService.ResumeAsync(guildId);
+            // await progressiveTimerService.ResumeAsync(guildId); // Static duration display.
             await playbackStateRepository.SetPlaybackPositionAsync(
                 guildId,
                 GetCurrentPosition(connection),
@@ -105,7 +106,8 @@ public class PlaybackControlService(
             logger.LogInformation(
                 "{Get} {CurrentTrackTitle}", localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse),
                 connection.CurrentTrack.Title);
-            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.ResumeCommandResponse));
+            return PlaybackControlResult.Succeeded(localizationService.Get(guildId,
+                LocalizationKeys.ResumeCommandResponse));
         }
         catch (Exception ex)
         {
@@ -130,7 +132,8 @@ public class PlaybackControlService(
         {
             await trackNotificationService.SendSafeAsync(channel,
                 localizationService.Get(guildId, LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack");
-            logger.LogInformation("Skip requested for guild {GuildId}, but no current or queued track exists.", guildId);
+            logger.LogInformation("Skip requested for guild {GuildId}, but no current or queued track exists.",
+                guildId);
             return PlaybackControlResult.Failed(
                 localizationService.Get(guildId, LocalizationKeys.SkipCommandError),
                 "NoCurrentOrQueuedTrack");
@@ -218,23 +221,32 @@ public class PlaybackControlService(
 
     public async Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member)
     {
-        var (connection, _, guildId, isValid) =
-            await playerConnectionService.TryGetAndValidateExistingPlayerAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null) return;
-
         try
         {
-            await playbackEventHandlerService.CleanupGuildAsync(guildId).ConfigureAwait(false);
-            if (connection.CurrentTrack != null) await connection.StopAsync();
-            progressiveTimerService.Stop(guildId);
-            await connection.DisconnectAsync().ConfigureAwait(false);
-            await guildBotStatusRepository.MarkDisconnectedVoiceAsync(guildId);
-            await playbackStateRepository.SetCurrentTrackAsync(
-                guildId,
-                null,
-                null,
-                MobileRealtimeEventNames.PlaybackStopped);
-            logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);
+            await playerConnectionService.ExecuteWithExistingPlayerAsync(
+                message, member?.VoiceState?.Channel, async (connection, guildId) =>
+                {
+                    await playbackEventHandlerService.CleanupGuildAsync(guildId).ConfigureAwait(false);
+                    if (connection.CurrentTrack != null) await connection.StopAsync();
+                    progressiveTimerService.Stop(guildId);
+                    await connection.DisconnectAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await guildBotStatusRepository.MarkDisconnectedVoiceAsync(guildId);
+                        await playbackStateRepository.SetCurrentTrackAsync(
+                            guildId,
+                            null,
+                            null,
+                            MobileRealtimeEventNames.PlaybackStopped);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Voice disconnected but status persistence failed. Guild: {GuildId}",
+                            guildId);
+                    }
+
+                    logger.LogInformation("Disconnected from voice channel for guild {GuildId}.", guildId);
+                }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

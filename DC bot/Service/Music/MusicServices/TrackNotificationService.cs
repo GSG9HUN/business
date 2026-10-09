@@ -54,17 +54,14 @@ public class TrackNotificationService(
     private DiscordEmbed BuildNowPlayingEmbed(ulong? guildId, ILavaLinkTrack track, TimeSpan position, TimeSpan duration)
     {
         var safeDuration = duration > TimeSpan.Zero ? duration : TimeSpan.Zero;
-        var safePosition = ClampPosition(position, safeDuration);
-        var posStr = FormatTimestamp(safePosition);
         var durStr = FormatTimestamp(safeDuration);
-        var bar = BuildProgressBar(safePosition, safeDuration);
         var title = guildId.HasValue
             ? localizationService.Get(guildId.Value, LocalizationKeys.PlayCommandMusicPlaying)
             : localizationService.Get(LocalizationKeys.PlayCommandMusicPlaying);
 
         var builder = new DiscordEmbedBuilder()
             .WithTitle(title)
-            .WithDescription($"**{track.Author} - {track.Title}**\n\n{bar}\n`{posStr} / {durStr}`")
+            .WithDescription($"**{track.Author} - {track.Title}**\n\n`{durStr}`")
             .WithColor(DiscordColor.Blurple);
 
         if (track.ArtworkUri != null) builder.WithThumbnail(track.ArtworkUri);
@@ -72,28 +69,8 @@ public class TrackNotificationService(
         return builder.Build();
     }
 
-    private static TimeSpan ClampPosition(TimeSpan position, TimeSpan duration)
-    {
-        if (position <= TimeSpan.Zero || duration == TimeSpan.Zero) return TimeSpan.Zero;
-        return position > duration ? duration : position;
-    }
-
     private static string FormatTimestamp(TimeSpan value)
     {
         return $"{(int)value.TotalMinutes:D2}:{value.Seconds:D2}";
-    }
-
-    private string BuildProgressBar(TimeSpan pos, TimeSpan dur, int size = 20)
-    {
-        if (dur <= TimeSpan.Zero) return string.Concat("🔘", new string('▬', size));
-
-        var filled = (int)(size * pos.TotalMilliseconds / dur.TotalMilliseconds);
-        filled = Math.Clamp(filled, 0, size);
-
-        return string.Concat(
-            new string('▬', filled),
-            "🔘",
-            new string('▬', size - filled)
-        );
     }
 }
