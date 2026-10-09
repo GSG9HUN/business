@@ -6,7 +6,7 @@ namespace DC_bot.Wrapper;
 
 internal sealed class DiscordConnectionEventLogger(ILogger<DiscordClientEventHandler> logger)
 {
-    private const int DiscordVoiceDisconnectedCloseCode = 4014;
+    private const int DiscordDisallowedIntentsCloseCode = 4014;
     private const int MaxUnknownEventPayloadLength = 1_000;
 
     internal void LogSocketOpened()
@@ -16,10 +16,10 @@ internal sealed class DiscordConnectionEventLogger(ILogger<DiscordClientEventHan
 
     internal void LogSocketClosed(SocketClosedEventArgs e)
     {
-        if (e.CloseCode == DiscordVoiceDisconnectedCloseCode)
+        if (e.CloseCode == DiscordDisallowedIntentsCloseCode)
         {
             logger.LogCritical(
-                "Discord gateway socket closed with voice disconnect code. CloseCode: {CloseCode}, CloseMessage: {CloseMessage}",
+                "Discord gateway rejected disallowed intents. Check enabled privileged intents in the Developer Portal. CloseCode: {CloseCode}, CloseMessage: {CloseMessage}",
                 e.CloseCode,
                 e.CloseMessage);
             return;

@@ -14,8 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 
 @Composable
 fun MSwitchButton(
@@ -51,5 +54,16 @@ fun MSwitchButton(
                     .background(Color.White),
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
+@Composable
+private fun MSwitchButtonPreview() {
+    MelodiasMarioTheme {
+        MSwitchButton(
+            checked = true,
+            onCheckedChange = {},
+        )
     }
 }

@@ -150,7 +150,7 @@ public class TrackNotificationServiceTests
         var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(100));
 
         Assert.Null(embed.Thumbnail);
-        Assert.Contains("00:00 / 01:40", embed.Description);
+        Assert.Equal("**Artist - Title**\n\n`01:40`", embed.Description);
     }
 
     [Theory]
@@ -169,7 +169,7 @@ public class TrackNotificationServiceTests
 
         var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(durationSeconds));
 
-        Assert.Contains("00:00 / 00:00", embed.Description);
+        Assert.Equal("**Artist - Title**\n\n`00:00`", embed.Description);
     }
 
     [Fact]
@@ -186,6 +186,6 @@ public class TrackNotificationServiceTests
 
         var embed = service.BuildNowPlayingEmbed(track.Object, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(2));
 
-        Assert.Contains("02:00 / 02:00", embed.Description);
+        Assert.Equal("**Artist - Title**\n\n`02:00`", embed.Description);
     }
 }

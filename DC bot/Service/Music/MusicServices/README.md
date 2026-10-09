@@ -148,16 +148,17 @@ These services split music functionality into focused responsibilities. Each imp
 
 **Key Methods:**
 
-- `TryJoinAndValidateAsync()` - Destroy a stale disconnected Lavalink player if one exists, then join the voice channel and validate the new connection
+- `TryJoinAndValidateAsync()` - Allow an existing disconnected player a 10-second recovery window before stale cleanup, then join the voice channel and validate the connection
 - `TryGetAndValidateExistingPlayerAsync()` - Validate an existing player and reject disconnected player state before playback controls run
 
 **Join readiness behavior:**
 
-- `TryJoinAndValidateAsync()` starts the Lavalink node before attempting the voice join
+- `TryJoinAndValidateAsync()` starts the Lavalink service once and checks node readiness on every request before attempting the voice join
 - after `JoinAsync`, validation is delegated to `PlayerConnectionRetryPolicy`
 - the retry path checks both the player returned by `JoinAsync` and the player manager lookup for the guild
-- this protects first-call join/play flows where Discord voice state, Lavalink player state, and the player manager become consistent a few hundred milliseconds after the join call returns
+- this protects first-call join/play flows where Discord voice state, Lavalink player state, and the player manager become consistent after the join call returns; readiness is checked every 500 ms for up to 10 seconds
 - validation errors are sent only after the retry budget is exhausted
+- join cleanup and validation are serialized per guild; playback-control validation waits for an in-progress join; leave holds the same lock through disconnect and status persistence
 
 **Lifecycle:** Both methods accept optional `CancellationToken` values. Join cleanup, Lavalink join, and retry delay paths pass the token through so shutdown can interrupt waits instead of being swallowed as a validation error.
 
@@ -259,3 +260,7 @@ These services split music functionality into focused responsibilities. Each imp
 - **DC bot.Contracts/Interface/Service/Persistence/** - Persistence contracts
 - **DC bot.Persistence/Repositories/QueueRepository.cs** - Queue persistence implementation
 - **DC bot.Persistence/Repositories/QueueClaimService.cs** - Internal atomic claim transaction used by `QueueRepository`
+
+Voice status persistence failures are logged separately and do not turn a successful join or disconnect into a Lavalink error. Persisted status may remain stale until the next successful update.
+
+Now-playing embeds display the track author/title, artwork when available, and total duration only. Timer start and resume calls are commented out, so these messages are not periodically edited.

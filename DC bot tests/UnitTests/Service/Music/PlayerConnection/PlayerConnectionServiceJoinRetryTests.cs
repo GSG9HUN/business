@@ -11,7 +11,7 @@ namespace DC_bot_tests.UnitTests.Service.Music.PlayerConnection;
 public class PlayerConnectionServiceJoinRetryTests : PlayerConnectionServiceTestBase
 {
     [Fact]
-    public async Task TryJoinAndValidateAsync_ConnectionValidationFailsAllAttempts_ValidatesFiveTimes()
+    public async Task TryJoinAndValidateAsync_ConnectionValidationFailsAllAttempts_StopsAfterRetryBudget()
     {
         SetupJoinAsyncWithInterface();
 
@@ -26,7 +26,7 @@ public class PlayerConnectionServiceJoinRetryTests : PlayerConnectionServiceTest
 
         await Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
 
-        ValidationServiceMock.Verify(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()), Times.Exactly(5));
+        ValidationServiceMock.Verify(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()), Times.Exactly(21));
     }
 
     [Fact]
@@ -157,5 +157,64 @@ public class PlayerConnectionServiceJoinRetryTests : PlayerConnectionServiceTest
         ResponseBuilderMock.Verify(
             r => r.SendValidationErrorAsync(MessageMock.Object, ValidationErrorKeys.BotIsNotConnectedError),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task TryJoinAndValidateAsync_VoiceReadyAfterOldRetryWindow_ReturnsValid()
+    {
+        SetupJoinAsyncWithInterface();
+        var player = new Mock<ILavalinkPlayer>();
+        ValidationServiceMock.Setup(v => v.ValidatePlayerAsync(AudioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, player.Object));
+        var attempts = 0;
+        ValidationServiceMock.Setup(v => v.ValidateConnectionAsync(player.Object))
+            .ReturnsAsync(() => ++attempts > 5
+                ? new ConnectionValidationResult(true, string.Empty, player.Object)
+                : new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
+
+        var result = await Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
+
+        Assert.True(result.isValid);
+        ResponseBuilderMock.Verify(r => r.SendValidationErrorAsync(
+            It.IsAny<IDiscordMessage>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TryJoinAndValidateAsync_ConcurrentRequest_WaitsForFirstJoin(bool existingPlayerRequest)
+    {
+        SetupJoinAsyncWithInterface();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var player = new Mock<ILavalinkPlayer>();
+        SetupConnectedPlayer(player);
+        ValidationServiceMock.Setup(v => v.ValidatePlayerAsync(AudioServiceMock.Object, 111UL))
+            .ReturnsAsync(new PlayerValidationResult(true, string.Empty, player.Object));
+        ValidationServiceMock.Setup(v => v.ValidateConnectionAsync(player.Object))
+            .Returns(async () =>
+            {
+                entered.TrySetResult();
+                await release.Task;
+                return new ConnectionValidationResult(true, string.Empty, player.Object);
+            });
+
+        var first = Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second = existingPlayerRequest
+            ? Service.TryGetAndValidateExistingPlayerAsync(MessageMock.Object, ChannelMock.Object)
+            : Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
+        try
+        {
+            PlayerManagerMock.Verify(p => p.GetPlayerAsync(111UL, CancellationToken.None), Times.Once);
+            Assert.False(second.IsCompleted);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await Task.WhenAll(first, second).WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        Assert.True((await first).isValid);
+        Assert.True((await second).isValid);
     }
 }

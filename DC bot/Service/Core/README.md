@@ -89,7 +89,7 @@ User validation:
 
 Player validation:
 
-- Player exists for guild
+- Player exists for guild; a missing player returns `BotIsNotConnectedError`, not a Lavalink node error
 - `ValidatePlayerAsync()` logs Lavalink connection state, player state, voice channel ID, and current track identifier when a player is found
 - `ValidateConnectionAsync()` requires `connection.ConnectionState.IsConnected`; disconnected or destroyed players fail with `BotIsNotConnectedError` even if they still have a voice channel ID
 
