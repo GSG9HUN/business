@@ -25,6 +25,8 @@ androidx-datastore = "1.2.1"
 robolectric = "4.15.1"
 microsoft-signalr = "9.0.20"
 rxjava3 = "3.1.12"
+coreVersion = "1.17.0"
+androidx-media = "1.7.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -70,6 +72,8 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 microsoft-signalr = { module = "com.microsoft.signalr:signalr", version.ref = "microsoft-signalr" }
 rxjava3 = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxjava3" }
+core = { group = "androidx.core", name = "core", version.ref = "coreVersion" }
+androidx-media = { module = "androidx.media:media", version.ref = "androidx-media" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

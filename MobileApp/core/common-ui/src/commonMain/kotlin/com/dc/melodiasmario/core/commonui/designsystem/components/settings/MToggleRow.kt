@@ -11,9 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_haptics
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -65,4 +70,19 @@ fun MToggleRow(
         thickness = 1.dp,
         color = colors.divider,
     )
+}
+
+@Preview(showBackground = true, backgroundColor = MmSurfacePreviewColor)
+@Composable
+private fun MToggleRowPreview() {
+    MelodiasMarioTheme {
+        MToggleRow(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            icon = Res.drawable.ic_profile_haptics,
+            title = "Haptics",
+            subtitle = "Use subtle feedback for controls",
+            checked = true,
+            onCheckedChange = {},
+        )
+    }
 }

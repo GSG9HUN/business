@@ -35,7 +35,7 @@ public class PlaybackControlServiceResumeTests : PlaybackControlServiceTestBase
     }
 
     [Fact]
-    public async Task ResumeAsync_WithCurrentTrack_ResumesPlayerAndProgressiveTimer()
+    public async Task ResumeAsync_WithCurrentTrack_ResumesPlayerWithoutStartingTimer()
     {
         LocalizationServiceMock.Setup(l => l.Get(LocalizationKeys.ResumeCommandResponse)).Returns("Resumed");
         SetupCurrentTrack();
@@ -44,7 +44,7 @@ public class PlaybackControlServiceResumeTests : PlaybackControlServiceTestBase
         await Service.ResumeAsync(MessageMock.Object, MemberMock.Object);
 
         PlayerMock.Verify(p => p.ResumeAsync(CancellationToken.None), Times.Once);
-        ProgressiveTimerServiceMock.Verify(t => t.ResumeAsync(GuildId), Times.Once);
+        ProgressiveTimerServiceMock.Verify(t => t.ResumeAsync(GuildId), Times.Never);
     }
 
     [Fact]

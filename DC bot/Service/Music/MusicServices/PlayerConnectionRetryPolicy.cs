@@ -7,8 +7,9 @@ namespace DC_bot.Service.Music.MusicServices;
 
 internal sealed class PlayerConnectionRetryPolicy(IValidationService validationService)
 {
-    private const int MaxAttempts = 5;
-    private const int DelayMs = 200;
+    // Voice readiness arrives asynchronously after JoinAsync returns.
+    private const int MaxAttempts = 21;
+    private const int DelayMs = 500;
 
     internal async Task<ConnectionValidationResult> ValidateJoinedPlayerAsync(
         IAudioService audioService,
@@ -20,6 +21,7 @@ internal sealed class PlayerConnectionRetryPolicy(IValidationService validationS
             new(false, Constants.ValidationErrorKeys.BotIsNotConnectedError, null);
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (joinedConnection is not null)
             {
                 validationConnectionResult = await validationService
@@ -52,7 +54,10 @@ internal sealed class PlayerConnectionRetryPolicy(IValidationService validationS
                     null);
             }
 
-            await Task.Delay(DelayMs, cancellationToken).ConfigureAwait(false);
+            if (attempt < MaxAttempts - 1)
+            {
+                await Task.Delay(DelayMs, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         return validationConnectionResult;

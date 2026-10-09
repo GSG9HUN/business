@@ -38,7 +38,7 @@ public class ValidationServiceTests
 
         Assert.False(result.IsValid);
         Assert.Null(result.Player);
-        Assert.Equal(ValidationErrorKeys.LavalinkError, result.ErrorKey);
+        Assert.Equal(ValidationErrorKeys.BotIsNotConnectedError, result.ErrorKey);
     }
 
     [Fact]
