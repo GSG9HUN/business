@@ -26,7 +26,7 @@ public class PlayerConnectionServiceJoinRetryTests : PlayerConnectionServiceTest
 
         await Service.TryJoinAndValidateAsync(MessageMock.Object, ChannelMock.Object);
 
-        ValidationServiceMock.Verify(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()), Times.Exactly(21));
+        ValidationServiceMock.Verify(v => v.ValidateConnectionAsync(It.IsAny<ILavalinkPlayer>()), Times.Exactly(7));
     }
 
     [Fact]

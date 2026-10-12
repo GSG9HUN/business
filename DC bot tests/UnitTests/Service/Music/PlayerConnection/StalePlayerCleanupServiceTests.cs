@@ -72,6 +72,6 @@ public class StalePlayerCleanupServiceTests : PlayerConnectionServiceTestBase
         await cleanup.DisconnectBeforeJoinAsync(111UL, CancellationToken.None);
 
         player.Verify(p => p.DisconnectAsync(CancellationToken.None), Times.Once);
-        PlayerManagerMock.Verify(p => p.GetPlayerAsync(111UL, CancellationToken.None), Times.Exactly(21));
+        PlayerManagerMock.Verify(p => p.GetPlayerAsync(111UL, CancellationToken.None), Times.Exactly(7));
     }
 }

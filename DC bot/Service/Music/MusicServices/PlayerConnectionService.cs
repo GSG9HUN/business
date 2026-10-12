@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using DC_bot.Constants;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -21,7 +22,7 @@ public class PlayerConnectionService(
     ILogger<PlayerConnectionService> logger) : IPlayerConnectionService
 {
     private readonly ConcurrentDictionary<ulong, SemaphoreSlim> _joinLocks = new();
-    private readonly PlayerConnectionRetryPolicy _connectionRetryPolicy = new(validationService);
+    private readonly PlayerConnectionRetryPolicy _connectionRetryPolicy = new(validationService, logger);
 
     private readonly StalePlayerCleanupService _stalePlayerCleanupService =
         new(audioService, guildBotStatusRepository, logger);
@@ -55,27 +56,45 @@ public class PlayerConnectionService(
             return (null, channel, guildId, false);
         }
 
+        var elapsed = Stopwatch.StartNew();
+        var phase = "WaitingForGuildLock";
+        using var scope = logger.BeginScope(
+            "JoinAttemptId: {JoinAttemptId}, Guild: {GuildId}, RequestedVoiceChannel: {RequestedVoiceChannelId}",
+            Guid.NewGuid().ToString("N"), guildId, channel.Id);
+        logger.LogInformation("Voice join requested. Guild: {GuildId}, Channel: {ChannelId}", guildId, channel.Id);
         // Cleanup must not disconnect a player another request is still joining.
         var joinLock = _joinLocks.GetOrAdd(guildId, static _ => new SemaphoreSlim(1, 1));
         await joinLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         ILavalinkPlayer? connection;
         try
         {
+            logger.LogInformation("Voice join lock acquired after {ElapsedMs} ms", elapsed.ElapsedMilliseconds);
+            phase = "NodeReadiness";
             await lavalinkNodeConnectionService.ConnectAsync().ConfigureAwait(false);
+            logger.LogInformation("Lavalink node ready after {ElapsedMs} ms", elapsed.ElapsedMilliseconds);
+            phase = "StalePlayerCleanup";
             await _stalePlayerCleanupService.DisconnectBeforeJoinAsync(guildId, cancellationToken)
                 .ConfigureAwait(false);
 
+            logger.LogInformation("Pre-join cleanup completed after {ElapsedMs} ms", elapsed.ElapsedMilliseconds);
+            phase = "JoinAsync";
             connection = await audioService.Players.JoinAsync(
                 channel.Guild.Id,
                 channel.Id,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
+            logger.LogInformation(
+                "JoinAsync returned after {ElapsedMs} ms. PlayerPresent: {PlayerPresent}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}",
+                elapsed.ElapsedMilliseconds, connection is not null, connection?.ConnectionState.IsConnected,
+                connection?.State, connection?.VoiceChannelId);
+            phase = "VoiceReadinessValidation";
             var validationConnectionResult = await _connectionRetryPolicy
                 .ValidateJoinedPlayerAsync(audioService, guildId, connection, cancellationToken)
                 .ConfigureAwait(false);
 
             if (validationConnectionResult is { IsValid: true })
             {
+                phase = "PersistVoiceStatus";
                 connection = validationConnectionResult.Connection ?? connection;
                 try
                 {
@@ -106,6 +125,7 @@ public class PlayerConnectionService(
                 guildId,
                 channel.Id,
                 validationConnectionResult.ErrorKey);
+            phase = "SendValidationResponse";
             await responseBuilder.SendValidationErrorAsync(message, validationConnectionResult.ErrorKey);
             return (null, channel, guildId, false);
         }
@@ -116,20 +136,22 @@ public class PlayerConnectionService(
         catch (HttpRequestException httpEx) when (httpEx.Message.Contains("400"))
         {
             logger.LogError(httpEx,
-                "Lavalink 400 Bad Request when joining voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId,
-                channel.Id);
+                "Lavalink 400 Bad Request. Phase: {Phase}, ElapsedMs: {ElapsedMs}, Guild: {GuildId}, Channel: {ChannelId}", phase,
+                elapsed.ElapsedMilliseconds, guildId, channel.Id);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to join voice channel. Guild: {GuildId}, Channel: {ChannelId}", guildId,
-                channel.Id);
+            logger.LogError(ex,
+                "Voice join failed. Phase: {Phase}, ElapsedMs: {ElapsedMs}, Guild: {GuildId}, Channel: {ChannelId}, ExceptionType: {ExceptionType}. LavalinkError is a generic response, not a node diagnosis.",
+                phase, elapsed.ElapsedMilliseconds, guildId, channel.Id, ex.GetType().FullName);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return (null, channel, guildId, false);
         }
         finally
         {
+            logger.LogInformation("Voice join finished. LastPhase: {Phase}, ElapsedMs: {ElapsedMs}", phase, elapsed.ElapsedMilliseconds);
             joinLock.Release();
         }
     }

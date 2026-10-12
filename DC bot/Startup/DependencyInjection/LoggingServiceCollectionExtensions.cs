@@ -7,6 +7,10 @@ public static class LoggingServiceCollectionExtensions
 {
     public static IServiceCollection AddBotLogging(this IServiceCollection services)
     {
-        return services.AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); });
+        return services.AddLogging(builder =>
+        {
+            builder.AddSimpleConsole(options => options.IncludeScopes = true)
+                .SetMinimumLevel(LogLevel.Debug);
+        });
     }
 }

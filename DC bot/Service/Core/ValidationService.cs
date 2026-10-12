@@ -55,7 +55,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
             return new PlayerValidationResult(true, string.Empty, player);
         }
 
-        logger.LogDebug("No voice player exists for guild {GuildId}.", guildId);
+        logger.LogDebug("No managed Lavalink player exists for guild {GuildId}. Discord voice membership is not checked here.", guildId);
         return new PlayerValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, player);
     }
 
@@ -80,7 +80,7 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
             connection.State,
             connection.VoiceChannelId,
             connection.CurrentTrack?.Identifier);
-        logger.ValidationBotNotConnected();
+        // Final readiness failure is logged by the caller, rather than once per poll.
         return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
     }
 }

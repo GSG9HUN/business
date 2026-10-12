@@ -19,8 +19,8 @@ internal sealed class StalePlayerCleanupService(
         }
 
         // A disconnected snapshot can be temporary while Discord/Lavalink reconnects.
-        // Allow a full player-update window before deciding this player is stale.
-        for (var attempt = 0; attempt < 20; attempt++)
+        // Allow a short grace period before deciding this player is stale.
+        for (var attempt = 0; attempt < 6; attempt++)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
             var currentPlayer = await audioService.Players.GetPlayerAsync(guildId, cancellationToken)
