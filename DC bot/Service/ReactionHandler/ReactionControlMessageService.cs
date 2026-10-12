@@ -37,10 +37,11 @@ public sealed class ReactionControlMessageService(
 
             var message = await textChannel.ToDiscordChannel().SendMessageAsync(builder);
 
-            var wrappedMessage =
+            // Timer updates disabled: the embed displays only the total duration.
+            /* var wrappedMessage =
                 DiscordMessageWrapperFactory.Create(message, textChannel.ToDiscordChannel(), client.CurrentUser);
 
-            await progressTimerService.StartAsync(wrappedMessage, textChannel.Guild.Id);
+            await progressTimerService.StartAsync(wrappedMessage, textChannel.Guild.Id); */
 
             await message.CreateReactionAsync(DiscordEmoji.FromName(client, ReactionControlEmojis.PauseEmojiName));
             await message.CreateReactionAsync(DiscordEmoji.FromName(client, ReactionControlEmojis.ResumeEmojiName));

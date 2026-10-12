@@ -55,8 +55,8 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
             return new PlayerValidationResult(true, string.Empty, player);
         }
 
-        logger.ValidationLavalinkNotConnected();
-        return new PlayerValidationResult(false, ValidationErrorKeys.LavalinkError, player);
+        logger.LogDebug("No voice player exists for guild {GuildId}.", guildId);
+        return new PlayerValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, player);
     }
 
     public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
