@@ -101,15 +101,19 @@ public class LavaLinkService(
             return;
         }
 
+        var phase = "PlayAsync";
         try
         {
             await connection.PlayAsync(nextTrack.ToLavalinkTrack());
+            phase = "NotifyNowPlaying";
             await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
                 nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
         }
         catch (Exception ex)
         {
-            logger.LavalinkOperationFailed(ex, "StartPlayingQueue.PlayAsync");
+            logger.LogError(ex,
+                "Join queue start failed. Phase: {Phase}, Guild: {GuildId}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}. LavalinkError is a generic response.",
+                phase, guildId, connection.ConnectionState.IsConnected, connection.State, connection.VoiceChannelId);
             await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
             return;
         }

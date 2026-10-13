@@ -81,4 +81,19 @@ public class PlaybackControlServiceLeaveTests : PlaybackControlServiceTestBase
             repository => repository.MarkDisconnectedVoiceAsync(It.IsAny<ulong>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    [Fact]
+    public async Task LeaveVoiceChannel_StatusPersistenceFails_DoesNotReportLavalinkFailure()
+    {
+        SetupValidPlayer();
+        GuildBotStatusRepositoryMock.Setup(r => r.MarkDisconnectedVoiceAsync(
+                GuildId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+
+        await Service.LeaveVoiceChannel(MessageMock.Object, MemberMock.Object);
+
+        PlayerMock.Verify(p => p.DisconnectAsync(CancellationToken.None), Times.Once);
+        ResponseBuilderMock.Verify(r => r.SendValidationErrorAsync(MessageMock.Object,
+            It.IsAny<string>()), Times.Never);
+    }
 }

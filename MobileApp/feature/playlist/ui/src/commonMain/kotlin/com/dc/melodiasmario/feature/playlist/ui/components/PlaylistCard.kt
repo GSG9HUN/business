@@ -27,8 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_menu_content_description
@@ -170,5 +173,22 @@ private fun Int.toDurationString(): String {
         stringResource(Res.string.playlist_duration_minutes_seconds, minutes, seconds)
     } else {
         stringResource(Res.string.playlist_duration_seconds, seconds)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = MmBackgroundPreviewColor)
+@Composable
+private fun PlaylistCardPreview() {
+    MelodiasMarioTheme {
+        PlaylistCard(
+            modifier = Modifier.padding(16.dp),
+            playlist = Playlist(
+                id = "favorites",
+                name = "Late night queue",
+                songCount = 42,
+                duration = 12_840,
+            ),
+            onClick = {},
+        )
     }
 }

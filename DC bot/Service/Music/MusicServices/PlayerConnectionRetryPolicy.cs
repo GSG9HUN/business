@@ -2,13 +2,16 @@ using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using Lavalink4NET;
 using Lavalink4NET.Players;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace DC_bot.Service.Music.MusicServices;
 
-internal sealed class PlayerConnectionRetryPolicy(IValidationService validationService)
+internal sealed class PlayerConnectionRetryPolicy(IValidationService validationService, ILogger<PlayerConnectionService> logger)
 {
-    private const int MaxAttempts = 5;
-    private const int DelayMs = 200;
+    // Voice readiness arrives asynchronously after JoinAsync returns.
+    private const int MaxAttempts = 7;
+    private const int DelayMs = 500;
 
     internal async Task<ConnectionValidationResult> ValidateJoinedPlayerAsync(
         IAudioService audioService,
@@ -16,10 +19,13 @@ internal sealed class PlayerConnectionRetryPolicy(IValidationService validationS
         ILavalinkPlayer? joinedConnection,
         CancellationToken cancellationToken)
     {
+        var elapsed = Stopwatch.StartNew();
+        ILavalinkPlayer? lastPlayer = joinedConnection;
         ConnectionValidationResult validationConnectionResult =
             new(false, Constants.ValidationErrorKeys.BotIsNotConnectedError, null);
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (joinedConnection is not null)
             {
                 validationConnectionResult = await validationService
@@ -36,6 +42,7 @@ internal sealed class PlayerConnectionRetryPolicy(IValidationService validationS
                 .ConfigureAwait(false);
             if (playerValidationResult is { IsValid: true, Player: not null })
             {
+                lastPlayer = playerValidationResult.Player;
                 validationConnectionResult = await validationService
                     .ValidateConnectionAsync(playerValidationResult.Player)
                     .ConfigureAwait(false);
@@ -52,9 +59,17 @@ internal sealed class PlayerConnectionRetryPolicy(IValidationService validationS
                     null);
             }
 
-            await Task.Delay(DelayMs, cancellationToken).ConfigureAwait(false);
+            if (attempt < MaxAttempts - 1)
+            {
+                await Task.Delay(DelayMs, cancellationToken).ConfigureAwait(false);
+            }
         }
 
+        logger.LogWarning(
+            "Voice readiness checks exhausted. Guild: {GuildId}, Attempts: {Attempts}, ElapsedMs: {ElapsedMs}, PlayerPresent: {PlayerPresent}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}, ErrorKey: {ErrorKey}. Discord voice membership is not checked here; the bot may still appear in the channel.",
+            guildId, MaxAttempts, elapsed.ElapsedMilliseconds, lastPlayer is not null,
+            lastPlayer?.ConnectionState.IsConnected, lastPlayer?.State, lastPlayer?.VoiceChannelId,
+            validationConnectionResult.ErrorKey);
         return validationConnectionResult;
     }
 }

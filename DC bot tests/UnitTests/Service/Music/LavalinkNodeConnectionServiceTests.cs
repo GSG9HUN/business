@@ -48,4 +48,24 @@ public class LavalinkNodeConnectionServiceTests
 
         _audioServiceMock.Verify(a => a.StartAsync(CancellationToken.None), Times.Once);
     }
+    [Fact]
+    public async Task ConnectAsync_WhenCalledAgain_RechecksReadiness()
+    {
+        await _service.ConnectAsync();
+        await _service.ConnectAsync();
+        _audioServiceMock.Verify(a => a.WaitForReadyAsync(CancellationToken.None), Times.Exactly(2));
+        _audioServiceMock.Verify(a => a.StartAsync(CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task ConnectAsync_ReadinessFails_RetryDoesNotRestartService()
+    {
+        _audioServiceMock.SetupSequence(a => a.WaitForReadyAsync(CancellationToken.None))
+            .ThrowsAsync(new InvalidOperationException("Node temporarily unavailable"))
+            .Returns(ValueTask.CompletedTask);
+        await Assert.ThrowsAsync<LavalinkOperationException>(() => _service.ConnectAsync());
+        await _service.ConnectAsync();
+        _audioServiceMock.Verify(a => a.StartAsync(CancellationToken.None), Times.Once);
+        _audioServiceMock.Verify(a => a.WaitForReadyAsync(CancellationToken.None), Times.Exactly(2));
+    }
 }

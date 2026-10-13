@@ -68,6 +68,18 @@ public abstract class PlaybackControlServiceTestBase
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
+        PlayerConnectionServiceMock
+            .Setup(p => p.ExecuteWithExistingPlayerAsync(
+                It.IsAny<IDiscordMessage>(), It.IsAny<IDiscordChannel?>(),
+                It.IsAny<Func<ILavalinkPlayer, ulong, Task>>(), It.IsAny<CancellationToken>()))
+            .Returns(async (IDiscordMessage message, IDiscordChannel? channel,
+                Func<ILavalinkPlayer, ulong, Task> operation, CancellationToken token) =>
+            {
+                var result = await PlayerConnectionServiceMock.Object
+                    .TryGetAndValidateExistingPlayerAsync(message, channel, token);
+                if (result.isValid && result.connection is not null)
+                    await operation(result.connection, result.guildId);
+            });
         Service = new PlaybackControlService(
             MusicQueueServiceMock.Object,
             ResponseBuilderMock.Object,

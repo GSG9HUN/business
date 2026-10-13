@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
@@ -22,6 +23,7 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MSettingRow
 import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MToggleRow
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CoreUiRes
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_haptics
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_language
@@ -30,6 +32,9 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_pr
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_token_status
 import com.dc.melodiasmario.core.commonui.layout.MScrollableScreenContent
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.core.model.profile.ProfileUser
+import com.dc.melodiasmario.core.model.settings.UserSettings
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_application_section
@@ -212,5 +217,32 @@ fun ProfileLoadedContent(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = MmBackgroundPreviewColor)
+@Composable
+private fun ProfileLoadedContentPreview() {
+    MelodiasMarioTheme {
+        ProfileLoadedContent(
+            uiState = ProfileUiState(
+                user = ProfileUser(
+                    id = "1",
+                    displayName = "Mario Beats",
+                    username = "mario",
+                    provider = "Discord",
+                    avatarUrl = null,
+                    isActive = true,
+                    isDiscordConnected = true,
+                ),
+                userSettings = UserSettings.Default,
+                draftUserSettings = UserSettings.Default.copy(
+                    hapticFeedbackEnabled = true,
+                    telemetryEnabled = true,
+                ),
+                settingsUpdatedAtUtc = "2026-10-09T12:00:00Z",
+            ),
+            onEvent = {},
+        )
     }
 }

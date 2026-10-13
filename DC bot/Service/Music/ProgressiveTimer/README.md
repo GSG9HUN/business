@@ -1,6 +1,6 @@
 # Progressive Timer
 
-This folder contains the now-playing message update timer.
+Production now-playing messages are static and show only the total track duration. The timer start and resume calls are commented out. The original `ProgressiveTimerService` remains registered, but playback does not start its update loop.
 
 ## Files
 
