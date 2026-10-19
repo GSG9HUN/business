@@ -24,11 +24,6 @@ public class TagSlashCommand(
         return ExecuteAsync(contextFactory.Create(context), member.Mention);
     }
 
-    public Task ExecuteAsync(ISlashInteractionContext context, IDiscordMember member)
-    {
-        return ExecuteAsync(context, member.Mention);
-    }
-
     private Task ExecuteAsync(ISlashInteractionContext context, string memberMention)
     {
         return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(

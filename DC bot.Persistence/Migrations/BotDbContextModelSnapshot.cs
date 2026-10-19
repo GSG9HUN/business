@@ -76,25 +76,6 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("bot_control_commands", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.BotRuntimeStatus.BotRuntimeStatusEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("LastHeartbeatAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_heartbeat_at_utc");
-
-                    b.Property<DateTimeOffset>("StartedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at_utc");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("bot_runtime_status", (string)null);
-                });
-
             modelBuilder.Entity("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", b =>
                 {
                     b.Property<decimal>("GuildId")
@@ -584,6 +565,24 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
+                    b.Property<string>("PlaybackNodeAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("playback_node_address");
+
+                    b.Property<string>("PlaybackNodeSessionId")
+                        .HasColumnType("text")
+                        .HasColumnName("playback_node_session_id");
+
+                    b.Property<Guid?>("PlaybackOperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("playback_operation_id");
+
+                    b.Property<bool>("PlaybackTransportConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("playback_transport_confirmed");
+
                     b.Property<DateTimeOffset?>("PlayedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("played_at_utc");
@@ -610,6 +609,14 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("source_search_mode");
 
+                    b.Property<Guid?>("StartPreviousOperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("start_previous_operation_id");
+
+                    b.Property<short?>("StartPreviousState")
+                        .HasColumnType("smallint")
+                        .HasColumnName("start_previous_state");
+
                     b.Property<short>("State")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("smallint")
@@ -623,9 +630,14 @@ namespace DC_bot.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GuildId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_queue_starting_guild")
+                        .HasFilter("\"state\" = 4");
+
                     b.HasIndex("GuildId", "Position")
                         .IsUnique()
-                        .HasFilter("\"state\" = 0");
+                        .HasFilter("\"state\" IN (0, 4)");
 
                     b.HasIndex("GuildId", "State", "Position");
 

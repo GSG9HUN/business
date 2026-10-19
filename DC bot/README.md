@@ -376,7 +376,7 @@ BotService.StartAsync()
    └─ Provided by `.env`, Docker Compose `env_file`, CI secrets, or the host process environment
         ↓
 3. Validation
-   └─ Check required: DISCORD_TOKEN, LAVALINK_HOSTNAME
+   └─ Check required: DISCORD_TOKEN, LAVALINK_HOSTNAME, MUSIC_JOIN_DEADLINE, MUSIC_LEAVE_DEADLINE
    └─ Exit if missing
 ```
 
@@ -385,6 +385,10 @@ BotService.StartAsync()
 ```env
 # Bot Settings (Required)
 DISCORD_TOKEN=your_bot_token_here
+
+# Playback Lifecycle Settings (Required; TimeSpan format, example values)
+MUSIC_JOIN_DEADLINE=00:00:30
+MUSIC_LEAVE_DEADLINE=00:00:15
 
 # Bot Settings (Optional)
 BOT_PREFIX=!
@@ -417,12 +421,24 @@ YANDEX_MUSIC_ACCESS_TOKEN=
 YOUTUBE_REFRESH_TOKEN=
 ```
 
+Both playback deadlines are required, positive `TimeSpan` values. The values above are examples, not measured production settings. Startup resolves and validates these options before migrations or Discord connection.
+
+For Docker Compose, add both variables to the repository-root `.env` on the deployment host. Updating `.env.example` does not update an existing `.env`. Recreate the bot container to load changed environment values:
+
+```bash
+docker compose up -d --build --force-recreate --no-deps discord-bot
+```
+
+`docker compose restart` keeps the existing container environment. For direct execution, set the variables in the process environment or the `.env` in the working directory loaded by `Program.cs`.
+
 ### Environment Variables
 
 | Variable            | Required | Default | Purpose              |
 |---------------------|----------|---------|----------------------|
 | `DISCORD_TOKEN`     | ✅ Yes    | N/A     | Bot authentication   |
 | `LAVALINK_HOSTNAME` | ✅ Yes    | N/A     | Lavalink server host |
+| `MUSIC_JOIN_DEADLINE` | ✅ Yes | N/A | Positive `TimeSpan` deadline for joining and validation |
+| `MUSIC_LEAVE_DEADLINE` | ✅ Yes | N/A | Positive `TimeSpan` deadline for leave and recovery operations |
 | `BOT_PREFIX`        | ❌ No     | `!`     | Command prefix       |
 | `LAVALINK_PORT`     | ❌ No     | `2333`  | Lavalink port        |
 | `LAVALINK_SECURED`  | ❌ No     | `false` | Use HTTPS/WSS        |

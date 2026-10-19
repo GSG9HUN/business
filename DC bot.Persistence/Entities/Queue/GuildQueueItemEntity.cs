@@ -12,6 +12,12 @@ public class GuildQueueItemEntity
     public string? SourceQuery { get; set; }
     public string? SourceSearchMode { get; set; }
     public string? RequestedBy { get; set; }
+    public Guid? PlaybackOperationId { get; set; }
+    public QueueItemState? StartPreviousState { get; set; }
+    public Guid? StartPreviousOperationId { get; set; }
+    public string? PlaybackNodeAddress { get; set; }
+    public string? PlaybackNodeSessionId { get; set; }
+    public bool PlaybackTransportConfirmed { get; set; }
     public QueueItemState State { get; set; }
     public DateTimeOffset AddedAtUtc { get; set; }
     public DateTimeOffset? PlayedAtUtc { get; set; }

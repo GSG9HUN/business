@@ -2,7 +2,6 @@ using DC_bot.Exceptions;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
-using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -14,7 +13,6 @@ namespace DC_bot.Service.ReactionHandler;
 public class ReactionHandlerService(
     ILavaLinkService lavaLinkService,
     ILogger<ReactionHandlerService> logger,
-    IProgressiveTimerService progressTimerService,
     ILocalizationService localizationService,
     bool isTestMode = false,
     ReactionControlMessageService? controlMessageService = null,
@@ -22,12 +20,15 @@ public class ReactionHandlerService(
     ReactionActionDispatcher? actionDispatcher = null)
     : IEventHandler<MessageReactionAddedEventArgs>, IEventHandler<MessageReactionRemovedEventArgs>
 {
-    private readonly ReactionActionDispatcher _actionDispatcher = actionDispatcher ?? new ReactionActionDispatcher(lavaLinkService, localizationService);
+    private readonly ReactionActionDispatcher _actionDispatcher =
+        actionDispatcher ?? new ReactionActionDispatcher(lavaLinkService, localizationService);
+
     private readonly ReactionContextFactory _contextFactory = contextFactory ?? new ReactionContextFactory();
-    private readonly ReactionControlMessageService _controlMessageService = controlMessageService ?? new ReactionControlMessageService(
-        progressTimerService,
-        localizationService,
-        logger);
+
+    private readonly ReactionControlMessageService _controlMessageService = controlMessageService ??
+                                                                            new ReactionControlMessageService(
+                                                                                localizationService,
+                                                                                logger);
 
     private bool _isRegistered;
     private Func<IDiscordChannel, DiscordEmbed, Task>? _sendReactionControlMessage;
@@ -50,7 +51,8 @@ public class ReactionHandlerService(
             return;
         }
 
-        _sendReactionControlMessage = (textChannel, embed) => _controlMessageService.SendAsync(textChannel, client, embed);
+        _sendReactionControlMessage =
+            (textChannel, embed) => _controlMessageService.SendAsync(textChannel, client, embed);
 
         lavaLinkService.TrackStarted += _sendReactionControlMessage;
         _isRegistered = true;
@@ -132,6 +134,7 @@ public class ReactionHandlerService(
     {
         return _actionDispatcher.DispatchRemovedAsync(emojiName, message, member);
     }
+
     internal void UnregisterHandler(DiscordClient _)
     {
         if (_isRegistered)

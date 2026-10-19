@@ -1,5 +1,5 @@
-﻿using DC_bot.Interface.Service.Music;
-using DC_bot.Music;
+﻿using DC_bot.Interface.Service.Music.Search;
+using DC_bot.Music.Search;
 using Lavalink4NET.Rest.Entities.Tracks;
 
 namespace DC_bot.Service.BotControl;

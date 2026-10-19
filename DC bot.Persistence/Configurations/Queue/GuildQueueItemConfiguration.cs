@@ -61,7 +61,27 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
 
         builder.HasIndex(entity => new { entity.GuildId, entity.Position })
             .IsUnique()
-            .HasFilter("\"state\" = 0");
+            .HasFilter("\"state\" IN (0, 4)");
+
+        builder.Property(entity => entity.PlaybackOperationId)
+            .HasColumnName("playback_operation_id");
+        builder.Property(entity => entity.StartPreviousOperationId)
+            .HasColumnName("start_previous_operation_id");
+        builder.Property(entity => entity.StartPreviousState)
+            .HasColumnName("start_previous_state")
+            .HasConversion<short?>();
+        builder.HasIndex(entity => entity.GuildId)
+            .HasDatabaseName("ux_queue_starting_guild")
+            .IsUnique()
+            .HasFilter("\"state\" = 4");
+        
+        builder.Property(entity => entity.PlaybackNodeAddress)
+            .HasColumnName("playback_node_address");
+        builder.Property(entity => entity.PlaybackNodeSessionId)
+            .HasColumnName("playback_node_session_id");
+        builder.Property(entity => entity.PlaybackTransportConfirmed)
+            .HasColumnName("playback_transport_confirmed")
+            .HasDefaultValue(false);
 
         builder.HasIndex(entity => new { entity.GuildId, entity.State, entity.Position });
 

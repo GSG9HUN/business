@@ -10,7 +10,9 @@ public static class LoggingServiceCollectionExtensions
         return services.AddLogging(builder =>
         {
             builder.AddSimpleConsole(options => options.IncludeScopes = true)
-                .SetMinimumLevel(LogLevel.Debug);
+                .SetMinimumLevel(LogLevel.Warning) 
+                .AddFilter("DC_bot.Service.Core.ValidationService", LogLevel.Debug)
+                .AddFilter("Lavalink4NET", LogLevel.Debug);
         });
     }
 }

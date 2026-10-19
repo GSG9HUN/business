@@ -1,12 +1,18 @@
 using System.Text.Json;
 using DC_bot.BotControl;
+using DC_bot.BotControl.Payloads;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.BotControl;
 using DC_bot.Interface.Service.BotControl.Models;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.Playback;
+using DC_bot.Interface.Service.Music.Playback.Models;
+using DC_bot.Interface.Service.Music.Queue;
+using DC_bot.Interface.Service.Music.Repeat;
+using DC_bot.Interface.Service.Music.Search;
 using DC_bot.Interface.Service.Persistence.Models.BotControlCommand;
-using DC_bot.Wrapper;
+using DC_bot.Wrapper.Discord;
 using DSharpPlus;
 
 namespace DC_bot.Service.BotControl;
@@ -122,22 +128,46 @@ public sealed class BotControlCommandDispatcher(
                 textChannelId: context.TextChannelId, shouldNotifyDiscord: context.CanSendDiscordResponse);
 
         cancellationToken.ThrowIfCancellationRequested();
+        PlaybackStartResult result;
         try
         {
-            if (input!.Url is { } url)
-                await lavaLinkService.PlayAsyncUrl(voiceChannel, url, runtime.Message, input.SearchMode, payload.RequestedBy);
-            else
-                await lavaLinkService.PlayAsyncQuery(voiceChannel, input.Query, runtime.Message, input.SearchMode, payload.RequestedBy);
+            result = input!.Url is { } url
+                ? await lavaLinkService.PlayAsyncUrl(voiceChannel, url, runtime.Message, input.SearchMode, payload.RequestedBy)
+                : await lavaLinkService.PlayAsyncQuery(voiceChannel, input.Query, runtime.Message, input.SearchMode, payload.RequestedBy);
         }
         catch (TrackLoadException)
         {
-            return botControlResultFactory.Failure(command, "Could not load or play the selected music.",
+            return botControlResultFactory.Failure(command, "Could not load the selected music.",
                 "TrackLoadFailed", voiceChannelId: context.VoiceChannelId,
                 textChannelId: context.TextChannelId, shouldNotifyDiscord: context.CanSendDiscordResponse);
         }
-        return botControlResultFactory.Success(command, "Music added to playback queue.",
-            voiceChannelId: context.VoiceChannelId, textChannelId: context.TextChannelId,
-            shouldNotifyDiscord: context.CanSendDiscordResponse);
+
+        var data = new
+        {
+            playbackStatus = result.Status.ToString(),
+            operationId = result.OperationId,
+            queueItemId = result.QueueItemId,
+            requiresReconciliation = result.Status is PlaybackStartStatus.Unknown
+                or PlaybackStartStatus.StartedStatePending or PlaybackStartStatus.Busy
+        };
+        var message = result.Status switch
+        {
+            PlaybackStartStatus.Started => "Playback started.",
+            PlaybackStartStatus.Queued => "Music added to playback queue.",
+            PlaybackStartStatus.StartedStatePending => "Playback started; saving its state is not confirmed. Do not resubmit.",
+            PlaybackStartStatus.Unknown => "Request submitted; playback outcome is not confirmed. Do not resubmit.",
+            PlaybackStartStatus.Busy => "A previous playback operation needs reconciliation; no new playback was started.",
+            PlaybackStartStatus.Superseded => "A newer session or leave operation superseded this request.",
+            PlaybackStartStatus.Empty => "No queued track is available.",
+            _ => "Playback did not start."
+        };
+        if (result.Status is PlaybackStartStatus.Started or PlaybackStartStatus.Queued
+            or PlaybackStartStatus.StartedStatePending or PlaybackStartStatus.Unknown)
+            return botControlResultFactory.Success(command, message, data,
+                context.VoiceChannelId, context.TextChannelId, context.CanSendDiscordResponse);
+
+        return botControlResultFactory.Failure(command, message, result.Status.ToString(), data,
+            context.VoiceChannelId, context.TextChannelId, context.CanSendDiscordResponse);
     }
 
     private async Task<BotControlCommandResult> HandleShuffleAsync(

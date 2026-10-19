@@ -1,5 +1,5 @@
 ﻿using DC_bot.Configuration;
-using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.Search;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Options;
 

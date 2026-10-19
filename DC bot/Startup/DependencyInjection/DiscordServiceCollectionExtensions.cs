@@ -1,6 +1,6 @@
 ﻿using DC_bot.Service.Core;
 using DC_bot.Service.ReactionHandler;
-using DC_bot.Wrapper;
+using DC_bot.Wrapper.Discord;
 using DSharpPlus;
 using DSharpPlus.Extensions;
 using Microsoft.Extensions.DependencyInjection;

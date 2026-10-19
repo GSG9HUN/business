@@ -5,7 +5,7 @@ namespace DC_bot.Service.BotControl;
 
 internal sealed class BotControlDiscordVoiceState(IDiscordChannel channel) : IDiscordVoiceState
 {
-    public IDiscordChannel? Channel => channel;
+    public IDiscordChannel Channel => channel;
 
     public DiscordVoiceState ToDiscordVoiceState()
     {

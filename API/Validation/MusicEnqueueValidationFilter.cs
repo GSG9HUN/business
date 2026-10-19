@@ -2,6 +2,7 @@
 using API.Responses.MusicSearch;
 using API.Services.MusicSearch;
 using DC_bot.Music;
+using DC_bot.Music.Search;
 using Microsoft.Extensions.Options;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 

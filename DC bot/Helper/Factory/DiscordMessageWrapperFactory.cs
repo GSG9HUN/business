@@ -1,5 +1,5 @@
 ﻿using DC_bot.Interface.Discord;
-using DC_bot.Wrapper;
+using DC_bot.Wrapper.Discord;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 

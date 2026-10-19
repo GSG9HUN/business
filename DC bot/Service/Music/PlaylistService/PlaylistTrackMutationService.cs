@@ -1,11 +1,12 @@
 using DC_bot.Configuration;
-using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
+using DC_bot.Interface.Service.Music.Search;
+using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Interface.Service.Persistence.Playlists;
-using DC_bot.Wrapper;
 using DC_bot.Validation;
+using DC_bot.Wrapper.Lavalink;
 using Microsoft.Extensions.Logging;
 using Lavalink4NET.Tracks;
 

@@ -4,6 +4,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.Search;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;

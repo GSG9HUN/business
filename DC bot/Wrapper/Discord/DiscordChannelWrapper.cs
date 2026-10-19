@@ -1,0 +1,51 @@
+using DC_bot.Interface.Discord;
+using DC_bot.Logging;
+using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace DC_bot.Wrapper.Discord;
+
+public class DiscordChannelWrapper(
+    DiscordChannel discordChannel,
+    ILogger<DiscordChannelWrapper>? logger = null,
+    DiscordGuild? guild = null)
+    : IDiscordChannel
+{
+    private readonly ILogger<DiscordChannelWrapper> _logger = logger ?? NullLogger<DiscordChannelWrapper>.Instance;
+
+    public ulong Id => discordChannel.Id;
+    public string Name => discordChannel.Name;
+
+    public async Task SendMessageAsync(string message)
+    {
+        try
+        {
+            await discordChannel.SendMessageAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.MessageSendFailed(ex, "DiscordChannelWrapper.SendMessageAsync");
+        }
+    }
+
+    public async Task SendMessageAsync(DiscordEmbed embed)
+    {
+        try
+        {
+            await discordChannel.SendMessageAsync(embed);
+        }
+        catch (Exception ex)
+        {
+            _logger.MessageSendFailed(ex, "DiscordChannelWrapper.SendMessageAsync");
+        }
+    }
+
+    public IDiscordGuild Guild => new DiscordGuildWrapper(
+        guild ?? discordChannel.Guild ?? throw new InvalidOperationException("Discord channel has no guild context."));
+
+    public DiscordChannel ToDiscordChannel()
+    {
+        return discordChannel;
+    }
+}

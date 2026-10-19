@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using API.Responses.MusicSearch;
 using DC_bot.Music;
+using DC_bot.Music.Search;
 
 namespace API.Services.MusicSearch;
 

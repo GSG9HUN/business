@@ -1,6 +1,5 @@
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
-using System.Threading;
 
 namespace DC_bot.Service.Core;
 

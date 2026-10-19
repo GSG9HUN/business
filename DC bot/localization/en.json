@@ -105,8 +105,10 @@
   "skip_command_description": "Skip the current track.",
   "skip_command_error": "No track is currently playing.",
   "skip_command_queue_is_empty": "Queue is empty. Playback has stopped.",
+  "skip_command_response": "Track skipped.",
   "previous_command_description": "Play the previous track.",
   "previous_command_error": "There is no previous track to play.",
+  "previous_command_response": "Playing previous track.",
   "tag_command_description": "You can tag someone.",
   "tag_command_usage": "Username provided.",
   "tag_command_user_not_exist_error": "User {0} does not exist.",
@@ -119,7 +121,6 @@
   "leave_command_description": "The bot leaves the voice channel.",
   "reaction_handler_repeat_on": "Repeat mode: Enabled",
   "reaction_handler_repeat_off": "Repeat mode: Disabled",
-  "lavalink_error": "Lavalink is not connected.",
   "bot_is_not_connected_error": "Bot is not connected to a voice channel.",
   "unknown_command_error": "Unknown command. Use `!help` to see available commands.",
   "user_not_in_a_voice_channel": "You must be in a voice channel!",
@@ -134,5 +135,10 @@
   "slash_command_guild_only": "This command can only be used in a server.",
   "slash_command_deferred_accepted": "Request accepted.",
   "slash_command_not_registered": "Command '{0}' is not registered.",
-  "slash_command_unexpected_error": "An unexpected error occurred while executing the command."
+  "slash_command_unexpected_error": "An unexpected error occurred while executing the command.",
+  "lavalink_error": "The music operation could not be completed. If the problem persists, contact the bot administrator.",
+  "playback_state_pending": "Playback started, but saving its state could not be confirmed. Do not submit the same request again.",
+  "playback_outcome_unknown": "The playback start outcome is not yet known. Do not submit the same request again.",
+  "playback_superseded": "A newer connection or leave operation superseded this music operation.",
+  "playback_busy": "A previous music operation still needs reconciliation; no new playback was started."
 }

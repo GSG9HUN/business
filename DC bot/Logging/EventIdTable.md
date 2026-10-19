@@ -152,7 +152,7 @@ does not currently call these methods.
 ### Current startup setup
 
 ```csharp
-.AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Debug); })
+.AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Warning); })
 ```
 
 This is configured in `Startup/DependencyInjection/LoggingServiceCollectionExtensions.cs`.

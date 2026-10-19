@@ -191,8 +191,8 @@ Wrappers implement interfaces defined in `Interface/Discord/`, providing:
 - `OnSessionResumed()` - Log resumed gateway sessions
 - `OnZombied()` - Log zombied gateway state and heartbeat failure details
 - `OnGuildAvailable()` - Ensure guild row exists, load localization, and initialize Lavalink guild state
-- `OnVoiceStateUpdated()` - Log bot voice-state changes and explicit bot voice disconnects
-- `OnVoiceServerUpdated()` - Log voice server endpoint changes without leaking the voice token
+- `OnVoiceStateUpdated()` - Log bot voice-state changes and update guild voice status. A missing cached `Before` state is allowed; logging must not fail before the status update.
+- `OnVoiceServerUpdated()` - Log voice server endpoint changes at Information level without leaking the voice token. Receiving an endpoint and token is not itself a connection failure.
 - `OnUnknownEvent()` - Log unknown gateway events, with elevated visibility for unknown voice events and truncated payloads
 
 **Features:**

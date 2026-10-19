@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Logging;
 
@@ -9,9 +9,6 @@ public static partial class LogExtensions
 
     [LoggerMessage(EventId = 1002, Level = LogLevel.Debug, Message = "Command executed: {CommandName}")]
     public static partial void CommandExecuted(this ILogger logger, string commandName);
-
-    [LoggerMessage(EventId = 1003, Level = LogLevel.Debug, Message = "Command missing argument: {CommandName}")]
-    public static partial void CommandMissingArgument(this ILogger logger, string commandName);
 
     [LoggerMessage(EventId = 1004, Level = LogLevel.Error, Message = "Command execution failed: {CommandName}")]
     public static partial void CommandExecutionFailed(this ILogger logger, Exception exception, string commandName);
@@ -82,21 +79,11 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 1304, Level = LogLevel.Error, Message = "Localization write failed: {FilePath}")]
     public static partial void LocalizationWriteFailed(this ILogger logger, Exception exception, string filePath);
 
-    [LoggerMessage(EventId = 1401, Level = LogLevel.Information, Message = "Lavalink is not connected.")]
-    public static partial void ValidationLavalinkNotConnected(this ILogger logger);
-
-    [LoggerMessage(EventId = 1402, Level = LogLevel.Information, Message = "Bot is not connected to a voice channel.")]
-    public static partial void ValidationBotNotConnected(this ILogger logger);
-
     [LoggerMessage(EventId = 1403, Level = LogLevel.Information, Message = "User is Bot.")]
     public static partial void ValidationUserIsBot(this ILogger logger);
 
     [LoggerMessage(EventId = 1404, Level = LogLevel.Information, Message = "User is not in a voice channel.")]
     public static partial void ValidationUserNotInVoiceChannel(this ILogger logger);
-
-    [LoggerMessage(EventId = 1501, Level = LogLevel.Information,
-        Message = "Discord client logger initialized.")]
-    public static partial void DiscordClientLoggerInitialized(this ILogger logger);
 
     [LoggerMessage(EventId = 1502, Level = LogLevel.Information, Message = "Bot is ready!")]
     public static partial void DiscordClientReady(this ILogger logger);
@@ -123,42 +110,17 @@ public static partial class LogExtensions
     [LoggerMessage(EventId = 2002, Level = LogLevel.Error, Message = "Lavalink connection failed: {Message}")]
     public static partial void LavalinkConnectionFailed(this ILogger logger, Exception exception, string message);
 
-    [LoggerMessage(EventId = 2003, Level = LogLevel.Information, Message = "PlaybackFinished event registered.")]
-    public static partial void PlaybackFinishedEventRegistered(this ILogger logger);
-
-    [LoggerMessage(EventId = 2004, Level = LogLevel.Information, Message = "Failed to find music with url: {Url}")]
-    public static partial void FailedToFindMusicWithUrl(this ILogger logger, string url);
-
-    [LoggerMessage(EventId = 2005, Level = LogLevel.Information, Message = "Failed to find music with query: {Query}")]
-    public static partial void FailedToFindMusicWithQuery(this ILogger logger, string query);
-
     [LoggerMessage(EventId = 2006, Level = LogLevel.Information, Message = "There is no track currently playing.")]
     public static partial void ThereIsNoTrackCurrentlyPlaying(this ILogger logger);
 
     [LoggerMessage(EventId = 2007, Level = LogLevel.Information, Message = "There is no track currently paused.")]
     public static partial void ThereIsNoTrackCurrentlyPaused(this ILogger logger);
 
-    [LoggerMessage(EventId = 2008, Level = LogLevel.Information, Message = "Added to queue.")]
-    public static partial void AddedToQueue(this ILogger logger);
-
-    [LoggerMessage(EventId = 2009, Level = LogLevel.Information, Message = "Added to queue: {Author} - {Title}")]
-    public static partial void AddedToQueueWithTrackDetails(this ILogger logger, string author, string title);
-
     [LoggerMessage(EventId = 2011, Level = LogLevel.Information, Message = "Now Playing: {Author} - {Title}")]
     public static partial void NowPlaying(this ILogger logger, string author, string title);
 
-    [LoggerMessage(EventId = 2012, Level = LogLevel.Information,
-        Message = "Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle}")]
-    public static partial void Repeating(this ILogger logger, string repeatTrackAuthor, string repeatTrackTitle);
-
     [LoggerMessage(EventId = 2013, Level = LogLevel.Error, Message = "Lavalink operation failed: {Operation}")]
     public static partial void LavalinkOperationFailed(this ILogger logger, Exception exception, string operation);
-
-    [LoggerMessage(EventId = 2101, Level = LogLevel.Error, Message = "Queue save failed: {FilePath}")]
-    public static partial void MusicQueueSaveFailed(this ILogger logger, Exception exception, string filePath);
-
-    [LoggerMessage(EventId = 2102, Level = LogLevel.Error, Message = "Queue load failed: {FilePath}")]
-    public static partial void MusicQueueLoadFailed(this ILogger logger, Exception exception, string filePath);
 
     [LoggerMessage(EventId = 3001, Level = LogLevel.Error, Message = "Response send failed: {Operation}")]
     public static partial void ResponseSendFailed(this ILogger logger, Exception exception, string operation);

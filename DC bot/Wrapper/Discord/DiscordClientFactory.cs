@@ -1,0 +1,22 @@
+﻿using DC_bot.Configuration;
+using DSharpPlus;
+using Microsoft.Extensions.Logging;
+
+namespace DC_bot.Wrapper.Discord;
+
+public static class DiscordClientFactory
+{
+    public static DiscordClient Create(BotSettings settings)
+    {
+        var token = settings.Token ?? throw new Exception("DISCORD_TOKEN is not set.");
+        if (string.IsNullOrWhiteSpace(token)) throw new ArgumentNullException(nameof(settings));
+
+        return DiscordClientBuilder
+            .CreateDefault(token, DiscordIntents.All)
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Warning);
+            })
+            .Build();
+    }
+}

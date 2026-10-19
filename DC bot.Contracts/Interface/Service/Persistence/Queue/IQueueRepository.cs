@@ -4,98 +4,37 @@ namespace DC_bot.Interface.Service.Persistence.Queue;
 
 public interface IQueueRepository
 {
-    Task<IReadOnlyList<QueueItemRecord>> GetQueuedItemsAsync(
-        ulong guildId,
-        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<QueueItemRecord>> GetQueuedItemsAsync(ulong guildId, CancellationToken cancellationToken = default);
+    
     Task<bool> AnyQueuedItemsAsync(ulong guildId, CancellationToken cancellationToken = default);
-
-    Task<QueueItemRecord?> GetNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default);
 
     Task<QueueItemRecord?> GetPreviousItemAsync(ulong guildId, CancellationToken cancellationToken = default);
 
     Task<QueueItemRecord?> GetByIdAsync(long queueItemId, CancellationToken cancellationToken = default);
 
-    Task<QueueItemRecord?> GetPlayingItemByTrackIdentifierAsync(
-        ulong guildId,
-        string trackIdentifier,
-        CancellationToken cancellationToken = default);
+    Task EnqueueManyAsync(ulong guildId, IReadOnlyList<QueueItemToEnqueue> queueItems, CancellationToken cancellationToken = default);
 
-    Task<QueueItemRecord> EnqueueAsync(
-        ulong guildId,
-        string trackIdentifier,
-        CancellationToken cancellationToken = default);
+    Task ReorderQueuedItemsAsync(ulong guildId, IReadOnlyList<string> trackIdentifiers, string? realtimeEventName = null, CancellationToken cancellationToken = default);
 
-    Task<QueueItemRecord> EnqueueAsync(
-        ulong guildId,
-        string trackIdentifier,
-        string? requestedBy,
-        CancellationToken cancellationToken = default);
-
-    Task<QueueItemRecord> EnqueueAsync(
-        ulong guildId,
-        string trackIdentifier,
-        string? sourceQuery,
-        string? sourceSearchMode,
-        string? requestedBy,
-        CancellationToken cancellationToken = default);
-
-    Task EnqueueManyAsync(
-        ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        CancellationToken cancellationToken = default);
-
-    Task EnqueueManyAsync(
-        ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        string? requestedBy,
-        CancellationToken cancellationToken = default);
-
-    Task EnqueueManyAsync(
-        ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        string? sourceQuery,
-        string? sourceSearchMode,
-        string? requestedBy,
-        CancellationToken cancellationToken = default);
-
-    Task EnqueueManyAsync(
-        ulong guildId,
-        IReadOnlyList<QueueItemToEnqueue> queueItems,
-        CancellationToken cancellationToken = default);
-
-    Task ReorderQueuedItemsAsync(
-        ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        CancellationToken cancellationToken = default) =>
-        ReorderQueuedItemsAsync(guildId, trackIdentifiers, realtimeEventName: null, cancellationToken);
-
-    Task ReorderQueuedItemsAsync(
-        ulong guildId,
-        IReadOnlyList<string> trackIdentifiers,
-        string? realtimeEventName = null,
-        CancellationToken cancellationToken = default);
-
-    Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(
-        ulong guildId,
-        int trackNumber,
-        CancellationToken cancellationToken = default);
-
-    Task UpdateQueueItemPositionAsync(long queueItemId, int newPosition, CancellationToken cancellationToken = default);
-
-    Task UpdateTrackIdentifierAsync(long queueItemId, string trackIdentifier, CancellationToken cancellationToken = default);
-
-    Task ClearSourceMetadataAsync(long queueItemId, CancellationToken cancellationToken = default);
-
-    Task MarkPlayingAsync(long queueItemId, CancellationToken cancellationToken = default);
-
-    Task MarkPlayedAsync(long queueItemId, CancellationToken cancellationToken = default);
-
-    Task MarkSkippedAsync(long queueItemId, CancellationToken cancellationToken = default);
+    Task<QueueItemRemovalRecord> RemoveQueuedItemAtAsync(ulong guildId, int trackNumber, CancellationToken cancellationToken = default);
+    
     Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default);
-    Task<QueueItemRecord?> ClaimNextQueuedItemAsync(ulong guildId, CancellationToken cancellationToken = default);
-}
+    
+    Task<QueueClaimResult> ClaimForStartAsync(ulong guildId, Guid operationId, long? queueItemId = null, CancellationToken cancellationToken = default);
+    
+    Task<bool> CompleteStartAsync(ulong guildId, long queueItemId, Guid operationId, string trackIdentifier, string realtimeEventName, bool clearSourceMetadata = false, CancellationToken cancellationToken = default);
+  
+    Task<bool> ReleaseStartAsync(ulong guildId, long queueItemId, Guid operationId, bool skip, CancellationToken cancellationToken = default);
+    
+    Task<bool> CompleteAttemptAsync(ulong guildId, long queueItemId, Guid operationId, bool played, CancellationToken cancellationToken = default);
+   
+    Task<bool> TryMarkQueuedAsSkippedAsync(long queueItemId, CancellationToken cancellationToken = default);
+    
+    Task<IReadOnlyList<PendingPlaybackStart>> GetPendingStartsAsync(ulong? guildId = null, CancellationToken cancellationToken = default);
 
-public sealed record QueueItemRemovalRecord(
-    bool Success,
-    int QueueSize,
-    QueueItemRecord? RemovedItem);
+    Task<bool> BindStartNodeAsync(ulong guildId, long queueItemId, Guid operationId, string nodeAddress, string nodeSessionId, CancellationToken cancellationToken = default);
+
+    Task<bool> ResolveDisconnectedStartAsync(ulong guildId, long queueItemId, Guid operationId, CancellationToken cancellationToken = default);
+
+    Task<bool> ConfirmStartTransportAsync(ulong guildId, long queueItemId, Guid operationId, CancellationToken cancellationToken = default);
+}

@@ -1,6 +1,5 @@
 using DC_bot.Db;
 using DC_bot.Interface.Service.Persistence.BotControl;
-using DC_bot.Interface.Service.Persistence.BotRuntimeStatus;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.MobileApps;
@@ -10,7 +9,6 @@ using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Persistence.Status;
 using DC_bot.Repositories.BotControl;
-using DC_bot.Repositories.BotRuntimeStatus;
 using DC_bot.Repositories.GuildBotStatus;
 using DC_bot.Repositories.Guilds;
 using DC_bot.Repositories.MobileApps;
@@ -43,7 +41,6 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IMobileAppUserRepository, MobileAppUserRepository>()
             .AddSingleton<IMobileRealtimeMembershipRepository, MobileRealtimeMembershipRepository>()
             .AddSingleton<IMobileAppSessionRepository, MobileAppSessionRepository>()
-            .AddSingleton<IBotRuntimeStatusRepository, BotRuntimeStatusRepository>()
             .AddSingleton<IGuildBotStatusRepository, GuildBotStatusRepository>()
             .AddSingleton<IMobileAppUserSettingsRepository, MobileAppUserSettingsRepository>()
             .AddSingleton<IBotControlCommandNotifier>(provider => new PostgreSqlBotControlCommandNotifier(

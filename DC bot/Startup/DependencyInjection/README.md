@@ -60,6 +60,8 @@ Wired events include:
 
 Configures Lavalink4NET with HTTP/HTTPS and WS/WSS endpoints derived from `LavalinkSettings`, then registers Lavalink services.
 
+In Lavalink4NET 4.2.1, `ConfigureLavalink` configures the concrete `AudioServiceOptions` type. `PlaybackRemoteProbe` consumes `IOptions<AudioServiceOptions>` so its recovery requests use the same configured address and passphrase. Do not inject `IOptions<LavalinkNodeOptions>`: that SDK base class is abstract and the default options factory cannot instantiate it.
+
 ### PersistenceServiceCollectionExtensions.cs
 
 Lives in `../../../DC bot.Persistence/DependencyInjection/` and registers EF Core and repository implementations:

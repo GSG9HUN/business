@@ -111,6 +111,8 @@ Each service implements a corresponding interface from `Interface/Service/Music/
 
 `LavalinkTrackSerializer` is the shared track identity boundary for queue, repeat-list, and current-track persistence.
 
+Skip dispatches the correlated track-end handler after `StopAsync` succeeds and awaits that handler before acknowledging the command. SDK `Stopped` events are ignored to prevent a delayed event from advancing the queue twice. Natural `Finished` and `LoadFailed` events still use the registered handler. Skip bypasses repeat-one; repeat-list and queue-empty persistence remain in the shared end handler. Skip and Previous send playback notifications to `message.Channel`, rather than the voice channel returned by player validation.
+
 ---
 
 ### PlaylistService/

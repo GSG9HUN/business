@@ -1,9 +1,7 @@
 using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
-using DC_bot.Helper.Factory;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
-using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -13,7 +11,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace DC_bot.Service.ReactionHandler;
 
 public sealed class ReactionControlMessageService(
-    IProgressiveTimerService progressTimerService,
     ILocalizationService localizationService,
     ILogger? logger = null)
 {
@@ -36,12 +33,6 @@ public sealed class ReactionControlMessageService(
                 .AddEmbed(embed);
 
             var message = await textChannel.ToDiscordChannel().SendMessageAsync(builder);
-
-            // Timer updates disabled: the embed displays only the total duration.
-            /* var wrappedMessage =
-                DiscordMessageWrapperFactory.Create(message, textChannel.ToDiscordChannel(), client.CurrentUser);
-
-            await progressTimerService.StartAsync(wrappedMessage, textChannel.Guild.Id); */
 
             await message.CreateReactionAsync(DiscordEmoji.FromName(client, ReactionControlEmojis.PauseEmojiName));
             await message.CreateReactionAsync(DiscordEmoji.FromName(client, ReactionControlEmojis.ResumeEmojiName));

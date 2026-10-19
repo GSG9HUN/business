@@ -3,6 +3,7 @@ using API.Mapping;
 using API.Requests.Playlists;
 using API.Responses.Playlists;
 using DC_bot.BotControl;
+using DC_bot.BotControl.Payloads;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.MobileApps;

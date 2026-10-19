@@ -6,7 +6,6 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.IO;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.BotControl;
-using DC_bot.Interface.Service.Music.ProgressiveTimerInterface;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.IO;
 using DC_bot.Service;
@@ -14,7 +13,7 @@ using DC_bot.Service.BotControl;
 using DC_bot.Service.Core;
 using DC_bot.Service.Presentation;
 using DC_bot.Service.ReactionHandler;
-using DC_bot.Wrapper;
+using DC_bot.Wrapper.Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +40,6 @@ public static class CoreServiceCollectionExtensions
             .AddSingleton<ReactionActionDispatcher>()
             .AddSingleton<ReactionContextFactory>()
             .AddSingleton(provider => new ReactionControlMessageService(
-                provider.GetRequiredService<IProgressiveTimerService>(),
                 provider.GetRequiredService<ILocalizationService>(),
                 provider.GetRequiredService<ILogger<ReactionControlMessageService>>()))
             .AddSingleton<ReactionHandlerService>()

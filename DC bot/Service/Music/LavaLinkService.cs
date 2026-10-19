@@ -1,9 +1,14 @@
-using DC_bot.Constants;
-using DC_bot.BotControl;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Music.Events;
+using DC_bot.Interface.Service.Music.Lavalink;
+using DC_bot.Interface.Service.Music.Lifecycle;
+using DC_bot.Interface.Service.Music.Playback;
+using DC_bot.Interface.Service.Music.Playback.Models;
+using DC_bot.Interface.Service.Music.Presentation;
+using DC_bot.Interface.Service.Music.Repeat;
 using DC_bot.Interface.Service.Presentation;
-using DC_bot.Logging;
+using DC_bot.Service.Music.Lifecycle;
 using DSharpPlus.Entities;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
@@ -11,16 +16,15 @@ using Microsoft.Extensions.Logging;
 namespace DC_bot.Service.Music;
 
 public class LavaLinkService(
-    IMusicQueueService musicQueueService,
     ILogger<LavaLinkService> logger,
-    IResponseBuilder responseBuilder,
     IRepeatService repeatService,
-    ICurrentTrackService currentTrackService,
     ITrackNotificationService trackNotificationService,
     IPlayerConnectionService playerConnectionService,
     IPlaybackEventHandlerService playbackEventHandlerService,
     IPlaybackRequestService playbackRequestService,
     ILavalinkNodeConnectionService lavalinkNodeConnectionService,
+    ITrackPlaybackService trackPlaybackService,
+    GuildPlaybackSessions sessions,
     IPlaybackControlService playbackControlService) : ILavaLinkService
 {
     public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted
@@ -39,25 +43,16 @@ public class LavaLinkService(
     {
         await lavalinkNodeConnectionService.ConnectAsync();
     }
-
-    public async Task PlayAsyncUrl(
-        IDiscordChannel voiceStateChannel,
-        Uri url,
-        IDiscordMessage message,
-        TrackSearchMode trackSearchMode,
-        string? requestedBy = null)
+    public Task<PlaybackStartResult> PlayAsyncUrl(IDiscordChannel voiceStateChannel, Uri url,
+        IDiscordMessage message, TrackSearchMode trackSearchMode, string? requestedBy = null)
     {
-        await playbackRequestService.PlayAsyncUrl(voiceStateChannel, url, message, trackSearchMode, requestedBy);
+        return playbackRequestService.PlayAsyncUrl(voiceStateChannel, url, message, trackSearchMode, requestedBy);
     }
-
-    public async Task PlayAsyncQuery(
-        IDiscordChannel voiceStateChannel,
-        string query,
-        IDiscordMessage message,
-        TrackSearchMode trackSearchMode,
-        string? requestedBy = null)
+    
+    public Task<PlaybackStartResult> PlayAsyncQuery(IDiscordChannel voiceStateChannel, string query,
+        IDiscordMessage message, TrackSearchMode trackSearchMode, string? requestedBy = null)
     {
-        await playbackRequestService.PlayAsyncQuery(voiceStateChannel, query, message, trackSearchMode, requestedBy);
+        return playbackRequestService.PlayAsyncQuery(voiceStateChannel, query, message, trackSearchMode, requestedBy);
     }
 
     public Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member)
@@ -85,46 +80,20 @@ public class LavaLinkService(
         await playbackControlService.LeaveVoiceChannel(message, member);
     }
 
-    public async Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel,
-        IDiscordMember? member)
+    public async Task<PlaybackStartResult> StartPlayingQueue(
+        IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member)
     {
-        var (connection, _, guildId, isValid) =
+        var (connection, _, guildId, valid) =
             await playerConnectionService.TryJoinAndValidateAsync(message, member?.VoiceState?.Channel);
-        if (!isValid || connection == null) return;
-
+        if (!valid || connection is null)
+            return new(PlaybackStartStatus.NotStarted, Guid.NewGuid());
+        var session = sessions.Capture(guildId, connection);
+        if (session is null)
+            return new(PlaybackStartStatus.Superseded, Guid.NewGuid());
         playbackEventHandlerService.RegisterPlaybackFinishedHandler(guildId, connection, textChannel);
-
-        var nextTrack = await musicQueueService.Dequeue(guildId);
-        if (nextTrack is null)
-        {
-            logger.LogDebug("StartPlayingQueue requested for guild {GuildId}, but the queue is empty.", guildId);
-            return;
-        }
-
-        var phase = "PlayAsync";
-        try
-        {
-            await connection.PlayAsync(nextTrack.ToLavalinkTrack());
-            phase = "NotifyNowPlaying";
-            await trackNotificationService.NotifyNowPlayingAsync(textChannel, nextTrack,
-                nextTrack.StartPosition ?? TimeSpan.Zero, nextTrack.Duration);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex,
-                "Join queue start failed. Phase: {Phase}, Guild: {GuildId}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}. LavalinkError is a generic response.",
-                phase, guildId, connection.ConnectionState.IsConnected, connection.State, connection.VoiceChannelId);
-            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.LavalinkError);
-            return;
-        }
-
-        await currentTrackService.SetCurrentTrackAsync(
-            guildId,
-            nextTrack,
-            MobileRealtimeEventNames.PlaybackStarted);
-        logger.LogInformation("Started queue playback for guild {GuildId}: {Author} - {Title}",
-            guildId,
-            nextTrack.Author,
-            nextTrack.Title);
+        if (connection.CurrentTrack is not null)
+            return new(PlaybackStartStatus.Busy, Guid.NewGuid());
+        return await trackPlaybackService.TryPlayNextTrackAsync(
+            session, textChannel, PlaybackStartReason.JoinQueue);
     }
 }

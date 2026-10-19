@@ -26,8 +26,16 @@ public class SkipCommand(
         logger.CommandInvoked(Name);
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
         if (validationResult is null) return;
-
-        await lavaLinkService.SkipAsync(message, validationResult.Member);
+        
+        var result = await lavaLinkService.SkipAsync(message, validationResult.Member);
+        
+        if (!result.Success)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError);
+            return;
+        }
+        
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SkipCommandResponse);
         logger.CommandExecuted(Name);
     }
 }

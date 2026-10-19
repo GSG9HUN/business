@@ -1,4 +1,5 @@
 using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Music.Playback.Models;
 using DSharpPlus.Entities;
 using Lavalink4NET.Rest.Entities.Tracks;
 
@@ -8,19 +9,11 @@ public interface ILavaLinkService
 {
     Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member);
 
-    Task PlayAsyncUrl(
-        IDiscordChannel toDiscordChannel,
-        Uri result,
-        IDiscordMessage message,
-        TrackSearchMode trackSearchMode,
-        string? requestedBy = null);
+    Task<PlaybackStartResult> PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result,
+        IDiscordMessage message, TrackSearchMode trackSearchMode, string? requestedBy = null);
 
-    Task PlayAsyncQuery(
-        IDiscordChannel toDiscordChannel,
-        string query,
-        IDiscordMessage message,
-        TrackSearchMode trackSearchMode,
-        string? requestedBy = null);
+    Task<PlaybackStartResult> PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query,
+        IDiscordMessage message, TrackSearchMode trackSearchMode, string? requestedBy = null);
 
     Task ConnectAsync();
     Task<PlaybackControlResult> SkipAsync(IDiscordMessage message, IDiscordMember? member);
@@ -28,6 +21,6 @@ public interface ILavaLinkService
     Task<PlaybackControlResult> ResumeAsync(IDiscordMessage message, IDiscordMember? member);
     Task Init(ulong guildId);
     event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
-    Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
+    Task<PlaybackStartResult> StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
     Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
 }

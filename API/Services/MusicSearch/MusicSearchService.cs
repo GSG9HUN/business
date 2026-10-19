@@ -3,6 +3,7 @@ using DC_bot.Music;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using DC_bot.Music.Search;
 
 namespace API.Services.MusicSearch;
 

@@ -5,5 +5,6 @@ public enum QueueItemState : short
     Queued = 0,
     Playing = 1,
     Played = 2,
-    Skipped = 3
+    Skipped = 3,
+    Starting = 4
 }

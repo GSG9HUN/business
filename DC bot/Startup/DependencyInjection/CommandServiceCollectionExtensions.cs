@@ -9,7 +9,7 @@ using DC_bot.Commands.TextCommands.Utility;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Service.SlashCommands;
-using DC_bot.Wrapper;
+using DC_bot.Wrapper.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using Microsoft.Extensions.DependencyInjection;

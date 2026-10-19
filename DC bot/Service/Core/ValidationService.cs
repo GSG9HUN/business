@@ -39,26 +39,6 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
         return message.Author.IsBot && !isTestMod;
     }
 
-    public async Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId)
-    {
-        var player = await audioService.Players.GetPlayerAsync(guildId).ConfigureAwait(false);
-        if (player is not null)
-        {
-            logger.LogDebug(
-                "Lavalink player validation passed. Guild: {GuildId}, ConnectionState: {ConnectionState}, IsConnected: {IsConnected}, PlayerState: {PlayerState}, VoiceChannelId: {VoiceChannelId}, CurrentTrack: {CurrentTrack}",
-                guildId,
-                player.ConnectionState,
-                player.ConnectionState.IsConnected,
-                player.State,
-                player.VoiceChannelId,
-                player.CurrentTrack?.Identifier);
-            return new PlayerValidationResult(true, string.Empty, player);
-        }
-
-        logger.LogDebug("No managed Lavalink player exists for guild {GuildId}. Discord voice membership is not checked here.", guildId);
-        return new PlayerValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, player);
-    }
-
     public Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection)
     {
         if (connection.ConnectionState.IsConnected)
@@ -80,7 +60,6 @@ public class ValidationService(ILogger<ValidationService> logger, bool isTestMod
             connection.State,
             connection.VoiceChannelId,
             connection.CurrentTrack?.Identifier);
-        // Final readiness failure is logged by the caller, rather than once per poll.
         return Task.FromResult(new ConnectionValidationResult(false, ValidationErrorKeys.BotIsNotConnectedError, null));
     }
 }

@@ -26,8 +26,16 @@ public class PreviousCommand(
         logger.CommandInvoked(Name);
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
         if (validationResult is null) return;
+        
+        var result = await lavaLinkService.PreviousAsync(message, validationResult.Member);
 
-        await lavaLinkService.PreviousAsync(message, validationResult.Member);
+        if (!result.Success)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError);
+            return;
+        }
+        
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PreviousCommandResponse);
         logger.CommandExecuted(Name);
     }
 }
