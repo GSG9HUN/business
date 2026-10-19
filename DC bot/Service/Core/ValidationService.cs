@@ -51,14 +51,20 @@ public class ValidationService(
             return new ConnectionValidationResult(
                 true, string.Empty, connection);
         }
-
+        
+        if (connection is not LavalinkPlayer player)
+        {
+            return new ConnectionValidationResult(
+                false,
+                ValidationErrorKeys.BotIsNotConnectedError,
+                null);
+        }
+        
         var nodeSessionId = connection.SessionId;
-        var discordVoiceSessionId = connection.VoiceState.SessionId;
+        var discordVoiceSessionId = player.VoiceState.SessionId;
         var voiceChannelId = connection.VoiceChannelId;
 
-        if (string.IsNullOrWhiteSpace(nodeSessionId) ||
-            string.IsNullOrWhiteSpace(discordVoiceSessionId) ||
-            voiceChannelId == 0)
+        if (string.IsNullOrWhiteSpace(nodeSessionId) || string.IsNullOrWhiteSpace(discordVoiceSessionId) || voiceChannelId == 0)
         {
             return new ConnectionValidationResult(
                 false,
@@ -81,7 +87,7 @@ public class ValidationService(
             // Reject evidence if the local connection changed during the request.
             if (remoteConnected &&
                 connection.SessionId == nodeSessionId &&
-                connection.VoiceState.SessionId == discordVoiceSessionId &&
+                player.VoiceState.SessionId == discordVoiceSessionId &&
                 connection.VoiceChannelId == voiceChannelId)
             {
                 logger.LogWarning(
