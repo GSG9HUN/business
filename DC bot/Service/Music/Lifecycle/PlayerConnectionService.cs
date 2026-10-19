@@ -180,8 +180,7 @@ public sealed class PlayerConnectionService(
     {
         if (channel is null)
         {
-            await responseBuilder.SendValidationErrorAsync(
-                message, ValidationErrorKeys.UserNotInVoiceChannel);
+            await responseBuilder.SendValidationErrorAsync(message, ValidationErrorKeys.UserNotInVoiceChannel);
             return (null, null, 0, false);
         }
 
@@ -189,9 +188,9 @@ public sealed class PlayerConnectionService(
         var player = await audioService.Players.GetPlayerAsync(guildId, cancellationToken);
         var session = player is null ? null : sessions.Capture(guildId, player);
 
-        if (session is not null && player!.ConnectionState.IsConnected)
+        if (session is not null)
         {
-            var validation = await validationService.ValidateConnectionAsync(player).WaitAsync(cancellationToken);
+            var validation = await validationService.ValidateConnectionAsync(player!).WaitAsync(cancellationToken);
            
             var registered = await audioService.Players.GetPlayerAsync(guildId, cancellationToken);
           

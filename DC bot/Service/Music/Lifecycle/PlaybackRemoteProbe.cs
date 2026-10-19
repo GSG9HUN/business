@@ -11,6 +11,52 @@ public sealed class PlaybackRemoteProbe(
 {
     public string NodeAddress => nodeOptions.Value.BaseAddress.GetLeftPart(UriPartial.Path).TrimEnd('/');
 
+    public async Task<bool> IsVoiceConnectedAsync(
+        string nodeSessionId,
+        ulong guildId,
+        string discordVoiceSessionId,
+        ulong voiceChannelId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(nodeSessionId) || string.IsNullOrWhiteSpace(discordVoiceSessionId) || voiceChannelId == 0)
+        {
+            return false;
+        }
+
+        using var response = await GetAsync($"/v4/sessions/{Uri.EscapeDataString(nodeSessionId)}/players/{guildId}", cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        using var json = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+
+        var root = json.RootElement;
+
+        if (!root.TryGetProperty("guildId", out var guild) || guild.GetString() != guildId.ToString(
+                System.Globalization.CultureInfo.InvariantCulture) ||
+            !root.TryGetProperty("state", out var state) ||
+            !state.TryGetProperty("connected", out var connected) ||
+            connected.ValueKind != JsonValueKind.True ||
+            !root.TryGetProperty("voice", out var voice) ||
+            !voice.TryGetProperty("sessionId", out var session) ||
+            session.GetString() != discordVoiceSessionId)
+        {
+            return false;
+        }
+
+        // Older responses may omit channelId. If present, it must match.
+        if (voice.TryGetProperty("channelId", out var channel))
+        {
+            return channel.ValueKind == JsonValueKind.String && channel.GetString() == voiceChannelId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return true;
+    }
+    
     private async Task<HttpResponseMessage> GetAsync(string path, CancellationToken cancellationToken)
     {
         var client = httpClientFactory.CreateClient("PlaybackRecovery");
