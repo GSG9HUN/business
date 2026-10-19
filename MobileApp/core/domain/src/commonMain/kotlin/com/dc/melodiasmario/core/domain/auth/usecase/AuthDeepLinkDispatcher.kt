@@ -2,9 +2,9 @@ package com.dc.melodiasmario.core.domain.auth.usecase
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class AuthDeepLinkDispatcher {
     private val _tickets = MutableSharedFlow<String>(
         replay = 1,

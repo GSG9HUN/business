@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
@@ -17,6 +19,14 @@ fun MManualContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    fun confirm() {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+        onConfirm()
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -39,7 +49,7 @@ fun MManualContent(
             }
             Button(
                 modifier = Modifier.weight(1f),
-                onClick = onConfirm,
+                onClick = ::confirm,
                 enabled = !state.commandInFlight && !state.isManualLoading && state.canSubmitManual,
             ) {
                 MText(text = labels.manualAdd)

@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
@@ -35,6 +38,7 @@ fun MSearchBar(
     modifier: Modifier = Modifier,
     placeholder: String = "",
     enabled: Boolean = true,
+    onSearch: () -> Unit = {},
 ) {
     val colors = MelodiasMarioThemeTokens.current
 
@@ -50,6 +54,8 @@ fun MSearchBar(
             enabled = enabled,
             singleLine = true,
             textStyle = TextStyle(color = colors.textPrimary),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
             interactionSource = remember { MutableInteractionSource() },
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->

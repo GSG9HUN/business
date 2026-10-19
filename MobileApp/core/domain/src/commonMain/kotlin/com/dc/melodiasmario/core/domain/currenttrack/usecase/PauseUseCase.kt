@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.currenttrack.CurrentTrackRepository
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class PauseUseCase(
     private val currentTrackRepository: CurrentTrackRepository
 ) {

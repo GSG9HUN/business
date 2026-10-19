@@ -8,6 +8,8 @@ import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
@@ -29,6 +31,8 @@ fun MSearchContent(
     onSearchRetryClicked: () -> Unit,
     onCapabilitiesRetryClicked: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val selectedProvider = state.providers.firstOrNull { it.id == state.selectedProviderId }
     val providerUnavailable = state.providers.isNotEmpty() &&
             (selectedProvider == null || !selectedProvider.canEnqueue)
@@ -38,6 +42,11 @@ fun MSearchContent(
     }
     val canSearch = !state.isCapabilitiesLoading && !providerUnavailable && !kindUnavailable
     val selectedResult = state.results.firstOrNull { it.id == state.selectedResultId }
+    fun submitSearch() {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+        onSearchSubmitted()
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -67,9 +76,10 @@ fun MSearchContent(
                 onQueryChange = onQueryChanged,
                 placeholder = labels.searchPlaceholder,
                 enabled = canSearch,
+                onSearch = ::submitSearch,
             )
             Button(
-                onClick = onSearchSubmitted,
+                onClick = ::submitSearch,
                 enabled = canSearch && state.query.trim().length >= 2,
             ) {
                 MText(text = labels.searchAction)

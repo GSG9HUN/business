@@ -7,9 +7,9 @@ import com.dc.melodiasmario.core.domain.queue.QueueRepository
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class GetCurrentTrackUseCase(
     private val currentTrackRepository: CurrentTrackRepository,
     private val queueRepository: QueueRepository,

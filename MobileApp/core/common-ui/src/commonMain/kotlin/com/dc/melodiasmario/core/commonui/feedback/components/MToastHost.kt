@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -29,7 +30,7 @@ fun MToastHost(
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(hostState) {
-        hostState.toasts.collect { toast ->
+        hostState.toasts.collectLatest { toast ->
             currentToast = toast
             visible = true
             delay(toast.durationMillis.milliseconds)

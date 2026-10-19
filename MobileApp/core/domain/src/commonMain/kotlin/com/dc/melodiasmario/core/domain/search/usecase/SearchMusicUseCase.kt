@@ -7,9 +7,9 @@ import com.dc.melodiasmario.core.model.search.MusicSearchPage
 import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class SearchMusicUseCase(
     private val musicSearchRepository: MusicSearchRepository
 ) {

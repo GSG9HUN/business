@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.queue.QueueRepository
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class MoveTrackToIndexUseCase(
     private val queueRepository: QueueRepository
 ) {

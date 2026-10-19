@@ -34,9 +34,11 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.search.CurrentTrac
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
@@ -63,7 +65,14 @@ class CurrentTrackViewModel(
     private val playbackNotificationController: PlaybackNotificationController,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CurrentTrackUiState())
-    val uiState: StateFlow<CurrentTrackUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<CurrentTrackUiState> = _uiState.onStart {
+        collectPlaybackMonitor()
+    }.stateIn(
+        scope = viewModelScope,
+        started = WhileSubscribed(5_000),
+        initialValue = CurrentTrackUiState()
+    )
+
     private val events = MutableSharedFlow<CurrentTrackEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<CurrentTrackEffect>()
     val effect = _effect.asSharedFlow()
@@ -110,7 +119,6 @@ class CurrentTrackViewModel(
 
     init {
         collectEvents()
-        collectPlaybackMonitor()
     }
 
     fun onEvent(event: CurrentTrackEvent) {
@@ -162,6 +170,7 @@ class CurrentTrackViewModel(
                 _uiState.update { it.copy(isLoading = true, errorMessage = null) }
                 refreshCurrentPlaybackMonitorUseCase()
             }
+
             CurrentTrackEvent.GuildClicked -> _effect.emit(CurrentTrackEffect.NavigateToGuildSelector)
             CurrentTrackEvent.ProfileClicked -> _effect.emit(CurrentTrackEffect.NavigateToProfile)
             CurrentTrackEvent.AddToQueueClicked -> {
@@ -193,6 +202,7 @@ class CurrentTrackViewModel(
             CurrentTrackEvent.SelectedSearchResultAddClicked -> runCommandIfIdle {
                 handleCommandEvent(event)
             }
+
             CurrentTrackEvent.SearchCapabilitiesRetryClicked -> searchController.loadCapabilities()
             is CurrentTrackEvent.AddMusicModeChanged -> searchController.updateMode(event.mode)
         }
@@ -226,16 +236,7 @@ class CurrentTrackViewModel(
     }
 
     private fun CurrentTrackEvent.isCommandEvent(): Boolean {
-        return this is CurrentTrackEvent.AddToQueueConfirmed ||
-            this is CurrentTrackEvent.RemoveFromQueueClicked ||
-            this is CurrentTrackEvent.ClearQueueClicked ||
-            this is CurrentTrackEvent.NextClicked ||
-            this is CurrentTrackEvent.PreviousClicked ||
-            this is CurrentTrackEvent.RepeatClicked ||
-            this is CurrentTrackEvent.ShuffleClicked ||
-            this is CurrentTrackEvent.PlayPauseClicked ||
-            this is CurrentTrackEvent.MoveToIndexClicked ||
-            this is CurrentTrackEvent.SelectedSearchResultAddClicked
+        return this is CurrentTrackEvent.AddToQueueConfirmed || this is CurrentTrackEvent.RemoveFromQueueClicked || this is CurrentTrackEvent.ClearQueueClicked || this is CurrentTrackEvent.NextClicked || this is CurrentTrackEvent.PreviousClicked || this is CurrentTrackEvent.RepeatClicked || this is CurrentTrackEvent.ShuffleClicked || this is CurrentTrackEvent.PlayPauseClicked || this is CurrentTrackEvent.MoveToIndexClicked || this is CurrentTrackEvent.SelectedSearchResultAddClicked
     }
 
     private suspend fun loadCurrentUser() {
@@ -342,6 +343,7 @@ class CurrentTrackViewModel(
         pendingCommandTracker.finish()
         refreshCurrentPlaybackMonitorUseCase()
     }
+
     override fun onCleared() {
         commandRealtimeObserver.clear()
         pendingCommandTracker.clear()

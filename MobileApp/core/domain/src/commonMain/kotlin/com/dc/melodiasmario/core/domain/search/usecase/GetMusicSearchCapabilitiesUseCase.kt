@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.search.MusicSearchRepository
 import com.dc.melodiasmario.core.model.search.MusicSearchCapability
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class GetMusicSearchCapabilitiesUseCase(
     private val musicSearchRepository: MusicSearchRepository
 ) {

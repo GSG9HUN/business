@@ -3,9 +3,9 @@ package com.dc.melodiasmario.core.domain.realtime.usecase
 import com.dc.melodiasmario.core.domain.realtime.RealtimeRepository
 import com.dc.melodiasmario.core.model.realtime.RealtimeConnectionState
 import kotlinx.coroutines.flow.StateFlow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class ObserveRealtimeConnectionStateUseCase(
     private val realtimeRepository: RealtimeRepository
 ) {

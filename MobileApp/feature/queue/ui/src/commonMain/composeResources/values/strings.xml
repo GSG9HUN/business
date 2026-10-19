@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="queue_title">Sor</string>
+    <string name="queue_add_content_description">Zene hozzáadása a sorhoz</string>
+    <string name="queue_empty_title">Üres a sor</string>
+    <string name="queue_empty_message">Adj hozzá zenét, vagy várd meg, amíg a bot frissíti a lejátszási sort.</string>
+    <string name="queue_drag_handle_content_description">Sorba rendezési fogantyú</string>
+    <string name="queue_more_content_description">További sor műveletek</string>
+    <string name="queue_move_up_action">Mozgatás fel</string>
+    <string name="queue_move_down_action">Mozgatás le</string>
+    <string name="queue_more_title">Sor műveletek</string>
+    <string name="queue_more_message">Válassz műveletet az aktuális sorhoz.</string>
+    <string name="queue_shuffle_action">Sor keverése</string>
+    <string name="queue_clear_action">Sor ürítése</string>
+    <string name="queue_make_playlist_action">Lejátszási lista készítése a sorból</string>
+    <string name="queue_edit_mode_label">Szerkesztési mód</string>
+    <string name="queue_edit_mode_message">Hosszan nyomva húzd át. Mentéskor a queue verziója ellenőrzésre kerül.</string>
+</resources>

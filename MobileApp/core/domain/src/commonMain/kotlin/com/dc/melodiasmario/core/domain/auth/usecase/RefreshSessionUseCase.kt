@@ -6,9 +6,9 @@ import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
 import com.dc.melodiasmario.core.model.auth.AuthSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class RefreshSessionUseCase(
     private val authRepository: AuthRepository,
     private val secureAuthSessionStorage: SecureAuthSessionStorage
