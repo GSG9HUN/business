@@ -234,6 +234,14 @@ public sealed class PlayerConnectionService(
     
     private void ScheduleInvalidPlayerCleanup(PlaybackSession session, Guid operationId)
     {
+        logger.LogWarning(
+            "Invalid player cleanup requested. " +
+            "Guild={GuildId} OperationId={OperationId} " +
+            "ConnectionState={ConnectionState} PlayerState={PlayerState}",
+            session.GuildId,
+            operationId,
+            session.Player.ConnectionState,
+            session.Player.State);
         try
         {
             var cleanup = sessions.LeaveIfCurrentAsync(session, player =>
