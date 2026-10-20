@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Logging;
+using DC_bot.Service.Music.Lifecycle;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -15,6 +16,7 @@ public class DiscordClientEventHandler(
     IGuildDataRepository guildDataRepository,
     ILocalizationService localizationService,
     ILavaLinkService lavaLinkService,
+    DiscordPlaybackRecoveryService gatewayRecovery,
     IGuildBotStatusRepository guildBotStatusRepository)
 {
     private readonly DiscordConnectionEventLogger _connectionEventLogger = new(logger);
@@ -44,6 +46,11 @@ public class DiscordClientEventHandler(
         {
             _connectionEventLogger.LogClientReady(e);
             await lavaLinkService.ConnectAsync();
+            
+            if (e is not null)
+            {
+                await gatewayRecovery.OnSessionCreatedAsync(e.GuildIds);
+            }
         });
     }
 
@@ -82,7 +89,16 @@ public class DiscordClientEventHandler(
         return HandleEventAsync(nameof(OnVoiceStateUpdated), async () =>
         {
             _voiceEventLogger.LogVoiceStateUpdated(sender, e);
+
+            // Persist the received event before recovery can generate new events.
             await UpdateGuildBotStatusAsync(sender, e);
+
+            if (sender.CurrentUser?.Id == e.UserId && e.GuildId is { } guildId)
+            {
+                await gatewayRecovery.OnBotVoiceStateUpdatedAsync(
+                    guildId,
+                    e.After?.ChannelId ?? e.ChannelId);
+            }
         });
     }
 
@@ -149,14 +165,14 @@ public class DiscordClientEventHandler(
         DiscordGuild guild,
         VoiceStateUpdatedEventArgs e)
     {
-        if (sender.CurrentUser?.Id is not { } botUserId)
+        if (sender.CurrentUser?.Id is not { }  botUserId)
         {
             return null;
         }
 
         if (botUserId == e.UserId)
         {
-            return TryGetGuildChannel(guild, e.After?.ChannelId ?? e.ChannelId);
+            return TryGetGuildChannel(guild, e.After.ChannelId ?? e.ChannelId);
         }
 
         if (!guild.Members.TryGetValue(botUserId, out var botMember))
@@ -164,7 +180,7 @@ public class DiscordClientEventHandler(
             return null;
         }
 
-        return TryGetGuildChannel(guild, botMember.VoiceState?.ChannelId);
+        return TryGetGuildChannel(guild, botMember.VoiceState.ChannelId);
     }
 
     private static DiscordChannel? TryGetGuildChannel(DiscordGuild guild, ulong? channelId)

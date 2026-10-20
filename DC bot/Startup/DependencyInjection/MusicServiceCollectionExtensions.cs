@@ -73,6 +73,7 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<ITrackEndedHandlerService, TrackEndedHandlerService>()
             .AddSingleton<ILavaLinkService, LavaLinkService>()
             .AddSingleton<IMusicQueueService, MusicQueueService>()
+            .AddSingleton<DiscordPlaybackRecoveryService>()
             .AddSingleton<IPlaylistService, PlaylistService>()
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>();
     }

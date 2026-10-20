@@ -22,6 +22,7 @@ public sealed class PlayerConnectionService(
     IGuildBotStatusRepository guildBotStatusRepository,
     ILogger<PlayerConnectionService> logger,
     GuildPlaybackSessions sessions,
+    DiscordPlaybackRecoveryService gatewayRecovery,
     PlaybackCleanupService playbackCleanupService,
     PlaybackRecoveryService playbackRecoveryService,
     IOptions<PlaybackLifecycleOptions> options) : IPlayerConnectionService
@@ -150,9 +151,14 @@ public sealed class PlayerConnectionService(
                     operationId, guildId);
             }
 
-            return sessions.IsCurrent(session)
-                ? (session.Player, channel, guildId, true)
-                : (null, channel, guildId, false);
+            if (!sessions.IsCurrent(session))
+            {
+                return (null, channel, guildId, false);
+            }
+
+            gatewayRecovery.Remember(session, channel.Id);
+
+            return (session.Player, channel, guildId, true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
