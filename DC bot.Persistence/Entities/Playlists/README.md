@@ -1,26 +1,57 @@
-# Playlist Entities
+# Playlists
 
-This folder contains saved playlist EF Core entities.
+Represents the database rows used for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Why This Folder Exists
+## Overview
 
-Saved playlists are durable collections, not active playback queues. These entities represent playlist metadata and ordered track rows as EF Core table models.
+- Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+- Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 
-## Files
+## Classes
 
-### PlaylistEntity.cs
+### PlaylistEntity
 
-Saved playlist metadata owned by a guild.
+**File:** `DC bot.Persistence/Entities/Playlists/PlaylistEntity.cs`
 
-### PlaylistTrackEntity.cs
+**Purpose:** Represents the persisted playlist row mapped by the EF Core model.
 
-Ordered track row inside a saved playlist.
+**Properties:**
 
-## What The Entities Represent
+```csharp
+// The identifier of this persisted record.
+public long Id { get; set; }
+public ulong GuildId { get; set; }
+public string Name { get; set; }
+public GuildDataEntity Guild { get; set; }
+public ICollection<PlaylistTrackEntity> Tracks { get; set; }
+```
 
-`PlaylistEntity` stores the playlist identity and ownership. `PlaylistTrackEntity` stores track identifiers and order numbers inside that playlist.
+---
 
-## Maintenance Notes
+### PlaylistTrackEntity
 
-- Playlist tracks are ordered by `OrderNumber`.
-- Playlist tracks are cascade-deleted with their parent playlist.
+**File:** `DC bot.Persistence/Entities/Playlists/PlaylistTrackEntity.cs`
+
+**Purpose:** Represents the persisted playlist track row mapped by the EF Core model.
+
+**Properties:**
+
+```csharp
+// The identifier of this persisted record.
+public long Id { get; set; }
+public long PlaylistId { get; set; }
+public int OrderNumber { get; set; }
+public string Source { get; set; }
+public string TrackIdentifier { get; set; }
+public string TrackUri { get; set; }
+public PlaylistEntity Playlist { get; set; }
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Entities/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Entities/Guilds/` — Represents the database rows used for guild defaults, premium state, and the mapped premium-audit schema.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

@@ -1,76 +1,33 @@
-﻿# Localization Exceptions
+# Localization
 
-This folder contains exceptions for localization system errors.
+Represents failures while loading or resolving translation resources.
 
-## LocalizationException
+## Overview
 
-**Namespace:** `DC_bot.Exceptions.Localization`
+- LocalizationService supplies context about missing or invalid localization data for logging and caller handling.
+- Keep file I/O and translation lookup behavior in the localization service; exception types only describe the failure.
+
+## Classes
+
+### LocalizationException
+
+**File:** `DC bot/Exceptions/Localization/LocalizationException.cs`
+
+**Purpose:** Exception thrown when localization operations fail.
+
+**Implements / inherits:** `BotException`.
 
 **Properties:**
 
-- `LanguageCode` (string) - The language code that caused the error
-
-**When Thrown:**
-
-### 1. File Read Failure
-
 ```csharp
-// In LocalizationService.ReadJson<T>(filePath, languageCode)
-catch (Exception ex)
-{
-    throw new LocalizationException(languageCode, $"Failed to read JSON file: {filePath}", ex);
-}
+// The language code involved in the failed localization operation.
+public string LanguageCode { get; }
 ```
 
-### 2. File Write Failure
+---
 
-```csharp
-// In LocalizationService.WriteJson<T>(filePath, value, languageCode)
-catch (Exception ex)
-{
-    throw new LocalizationException(languageCode, $"Failed to write JSON file: {filePath}", ex);
-}
-```
+## Related Components
 
-### 3. Translation File Not Found
-
-```csharp
-// In LocalizationService.LoadTranslations()
-if (!_fileSystem.FileExists(filePath))
-{
-    throw new LocalizationException(languageCode, $"Translation file not found: {filePath}", exception);
-}
-```
-
-## Usage in Code
-
-### LocalizationService.cs
-
-- Thrown when reading/writing JSON fails
-- Thrown when language file doesn't exist
-- Wraps underlying IOException or JsonException
-
-## Handling
-
-`LanguageCommand` catches this exception when saving a guild language fails. Other localization loading paths allow the
-domain exception to bubble to the command handler or slash executor, where it is logged as a bot exception.
-
-```csharp
-try
-{
-    localizationService.SaveLanguage(message.Channel.Guild.Id, language);
-}
-catch (LocalizationException ex)
-{
-    logger.CommandExecutionFailed(ex, Name);
-    await responseBuilder.SendErrorAsync(message, LocalizationKeys.LanguageCommandError);
-}
-```
-
-## Related Files
-
-- `Service/LocalizationService.cs` - Throws this exception
-- `localization/eng.json` - English translations
-- `localization/hu.json` - Hungarian translations
-- `guildFiles/localization/*.json` - Guild language preferences
-
+- `DC bot/Exceptions/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

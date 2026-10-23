@@ -1,22 +1,52 @@
-# Queue Entities
+# Queue
 
-This folder contains queue-related EF Core entities.
+Represents the database rows used for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
 
-## Why This Folder Exists
+## Overview
 
-The queue table is the durable representation of tracks waiting to be played or already processed. The entity here is used by EF Core to track queue rows and by repositories to update queue state.
+- Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+- Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 
-## Files
+## Classes
 
-### GuildQueueItemEntity.cs
+### GuildQueueItemEntity
 
-Stores one queued track for one guild.
+**File:** `DC bot.Persistence/Entities/Queue/GuildQueueItemEntity.cs`
 
-## What The Entity Represents
+**Purpose:** Represents the persisted guild queue item row mapped by the EF Core model.
 
-Each row belongs to one guild and contains the track identifier, order number, state, and timestamps needed by queue and playback services.
+**Properties:**
 
-## Maintenance Notes
+```csharp
+// The identifier of this persisted record.
+public long Id { get; set; }
+public ulong GuildId { get; set; }
+public long? BatchId { get; set; }
+public long? BatchItemId { get; set; }
+public int Position { get; set; }
+public string TrackIdentifier { get; set; }
+public string? SourceQuery { get; set; }
+public string? SourceSearchMode { get; set; }
+public string? RequestedBy { get; set; }
+public Guid? PlaybackOperationId { get; set; }
+public QueueItemState? StartPreviousState { get; set; }
+public Guid? StartPreviousOperationId { get; set; }
+public string? PlaybackNodeAddress { get; set; }
+public string? PlaybackNodeSessionId { get; set; }
+public bool PlaybackTransportConfirmed { get; set; }
+public QueueItemState State { get; set; }
+public DateTimeOffset AddedAtUtc { get; set; }
+public DateTimeOffset? PlayedAtUtc { get; set; }
+public DateTimeOffset? SkippedAtUtc { get; set; }
+public GuildDataEntity Guild { get; set; }
+```
 
-- Queue item state is represented by the contract-level `QueueItemState` enum in code.
-- EF configuration maps the state value to the database column.
+---
+
+## Related Components
+
+- `DC bot.Persistence/Entities/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Entities/Guilds/` — Represents the database rows used for guild defaults, premium state, and the mapped premium-audit schema.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/` — Defines shared records and state values for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

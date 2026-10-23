@@ -1,31 +1,78 @@
-# Guild Configurations
+# Guilds
 
-This folder contains EF Core mappings for guild-level entities.
+Defines EF Core table mappings for guild defaults, premium state, and the mapped premium-audit schema.
 
-## Why This Folder Exists
+## Overview
 
-Guild data is the root for most persisted features. Queue rows, playback state, repeat-list rows, playlists, and user-guild links all relate back to known guild rows.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-The mappings here define the root table and premium audit table so other feature mappings can safely reference them.
+## Classes
 
-## Files
+### GuildDataConfiguration
 
-### GuildDataConfiguration.cs
+**File:** `DC bot.Persistence/Configurations/Guilds/GuildDataConfiguration.cs`
 
-Maps the guild data table, premium columns, and navigation relationships.
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for guild data.
 
-### GuildPremiumAuditConfiguration.cs
+**Implements / inherits:** `IEntityTypeConfiguration<GuildDataEntity>`.
 
-Maps the premium audit table.
+**Methods:**
 
-## What To Keep Here
+- `Configure` — Implements `Configure` using the contract shown below.
 
-- guild table shape
-- premium state columns
-- premium audit table mapping
-- root navigation relationships from guild data
+```csharp
+public void Configure(EntityTypeBuilder<GuildDataEntity> builder);
+```
 
-## Maintenance Notes
+**Mapping rules:** The twenty-four-seven flag maps to `is_twenty_four_seven_enabled` with a default of `false`. Preferred voice and text channel identifiers use nullable `numeric(20,0)` columns.
 
-- Guild IDs are mapped consistently through shared helper configuration.
-- Guild data is the parent table for many guild-scoped feature tables.
+```csharp
+builder.Property(entity => entity.PreferredVoiceChannelId)
+    .HasColumnName("preferred_voice_channel_id")
+    .HasColumnType("numeric(20,0)");
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+guildDataConfiguration.Configure(builder);
+```
+
+---
+
+### GuildPremiumAuditConfiguration
+
+**File:** `DC bot.Persistence/Configurations/Guilds/GuildPremiumAuditConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for guild premium audit.
+
+**Implements / inherits:** `IEntityTypeConfiguration<GuildPremiumAuditEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<GuildPremiumAuditEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+guildPremiumAuditConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/Guilds/` — Represents the database rows used for guild defaults, premium state, and the mapped premium-audit schema.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

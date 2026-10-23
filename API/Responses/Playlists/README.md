@@ -1,30 +1,64 @@
-# Playlist Responses
+# Playlists
 
-This folder contains response DTOs for playlist endpoints.
+Defines client-facing output for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Files
+## Overview
 
-### PlaylistSummaryResponse.cs
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-Reserved for compact playlist list items.
+## Models and Results
 
-### PlaylistDetailResponse.cs
+### PlaylistDetailResponse
 
-Reserved for full playlist details and track lists.
+**File:** `API/Responses/Playlists/PlaylistDetailResponse.cs`
 
-### PlaylistTrackResponse.cs
+**Purpose:** Carries the playlist detail payload returned to HTTP and mobile clients.
 
-Represents one track inside a playlist.
+**Record declaration:**
 
-Fields:
+```csharp
+public sealed record PlaylistDetailResponse(
+    string Id,
+    string GuildId,
+    string Name,
+    int SongCount,
+    int Duration,
+    IReadOnlyList<PlaylistTrackResponse> Tracks);
+```
 
-- `OrderNumber`
-- `Title`
-- `Author`
-- `Duration`
-- `TrackUri`
+---
 
-## Notes
+### PlaylistSummaryResponse
 
-- Playlist response DTOs should be built from persistence/service records, not EF entities.
-- Keep ordering explicit so mobile clients can render stable track lists.
+**File:** `API/Responses/Playlists/PlaylistSummaryResponse.cs`
+
+**Purpose:** Carries the playlist summary payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record PlaylistSummaryResponse(string Id, string Name, int SongCount, int Duration);
+```
+
+---
+
+### PlaylistTrackResponse
+
+**File:** `API/Responses/Playlists/PlaylistTrackResponse.cs`
+
+**Purpose:** Carries the playlist track payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record PlaylistTrackResponse(int OrderNumber, string Title, string Author, int Duration, string TrackUri);
+```
+
+---
+
+## Related Components
+
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

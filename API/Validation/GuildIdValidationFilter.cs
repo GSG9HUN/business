@@ -1,29 +1,32 @@
-﻿using API.Errors;
+using API.Errors;
 using static Microsoft.AspNetCore.Http.Results;
 
 namespace API.Validation;
 
-public sealed class GuildIdValidationFilter: IEndpointFilter
+/// <summary>
+/// Validates a nonzero Discord guild route identifier and stores its parsed value for handlers.
+/// </summary>
+public sealed class GuildIdValidationFilter : IEndpointFilter
 {
+
+    /// <summary>
+    /// Rejects invalid guild route values or stores the parsed identifier before calling the next filter.
+    /// </summary>
+    /// <param name="context">The context value for this operation.</param>
+    /// <param name="next">The next value for this operation.</param>
+    /// <returns>The computed invoke result.</returns>
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var routeValues = context.HttpContext.Request.RouteValues;
-
         var guildIdString = routeValues["guildId"]?.ToString();
-        if (string.IsNullOrEmpty(guildIdString) ||
-            !ulong.TryParse(guildIdString, out var guildId) || 
-            guildId == 0)
+
+        if (string.IsNullOrEmpty(guildIdString)
+            || !ulong.TryParse(guildIdString, out var guildId)
+            || guildId == 0)
         {
-            return BadRequest(new {
-                Code = ApiErrorCode.Validation,
-                Message = "Invalid request.",
-                Errors = new Dictionary<string, string>
-                {
-                    ["guildId"] = "Invalid guild id."
-                }
-            });
+            return BadRequest(new { Code = ApiErrorCode.Validation, Message = "Invalid request.", Errors = new Dictionary<string, string> { ["guildId"] = "Invalid guild id." } });
         }
-        
+
         context.HttpContext.Items["guildId"] = guildId;
         return await next(context);
     }

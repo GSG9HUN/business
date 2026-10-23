@@ -1,42 +1,128 @@
-# Playlist Persistence Contracts
+# Playlists
 
-This folder contains saved playlist persistence contracts.
+Defines repository operations for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Why This Folder Exists
+## Overview
 
-Saved playlists are durable user-created collections. They are different from the active playback queue: a playlist is stored metadata plus ordered tracks, while the queue is a runtime playback list.
+- The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+- Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 
-These contracts keep saved playlist behavior separate from queue behavior and from EF Core entity shape.
+## Interfaces
 
-## Files
+### IPlaylistRepository
 
-### IPlaylistRepository.cs
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Playlists/IPlaylistRepository.cs`
 
-Contract for saved playlist metadata operations.
+**Purpose:** Defines shared storage operations for playlist repository, including caller cancellation and immutable result contracts.
 
-### IPlaylistTrackRepository.cs
+**Methods:**
 
-Contract for ordered playlist track operations.
+- `CreatePlaylistAsync` — Creates a guild-owned empty playlist and returns its durable identifier, reporting duplicate-name conflicts.
 
-## Why Metadata And Tracks Are Split
+```csharp
+Task<long> CreatePlaylistAsync(ulong guildId, string playlistName, CancellationToken cancellationToken = default);
+```
 
-Playlist metadata operations ask questions like "does this playlist exist?" or "rename this playlist." Track operations mutate ordered rows inside one playlist.
+- `GetByGuildAndNameAsync` — Reads the guild-owned playlist with the requested stored name.
 
-Keeping the contracts split prevents metadata workflows from needing track mutation methods and makes tests easier to target.
+```csharp
+Task<PlaylistRecord?> GetByGuildAndNameAsync(ulong guildId, string playlistName, CancellationToken cancellationToken = default);
+```
 
-## What Belongs Here
+- `GetByGuildAsync` — Lists the guild's saved playlists with their persisted track counts.
 
-- playlist create/delete/rename/read operations
-- ordered playlist track reads
-- adding/removing playlist tracks
+```csharp
+Task<IReadOnlyList<PlaylistSummaryRecord>> GetByGuildAsync(ulong guildId, CancellationToken cancellationToken = default);
+```
 
-## What Does Not Belong Here
+- `GetByIdAsync` — Reads a queue item or playlist by its durable database identifier.
 
-- active queue mutation
-- Lavalink search logic
-- API request DTOs
+```csharp
+Task<PlaylistRecord?> GetByIdAsync(long playlistId, CancellationToken cancellationToken = default);
+```
 
-## Maintenance Notes
+- `DeleteByGuildAndNameAsync` — Deletes only the playlist matching both guild identity and stored name.
 
-- Playlist names are guild-scoped.
-- Track order is represented explicitly through order numbers.
+```csharp
+Task<bool> DeleteByGuildAndNameAsync(ulong guildId, string playlistName, CancellationToken cancellationToken = default);
+```
+
+- `DeleteByIdAsync` — Deletes the playlist with the specified durable identifier and reports whether a row was removed.
+
+```csharp
+Task<bool> DeleteByIdAsync(long playlistId, CancellationToken cancellationToken = default);
+```
+
+**Additional methods:** `ExistsAsync`, `RenameAsync`, `RenameByIdAsync`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName, cancellationToken);
+```
+
+---
+
+### IPlaylistTrackRepository
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Playlists/IPlaylistTrackRepository.cs`
+
+**Purpose:** Defines shared storage operations for playlist track repository, including caller cancellation and immutable result contracts.
+
+**Methods:**
+
+- `GetByPlaylistIdOrderedAsync` — Reads one playlist's tracks in stored order without exposing tracked EF entities.
+
+```csharp
+Task<IReadOnlyList<PlaylistTrackRecord>> GetByPlaylistIdOrderedAsync(
+    long playlistId,
+    CancellationToken cancellationToken = default);
+```
+
+- `GetByPlaylistIdsOrderedAsync` — Reads tracks for the supplied playlists while preserving each playlist's stored order.
+
+```csharp
+Task<IReadOnlyList<PlaylistTrackRecord>> GetByPlaylistIdsOrderedAsync(
+    IReadOnlyCollection<long> playlistIds,
+    CancellationToken cancellationToken = default);
+```
+
+- `AddRangeAsync` — Appends an ordered track collection under serializable retry so concurrent appends receive distinct positions.
+
+```csharp
+Task AddRangeAsync(
+    long playlistId,
+    IReadOnlyCollection<PlaylistTrackCreateRecord> tracks,
+    CancellationToken cancellationToken = default);
+```
+
+- `AddTrackAsync` — Appends one track with its source identity under serializable retry.
+
+```csharp
+Task AddTrackAsync(long playlistId, PlaylistTrackCreateRecord track, CancellationToken cancellationToken = default);
+```
+
+- `RemoveTrackAsync` — Removes the numbered playlist track and compacts remaining positions under serializable retry.
+
+```csharp
+Task RemoveTrackAsync(long playlistId, int orderNumber, CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlistId, cancellationToken);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/` — Defines shared records and state values for saved playlist metadata and ordered, serialized playlist tracks.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

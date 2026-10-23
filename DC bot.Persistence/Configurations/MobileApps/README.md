@@ -1,34 +1,122 @@
-# Mobile App Configurations
+# MobileApps
 
-This folder contains EF Core mappings for mobile app entities.
+Defines EF Core table mappings for mobile identities, guild access, refresh sessions, and realtime subscription membership.
 
-## Why This Folder Exists
+## Overview
 
-The mobile app auth flow stores Discord users, guild access links, and refresh sessions. Those tables need explicit constraints because they are security-sensitive: users must map to stable Discord IDs, guild access must point to known guilds, and refresh sessions must store hashes rather than raw tokens.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-## Files
+## Classes
 
-### MobileAppUsersConfiguration.cs
+### MobileAppSessionsConfiguration
 
-Maps mobile app users.
+**File:** `DC bot.Persistence/Configurations/MobileApps/MobileAppSessionsConfiguration.cs`
 
-### UserGuildsConfiguration.cs
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for mobile app sessions.
 
-Maps the user-guild join table.
+**Implements / inherits:** `IEntityTypeConfiguration<MobileAppSessionEntity>`.
 
-### MobileAppSessionsConfiguration.cs
+**Methods:**
 
-Maps refresh sessions.
+- `Configure` — Implements `Configure` using the contract shown below.
 
-## What To Keep Here
+```csharp
+public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<MobileAppSessionEntity> builder);
+```
 
-- mobile app user primary key and profile columns
-- user-guild composite key and guild/user relationships
-- indexes used for guild access checks
-- refresh session primary key, token hash lookup, expiry, and revocation columns
+**Usage:**
 
-## Maintenance Notes
+The caller supplies the component and argument values used in this example.
 
-- `mobile_app_users.discord_user_id` is the primary key.
-- `user_guilds` connects Discord users to known guild rows.
-- `mobile_app_sessions` stores refresh token hashes and revocation metadata.
+```csharp
+mobileAppSessionsConfiguration.Configure(builder);
+```
+
+---
+
+### MobileAppUsersConfiguration
+
+**File:** `DC bot.Persistence/Configurations/MobileApps/MobileAppUsersConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for mobile app users.
+
+**Implements / inherits:** `IEntityTypeConfiguration<MobileAppUserEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<MobileAppUserEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+mobileAppUsersConfiguration.Configure(builder);
+```
+
+---
+
+### MobileRealtimeGuildMembershipsConfiguration
+
+**File:** `DC bot.Persistence/Configurations/MobileApps/MobileRealtimeGuildMembershipsConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for mobile realtime guild memberships.
+
+**Implements / inherits:** `IEntityTypeConfiguration<MobileRealtimeGuildMembershipEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<MobileRealtimeGuildMembershipEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+mobileRealtimeGuildMembershipsConfiguration.Configure(builder);
+```
+
+---
+
+### UserGuildsConfiguration
+
+**File:** `DC bot.Persistence/Configurations/MobileApps/UserGuildsConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for user guilds.
+
+**Implements / inherits:** `IEntityTypeConfiguration<UserGuildEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<UserGuildEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+userGuildsConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/MobileApps/` — Represents the database rows used for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

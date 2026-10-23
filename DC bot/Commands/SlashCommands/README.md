@@ -1,96 +1,81 @@
-# Slash Commands
+# SlashCommands
 
-This folder contains Discord slash command modules for the bot.
+Exposes Discord application commands through DSharpPlus command modules.
 
-## Current Status
+## Overview
 
-Slash commands are active and registered by `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` as part of `BotServiceProviderFactory.Create(...)`, using `DSharpPlus.Commands` with `SlashCommandProcessor`.
+- Adapters build SlashCommandExecutionRequest values and delegate to ISlashCommandExecutor, which reuses the registered text command implementation.
+- Interaction deferral, guild-only handling, and response wrapping belong to this adapter path. Avoid duplicating playback or playlist logic in slash modules.
 
-The modules are intentionally thin adapters:
+## Subfolders
 
-1. DSharpPlus receives the slash interaction through `SlashCommandContext`.
-2. The module wraps the interaction as `ISlashInteractionContext`.
-3. `ISlashCommandExecutor` creates an `IDiscordMessage`-compatible wrapper.
-4. The existing text command implementation executes the real command logic.
+### Music/
 
-This keeps text and slash command behavior aligned and avoids duplicating music, validation, localization, queue, and
-response logic.
+Exposes voice join/leave and playback controls through slash commands.
 
-## Folder Structure
+**Files:**
 
-- `Music/` - playback slash commands.
-- `Queue/` - queue management slash commands.
-- `Playlist/` - saved playlist slash commands.
-- `Utility/` - general bot slash commands.
+- `JoinSlashCommand.cs`
+- `LeaveSlashCommand.cs`
+- `PauseSlashCommand.cs`
+- `PlaySlashCommand.cs`
+- `PreviousSlashCommand.cs`
+- `ResumeSlashCommand.cs`
+- `SkipSlashCommand.cs`
 
-Each subfolder has its own README with command-specific behavior.
+**Purpose:** DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
 
-## Available Slash Commands
+---
 
-### Music
+### Playlist/
 
-- `/play query:<url-or-search>` -> `PlayCommand`
-- `/join` -> `JoinCommand`
-- `/pause` -> `PauseCommand`
-- `/resume` -> `ResumeCommand`
-- `/skip` -> `SkipCommand`
-- `/leave` -> `LeaveCommand`
+Exposes saved playlist creation, URL import, track editing, and queue loading through slash commands.
 
-### Queue
+**Files:**
 
-- `/queue` -> `ViewQueueCommand`
-- `/shuffle` -> `ShuffleCommand`
-- `/repeat track` -> `RepeatCommand`
-- `/repeat list` -> `RepeatListCommand`
-- `/clear confirm:<true>` -> `ClearCommand`
+- `PlaylistSlashCommand.cs`
 
-### Playlist
+**Purpose:** DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
 
-- `/playlist create name:<name>` -> `CreatePlaylistCommand`
-- `/playlist save name:<name> url:<playlist-url>` -> `SavePlaylistCommand`
-- `/playlist list` -> `ListPlaylistsCommand`
-- `/playlist view name:<name>` -> `ViewPlaylistCommand`
-- `/playlist load name:<name>` -> `LoadPlaylistCommand`
-- `/playlist add-song name:<name> url:<song-url-or-query>` -> `AddSongToPlaylistCommand`
-- `/playlist remove-song name:<name> track-number:<number>` -> `RemoveSongFromPlaylistCommand`
-- `/playlist rename current-name:<name> new-name:<name>` -> `RenamePlaylistCommand`
-- `/playlist delete name:<name> confirm:<true>` -> `DeletePlaylistCommand`
+---
 
-`save`, `load`, and `add-song` defer the interaction because Lavalink loading, voice join, or playback startup can take longer than a simple command response.
-`delete` requires `confirm:true`; without it the module returns a localized confirmation warning and does not call the text
-command pipeline.
+### Queue/
 
-### Utility
+Exposes queue display, repetition, ordering, and recent batch history through slash commands.
 
-- `/ping` -> `PingCommand`
-- `/help` -> `HelpCommand`
-- `/tag user:<member>` -> `TagCommand`
-- `/language language:<eng|hu>` -> `LanguageCommand`
+**Files:**
+
+- `ClearSlashCommand.cs`
+- `HistorySlashCommand.cs`
+- `QueueSlashCommand.cs`
+- `RepeatSlashCommand.cs`
+- `ShuffleSlashCommand.cs`
+
+**Purpose:** DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+
+---
+
+### Utility/
+
+Exposes help, language selection, latency checks, and user tagging through slash commands.
+
+**Files:**
+
+- `HelpSlashCommand.cs`
+- `LanguageSlashCommand.cs`
+- `PingSlashCommand.cs`
+- `TagSlashCommand.cs`
+
+**Purpose:** DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+
+---
 
 ## Related Components
 
-- `Interface/Service/SlashCommands/ISlashInteractionContext.cs`
-- `Interface/Service/SlashCommands/ISlashInteractionContextFactory.cs`
-- `Interface/Service/SlashCommands/ISlashCommandExecutor.cs`
-- `Service/SlashCommands/SlashCommandExecutor.cs`
-- `Wrapper/SlashInteractionContextFactory.cs`
-- `Wrapper/SlashInteractionContextWrapper.cs`
-- `Wrapper/SlashInteractionMessageWrapper.cs`
-
-## Package Notes
-
-The project uses DSharpPlus `5.0.0-nightly-02574` consistently for the DSharpPlus packages used here. Because the
-DSharpPlus nightly package removes old sharded client types used by the stable Lavalink integration package, the
-DSharpPlus Lavalink adapter is `Lavalink4NET.DSharpPlus.Nightly`.
-
-The legacy `DSharpPlus.SlashCommands` package is intentionally not used.
-
-## Tests
-
-Slash command coverage includes:
-
-- Unit tests for executor behavior and module delegation.
-- Integration tests for startup registration and DI resolution.
-- E2E-category pipeline tests for active slash command adapters.
-
-Live Discord slash invocation requires a user/client-side command trigger and is tracked by the manual smoke checklist.
+- `DC bot/Commands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Commands/SlashCommands/Music/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/SlashCommands/Playlist/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/SlashCommands/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/SlashCommands/Utility/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

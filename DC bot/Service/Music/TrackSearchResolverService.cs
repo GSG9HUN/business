@@ -1,12 +1,22 @@
-﻿using DC_bot.Configuration;
-using DC_bot.Interface.Service.Music;
+using DC_bot.Configuration;
+using DC_bot.Interface.Service.Music.Search;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Options;
 
 namespace DC_bot.Service.Music;
 
+/// <summary>
+/// Selects a search provider from a prefix, URL, or configured default.
+/// </summary>
+/// <param name="options">The configured typed options consumed by this boundary.</param>
 public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> options) : ITrackSearchResolverService
 {
+
+    /// <summary>
+    /// Resolves an explicit provider prefix or URL, falling back to the configured default.
+    /// </summary>
+    /// <param name="input">The input supplied for this operation.</param>
+    /// <returns>The value produced for the supplied operation context.</returns>
     public TrackSearchMode ResolveSearchMode(string input)
     {
         if (input.Contains(':'))
@@ -34,6 +44,7 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
         }
 
         if (!Uri.TryCreate(input, UriKind.Absolute, out var uri))
+        {
             return options.Value.DefaultQueryMode switch
             {
                 "ytm" => TrackSearchMode.YouTubeMusic,
@@ -41,6 +52,7 @@ public sealed class TrackSearchResolverService(IOptions<SearchResolverOptions> o
                 "sp" => TrackSearchMode.Spotify,
                 _ => TrackSearchMode.YouTube
             };
+        }
 
         var host = uri.Host.ToLowerInvariant();
         return host switch

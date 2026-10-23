@@ -76,25 +76,6 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("bot_control_commands", (string)null);
                 });
 
-            modelBuilder.Entity("DC_bot.Entities.BotRuntimeStatus.BotRuntimeStatusEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("LastHeartbeatAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_heartbeat_at_utc");
-
-                    b.Property<DateTimeOffset>("StartedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at_utc");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("bot_runtime_status", (string)null);
-                });
-
             modelBuilder.Entity("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", b =>
                 {
                     b.Property<decimal>("GuildId")
@@ -132,6 +113,20 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_premium");
+
+                    b.Property<bool>("IsTwentyFourSevenEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_twenty_four_seven_enabled");
+
+                    b.Property<decimal?>("PreferredTextChannelId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("preferred_text_channel_id");
+
+                    b.Property<decimal?>("PreferredVoiceChannelId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("preferred_voice_channel_id");
 
                     b.Property<DateTimeOffset?>("PremiumUntilUtc")
                         .HasColumnType("timestamp with time zone")
@@ -412,6 +407,10 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
 
+                    b.Property<long?>("ActiveBatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("active_batch_id");
+
                     b.Property<string>("CurrentTrackIdentifier")
                         .HasColumnType("text")
                         .HasColumnName("current_track_identifier");
@@ -456,6 +455,8 @@ namespace DC_bot.Persistence.Migrations
 
                     b.HasKey("GuildId");
 
+                    b.HasIndex("ActiveBatchId");
+
                     b.ToTable("guild_playback_state", (string)null);
                 });
 
@@ -493,6 +494,84 @@ namespace DC_bot.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("guild_repeat_list_item", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.PlaybackBatchEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at_utc");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId")
+                        .IsUnique()
+                        .HasFilter("completed_at_utc IS NULL");
+
+                    b.HasIndex("GuildId", "CreatedAtUtc");
+
+                    b.ToTable("playback_batches", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.PlaybackBatchItemEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("AddedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at_utc");
+
+                    b.Property<long>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("batch_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<string>("RequestedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("requested_by");
+
+                    b.Property<string>("SourceQuery")
+                        .HasColumnType("text")
+                        .HasColumnName("source_query");
+
+                    b.Property<string>("SourceSearchMode")
+                        .HasColumnType("text")
+                        .HasColumnName("source_search_mode");
+
+                    b.Property<string>("TrackIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("track_identifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("playback_batch_items", (string)null);
                 });
 
             modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>
@@ -580,9 +659,35 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("added_at_utc")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<long?>("BatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("batch_id");
+
+                    b.Property<long?>("BatchItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("batch_item_id");
+
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
+
+                    b.Property<string>("PlaybackNodeAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("playback_node_address");
+
+                    b.Property<string>("PlaybackNodeSessionId")
+                        .HasColumnType("text")
+                        .HasColumnName("playback_node_session_id");
+
+                    b.Property<Guid?>("PlaybackOperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("playback_operation_id");
+
+                    b.Property<bool>("PlaybackTransportConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("playback_transport_confirmed");
 
                     b.Property<DateTimeOffset?>("PlayedAtUtc")
                         .HasColumnType("timestamp with time zone")
@@ -610,6 +715,14 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("source_search_mode");
 
+                    b.Property<Guid?>("StartPreviousOperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("start_previous_operation_id");
+
+                    b.Property<short?>("StartPreviousState")
+                        .HasColumnType("smallint")
+                        .HasColumnName("start_previous_state");
+
                     b.Property<short>("State")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("smallint")
@@ -623,9 +736,18 @@ namespace DC_bot.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BatchItemId");
+
+                    b.HasIndex("GuildId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_queue_starting_guild")
+                        .HasFilter("\"state\" = 4");
+
                     b.HasIndex("GuildId", "Position")
                         .IsUnique()
-                        .HasFilter("\"state\" = 0");
+                        .HasFilter("\"state\" IN (0, 4)");
+
+                    b.HasIndex("BatchId", "State", "Position");
 
                     b.HasIndex("GuildId", "State", "Position");
 
@@ -706,6 +828,11 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Entities.Playback.GuildPlaybackStateEntity", b =>
                 {
+                    b.HasOne("DC_bot.Entities.Playback.PlaybackBatchEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ActiveBatchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
                         .WithOne("PlaybackState")
                         .HasForeignKey("DC_bot.Entities.Playback.GuildPlaybackStateEntity", "GuildId")
@@ -724,6 +851,28 @@ namespace DC_bot.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.PlaybackBatchEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
+                        .WithMany()
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Playback.PlaybackBatchItemEntity", b =>
+                {
+                    b.HasOne("DC_bot.Entities.Playback.PlaybackBatchEntity", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
                 });
 
             modelBuilder.Entity("DC_bot.Entities.Playlists.PlaylistEntity", b =>
@@ -750,6 +899,16 @@ namespace DC_bot.Persistence.Migrations
 
             modelBuilder.Entity("DC_bot.Entities.Queue.GuildQueueItemEntity", b =>
                 {
+                    b.HasOne("DC_bot.Entities.Playback.PlaybackBatchEntity", null)
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DC_bot.Entities.Playback.PlaybackBatchItemEntity", null)
+                        .WithMany()
+                        .HasForeignKey("BatchItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("DC_bot.Entities.Guilds.GuildDataEntity", "Guild")
                         .WithMany("QueueItems")
                         .HasForeignKey("GuildId")

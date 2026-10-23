@@ -1,90 +1,109 @@
-﻿# Logging
+# Logging
 
-This folder contains structured logging extensions, event ID documentation, and logging scope helpers.
+Defines typed log messages and reusable scopes for bot operations.
 
-## Files
+## Overview
 
-### LogExtensions.cs
+- LogExtensions uses source-generated logging methods; LoggingScopes attaches command, guild, channel, and user context where supplied.
+- The configured logging filter controls visibility. Avoid relying on a debug message as the only evidence of a failure, and do not include credentials or voice tokens in new logs.
 
-**Purpose:** Structured logging methods for application events.
+## Event ID Reference
 
-**Format:**
+**File:** `EventIdTable.md`
+
+**Purpose:** Lists the current source-generated application event IDs, levels, method names, and exact message templates. It also explains the console provider, category filters, and available correlation fields. Direct logger calls and third-party event IDs are outside that catalog's declaration scope.
+
+---
+
+## Classes
+
+### LogExtensions
+
+**File:** `DC bot/Logging/LogExtensions.cs`
+
+**Purpose:** Defines structured log events shared by command, Discord, and playback boundaries.
+
+**Methods:**
+
+- `CommandExecuted` — Writes the structured log event: Command executed: {CommandName}.
 
 ```csharp
-[LoggerMessage(EventId = 1001, Level = LogLevel.Debug, Message = "...")]
-public static partial void MethodName(this ILogger logger, ...parameters);
+public static partial void CommandExecuted(this ILogger logger, string commandName);
+```
+
+- `CommandExecutionFailed` — Writes the structured log event: Command execution failed: {CommandName}.
+
+```csharp
+public static partial void CommandExecutionFailed(this ILogger logger, Exception exception, string commandName);
+```
+
+- `CommandHandlerAlreadyRegistered` — Writes the structured log event: CommandHandler Service is already registered.
+
+```csharp
+public static partial void CommandHandlerAlreadyRegistered(this ILogger logger);
+```
+
+- `CommandHandlerNoPrefix` — Writes the structured log event: No prefix provided.
+
+```csharp
+public static partial void CommandHandlerNoPrefix(this ILogger logger);
+```
+
+- `CommandHandlerRegistered` — Writes the structured log event: Registered command handler.
+
+```csharp
+public static partial void CommandHandlerRegistered(this ILogger logger);
+```
+
+- `CommandHandlerUnknownCommand` — Writes the structured log event: Unknown command. Use `!help` to see available commands..
+
+```csharp
+public static partial void CommandHandlerUnknownCommand(this ILogger logger);
+```
+
+**Additional methods:** `CommandInvoked`, `CommandHandlerUnregistered`, `CommandHandlerUnregisterNotRegistered`, `ReactionHandlerAlreadyRegistered`, `ReactionHandlerRegistered`, `ReactionHandlerUnregistered`, `ReactionHandlerUnregisterNotRegistered`, `ReactionControlMessageSent`, `ReactionAdded`, `ReactionRemoved`, `ReactionHandlerOperationFailed`, `ReactionHandlerMessageSendFailed`, `LocalizationLoading`, `LocalizationLoaded`, `LocalizationReadFailed`, `LocalizationWriteFailed`, `ValidationUserIsBot`, `ValidationUserNotInVoiceChannel`, `DiscordClientReady`, `DiscordClientGuildAvailable`, `DiscordClientEventFailed`, `PlayCommandStartUrl`, `PlayCommandStartQuery`, `QueueIsEmpty`, `LavalinkNodeConnectedSuccessfully`, `LavalinkConnectionFailed`, `ThereIsNoTrackCurrentlyPlaying`, `ThereIsNoTrackCurrentlyPaused`, `NowPlaying`, `LavalinkOperationFailed`, `ResponseSendFailed`, `MessageSendFailed`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+logger.CommandExecuted(commandName);
+```
+
+---
+
+### LoggingScopes
+
+**File:** `DC bot/Logging/LoggingScopes.cs`
+
+**Purpose:** Attaches command and guild identifiers to the logging scope of an operation.
+
+**Methods:**
+
+- `BeginCommandScope` — Creates a logging scope containing command and Discord context identifiers.
+
+```csharp
+public static IDisposable? BeginCommandScope(
+    this ILogger logger,
+    string commandName,
+    ulong? userId,
+    ulong? channelId,
+    ulong? guildId);
 ```
 
 **Usage:**
 
-```csharp
-logger.CommandInvoked("play");           // EventId 1001
-logger.CommandExecuted("play");          // EventId 1002
-logger.LavalinkNodeConnectedSuccessfully();  // Lavalink event
-logger.ValidationUserIsBot();            // Validation event
-logger.ValidationUserNotInVoiceChannel(); // Validation event
-```
-
-**Benefits:**
-
-- Type-safe logging
-- Structured parameters
-- Consistent format
-- Unique event IDs
-- No string concatenation
-
----
-
-### LoggingScopes.cs
-
-**Purpose:** Logging scope helpers for context tracking.
-
-**Usage:**
+The caller supplies the component and argument values used in this example.
 
 ```csharp
-using (logger.BeginCommandScope("play", userId, channelId, guildId))
-{
-    // Logs in this scope automatically include GuildId and UserId
-    logger.CommandInvoked("play");
-}
+var result = logger.BeginCommandScope(commandName, userId, channelId, guildId);
 ```
 
 ---
-
-### EventIdTable.md
-
-**Purpose:** Documentation of all `LoggerMessage` event IDs declared in `LogExtensions.cs`.
-
-**Format:**
-
-```
-1001 - CommandInvoked
-1002 - CommandExecuted
-1003 - CommandMissingArgument
-1004 - CommandExecutionFailed
-1101 - CommandHandlerAlreadyRegistered
-...
-```
-
-**Benefits:**
-
-- Event ID reference for `LogExtensions.cs`
-- Prevents ID collisions
-- Aids debugging and monitoring
-
----
-
-## Log Levels
-
-- **Debug** - Detailed execution flow (command invocation)
-- **Information** - Normal operation (handler registered, message sent)
-- **Warning** - Unexpected but handled (rate limit, retry)
-- **Error** - Operation failed (command execution, connection)
-- **Critical** - Application may not recover (startup failure)
 
 ## Related Components
 
-- **Service/** - Uses logging extensions
-- **Commands/** - Log command execution
-- **Wrapper/** - Log Discord operations
-
+- `DC bot/Logging/EventIdTable.md` — Event catalog and visibility rules derived from the current logging sources.
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

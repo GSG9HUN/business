@@ -2,12 +2,18 @@ using System.Text.RegularExpressions;
 
 namespace DC_bot.Helper;
 
+/// <summary>
+/// Escapes user-controlled text that could trigger unintended Discord mentions.
+/// </summary>
 public static class DiscordTextSanitizer
 {
-    private static readonly Regex DangerousMentionPattern = new(
-        @"@(everyone|here)\b|<@([!&]?\d+)>",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex DangerousMentionPattern = new(@"@(everyone|here)\b|<@([!&]?\d+)>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+    /// <summary>
+    /// Escapes mention syntax in user-controlled text before Discord presentation.
+    /// </summary>
+    /// <param name="text">The text supplied for this operation.</param>
+    /// <returns>The formatted, serialized, or resolved text value.</returns>
     public static string EscapeMentions(string? text)
     {
         if (string.IsNullOrEmpty(text))

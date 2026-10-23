@@ -1,26 +1,49 @@
-# Guild Responses
+# Guilds
 
-This folder contains response DTOs for guild-oriented endpoints.
+Defines client-facing output for guild defaults, premium state, and the mapped premium-audit schema.
 
-## Why This Folder Exists
+## Overview
 
-Guild endpoints expose the guilds a mobile app user can access. The API should not return raw Discord OAuth guild payloads or persistence join rows directly because the mobile client needs a stable app-specific shape.
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-## Files
+## Models and Results
 
-### GuildSummaryResponse.cs
+### GuildBotStatusResponse
 
-Represents a compact guild listing item.
+**File:** `API/Responses/Guilds/GuildBotStatusResponse.cs`
 
-### GuildBotStatusResponse.cs
+**Purpose:** Carries the guild bot status payload returned to HTTP and mobile clients.
 
-Represents the bot status summary embedded in each guild listing item.
+**Record declaration:**
 
-## Flow Context
+```csharp
+public sealed record GuildBotStatusResponse(bool IsOnline, string? ConnectedVoiceChannelName, int ConnectedVoiceUserCount);
+```
 
-The guild list endpoint reads the authenticated user's Discord ID from the JWT, queries synced user-guild links, and maps the result into these response DTOs.
+---
 
-## Maintenance Notes
+### GuildSummaryResponse
 
-- Mobile guild lists should represent the intersection of user guilds and bot-known guilds.
-- Guild-specific response DTOs should not expose internal persistence state unless the mobile app needs it.
+**File:** `API/Responses/Guilds/GuildSummaryResponse.cs`
+
+**Purpose:** Carries the guild summary payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record GuildSummaryResponse(
+    ulong GuildId,
+    string Name,
+    string? IconUrl,
+    string AccessLevel,
+    GuildBotStatusResponse BotStatus);
+```
+
+---
+
+## Related Components
+
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

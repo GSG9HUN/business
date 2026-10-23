@@ -1,80 +1,89 @@
-﻿# Presentation Services
+# Presentation
 
-This folder contains services for building and sending Discord responses.
+Builds Discord success, warning, error, and validation replies from localization keys.
 
-## Files
+## Overview
 
-### ResponseBuilder.cs
+- ResponseBuilder retrieves the guild language, formats arguments, and sends through IDiscordMessage.
+- Compatibility params overloads delegate to token-aware implementations. A CancellationToken must not accidentally become a localization formatting argument.
 
-**Purpose:** Build and send Discord messages consistently.
+## Classes
 
-**Implements:** `IResponseBuilder`
+### ResponseBuilder
+
+**File:** `DC bot/Service/Presentation/ResponseBuilder.cs`
+
+**Purpose:** Builds localized usage, success, warning, validation, and error responses.
+
+**Implements / inherits:** `IResponseBuilder`.
 
 **Methods:**
 
-- `SendValidationErrorAsync()` - Send localized validation error
-- `SendUsageAsync()` - Send command usage instructions
-- `SendSuccessAsync()` - Send localized success message by key
-- `SendWarningAsync()` - Send localized warning message by key with optional localized warning prefix
-- `SendErrorAsync()` - Send localized error message by key with optional localized error prefix
+- `SendErrorAsync` — Sends a localized error response with formatting arguments.
 
-**Internal Method:**
+```csharp
+public async Task SendErrorAsync(
+    IDiscordMessage message,
+    string localizationKey,
+    CancellationToken cancellationToken,
+    params object[] args);
+```
 
-- `GetForMessage()` - Resolve a localization key using the guild from the wrapped message
-- `FormatWithPrefix()` - Add a localized warning or error prefix when configured
-- `SafeRespondAsync()` - Send message with error handling
+- `SendErrorAsync` — Sends a localized error response with formatting arguments.
+
+```csharp
+public Task SendErrorAsync(IDiscordMessage message, string localizationKey, params object[] args);
+```
+
+- `SendSuccessAsync` — Sends a localized success response with formatting arguments.
+
+```csharp
+public Task SendSuccessAsync(IDiscordMessage message, string localizationKey, params object[] args);
+```
+
+- `SendSuccessAsync` — Sends a localized success response with formatting arguments.
+
+```csharp
+public async Task SendSuccessAsync(
+    IDiscordMessage message,
+    string localizationKey,
+    CancellationToken cancellationToken,
+    params object[] args);
+```
+
+- `SendUsageAsync` — Sends localized usage guidance for the requested command.
+
+```csharp
+public async Task SendUsageAsync(IDiscordMessage message, string commandName, CancellationToken cancellationToken = default);
+```
+
+- `SendValidationErrorAsync` — Sends a localized user-validation error for the command message.
+
+```csharp
+public async Task SendValidationErrorAsync(
+    IDiscordMessage message,
+    string errorKey,
+    CancellationToken cancellationToken = default);
+```
+
+**Additional methods:** `SendWarningAsync`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 
-```csharp
-// Validation error
-if (!result.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
-    return;
-}
-
-// Success
-await responseBuilder.SendSuccessAsync(
-    message,
-    LocalizationKeys.AddSongToPlaylistCommandAdded,
-    playlistName);
-
-// Warning
-await responseBuilder.SendWarningAsync(
-    message,
-    LocalizationKeys.CreatePlaylistCommandAlreadyExists,
-    playlistName);
-
-// Error
-await responseBuilder.SendErrorAsync(
-    message,
-    LocalizationKeys.CreatePlaylistCommandUnknownError,
-    playlistName);
-```
-
-**Features:**
-
-- Guild-aware localization lookup through the wrapped message channel
-- Optional `response_warning_prefix` and `response_error_prefix` localization prefixes
-- Error handling with try-catch
-- Consistent formatting
-- Wrapped `IDiscordMessage` usage
-- Empty validation error keys are ignored
-
-**Localization Integration:**
+The caller supplies the component and argument values used in this example.
 
 ```csharp
-var guildId = message.Channel.Guild.Id;
-var text = localization.Get(guildId, key, args);
+await responseBuilder.SendErrorAsync(message, localizationKey, cancellationToken, args);
 ```
 
 ---
 
 ## Related Components
 
-- **Interface/Service/Presentation/IResponseBuilder.cs** - Contract
-- **Service/LocalizationService.cs** - Provides localized text
-- **Commands/** - Use for sending responses
-- **Wrapper/DiscordMessageWrapper.cs** - Message abstraction
-
+- `DC bot/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Interface/Service/Localization/` — Defines translation lookup, formatting, and guild language selection.
+- `DC bot/Interface/Service/Presentation/` — Defines localized success, warning, error, and validation responses.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.
