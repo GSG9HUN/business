@@ -1,47 +1,86 @@
-# Playlist Slash Commands
+# Playlist
 
-This folder contains slash command adapters for saved playlist management.
+Exposes saved playlist creation, URL import, track editing, and queue loading through slash commands.
 
-## Command Group
+## Overview
 
-`PlaylistSlashCommand.cs` exposes the `/playlist` group and delegates every confirmed action to the existing text command
-pipeline through `ISlashCommandExecutor`.
+- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- PlaylistSlashCommand groups the playlist operations into one module and quotes names before dispatching commands that expect two values. URL resolution and repository limits remain in the saved-playlist services.
 
-## Commands
+## Classes
 
-- `/playlist create name:<name>` -> `createPlaylist <name>`
-- `/playlist save name:<name> url:<playlist-url>` -> `savePlaylist "<name>" <playlist-url>`
-- `/playlist list` -> `listPlaylists`
-- `/playlist view name:<name>` -> `viewPlaylist <name>`
-- `/playlist load name:<name>` -> `loadPlaylist <name>`
-- `/playlist add-song name:<name> url:<song-url-or-query>` -> `addSong "<name>" <song-url-or-query>`
-- `/playlist remove-song name:<name> track-number:<number>` -> `removeSong "<name>" <number>`
-- `/playlist rename current-name:<name> new-name:<name>` -> `renamePlaylist "<current-name>" "<new-name>"`
-- `/playlist delete name:<name> confirm:<true>` -> `deletePlaylist <name>`
+### PlaylistSlashCommand
 
-`save`, `load`, and `add-song` set `EnsureDeferredResponse` because they may wait on Lavalink track loading, voice join,
-or playback startup. Commands that pass two playlist values quote playlist names before creating the text-command payload
-so names with spaces are preserved by `CommandValidationService.TryParseSavePlaylistArguments`.
+**File:** `DC bot/Commands/SlashCommands/Playlist/PlaylistSlashCommand.cs`
 
-## Safety
+**Purpose:** Adapts the playlist slash command to shared command execution and interaction acknowledgement.
 
-- `delete` does not execute unless `confirm:true` is provided.
-- Confirmation text escapes Discord mentions in the playlist name.
-- Service-level validation still owns playlist name rules, limits, and persistence outcomes.
+**Methods:**
 
-## Tests
+- `Create` — Adapts the create slash route to its shared handler and interaction response policy.
 
-- `UnitTests/Commands/SlashCommands/Playlist/PlaylistSlashCommandTests.cs` covers adapter delegation, quoted payloads,
-  deferred flags, and delete confirmation.
-- `IntegrationTests/Commands/SlashCommands/Playlist/PlaylistSlashCommandRegistrationIntegrationTests.cs` covers DI
-  registration.
-- `EndToEndTests/Commands/SlashCommands/Playlist/PlaylistSlashCommandEndToEndTests.cs` covers the local slash adapter ->
-  executor -> text command pipeline.
+```csharp
+public Task Create(SlashCommandContext context, [Parameter("name")][Description("Playlist name")] string name);
+```
+
+- `AddSong` — Adapts the add song slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task AddSong(
+    SlashCommandContext context,
+    [Parameter("name")][Description("Playlist name")] string name,
+    [Parameter("url")][Description("Song URL or search query")] string url);
+```
+
+- `Delete` — Adapts the delete slash route to its shared handler and interaction response policy.
+
+```csharp
+public async Task Delete(
+    SlashCommandContext context,
+    [Parameter("name")][Description("Playlist name")] string name,
+    [Parameter("confirm")][Description("Must be true to delete the playlist")] bool confirm = false);
+```
+
+- `List` — Adapts the list slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task List(SlashCommandContext context);
+```
+
+- `Load` — Adapts the load slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Load(SlashCommandContext context, [Parameter("name")][Description("Playlist name")] string name);
+```
+
+- `RemoveSong` — Adapts the remove song slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task RemoveSong(
+    SlashCommandContext context,
+    [Parameter("name")][Description("Playlist name")] string name,
+    [Parameter("track-number")][Description("Track number from playlist view")] int trackNumber);
+```
+
+**Additional methods:** `Save`, `View`, `Rename`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await playlistSlashCommand.AddSong(context, name, url);
+```
+
+---
 
 ## Related Components
 
-- `Commands/TextCommands/Playlist/`
-- `Service/SlashCommands/SlashCommandExecutor.cs`
-- `Service/Core/CommandValidationService.cs`
-- `Service/Music/PlaylistService/`
-- `Interface/Service/Music/PlaylistServiceInterface/`
+- `DC bot/Commands/SlashCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Helper/` — Contains small adapters and utilities used by command and presentation boundaries.
+- `DC bot/Interface/Service/Localization/` — Defines translation lookup, formatting, and guild language selection.
+- `DC bot/Interface/Service/SlashCommands/` — Connects DSharpPlus interactions to the shared text command pipeline.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

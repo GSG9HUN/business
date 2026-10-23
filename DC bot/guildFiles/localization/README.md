@@ -1,26 +1,14 @@
-﻿# Guild Localization Files
+# localization
 
-This folder stores per-guild localization settings.
+Stores the language choice associated with an individual guild.
 
-## Why This Folder Exists
+## Overview
 
-Guild language selection is persistent state. When a guild chooses Hungarian or English, the bot needs to remember that preference after restart.
+- LocalizationService reads and writes these preferences and resolves messages from the shared translation catalog.
+- Do not use this folder for queue snapshots or bot credentials. Keep runtime preference filenames out of fixed documentation inventories.
 
-This folder is the file-backed storage location for that preference in the bot project. The localization service reads these files when resolving which language should be used for a guild.
+## Related Components
 
-## Contents
-
-- `*.json` files keyed by guild ID.
-
-## How It Is Used
-
-Each file represents one guild's selected language. If a guild does not have a file here, the bot falls back to the default language.
-
-This folder is runtime data, not source translation content. Actual translation strings live under `localization/`.
-
-## Maintenance Notes
-
-- These files persist each guild's selected language.
-- Missing files fall back to the default language (`eng`).
-- Corrupted files currently raise `LocalizationException`; fix or delete the file to restore default loading.
-
+- `DC bot/guildFiles/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

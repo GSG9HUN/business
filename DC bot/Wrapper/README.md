@@ -1,247 +1,642 @@
 # Wrapper
 
-This folder contains wrapper classes that abstract the DSharpPlus Discord library.
+Groups Discord, Lavalink, and slash-interaction implementations of bot-facing contracts.
 
 ## Overview
 
-Wrappers implement interfaces defined in `Interface/Discord/`, providing:
+- The Discord wrappers expose SDK objects through application interfaces; Lavalink wrappers adapt track metadata; slash wrappers translate interaction responses.
+- Keep SDK naming and fixed signatures where required. Application use cases belong in services, not in wrapper property accessors.
 
-- Abstraction from DSharpPlus
-- Testable interfaces
-- Exception handling
-- Consistent Discord API interaction
+## Subfolders
 
-## Files
+### Discord/
 
-### DiscordMessageWrapper.cs
+Wraps messages, users, guilds, channels, members, and voice state and handles Discord client events.
 
-**Implements:** `IDiscordMessage`
+**Files:**
 
-**Purpose:** Wraps DSharpPlus `DiscordMessage`.
+- `DiscordChannelWrapper.cs`
+- `DiscordClientEventHandler.cs`
+- `DiscordClientFactory.cs`
+- `DiscordConnectionEventLogger.cs`
+- `DiscordGuildWrapper.cs`
+- `DiscordMemberWrapper.cs`
+- `DiscordMessageWrapper.cs`
+- `DiscordUserWrapper.cs`
+- `DiscordVoiceEventLogger.cs`
+- `DiscordVoiceStateWrapper.cs`
+
+**Purpose:** DiscordClientEventHandler routes connection and voice events to status persistence and playback recovery. Separate loggers keep event diagnostics focused.
+
+---
+
+### Lavalink/
+
+Exposes Lavalink track metadata through ILavaLinkTrack.
+
+**Files:**
+
+- `LavaLinkTrackWrapper.cs`
+
+**Purpose:** LavaLinkTrackWrapper allows command and presentation code to consume track values without constructing a concrete SDK track.
+
+---
+
+### SlashCommands/
+
+Translates DSharpPlus interaction context and response state into bot-facing message contracts.
+
+**Files:**
+
+- `SlashInteractionContextFactory.cs`
+- `SlashInteractionContextWrapper.cs`
+- `SlashInteractionMessageWrapper.cs`
+
+**Purpose:** The factory creates an interaction context; wrappers expose deferred, initial, and follow-up response operations to the shared command pipeline.
+
+---
+
+## Classes
+
+### DiscordChannelWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordChannelWrapper.cs`
+
+**Purpose:** Adapts discord channel data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordChannel`.
 
 **Properties:**
-
-- `Id` - Message ID
-- `Content` - Message text
-- `Author` - Message author
-- `Channel` - Message channel
-- `CreatedAt` - Message creation timestamp
-- `Embeds` - Embedded content
-
-**Methods:**
-
-- `RespondAsync()` - Send text or embed response
-- `ModifyAsync()` - Modify the wrapped Discord message
-
----
-
-### DiscordChannelWrapper.cs
-
-**Implements:** `IDiscordChannel`
-
-**Purpose:** Wraps DSharpPlus `DiscordChannel`.
-
-**Properties:**
-
-- `Id` - Channel ID
-- `Name` - Channel name
-- `Guild` - Parent guild from the channel or an explicitly supplied guild context
-
-**Methods:**
-
-- `SendMessageAsync()` - Send message to channel
-- `ToDiscordChannel()` - Get underlying DSharpPlus channel
-
-**Notes:**
-
-- Some DSharpPlus event payloads do not populate `DiscordChannel.Guild`; callers can pass the guild explicitly to keep command and reaction handling guild-aware.
-- `Guild` throws if neither the channel nor the explicit constructor argument contains guild context.
-
----
-
-### DiscordUserWrapper.cs
-
-**Implements:** `IDiscordUser`
-
-**Purpose:** Wraps DSharpPlus `DiscordUser`.
-
-**Properties:**
-
-- `Id` - User ID
-- `Username` - User name
-- `IsBot` - Whether user is a bot
-- `Mention` - Discord mention string
-
----
-
-### DiscordMemberWrapper.cs
-
-**Implements:** `IDiscordMember`
-
-**Purpose:** Wraps DSharpPlus `DiscordMember`.
-
-**Properties:**
-
-- `Id` - Member ID
-- `Username` - Member name
-- `Mention` - Discord mention string
-- `IsBot` - Whether member is a bot
-- `VoiceState` - Voice channel state (nullable)
-
----
-
-### DiscordGuildWrapper.cs
-
-**Implements:** `IDiscordGuild`
-
-**Purpose:** Wraps DSharpPlus `DiscordGuild`.
-
-**Properties:**
-
-- `Id` - Guild ID
-- `Name` - Guild name
-
----
-
-### DiscordVoiceStateWrapper.cs
-
-**Implements:** `IDiscordVoiceState`
-
-**Purpose:** Wraps DSharpPlus `DiscordVoiceState`.
-
-**Properties:**
-
-- `Channel` - Voice channel (nullable)
-
----
-
-### LavalinkTrackWrapper.cs
-
-**Implements:** `ILavaLinkTrack`
-
-**Purpose:** Wraps Lavalink4NET `LavalinkTrack`.
-
-**Properties:**
-
-- `Title` - Track title
-- `Author` - Track artist
-- `Duration` - Track duration
-- `ArtworkUri` - Artwork image URI (nullable)
-- `StartPosition` - Optional playback start position
-- `QueueItemId` - DB queue item ID linked to this track (set when dequeued from `IQueueRepository`; used by `TrackEndedHandlerService` to mark the item as played/skipped)
-
-**Methods:**
-
-- `ToLavalinkTrack()` - Get underlying Lavalink track
-
----
-
-### SlashInteractionContextFactory.cs
-
-**Implements:** `ISlashInteractionContextFactory`
-
-**Purpose:** Creates `ISlashInteractionContext` wrappers from DSharpPlus `CommandContext` instances. This keeps framework-owned slash contexts behind a testable boundary.
-
----
-
-### SlashInteractionContextWrapper.cs
-
-**Implements:** `ISlashInteractionContext`
-
-**Purpose:** Adapts DSharpPlus command/slash contexts to the bot's internal slash command abstraction.
-
-**Properties:**
-
-- `GuildId` / `Guild` - Current guild context when the slash command is guild-scoped
-- `Channel` - Interaction channel wrapper with explicit guild context
-- `User` / `Member` - Interaction user/member wrappers
-- `IsDeferred` / `HasResponded` - Response state tracked for slash execution fallback behavior
-
-**Methods:**
-
-- `DeferAsync()` - defer the interaction response
-- `RespondAsync()` - send, edit, or follow up interaction responses
-- `CreateMessage()` - create an `IDiscordMessage`-compatible command message
-
----
-
-### SlashInteractionMessageWrapper.cs
-
-**Implements:** `IDiscordMessage`
-
-**Purpose:** Lets slash command execution reuse existing text command implementations.
-
-**Notes:**
-
-- `Content` is built as `commandName` or `commandName argument` so text commands can parse it consistently.
-- `RespondAsync()` delegates back to the slash interaction context.
-- `ModifyAsync()` responds with builder content or the first embed, matching the subset used by the shared command pipeline.
-
----
-
-### DiscordClientEventHandler.cs
-
-**Purpose:** Handle Discord gateway, lifecycle, guild, and voice diagnostics.
-
-**Methods:**
-
-- `OnSocketOpened()` - Log gateway socket open events
-- `OnSocketClosed()` - Log gateway close events, including critical logging for Discord voice disconnect close code `4014`
-- `OnClientReady()` - Log session creation and connect Lavalink when Discord is ready
-- `OnSessionResumed()` - Log resumed gateway sessions
-- `OnZombied()` - Log zombied gateway state and heartbeat failure details
-- `OnGuildAvailable()` - Ensure guild row exists, load localization, and initialize Lavalink guild state
-- `OnVoiceStateUpdated()` - Log bot voice-state changes and update guild voice status. A missing cached `Before` state is allowed; logging must not fail before the status update.
-- `OnVoiceServerUpdated()` - Log voice server endpoint changes at Information level without leaking the voice token. Receiving an endpoint and token is not itself a connection failure.
-- `OnUnknownEvent()` - Log unknown gateway events, with elevated visibility for unknown voice events and truncated payloads
-
-**Features:**
-
-- Uses direct constructor injection for `IGuildDataRepository`, `ILocalizationService`, and `ILavaLinkService`
-- Does not resolve dependencies through `IServiceProvider` internally
-- Is wired to DSharpPlus 5 event callbacks by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
-
----
-
-### DiscordClientFactory.cs
-
-**Purpose:** Create and configure Discord client instances.
-
-**Methods:**
-
-- `Create()` - Create configured Discord client
-
-**Configuration:**
-
-- Creates a default DSharpPlus client with `DiscordIntents.All`
-- Configures DSharpPlus logging with minimum `Debug` level for direct/test-created clients
-- Does not register event handlers; lifecycle/message/reaction/voice event wiring is configured by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
-- Production startup currently creates the client through DSharpPlus DI builder APIs; this factory remains useful for tests and direct wrapper-level construction
-
----
-
-## Usage Pattern
-
-Wrappers are created from DSharpPlus objects:
 
 ```csharp
-// In CommandHandlerService
-var wrappedMessage = DiscordMessageWrapperFactory.Create(
-    discordMessage, 
-    channel, 
-    author, 
-    logger,
-    guild
-);
-
-// Pass to command (expects IDiscordMessage interface)
-await command.ExecuteAsync(wrappedMessage);
+public ulong Id { get; }
+public string Name { get; }
+public IDiscordGuild Guild { get; }
 ```
+
+**Methods:**
+
+- `SendMessageAsync` — Sends a message through the wrapped Discord channel.
+
+```csharp
+public async Task SendMessageAsync(DiscordEmbed embed);
+```
+
+- `SendMessageAsync` — Sends a message through the wrapped Discord channel.
+
+```csharp
+public async Task SendMessageAsync(string message);
+```
+
+- `ToDiscordChannel` — Returns the underlying DSharpPlus channel represented by the adapter.
+
+```csharp
+public DiscordChannel ToDiscordChannel();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await discordChannelWrapper.SendMessageAsync(embed);
+```
+
+---
+
+### DiscordClientEventHandler
+
+**File:** `DC bot/Wrapper/Discord/DiscordClientEventHandler.cs`
+
+**Purpose:** Isolates event failures while maintaining gateway recovery and persisted bot voice state.
+
+**Methods:**
+
+- `OnClientReady` — Processes the Discord client ready event inside the common event-failure boundary.
+
+```csharp
+public async Task OnClientReady(DiscordClient sender, SessionCreatedEventArgs? e);
+```
+
+- `OnGuildAvailable` — Processes the Discord guild available event inside the common event-failure boundary.
+
+```csharp
+public async Task OnGuildAvailable(DiscordClient sender, GuildAvailableEventArgs e);
+```
+
+- `OnSessionResumed` — Processes the Discord session resumed event inside the common event-failure boundary.
+
+```csharp
+public Task OnSessionResumed(DiscordClient sender, SessionResumedEventArgs e);
+```
+
+- `OnSocketClosed` — Processes the Discord socket closed event inside the common event-failure boundary.
+
+```csharp
+public Task OnSocketClosed(DiscordClient sender, SocketClosedEventArgs e);
+```
+
+- `OnSocketOpened` — Processes the Discord socket opened event inside the common event-failure boundary.
+
+```csharp
+public Task OnSocketOpened(DiscordClient sender, SocketOpenedEventArgs e);
+```
+
+- `OnUnknownEvent` — Processes the Discord unknown event event inside the common event-failure boundary.
+
+```csharp
+public Task OnUnknownEvent(DiscordClient sender, UnknownEventArgs e);
+```
+
+**Additional methods:** `OnZombied`, `OnVoiceStateUpdated`, `OnVoiceServerUpdated`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await discordClientEventHandler.OnClientReady(sender, e);
+```
+
+---
+
+### DiscordConnectionEventLogger
+
+**File:** `DC bot/Wrapper/Discord/DiscordConnectionEventLogger.cs`
+
+**Purpose:** Records gateway and socket diagnostics with bounded unknown-event payloads.
+
+**Methods:**
+
+- `LogClientReady` — Records client ready diagnostics using available Discord event state.
+
+```csharp
+internal void LogClientReady(SessionCreatedEventArgs? e);
+```
+
+- `LogSessionResumed` — Records session resumed diagnostics using available Discord event state.
+
+```csharp
+internal void LogSessionResumed(SessionResumedEventArgs e);
+```
+
+- `LogSocketClosed` — Records socket closed diagnostics using available Discord event state.
+
+```csharp
+internal void LogSocketClosed(SocketClosedEventArgs e);
+```
+
+- `LogSocketOpened` — Records socket opened diagnostics using available Discord event state.
+
+```csharp
+internal void LogSocketOpened();
+```
+
+- `LogUnknownEvent` — Records unknown event diagnostics using available Discord event state.
+
+```csharp
+internal void LogUnknownEvent(UnknownEventArgs e);
+```
+
+- `LogZombied` — Records zombied diagnostics using available Discord event state.
+
+```csharp
+internal void LogZombied(ZombiedEventArgs e);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+discordConnectionEventLogger.LogClientReady(e);
+```
+
+---
+
+### DiscordGuildWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordGuildWrapper.cs`
+
+**Purpose:** Adapts discord guild data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordGuild`.
+
+**Properties:**
+
+```csharp
+public ulong Id { get; }
+public string Name { get; }
+```
+
+**Methods:**
+
+- `GetAllMembersAsync` — Retrieves guild members through the wrapped Discord API.
+
+```csharp
+public async Task<IReadOnlyCollection<IDiscordMember>> GetAllMembersAsync();
+```
+
+- `GetMemberAsync` — Resolves a guild member through the wrapped Discord API.
+
+```csharp
+public async Task<IDiscordMember> GetMemberAsync(ulong id);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await discordGuildWrapper.GetAllMembersAsync();
+```
+
+---
+
+### DiscordMemberWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordMemberWrapper.cs`
+
+**Purpose:** Adapts discord member data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordMember`.
+
+**Properties:**
+
+```csharp
+public ulong Id { get; }
+public bool IsBot { get; }
+public string Username { get; }
+public string Mention { get; }
+public IDiscordVoiceState VoiceState { get; }
+```
+
+**Methods:**
+
+- `ToDiscordMember` — Returns the underlying DSharpPlus member represented by the adapter.
+
+```csharp
+public DiscordMember ToDiscordMember();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = discordMemberWrapper.ToDiscordMember();
+```
+
+---
+
+### DiscordMessageWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordMessageWrapper.cs`
+
+**Purpose:** Adapts discord message data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordMessage`.
+
+**Properties:**
+
+```csharp
+public ulong Id { get; set; }
+public string Content { get; set; }
+public IDiscordChannel Channel { get; set; }
+public IDiscordUser Author { get; set; }
+public DateTimeOffset CreatedAt { get; set; }
+public IReadOnlyList<DiscordEmbed> Embeds { get; set; }
+```
+
+**Methods:**
+
+- `ModifyAsync` — Updates the wrapped Discord message or interaction response.
+
+```csharp
+public async Task ModifyAsync(DiscordMessageBuilder builder);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public async Task RespondAsync(string message);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public async Task RespondAsync(DiscordEmbed embed);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await discordMessageWrapper.ModifyAsync(builder);
+```
+
+---
+
+### DiscordUserWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordUserWrapper.cs`
+
+**Purpose:** Adapts discord user data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordUser`.
+
+**Properties:**
+
+```csharp
+public ulong Id { get; }
+public bool IsBot { get; }
+public string Username { get; }
+public string Mention { get; }
+```
+
+---
+
+### DiscordVoiceEventLogger
+
+**File:** `DC bot/Wrapper/Discord/DiscordVoiceEventLogger.cs`
+
+**Purpose:** Records voice changes while tolerating missing event entities.
+
+**Methods:**
+
+- `LogVoiceServerUpdated` — Records voice server updated diagnostics using available Discord event state.
+
+```csharp
+internal void LogVoiceServerUpdated(VoiceServerUpdatedEventArgs e);
+```
+
+- `LogVoiceStateUpdated` — Records voice state updated diagnostics using available Discord event state.
+
+```csharp
+internal void LogVoiceStateUpdated(DiscordClient sender, VoiceStateUpdatedEventArgs e);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+discordVoiceEventLogger.LogVoiceServerUpdated(e);
+```
+
+---
+
+### DiscordVoiceStateWrapper
+
+**File:** `DC bot/Wrapper/Discord/DiscordVoiceStateWrapper.cs`
+
+**Purpose:** Adapts discord voice state data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordVoiceState`.
+
+**Properties:**
+
+```csharp
+public IDiscordChannel? Channel
+{
+    get
+    {
+        if (discordVoiceState?.ChannelId is null or 0)
+        {
+            return null;
+        }
+
+        var channel = discordVoiceState.GetChannelAsync()
+            .GetAwaiter()
+            .GetResult();
+        return channel is null ? null : new DiscordChannelWrapper(channel);
+    }
+}
+```
+
+**Methods:**
+
+- `ToDiscordVoiceState` — Returns the underlying DSharpPlus voice state represented by the adapter.
+
+```csharp
+public DiscordVoiceState ToDiscordVoiceState();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = discordVoiceStateWrapper.ToDiscordVoiceState();
+```
+
+---
+
+### LavaLinkTrackWrapper
+
+**File:** `DC bot/Wrapper/Lavalink/LavaLinkTrackWrapper.cs`
+
+**Purpose:** Adapts lava link track data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `ILavaLinkTrack`.
+
+**Properties:**
+
+```csharp
+public string Title { get; }
+public string Author { get; }
+public TimeSpan Duration { get; }
+public Uri? ArtworkUri { get; }
+public TimeSpan? StartPosition { get; }
+public long? QueueItemId { get; init; }
+```
+
+**Methods:**
+
+- `ToLavalinkTrack` — Returns the underlying SDK track represented by this adapter.
+
+```csharp
+public LavalinkTrack ToLavalinkTrack();
+```
+
+- `ToString` — Returns the underlying encoded identity or display representation of this adapter.
+
+```csharp
+public override string ToString();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = lavaLinkTrackWrapper.ToLavalinkTrack();
+```
+
+---
+
+### SlashInteractionContextWrapper
+
+**File:** `DC bot/Wrapper/SlashCommands/SlashInteractionContextWrapper.cs`
+
+**Purpose:** Adapts slash interaction context data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `ISlashInteractionContext`.
+
+**Properties:**
+
+```csharp
+public ulong? GuildId { get; }
+public IDiscordGuild? Guild { get; }
+public IDiscordChannel Channel { get; }
+public IDiscordUser User { get; }
+public IDiscordMember? Member { get; }
+public bool IsDeferred { get; private set; }
+public bool HasResponded { get; private set; }
+```
+
+**Methods:**
+
+- `CreateMessage` — Creates a synthetic command message whose responses are delivered through the wrapped slash interaction.
+
+```csharp
+public IDiscordMessage CreateMessage(string commandName, string? argument = null);
+```
+
+- `DeferAsync` — Acknowledges an interaction so its response can be completed after command execution.
+
+```csharp
+public async Task DeferAsync();
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public async Task RespondAsync(string message);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public async Task RespondAsync(DiscordEmbed embed);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = slashInteractionContextWrapper.CreateMessage(commandName, argument);
+```
+
+---
+
+### SlashInteractionMessageWrapper
+
+**File:** `DC bot/Wrapper/SlashCommands/SlashInteractionMessageWrapper.cs`
+
+**Purpose:** Adapts slash interaction message data and operations to the bot's Discord boundary.
+
+**Implements / inherits:** `IDiscordMessage`.
+
+**Properties:**
+
+```csharp
+public ulong Id { get; set; }
+public string Content { get; set; }
+public IDiscordChannel Channel { get; set; }
+public IDiscordUser Author { get; set; }
+public DateTimeOffset CreatedAt { get; set; }
+public IReadOnlyList<DiscordEmbed> Embeds { get; set; }
+```
+
+**Methods:**
+
+- `ModifyAsync` — Updates the wrapped Discord message or interaction response.
+
+```csharp
+public async Task ModifyAsync(DiscordMessageBuilder builder);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public Task RespondAsync(string message);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+public Task RespondAsync(DiscordEmbed message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await slashInteractionMessageWrapper.ModifyAsync(builder);
+```
+
+---
+
+## Factory Classes
+
+### DiscordClientFactory
+
+**File:** `DC bot/Wrapper/Discord/DiscordClientFactory.cs`
+
+**Purpose:** Creates the Discord client with configured credentials, intents, and event handling.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
+
+```csharp
+public static DiscordClient Create(BotSettings settings);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = DiscordClientFactory.Create(settings);
+```
+
+---
+
+### SlashInteractionContextFactory
+
+**File:** `DC bot/Wrapper/SlashCommands/SlashInteractionContextFactory.cs`
+
+**Purpose:** Represents the slash interaction context factory boundary and its associated operation data.
+
+**Implements / inherits:** `ISlashInteractionContextFactory`.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
+
+```csharp
+public ISlashInteractionContext Create(CommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = slashInteractionContextFactory.Create(context);
+```
+
+---
 
 ## Related Components
 
-- **Interface/Discord/** - Wrapper contracts
-- **Service/** - Consumes wrappers
-- **Commands/** - Primary wrapper users
-- **Exceptions/** - Wrapped exceptions
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Wrapper/Discord/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Wrapper/Lavalink/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Wrapper/SlashCommands/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

@@ -16,20 +16,31 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DC_bot.Startup.DependencyInjection;
 
+/// <summary>
+/// Registers the command runtime dependencies at the composition root.
+/// </summary>
 public static class CommandServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers the command services dependencies with the shared service collection.
+    /// </summary>
+    /// <param name="services">The services supplied for this operation.</param>
+    /// <returns>The service collection with these registrations, allowing further composition.</returns>
     public static IServiceCollection AddCommandServices(this IServiceCollection services)
     {
-        return services
-            .AddTextCommands()
+        return services.AddTextCommands()
             .AddSlashCommandServices()
             .AddSlashCommandProcessor();
     }
 
+    /// <summary>
+    /// Registers the text commands dependencies with the shared service collection.
+    /// </summary>
+    /// <param name="services">The services supplied for this operation.</param>
+    /// <returns>The service collection with these registrations, allowing further composition.</returns>
     private static IServiceCollection AddTextCommands(this IServiceCollection services)
     {
-        return services
-            .AddSingleton<ICommand, TagCommand>()
+        return services.AddSingleton<ICommand, TagCommand>()
             .AddSingleton<ICommand, JoinCommand>()
             .AddSingleton<ICommand, PingCommand>()
             .AddSingleton<ICommand, HelpCommand>()
@@ -44,6 +55,8 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, ShuffleCommand>()
             .AddSingleton<ICommand, LanguageCommand>()
             .AddSingleton<ICommand, ViewQueueCommand>()
+            .AddSingleton<ICommand, HistoryCommand>()
+            .AddSingleton<ICommand, TwentyFourSevenCommand>()
             .AddSingleton<ICommand, CreatePlaylistCommand>()
             .AddSingleton<ICommand, SavePlaylistCommand>()
             .AddSingleton<ICommand, DeletePlaylistCommand>()
@@ -56,10 +69,14 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, RepeatListCommand>();
     }
 
+    /// <summary>
+    /// Registers the slash command services dependencies with the shared service collection.
+    /// </summary>
+    /// <param name="services">The services supplied for this operation.</param>
+    /// <returns>The service collection with these registrations, allowing further composition.</returns>
     private static IServiceCollection AddSlashCommandServices(this IServiceCollection services)
     {
-        return services
-            .AddSingleton<ISlashCommandExecutor, SlashCommandExecutor>()
+        return services.AddSingleton<ISlashCommandExecutor, SlashCommandExecutor>()
             .AddSingleton<ISlashInteractionContextFactory, SlashInteractionContextFactory>()
             .AddTransient<PingSlashCommand>()
             .AddTransient<HelpSlashCommand>()
@@ -72,40 +89,33 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<ResumeSlashCommand>()
             .AddTransient<LeaveSlashCommand>()
             .AddTransient<QueueSlashCommand>()
+            .AddTransient<HistorySlashCommand>()
             .AddTransient<ShuffleSlashCommand>()
             .AddTransient<RepeatSlashCommand>()
             .AddTransient<LanguageSlashCommand>()
             .AddTransient<ClearSlashCommand>()
-            .AddTransient<PlaylistSlashCommand>();
+            .AddTransient<PlaylistSlashCommand>()
+            .AddTransient<TwentyFourSevenSlashCommand>();
     }
 
+    /// <summary>
+    /// Registers the slash command processor dependencies with the shared service collection.
+    /// </summary>
+    /// <param name="services">The services supplied for this operation.</param>
+    /// <returns>The service collection with these registrations, allowing further composition.</returns>
     private static IServiceCollection AddSlashCommandProcessor(this IServiceCollection services)
     {
         return services.AddCommandsExtension((_, extension) =>
         {
-            extension.AddCommands(
-            [
-                typeof(PingSlashCommand),
-                typeof(HelpSlashCommand),
-                typeof(TagSlashCommand),
-                typeof(JoinSlashCommand),
-                typeof(PlaySlashCommand),
-                typeof(SkipSlashCommand),
-                typeof(PreviousSlashCommand),
-                typeof(PauseSlashCommand),
-                typeof(ResumeSlashCommand),
-                typeof(LeaveSlashCommand),
-                typeof(QueueSlashCommand),
-                typeof(ShuffleSlashCommand),
-                typeof(RepeatSlashCommand),
-                typeof(LanguageSlashCommand),
-                typeof(ClearSlashCommand),
-                typeof(PlaylistSlashCommand)
+            extension.AddCommands([
+                typeof(PingSlashCommand), typeof(HelpSlashCommand), typeof(TagSlashCommand), typeof(JoinSlashCommand),
+                typeof(PlaySlashCommand), typeof(SkipSlashCommand), typeof(PreviousSlashCommand),
+                typeof(PauseSlashCommand), typeof(ResumeSlashCommand), typeof(LeaveSlashCommand),
+                typeof(QueueSlashCommand), typeof(HistorySlashCommand), typeof(ShuffleSlashCommand),
+                typeof(RepeatSlashCommand), typeof(LanguageSlashCommand), typeof(ClearSlashCommand),
+                typeof(PlaylistSlashCommand), typeof(TwentyFourSevenSlashCommand)
             ]);
             extension.AddProcessor(new SlashCommandProcessor());
-        }, new CommandsConfiguration
-        {
-            RegisterDefaultCommandProcessors = false
-        });
+        }, new CommandsConfiguration { RegisterDefaultCommandProcessors = false });
     }
 }

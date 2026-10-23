@@ -23,17 +23,26 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.DependencyInjection;
 
+/// <summary>
+/// Composes shared PostgreSQL contexts and repository dependencies for the bot and API.
+/// </summary>
 public static class PersistenceServiceCollectionExtensions
 {
-    public static IServiceCollection AddPersistenceServices(
-        this IServiceCollection services,
-        string postgresConnectionString)
+
+    /// <summary>
+    /// Registers PostgreSQL contexts, repository helpers, and shared repository contracts with their runtime lifetimes.
+    /// </summary>
+    /// <param name = "services">The service collection or provider used at the persistence composition boundary.</param>
+    /// <param name = "postgresConnectionString">The PostgreSQL connection string used by the context or dedicated listening connection.</param>
+    /// <returns>The mapped, normalized, or configured value described above.</returns>
+    public static IServiceCollection AddPersistenceServices(this IServiceCollection services, string postgresConnectionString)
     {
-        return services
-            .AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(postgresConnectionString))
+        return services.AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(postgresConnectionString))
             .AddSingleton<IGuildDataRepository, GuildDataRepository>()
             .AddSingleton<IPlaybackStateRepository, PlaybackStateRepository>()
-            .AddSingleton<IQueueRepository, QueueRepository>()
+            .AddSingleton<QueueClaimService>()
+            .AddSingleton<QueueBatchRepository>()
+            .AddSingleton<IQueueRepository>(provider => new QueueRepository(provider.GetRequiredService<IDbContextFactory<BotDbContext>>(), provider.GetRequiredService<QueueClaimService>(), provider.GetRequiredService<QueueBatchRepository>()))
             .AddSingleton<IPlaylistRepository, PlaylistRepository>()
             .AddSingleton<IPlaylistTrackRepository, PlaylistTrackRepository>()
             .AddSingleton<IRepeatListRepository, RepeatListRepository>()
@@ -43,9 +52,7 @@ public static class PersistenceServiceCollectionExtensions
             .AddSingleton<IMobileAppSessionRepository, MobileAppSessionRepository>()
             .AddSingleton<IGuildBotStatusRepository, GuildBotStatusRepository>()
             .AddSingleton<IMobileAppUserSettingsRepository, MobileAppUserSettingsRepository>()
-            .AddSingleton<IBotControlCommandNotifier>(provider => new PostgreSqlBotControlCommandNotifier(
-                postgresConnectionString,
-                provider.GetRequiredService<ILogger<PostgreSqlBotControlCommandNotifier>>()))
+            .AddSingleton<IBotControlCommandNotifier>(provider => new PostgreSqlBotControlCommandNotifier(postgresConnectionString, provider.GetRequiredService<ILogger<PostgreSqlBotControlCommandNotifier>>()))
             .AddSingleton<IBotControlCommandsRepository, BotControlCommandsRepository>();
     }
 }

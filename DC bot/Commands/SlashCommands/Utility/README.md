@@ -1,58 +1,144 @@
-# Utility Slash Commands
+# Utility
 
-This folder contains general-purpose slash command adapters.
+Exposes help, language selection, latency checks, and user tagging through slash commands.
 
-## Commands
+## Overview
 
-### PingSlashCommand.cs
+- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 
-**Command:** `/ping`
+## Classes
 
-**Delegates to:** `PingCommand`
+### HelpSlashCommand
 
-**Behavior:** Executes the existing ping command pipeline and returns the configured ping response.
+**File:** `DC bot/Commands/SlashCommands/Utility/HelpSlashCommand.cs`
+
+**Purpose:** Adapts the help slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Help` — Adapts the help slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Help(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await helpSlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### HelpSlashCommand.cs
+### LanguageSlashCommand
 
-**Command:** `/help`
+**File:** `DC bot/Commands/SlashCommands/Utility/LanguageSlashCommand.cs`
 
-**Delegates to:** `HelpCommand`
+**Purpose:** Adapts the slash language-selection interaction to the shared language command and its localized response path.
 
-**Behavior:** Executes the existing help command pipeline and lists registered text commands.
+**Related enum:**
+
+```csharp
+public enum SlashLanguage
+{
+    [ChoiceDisplayName("en")]
+    Eng,
+    [ChoiceDisplayName("hu")]
+    Hu
+}
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, SlashLanguage language);
+```
+
+- `Language` — Adapts the language slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Language(SlashCommandContext context, [Parameter("language")][Description("Language to use")] SlashLanguage language);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await languageSlashCommand.ExecuteAsync(context, language);
+```
 
 ---
 
-### LanguageSlashCommand.cs
+### PingSlashCommand
 
-**Command:** `/language language:<eng|hu>`
+**File:** `DC bot/Commands/SlashCommands/Utility/PingSlashCommand.cs`
 
-**Delegates to:** `LanguageCommand`
+**Purpose:** Adapts the ping slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:**
+**Methods:**
 
-1. Uses DSharpPlus choices for supported languages.
-2. Maps `eng` and `hu` choices to the text command argument.
-3. Saves the guild language through the existing text command pipeline.
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Ping` — Adapts the ping slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Ping(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await pingSlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### TagSlashCommand.cs
+### TagSlashCommand
 
-**Command:** `/tag user:<member>`
+**File:** `DC bot/Commands/SlashCommands/Utility/TagSlashCommand.cs`
 
-**Delegates to:** `TagCommand`
+**Purpose:** Adapts the tag slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:**
+**Methods:**
 
-1. Uses a Discord member option instead of free-text username matching.
-2. Passes the selected member mention into the text command pipeline.
-3. Reuses the localized tag response behavior from `TagCommand`.
+- `Tag` — Adapts the tag slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Tag(SlashCommandContext context, [Parameter("user")][Description("Member you want to tag.")] DiscordMember member);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await tagSlashCommand.Tag(context, member);
+```
+
+---
 
 ## Related Components
 
-- `../README.md` - slash command architecture
-- `../../TextCommands/Utility/README.md` - text command behavior reused by these adapters
-- `../../../Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
-- `../../../localization/README.md` - localized response resources
+- `DC bot/Commands/SlashCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Interface/Service/SlashCommands/` — Connects DSharpPlus interactions to the shared text command pipeline.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

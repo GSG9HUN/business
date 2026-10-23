@@ -1,30 +1,44 @@
-# Status Handlers
+# Status
 
-This folder contains API health/status handlers.
+Maps database connectivity checks to an operational HTTP response.
 
-## Why This Folder Exists
+## Overview
 
-Status endpoints are operational endpoints. They tell deployment tooling, developers, or monitoring whether the API and its required dependencies are reachable.
+- The handler calls IDbStatusCheck with the request token. Connectivity failures use the existing database-unavailable response; requested cancellation propagates.
+- This endpoint checks database reachability. It does not certify Discord voice readiness, Lavalink health, or successful music playback.
 
-Keeping status handling separate from feature handlers prevents health checks from being mixed with user-facing API workflows.
+## Classes
 
-## Files
+### StatusHandler
 
-### StatusHandler.cs
+**File:** `API/Handlers/Status/StatusHandler.cs`
 
-Checks database connectivity through `IDbStatusCheck`.
+**Purpose:** Reports database connectivity through the API result-to-HTTP mapping.
 
-Responsibilities:
+**Methods:**
 
-- verify whether the configured database is reachable
-- map database availability to API results
-- avoid exposing implementation-specific exception details to clients
+- `ExecuteAsync` — Checks database connectivity with caller cancellation and maps connectivity failures into HTTP results.
 
-## Flow Context
+```csharp
+public static async Task<IResult> ExecuteAsync(IDbStatusCheck statusCheckRepository, CancellationToken cancellationToken);
+```
 
-The handler calls the persistence status contract instead of opening EF Core directly. This keeps the API layer focused on HTTP response shape while the persistence project owns how database connectivity is checked.
+**Usage:**
 
-## Maintenance Notes
+The caller supplies the component and argument values used in this example.
 
-- This handler is safe to keep unauthenticated if it is used for deployment health checks.
-- Avoid adding expensive dependency checks unless the status endpoint is explicitly intended to be deep health validation.
+```csharp
+var result = await StatusHandler.ExecuteAsync(statusCheckRepository, cancellationToken);
+```
+
+---
+
+## Related Components
+
+- `API/Handlers/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `API/Errors/` — Defines error categories understood by HTTP result mapping.
+- `API/Mapping/` — Converts repository records and service outcomes into HTTP response contracts.
+- `API/Results/` — Represents either a successful value or an expected error before conversion to HTTP.
+- `DC bot.Contracts/Interface/Service/Persistence/Status/` — Defines repository operations for database reachability checks.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

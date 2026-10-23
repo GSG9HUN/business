@@ -1,34 +1,143 @@
-# Playlist Requests
+# Playlists
 
-This folder contains request DTOs for playlist operations.
+Defines client-supplied input for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Why This Folder Exists
+## Overview
 
-Playlist endpoints receive small pieces of user input: playlist names, external URLs, and track identifiers. These DTOs describe that HTTP input without mixing it with playlist persistence models or music service behavior.
+- Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+- Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
+- CreatePlaylistRequest accepts PlaylistName with a legacy Name fallback. Name normalization and duplicate handling occur in the handler and repository boundaries rather than in the DTO constructors.
 
-## Files
+## Classes
 
-### AddSongRequest.cs
+### AddSongRequest
 
-Carries a song URL or identifier to add to a playlist.
+**File:** `API/Requests/Playlists/AddSongRequest.cs`
 
-### CreatePlaylistRequest.cs
+**Purpose:** Carries client input for add song processing; handlers and endpoint filters validate its values.
 
-Carries the playlist name for create operations.
+**Properties:**
 
-### RenamePlaylistRequest.cs
+```csharp
+// The URL of the song to add to the playlist.
+public string SongUrl { get; init; }
+```
 
-Carries the replacement playlist name.
+**Methods:**
 
-### SavePlaylistRequest.cs
+- `Deconstruct` — Exposes the request values through tuple-style deconstruction without validation or normalization.
 
-Carries a playlist name and external URL for save/import operations.
+```csharp
+public void Deconstruct(out string songUrl);
+```
 
-## Flow Context
+**Usage:**
 
-Handlers should validate these payloads, then pass clean values to playlist services or bot-control command flow. The DTOs should not perform validation, persistence, or track lookup themselves.
+The caller supplies the component and argument values used in this example.
 
-## Maintenance Notes
+```csharp
+addSongRequest.Deconstruct(out var songUrl);
+```
 
-- Playlist names should be validated before reaching persistence.
-- Request DTOs should not call playlist services directly.
+---
+
+### CreatePlaylistRequest
+
+**File:** `API/Requests/Playlists/CreatePlaylistRequest.cs`
+
+**Purpose:** Carries client input for create playlist processing; handlers and endpoint filters validate its values.
+
+**Properties:**
+
+```csharp
+// The legacy playlist name used when PlaylistName is absent or blank.
+public string? Name { get; init; }
+public string? PlaylistName { get; init; }
+```
+
+**Methods:**
+
+- `GetPlaylistName` — Returns the explicitly supplied playlist name, falling back to the legacy name field.
+
+```csharp
+public string? GetPlaylistName();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = createPlaylistRequest.GetPlaylistName();
+```
+
+---
+
+### RenamePlaylistRequest
+
+**File:** `API/Requests/Playlists/RenamePlaylistRequest.cs`
+
+**Purpose:** Carries client input for rename playlist processing; handlers and endpoint filters validate its values.
+
+**Properties:**
+
+```csharp
+// The new name requested for the saved playlist.
+public string NewName { get; init; }
+```
+
+**Methods:**
+
+- `Deconstruct` — Exposes the request values through tuple-style deconstruction without validation or normalization.
+
+```csharp
+public void Deconstruct(out string newName);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+renamePlaylistRequest.Deconstruct(out var newName);
+```
+
+---
+
+### SavePlaylistRequest
+
+**File:** `API/Requests/Playlists/SavePlaylistRequest.cs`
+
+**Purpose:** Carries client input for save playlist processing; handlers and endpoint filters validate its values.
+
+**Properties:**
+
+```csharp
+// The saved playlist name.
+public string Name { get; init; }
+public string Url { get; init; }
+```
+
+**Methods:**
+
+- `Deconstruct` — Exposes the request values through tuple-style deconstruction without validation or normalization.
+
+```csharp
+public void Deconstruct(out string name, out string url);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+savePlaylistRequest.Deconstruct(out var name, out var url);
+```
+
+---
+
+## Related Components
+
+- `API/Requests/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

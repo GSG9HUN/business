@@ -1,7 +1,8 @@
-﻿# Event ID Reference Table
+# Event ID Reference Table
 
-This table documents all `LoggerMessage` EventIDs declared in `LogExtensions.cs` with their corresponding log levels
-and messages.
+This reference lists the 38 source-generated `LoggerMessage` declarations in `LogExtensions.cs`, including their exact event IDs, levels, method names, and message templates.
+
+It covers these application declarations only. Direct `ILogger.Log*` calls, API or persistence logging, and DSharpPlus/Lavalink4NET events are not a complete part of this catalog. A declaration does not guarantee that its method is called or that the configured filter displays it. Gaps between IDs do not imply missing declarations.
 
 ## Command Events (1000-1099)
 
@@ -9,7 +10,6 @@ and messages.
 |--------:|-------|--------------------------|-----------------------------------------|
 |    1001 | Debug | `CommandInvoked`         | Command invoked: {CommandName}          |
 |    1002 | Debug | `CommandExecuted`        | Command executed: {CommandName}         |
-|    1003 | Debug | `CommandMissingArgument` | Command missing argument: {CommandName} |
 |    1004 | Error | `CommandExecutionFailed` | Command execution failed: {CommandName} |
 
 **Usage:** Log every command invocation and completion for tracking user interactions.
@@ -58,8 +58,6 @@ and messages.
 
 | EventID | Level       | Method                            | Message                                  |
 |--------:|-------------|-----------------------------------|------------------------------------------|
-|    1401 | Information | `ValidationLavalinkNotConnected`  | Lavalink is not connected.               |
-|    1402 | Information | `ValidationBotNotConnected`       | Bot is not connected to a voice channel. |
 |    1403 | Information | `ValidationUserIsBot`             | User is Bot.                             |
 |    1404 | Information | `ValidationUserNotInVoiceChannel` | User is not in a voice channel.          |
 
@@ -69,7 +67,6 @@ and messages.
 
 | EventID | Level       | Method                           | Message                                        |
 |--------:|-------------|----------------------------------|------------------------------------------------|
-|    1501 | Information | `DiscordClientLoggerInitialized` | Discord client logger initialized.             |
 |    1502 | Information | `DiscordClientReady`             | Bot is ready!                                  |
 |    1503 | Information | `DiscordClientGuildAvailable`    | Guild available: {GuildName}                   |
 |    1504 | Error       | `DiscordClientEventFailed`       | Discord client event failed: {EventName}       |
@@ -99,28 +96,12 @@ and messages.
 |--------:|-------------|-------------------------------------|-----------------------------------------------------|
 |    2001 | Information | `LavalinkNodeConnectedSuccessfully` | Lavalink node connected successfully                |
 |    2002 | Error       | `LavalinkConnectionFailed`          | Lavalink connection failed: {Message}               |
-|    2003 | Information | `PlaybackFinishedEventRegistered`   | PlaybackFinished event registered.                  |
-|    2004 | Information | `FailedToFindMusicWithUrl`          | Failed to find music with url: {Url}                |
-|    2005 | Information | `FailedToFindMusicWithQuery`        | Failed to find music with query: {Query}            |
 |    2006 | Information | `ThereIsNoTrackCurrentlyPlaying`    | There is no track currently playing.                |
 |    2007 | Information | `ThereIsNoTrackCurrentlyPaused`     | There is no track currently paused.                 |
-|    2008 | Information | `AddedToQueue`                      | Added to queue.                                     |
-|    2009 | Information | `AddedToQueueWithTrackDetails`      | Added to queue: {Author} - {Title}                  |
 |    2011 | Information | `NowPlaying`                        | Now Playing: {Author} - {Title}                     |
-|    2012 | Information | `Repeating`                         | Repeating: {RepeatTrackAuthor} - {RepeatTrackTitle} |
 |    2013 | Error       | `LavalinkOperationFailed`           | Lavalink operation failed: {Operation}              |
 
 **Usage:** Track audio server connection and playback state.
-
-## Queue Persistence Events (2100-2199)
-
-| EventID | Level | Method                 | Message                       |
-|--------:|-------|------------------------|-------------------------------|
-|    2101 | Error | `MusicQueueSaveFailed` | Queue save failed: {FilePath} |
-|    2102 | Error | `MusicQueueLoadFailed` | Queue load failed: {FilePath} |
-
-**Usage:** Legacy queue-file persistence extension methods. The active queue implementation is PostgreSQL-backed and
-does not currently call these methods.
 
 ## Response Events (3000-3099)
 
@@ -133,82 +114,88 @@ does not currently call these methods.
 
 ## Event ID Ranges
 
-| Range     | Domain            | Purpose                                   |
-|-----------|-------------------|-------------------------------------------|
-| 1000-1099 | Command Execution | Track command invocations and completions |
-| 1100-1199 | Command Handler   | Lifecycle and registration                |
-| 1200-1299 | Reactions         | Emoji reactions and controls              |
-| 1300-1399 | Localization      | Language file operations                  |
-| 1400-1499 | Validation        | User and state validation                 |
-| 1500-1599 | Discord Client    | Bot lifecycle and connectivity            |
-| 1600-1699 | Play Command      | Music playback initiation                 |
-| 1700-1799 | Queue Status      | Queue state changes                       |
-| 2000-2099 | Lavalink          | Audio server operations                   |
-| 2100-2199 | Persistence       | Data storage operations                   |
-| 3000-3099 | Response          | Discord API responses                     |
+| Range | Domain | Purpose |
+|---|---|---|
+| 1000-1099 | Command execution | Invocation, completion, and execution failure. |
+| 1100-1199 | Command handler | Registration, routing diagnostics, and unregistration. |
+| 1200-1299 | Reactions | Reaction controls, message setup, and failures. |
+| 1300-1399 | Localization | Translation loading and file access failures. |
+| 1400-1499 | Validation | Bot-user and voice-membership rejection. |
+| 1500-1599 | Discord client | Ready, guild availability, and event-handler failures. |
+| 1600-1699 | Play command | URL and query playback initiation. |
+| 1700-1799 | Queue status | Empty-queue notification. |
+| 2000-2099 | Lavalink | Node connectivity and playback diagnostics. |
+| 3000-3099 | Responses | Discord response-delivery failures. |
 
-## Filtering by Event ID
+These ranges describe this application's extension methods. An event ID from a framework or third-party logger must also be interpreted together with its category; matching numeric values do not make it the same application event.
 
-### Current startup setup
+## Current Startup Configuration
 
-```csharp
-.AddLogging(builder => { builder.AddConsole().SetMinimumLevel(LogLevel.Warning); })
-```
-
-This is configured in `Startup/DependencyInjection/LoggingServiceCollectionExtensions.cs`.
-
-### In Code
+`DC bot/Startup/DependencyInjection/LoggingServiceCollectionExtensions.cs` configures the simple console provider, scope inclusion, UTC timestamps, and category filters:
 
 ```csharp
-// Get all Lavalink events
-var lavalinkLogs = logs.Where(l => l.EventId.Id >= 2000 && l.EventId.Id < 2100);
-
-// Get all errors
-var errors = logs.Where(l => l.Level == LogLevel.Error);
+services.AddLogging(builder =>
+{
+    builder.AddSimpleConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.TimestampFormat = "yyyy-MM-dd HH:mm:ss.fff ";
+        options.UseUtcTimestamp = true;
+    })
+        .SetMinimumLevel(LogLevel.Warning)
+        .AddFilter("DC_bot.Service.Core.ValidationService", LogLevel.Debug)
+        .AddFilter("DC_bot.Wrapper.Discord.DiscordClientEventHandler", LogLevel.Information)
+        .AddFilter("DC_bot.Service.Music.Lifecycle", LogLevel.Information)
+        .AddFilter("DSharpPlus", LogLevel.Debug)
+        .AddFilter("Lavalink4NET", LogLevel.Debug);
+});
 ```
+
+| Category | Minimum level |
+|---|---|
+| Categories without a matching override | Warning |
+| `DC_bot.Service.Core.ValidationService` | Debug |
+| `DC_bot.Wrapper.Discord.DiscordClientEventHandler` | Information |
+| `DC_bot.Service.Music.Lifecycle` | Information |
+| `DSharpPlus` | Debug |
+| `Lavalink4NET` | Debug |
+
+The event level comes from its declaration, while visibility depends on the category of the calling logger. Calling an extension method does not change that category to `DC_bot.Logging`. For example, command invocation and completion events are Debug and are normally hidden by the default Warning threshold. Their absence alone does not prove that a command was never executed.
 
 ## Usage Examples
 
-### Filtering for Troubleshooting
+### Command Scope and Events
 
-**Bot not responding to commands:**
-
-- Check EventID 1001 (CommandInvoked) - Command reached handler
-- Check EventID 1004 (CommandExecutionFailed) - Command failed
-
-**Music not playing:**
-
-- Check EventID 2001 (LavalinkNodeConnectedSuccessfully) - Connection OK
-- Check EventID 2004, 2005 (FailedToFindMusic*) - Track not found
-- Check EventID 2013 (LavalinkOperationFailed) - Audio error
-
-**Queue issues:**
-
-- Check EventID 2101, 2102 only for legacy queue-file save/load failures
-- Check EventID 1701 (QueueIsEmpty) - Queue status
-
-### Performance Analysis
+With the caller's `ILogger` and Discord context values available:
 
 ```csharp
-// Find slow operations
-var slowOps = logs
-    .Where(l => l.EventId.Id >= 2000 && l.EventId.Id < 2100)
-    .Where(l => l.Duration > TimeSpan.FromSeconds(1));
+using (logger.BeginCommandScope(commandName, userId, channelId, guildId))
+{
+    logger.CommandInvoked(commandName);
+    // Execute the command through its normal pipeline.
+    logger.CommandExecuted(commandName);
+}
 ```
 
-### Event Correlation
+`BeginCommandScope` attaches `CommandName`, `UserId`, `ChannelId`, and `GuildId`. Scope rendering depends on the logging provider; including scopes does not define a separate log-entry model or guarantee a particular rendering of dictionary values.
 
-```csharp
-// Trace a single command execution
-var commandId = "play";
-var execution = logs
-    .Where(l => l.Message.Contains(commandId))
-    .OrderBy(l => l.Timestamp);
-```
+### Troubleshooting
 
-## Related
+- **Command failure:** Event 1004 reports command execution failure; 1001 and 1002 can show invocation/completion when Debug is enabled for the command's logger category.
+- **Discord event failure:** Event 1504 identifies the failed callback by `EventName`; inspect its exception and surrounding connection or voice logs.
+- **Music failure:** Events 2002 and 2013 report node-connection and named Lavalink operation failures. Event 2001 confirms a node connection, not a guild player's voice readiness.
+- **Queue end:** Event 1701 reports the empty-queue path. Investigate direct queue, playback, and lifecycle logs for details not represented by a catalogued extension method.
+- **Response failure:** Events 3001 and 3002 identify response-delivery operations; a failed reply does not independently establish whether remote playback succeeded.
 
-- **README.md** - Logging extensions guide
-- **LogExtensions.cs** - Extension method implementation
-- **LoggingScopes.cs** - Scope helper implementation
+### Correlation Boundaries
 
+`CommandName` groups executions of the same command; it is not a unique execution ID. Several users can invoke `play` concurrently. Use the available guild, user, and channel context together with the relevant log category and timestamps. For lifecycle operations that explicitly log `OperationId`, correlate messages by that operation ID as well.
+
+These extension declarations do not define universal `Duration`, `Timestamp`, or `logs` properties. Performance analysis requires actual timing fields emitted by the operation or an explicitly defined external log/export model.
+
+## Related Components
+
+- `DC bot/Logging/README.md` — Logging components, method signatures, and usage examples.
+- `DC bot/Logging/LogExtensions.cs` — Source of the event IDs, levels, and message templates listed here.
+- `DC bot/Logging/LoggingScopes.cs` — Command and Discord scope fields.
+- `DC bot/Startup/DependencyInjection/LoggingServiceCollectionExtensions.cs` — Provider setup and category-specific visibility rules.

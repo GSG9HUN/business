@@ -1,49 +1,64 @@
-﻿# IO Service Interfaces
+# IO
 
-This folder contains file system service interfaces.
+Abstracts the file operations required by localization and guild preference storage.
 
-## Files
+## Overview
 
-### IFileSystem.cs
+- PhysicalFileSystem supplies the production implementation; callers receive the contract through DI.
+- Keep path selection and localization semantics with their owning service rather than hard-coding them into every file adapter.
 
-**Purpose:** File system abstraction for testability.
+## Interfaces
 
-```csharp
-public interface IFileSystem
-{
-    bool DirectoryExists(string path);
-    void CreateDirectory(string path);
-    bool FileExists(string path);
-    string ReadAllText(string path);
-    void WriteAllText(string path, string contents);
-}
-```
+### IFileSystem
+
+**File:** `DC bot/Interface/Service/IO/IFileSystem.cs`
+
+**Purpose:** Defines the file system boundary so callers are independent of its concrete implementation.
 
 **Methods:**
 
-- `DirectoryExists()` - Check if directory exists
-- `CreateDirectory()` - Create directory
-- `FileExists()` - Check if file exists
-- `ReadAllText()` - Read file contents
-- `WriteAllText()` - Write file contents
+- `CreateDirectory` — Creates a directory required for subsequent file writes.
 
-**Implementation:** `IO/PhysicalFileSystem.cs`
+```csharp
+void CreateDirectory(string path);
+```
 
-**Used By:**
+- `DirectoryExists` — Checks whether the supplied directory path exists.
 
-- `Service/LocalizationService.cs` - Read/write language files
-- Tests can mock this interface or use `PhysicalFileSystem` against a temporary directory
+```csharp
+bool DirectoryExists(string path);
+```
 
-**Benefits:**
+- `FileExists` — Checks whether the supplied file path exists.
 
-- Testable through mocks or temporary filesystem fixtures
-- Isolates I/O operations
-- Simplifies mocking in tests
+```csharp
+bool FileExists(string path);
+```
+
+- `ReadAllText` — Reads complete file text through the file-system boundary.
+
+```csharp
+string ReadAllText(string path);
+```
+
+- `WriteAllText` — Writes complete file text through the file-system boundary.
+
+```csharp
+void WriteAllText(string path, string contents);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+fileSystem.CreateDirectory(path);
+```
 
 ---
 
 ## Related Components
 
-- **IO/PhysicalFileSystem.cs** - Production implementation
-- **DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs** - Production implementation tests
-
+- `DC bot/Interface/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

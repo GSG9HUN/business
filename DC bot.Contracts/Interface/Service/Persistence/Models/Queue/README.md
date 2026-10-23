@@ -1,28 +1,186 @@
-# Queue Models
+# Queue
 
-This folder contains queue persistence records and enums.
+Defines shared records and state values for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
 
-## Why This Folder Exists
+## Overview
 
-Queue data moves between commands, music services, and repositories. The service layer needs queue item state and ordering information, but it should not receive EF entities.
+- Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+- Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
+- Queue position orders waiting playback; batch metadata preserves the canonical sequence. Start claims carry operation ownership so late completion cannot commit against a newer attempt.
 
-These models describe persisted queue data in a database-independent way.
+## Models and Results
 
-## Files
+### PendingPlaybackStart
 
-### QueueItemRecord.cs
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/PendingPlaybackStart.cs`
 
-Immutable queue item projection returned by queue repository methods.
+**Purpose:** Carries immutable pending playback start values across the shared storage or mobile-command boundary.
 
-### QueueItemState.cs
+**Record declaration:**
 
-Contract-level queue item state enum.
+```csharp
+public sealed record PendingPlaybackStart(
+    ulong GuildId,
+    long QueueItemId,
+    Guid OperationId,
+    string? NodeAddress,
+    string? NodeSessionId,
+    bool TransportConfirmed);
+```
 
-## Flow Context
+---
 
-Queue commands use `QueueItemRecord` to display queued tracks. Playback services use it when claiming or moving through queue items. `QueueItemState` keeps state transitions readable in code instead of passing raw numeric database values.
+### PlaybackBatchRecord
 
-## Maintenance Notes
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/PlaybackBatchRecord.cs`
 
-- Queue item state is exposed as an enum instead of raw database values.
-- Keep enum values stable because they represent persisted queue states.
+**Purpose:** Carries immutable playback batch values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record PlaybackBatchRecord(long Id, DateTimeOffset CreatedAtUtc, DateTimeOffset? CompletedAtUtc, int TrackCount);
+```
+
+---
+
+### QueueClaimResult
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueClaimResult.cs`
+
+**Purpose:** Carries immutable queue claim result values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueClaimResult(QueueClaimStatus Status, QueueStartClaim? Claim = null);
+```
+
+---
+
+### QueueClaimStatus
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueClaimStatus.cs`
+
+**Purpose:** Names the outcomes of an atomic start claim so callers can distinguish a successful reservation, an empty queue, and work owned by another operation.
+
+**Values:**
+
+```csharp
+public enum QueueClaimStatus
+{
+    // A queue item was successfully reserved for playback.
+    Claimed,
+    // No item is available for the requested operation.
+    Empty,
+    // Another operation currently owns the required playback state.
+    Busy
+}
+```
+
+---
+
+### QueueItemRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueItemRecord.cs`
+
+**Purpose:** Carries immutable queue item values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueItemRecord(
+    long Id,
+    ulong GuildId,
+    int Position,
+    string TrackIdentifier,
+    string? SourceQuery,
+    string? SourceSearchMode,
+    string? RequestedBy,
+    QueueItemState State,
+    long? BatchId,
+    long? BatchItemId,
+    DateTimeOffset AddedAtUtc,
+    DateTimeOffset? PlayedAtUtc,
+    DateTimeOffset? SkippedAtUtc);
+```
+
+---
+
+### QueueItemRemovalRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueItemRemovalRecord.cs`
+
+**Purpose:** Carries immutable queue item removal values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueItemRemovalRecord(bool Success, int QueueSize, QueueItemRecord? RemovedItem);
+```
+
+---
+
+### QueueItemState
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueItemState.cs`
+
+**Purpose:** Names the persisted lifecycle states of a queue item rather than representing state transitions as arbitrary text.
+
+**Values:**
+
+```csharp
+public enum QueueItemState : short
+{
+    // The item is waiting for playback.
+    Queued = 0,
+    // The item is currently playing.
+    Playing = 1,
+    // Playback of the item has completed.
+    Played = 2,
+    // The item was skipped instead of completing normally.
+    Skipped = 3,
+    // The item is reserved for a playback start whose outcome is not yet settled.
+    Starting = 4
+}
+```
+
+---
+
+### QueueItemToEnqueue
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueItemToEnqueue.cs`
+
+**Purpose:** Carries immutable queue item to enqueue values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueItemToEnqueue(
+    string TrackIdentifier,
+    string? SourceQuery,
+    string? SourceSearchMode,
+    string? RequestedBy);
+```
+
+---
+
+### QueueStartClaim
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/QueueStartClaim.cs`
+
+**Purpose:** Carries immutable queue start claim values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueStartClaim(Guid OperationId, QueueItemRecord Item);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

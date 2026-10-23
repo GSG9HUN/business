@@ -1,302 +1,259 @@
 # Endpoints
 
-This folder contains minimal API route registration extensions.
+Registers minimal API routes, handler bindings, authorization, and endpoint filters.
 
 ## Overview
 
-Endpoint classes define the public HTTP route surface and connect routes to handler methods.
-They should stay thin:
+- Program.cs mounts these groups under /api. Route registration selects the handler; handlers own repository calls and response decisions.
+- Keep route composition here and request processing in Handlers. Authentication alone does not replace a handler's guild-access check.
 
-- create route groups
-- attach validation filters
-- attach authorization requirements
-- map HTTP verbs to handlers
+## Classes
 
-Business logic belongs in `Handlers/`, service orchestration belongs in services, and persistence stays behind repository contracts.
+### AuthEndpoints
 
-## Files
+**File:** `API/Endpoints/AuthEndpoints.cs`
 
-### AuthEndpoints.cs
+**Purpose:** Registers the auth HTTP routes and their authorization and validation filters.
 
-Maps `/api/auth` routes.
+**Methods:**
 
-Routes:
+- `MapAuthEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
 
-- `POST /api/auth/discord/start` - create Discord authorization URL
-- `GET /api/auth/discord/callback` - receive Discord OAuth callback
-- `POST /api/auth/exchange` - exchange mobile auth ticket for app session tokens
-- `POST /api/auth/refresh` - rotate refresh token and issue new access token
-- `POST /api/auth/logout` - revoke a refresh session
-
-### GuildEndpoints.cs
-
-Maps authenticated `/api/guilds` routes.
-
-Responsibilities:
-
-- require authorization for guild access endpoints
-- expose the current user's accessible guild list
-
-### ProfileEndpoints.cs
-
-Maps authenticated `/api/profile` routes.
-
-Routes:
-
-- `GET /api/profile` - return the authenticated mobile user's profile and settings
-- `GET /api/profile/me` - return only the authenticated mobile user's Discord profile fields
-- `PATCH /api/profile/settings` - update selected profile settings fields
-
-`GET /api/profile/me` response:
-
-```json
-{
-  "discordUserId": "123456789012345678",
-  "username": "example_user",
-  "displayName": "Example User",
-  "avatarUrl": "https://cdn.discordapp.com/avatars/123456789012345678/avatarhash.webp?size=128",
-  "isDiscordConnected": true,
-  "isActive": true
-}
+```csharp
+public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder group);
 ```
 
-### PlaybackEndpoints.cs
+**Usage:**
 
-Maps `/api/guilds/{guildId}/playback` command endpoints.
+The caller supplies the component and argument values used in this example.
 
-Responsibilities:
-
-- validate `guildId`
-- validate playback command names
-- enqueue bot-control commands through the playback handler
-
-Routes:
-
-- `POST /api/guilds/{guildId}/playback/{commandName}` - enqueue a playback command
-- `PATCH /api/guilds/{guildId}/playback/repeat-mode` - set repeat mode explicitly
-
-Allowed playback command names:
-
-- `pause`
-- `resume`
-- `skip`
-- `previous`
-- `leave`
-- `stop`
-- `repeat`
-- `repeatList`
-
-`PATCH /api/guilds/{guildId}/playback/repeat-mode` request:
-
-```json
-{
-  "mode": "all"
-}
+```csharp
+var result = group.MapAuthEndpoints();
 ```
 
-`mode` must be one of:
+---
 
-- `none` - disable single-track repeat and queue repeat, then clear the repeat-list snapshot
-- `one` - enable single-track repeat, disable queue repeat, then clear the repeat-list snapshot
-- `all` - disable single-track repeat, enable queue repeat, then replace the repeat-list snapshot with the current track plus queued tracks
+### CommandEndpoints
 
-Successful repeat-mode updates return `204 No Content`.
+**File:** `API/Endpoints/CommandEndpoints.cs`
 
-### PlayerEndpoints.cs
+**Purpose:** Registers the command HTTP routes and their authorization and validation filters.
 
-Maps authenticated `/api/guilds/{guildId}/player` snapshot routes.
+**Methods:**
 
-Routes:
+- `MapCommandEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
 
-- `GET /api/guilds/{guildId}/player` - return the current playback snapshot for the guild
-
-`GET /api/guilds/{guildId}/player` response:
-
-```json
-{
-  "guildId": "123456789012345678",
-  "guildName": "Example Guild",
-  "guildIconUrl": "https://cdn.discordapp.com/icons/123456789012345678/iconhash.webp?size=128",
-  "botStatus": {
-    "isOnline": true,
-    "connectedVoiceChannelName": "Music",
-    "connectedVoiceUserCount": 4
-  },
-  "currentTrack": {
-    "title": "Track title",
-    "author": "Track author",
-    "duration": 180,
-    "trackUri": "https://example.com/track",
-    "artworkUri": "https://example.com/artwork.jpg",
-    "requestedBy": "Example User"
-  },
-  "isPlaying": true,
-  "isPaused": false,
-  "positionSeconds": 42,
-  "queueTrackCount": 2,
-  "isRepeating": false,
-  "isRepeatingList": true,
-  "updatedAtUtc": "2026-09-22T07:15:30Z"
-}
+```csharp
+public static RouteGroupBuilder MapCommandEndpoints(this RouteGroupBuilder group);
 ```
 
-Notes:
+**Usage:**
 
-- `currentTrack` is `null` when nothing is currently playing.
-- `guildIconUrl`, `connectedVoiceChannelName`, `artworkUri`, and `requestedBy` may be `null`.
-- `duration` and `positionSeconds` are expressed in seconds.
+The caller supplies the component and argument values used in this example.
 
-### PlaylistEndpoints.cs
-
-Reserved for playlist CRUD and playback routes.
-
-### QueueEndpoints.cs
-
-Maps authenticated `/api/guilds/{guildId}/queue` read/write routes.
-
-Routes:
-
-- `GET /api/guilds/{guildId}/queue` - return the current queued tracks
-- `POST /api/guilds/{guildId}/queue/enqueue` - enqueue a play command for a query or URL
-- `DELETE /api/guilds/{guildId}/queue` - enqueue a clear-queue command
-- `DELETE /api/guilds/{guildId}/queue/{trackNumber}` - enqueue a remove-track command by 1-based queue number
-- `POST /api/guilds/{guildId}/queue/shuffle` - enqueue a shuffle command
-- `PATCH /api/guilds/{guildId}/queue/{trackIndex}/move-to/{targetIndex}` - enqueue a move command between 0-based queue indexes
-
-`GET /api/guilds/{guildId}/queue` response:
-
-```json
-{
-  "guildId": "123456789012345678",
-  "trackCount": 2,
-  "tracks": [
-    {
-      "position": 1,
-      "title": "First queued track",
-      "author": "Track author",
-      "duration": 180,
-      "trackUri": "https://example.com/track-1",
-      "artworkUri": "https://example.com/artwork-1.jpg",
-      "requestedBy": "Example User"
-    },
-    {
-      "position": 2,
-      "title": "Second queued track",
-      "author": "Track author",
-      "duration": 210,
-      "trackUri": "https://example.com/track-2",
-      "artworkUri": null,
-      "requestedBy": null
-    }
-  ]
-}
+```csharp
+var result = group.MapCommandEndpoints();
 ```
 
-`POST /api/guilds/{guildId}/queue/enqueue` request:
+---
 
-```json
-{
-  "query": "https://example.com/track",
-  "searchMode": null,
-  "voiceChannelId": "123456789012345678",
-  "textChannelId": "234567890123456789"
-}
+### GuildEndpoints
+
+**File:** `API/Endpoints/GuildEndpoints.cs`
+
+**Purpose:** Registers the guild HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapGuildEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapGuildEndpoints(this RouteGroupBuilder group);
 ```
 
-Notes:
+**Usage:**
 
-- `position` is 1-based in queue responses.
-- `trackNumber` is 1-based for remove requests.
-- `trackIndex` is 0-based for move requests.
-- `duration` is expressed in seconds.
-- `artworkUri` and `requestedBy` may be `null`.
-- `voiceChannelId` and `textChannelId` are optional Discord snowflake strings.
-- If `voiceChannelId` is omitted, the bot resolves the user's current voice channel when executing the command.
-- If `textChannelId` is omitted or invalid, the bot falls back to the resolved voice channel chat when it can send messages there.
-- Queue write routes enqueue bot-control commands and return `202 Accepted` with command data.
+The caller supplies the component and argument values used in this example.
 
-### StatusEndpoints.cs
+```csharp
+var result = group.MapGuildEndpoints();
+```
 
-Maps `/api/status` health/status routes.
+---
 
-### MobileUpdatesHub
+### MusicSearchEndpoints
 
-Maps the authenticated SignalR realtime route.
+**File:** `API/Endpoints/MusicSearchEndpoints.cs`
 
-Route:
+**Purpose:** Registers the music search HTTP routes and their authorization and validation filters.
 
-- `/hubs/mobile` - SignalR hub for mobile realtime updates
+**Methods:**
 
-Authentication:
+- `MapMusicSearchEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
 
-- REST endpoints continue to use `Authorization: Bearer <access token>`.
-- WebSocket/SSE hub connections may pass the same JWT as `access_token` query value on `/hubs/mobile`.
-- The server reads `access_token` only for the `/hubs/mobile` path. Do not log the query token value.
+```csharp
+public static RouteGroupBuilder MapMusicSearchEndpoints(this RouteGroupBuilder group);
+```
 
-Callable hub methods:
+**Usage:**
 
-- `JoinGuildAsync(string guildId)` - subscribes this connection to guild-scoped updates after checking current guild access.
-- `LeaveGuildAsync(string guildId)` - removes this connection from that guild subscription.
-- `JoinUserUpdatesAsync()` - subscribes this connection to user-scoped updates.
-- `LeaveUserUpdatesAsync()` - removes this connection from user-scoped updates.
+The caller supplies the component and argument values used in this example.
 
-Guild subscription behavior:
+```csharp
+var result = group.MapMusicSearchEndpoints();
+```
 
-- `guildId` must be a Discord snowflake string.
-- `JoinGuildAsync` rejects the call when the authenticated user no longer has access to the guild.
-- Active guild subscriptions are persisted in `mobile_realtime_guild_memberships`.
-- Playback, queue, and guild bot status events are delivered only to users that are both subscribed and still present in `user_guilds` at publish time.
-- If guild access is revoked after a connection joined, later guild snapshot events are no longer delivered to that user even if the SignalR connection remains open.
+---
 
-Emitted guild events:
+### PlaybackEndpoints
 
-- `PlaybackStarted`
-- `PlaybackPaused`
-- `PlaybackResumed`
-- `PlaybackStopped`
-- `PlaybackPreviousStarted`
-- `PlaybackPositionChanged`
-- `PlaybackLoadFailed`
-- `CurrentTrackChanged`
-- `RepeatModeChanged`
-- `PlaybackSnapshotChanged`
-- `QueueItemAdded`
-- `QueueItemsAdded`
-- `QueueItemClaimed`
-- `QueueItemMoved`
-- `QueueItemRemoved`
-- `QueueCleared`
-- `QueueShuffled`
-- `QueueSnapshotChanged`
-- `BotJoinedVoiceChannel`
-- `BotLeftVoiceChannel`
-- `BotVoiceUserCountChanged`
-- `GuildBotStatusChanged`
+**File:** `API/Endpoints/PlaybackEndpoints.cs`
 
-Guild event payloads:
+**Purpose:** Registers the playback HTTP routes and their authorization and validation filters.
 
-- playback events send a `PlaybackSnapshotEvent`
-- queue events send a `QueueSnapshotEvent`
-- guild bot status events send a `GuildBotStatusEvent`
+**Methods:**
 
-Each guild event payload includes:
+- `MapPlaybackEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
 
-- `guildId` - Discord snowflake string
-- `eventName` - specific event name
-- `updatedAtUtc` - server-side event timestamp
-- `snapshot` - current REST-equivalent snapshot for that feature
+```csharp
+public static RouteGroupBuilder MapPlaybackEndpoints(this RouteGroupBuilder group);
+```
 
-Emitted bot-control user-guild events:
+**Usage:**
 
-- `BotControlCommandStarted`
-- `BotControlCommandSucceeded`
-- `BotControlCommandFailed`
-- `BotControlCommandUpdated`
+The caller supplies the component and argument values used in this example.
 
-Bot-control event payloads include command id, guild id, user id, command type, state, error message, result JSON, and command timestamps.
+```csharp
+var result = group.MapPlaybackEndpoints();
+```
 
-## Notes
+---
 
-- Keep endpoint files focused on routing only.
-- Return the original parent `RouteGroupBuilder` from extension methods so endpoint registration can be chained safely.
-- Use feature-specific handlers from `API.Handlers.*` namespaces.
+### PlayerEndpoints
+
+**File:** `API/Endpoints/PlayerEndpoints.cs`
+
+**Purpose:** Registers the player HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapPlayerEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapPlayerEndpoints(this RouteGroupBuilder group);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = group.MapPlayerEndpoints();
+```
+
+---
+
+### PlaylistEndpoints
+
+**File:** `API/Endpoints/PlaylistEndpoints.cs`
+
+**Purpose:** Registers the playlist HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapPlaylistEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapPlaylistEndpoints(this RouteGroupBuilder group);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = group.MapPlaylistEndpoints();
+```
+
+---
+
+### ProfileEndpoints
+
+**File:** `API/Endpoints/ProfileEndpoints.cs`
+
+**Purpose:** Registers the profile HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapProfileEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapProfileEndpoints(this RouteGroupBuilder group);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = group.MapProfileEndpoints();
+```
+
+---
+
+### QueueEndpoints
+
+**File:** `API/Endpoints/QueueEndpoints.cs`
+
+**Purpose:** Registers the queue HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapQueueEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapQueueEndpoints(this RouteGroupBuilder group);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = group.MapQueueEndpoints();
+```
+
+---
+
+### StatusEndpoints
+
+**File:** `API/Endpoints/StatusEndpoints.cs`
+
+**Purpose:** Registers the status HTTP routes and their authorization and validation filters.
+
+**Methods:**
+
+- `MapStatusEndpoints` — Registers this feature's routes, handler bindings, authorization, and endpoint filters on the supplied route group.
+
+```csharp
+public static RouteGroupBuilder MapStatusEndpoints(this RouteGroupBuilder group);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = group.MapStatusEndpoints();
+```
+
+---
+
+## Related Components
+
+- `API/README.md` — Parent feature overview and neighboring components.
+- `API/Validation/` — Checks route identifiers, command aliases, and provider-aware enqueue input before handlers run.
+- `API/Handlers/Auth/` — Coordinates Discord OAuth, mobile login-ticket exchange, refresh-token rotation, and logout.
+- `API/Handlers/BotControl/` — Reads progress and results of durable bot-control commands.
+- `API/Handlers/Guilds/` — Lists guilds visible to the authenticated mobile user and assembles their bot-presence metadata.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

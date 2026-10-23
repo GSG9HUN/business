@@ -1,44 +1,92 @@
-# Persistence Migrations
+# Migrations
 
-This folder contains EF Core migrations and the model snapshot.
+This folder contains EF Core schema migrations, their generated metadata, and the current model snapshot.
 
-## Why This Folder Exists
+## Overview
 
-Migrations are the source-controlled history of database schema changes. They explain how the database moved from one shape to the next and allow new environments to be created consistently.
+- Preserve the chronological schema transitions required by the current database model.
+- Keep each migration operation file together with its matching generated designer file.
+- Apply pending schema changes through bot startup or an explicit EF tooling command.
 
-Unlike entities, configurations, and repositories, migrations are not organized by feature. EF tooling expects them as a chronological history, and keeping them together makes schema order obvious.
+## Migration Components
 
-## Current Migrations
+### Timestamped Migration Files
 
-- `20260401102254_InitialMusicPersistence`
-- `20260401121744_UpdateModel_20260401`
-- `20260402134541_AddGuildRepeatListItems`
-- `20260425193122_AddPlaybackStateQueueItemId`
-- `20260425212714_AddQueueItemIdToPlaybackState` (renames `QueueItemId` to `queue_item_id` on `guild_playback_state`)
-- `20260521133944_FixPendingModelChanges`
-- `20260710104810_AddPlaylists`
-- `20260803192210_AddBotControlCommands`
-- `20260809192001_AddMobileAppUsers`
-- `20260809211205_AddMobileAppSessions`
-- `20260809215023_FixMobileAppSessionColumnNames`
+**Files:**
 
-`BotDbContextModelSnapshot.cs` reflects the latest schema model.
+- Timestamped `.cs` migration files define `Up` and `Down` schema operations.
+- Matching `.Designer.cs` files contain EF-generated model metadata.
 
-## Workflow
+**Purpose:** Record a schema transition rather than a change to live Discord or Lavalink state.
 
-Common commands (run from solution root):
+**Methods:**
 
-```bash
-dotnet ef migrations add <MigrationName> --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot/DC bot.csproj"
-dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot/DC bot.csproj"
+Each migration overrides the EF migration contract:
+
+```csharp
+protected override void Up(MigrationBuilder migrationBuilder);
+protected override void Down(MigrationBuilder migrationBuilder);
 ```
 
-## Runtime Behavior
+**Usage:**
 
-`Db/DatabaseMigrationRunner.cs` checks for pending migrations and applies them automatically during bot startup.
+Run from the repository root with an EF CLI compatible with the project's EF Core version:
 
-## Caution
+```bash
+dotnet ef migrations add <MigrationName> --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"
+dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"
+```
 
-- Keep generated migration files source-controlled.
-- Do not manually edit designer files unless absolutely necessary.
-- Keep historical migration files in this folder instead of reorganizing them by feature.
+`BotDbContextFactory` reads `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from the tooling process environment. It does not load `.env` itself. Bot startup separately invokes `DatabaseMigrationRunner`; the API does not currently apply migrations in its startup path.
+
+---
+
+### AddPlaybackBatches
+
+**File:** `20261021105145_AddPlaybackBatches.cs`
+
+**Purpose:** Adds canonical playback batch and item storage and links queue/playback state to that batch model.
+
+**Behavior:** This migration is already present. Enabling the existing batch behavior does not require generating a duplicate migration. Inspect `Up` and `Down` for the exact columns, indexes, relationships, and tables involved.
+
+---
+
+### BotDbContextModelSnapshot
+
+**File:** `BotDbContextModelSnapshot.cs`
+
+**Purpose:** Describes the model after the generated migration history, allowing EF tooling to detect subsequent model changes.
+
+**Benefits:**
+
+- Keeps generated schema comparisons tied to a source-controlled model.
+- Makes a new migration describe a transition from the previous model.
+- Separates schema evolution from repository implementation and documentation changes.
+
+## Schema Change Checks
+
+- Review the generated operations and snapshot against the entity/configuration change.
+- Apply schema changes to the intended database environment.
+- Add a new migration for a new schema transition instead of rewriting previously deployed history.
+- Documentation, DI, XML, and cancellation-only changes do not need a migration unless the model also changes.
+
+## Persistent Voice Schema
+
+### AddTwentyFourSevenSettings
+
+**Files:**
+
+- `20261023110102_AddTwentyFourSevenSettings.cs`
+- `20261023110102_AddTwentyFourSevenSettings.Designer.cs`
+
+**Purpose:** Adds `is_twenty_four_seven_enabled` (default false), `preferred_voice_channel_id`, and `preferred_text_channel_id` to `guild_data`. The channel identifiers are nullable `numeric(20,0)` values. Apply this migration before using preference reads and writes; it changes storage only.
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Db/BotDbContext.cs` — EF model assembled from entity configurations.
+- `DC bot.Persistence/Db/BotDbContextFactory.cs` — Design-time PostgreSQL context creation.
+- `DC bot.Persistence/Db/DatabaseMigrationRunner.cs` — Applies pending migrations when invoked by startup.
+- `DC bot.Persistence/Configurations/` — Table, column, relationship, index, and conversion definitions.
+- `DC bot/Startup/BotApplication.cs` — Calls the migration runner before starting bot runtime work.

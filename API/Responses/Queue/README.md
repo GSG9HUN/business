@@ -1,33 +1,51 @@
-# Queue Responses
+# Queue
 
-This folder contains response DTOs for queue endpoints.
+Defines client-facing output for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
 
-## Files
+## Overview
 
-### QueueResponse.cs
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-Represents a guild queue snapshot.
+## Models and Results
 
-Fields:
+### QueueResponse
 
-- `GuildId`
-- `TrackCount`
-- `Tracks`
+**File:** `API/Responses/Queue/QueueResponse.cs`
 
-### QueueTrackResponse.cs
+**Purpose:** Carries the queue payload returned to HTTP and mobile clients.
 
-Represents one queued track.
+**Record declaration:**
 
-Fields:
+```csharp
+public sealed record QueueResponse(string GuildId, int TrackCount, IReadOnlyList<QueueTrackResponse> Tracks);
+```
 
-- `Position`
-- `Title`
-- `Author`
-- `Duration`
-- `TrackUri`
-- `ArtworkUri`
+---
 
-## Notes
+### QueueTrackResponse
 
-- Queue responses should preserve playback order.
-- Queue write endpoints should return updated snapshots or accepted command results depending on whether work is immediate or delegated to the bot process.
+**File:** `API/Responses/Queue/QueueTrackResponse.cs`
+
+**Purpose:** Carries the queue track payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record QueueTrackResponse(
+    int Position,
+    string Title,
+    string Author,
+    int Duration,
+    string TrackUri,
+    string? ArtworkUri,
+    string? RequestedBy);
+```
+
+---
+
+## Related Components
+
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

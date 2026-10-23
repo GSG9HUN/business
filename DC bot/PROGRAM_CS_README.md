@@ -1,164 +1,131 @@
 # Program.cs and Startup
 
-`Program.cs` is intentionally thin. It loads `.env` with DotNetEnv when the file is present, then delegates runtime startup to `Startup/BotApplication.cs`.
+This document explains the bot process entry point, dependency composition, migration invocation, and coordinated runtime lifetime.
 
-## Responsibilities
+## Overview
 
-### Program.cs
+- Load an optional `.env` from the current working directory without overwriting process environment values.
+- Build bot, Lavalink, and PostgreSQL settings and register the runtime service graph.
+- Validate playback deadlines before migrations or Discord startup.
+- Run the Discord lifecycle, mobile command worker, and playback recovery under linked cancellation.
 
-- locate `.env` in the current working directory
-- load environment variables with `Env.NoClobber().Load(...)` when `.env` exists
-- preserve already-provided process environment variables when the same key also exists in `.env`
-- continue with already-provided environment variables when `.env` does not exist
-- call `BotApplication.RunAsync()`
-- create a shutdown `CancellationTokenSource` and cancel it on `Console.CancelKeyPress`
+## Entry Point
 
-### Startup components
+### Program
 
-- `BotApplication.cs` - coordinates the startup flow
-- `BotConfigurationLoader.cs` - reads and validates required environment values
-- `BotRuntimeSettings.cs` - groups bot, Lavalink, and database startup settings
-- `BotServiceProviderFactory.cs` - builds the DI container
-- `Startup/DependencyInjection/*.cs` - groups DI registrations by logging, core services, Discord runtime, Lavalink, persistence, commands, and music domains
-- `DC bot.Persistence/Db/DatabaseMigrationRunner.cs` - applies pending EF Core migrations
-- `BotHandlerRegistrar.cs` - activates command and reaction handlers after the service graph is built
+**File:** `DC bot/Program.cs`
 
-## Startup Flow
+**Purpose:** Owns the process shutdown token and delegates application startup.
 
-1. `Program.Main()` loads `.env` when it exists.
-2. `Program.Main()` calls `BotApplication.RunAsync()`.
-3. `BotConfigurationLoader.LoadFromEnvironment(...)` builds `BotRuntimeSettings`.
-4. `BotServiceProviderFactory.Create(...)` creates the `ServiceProvider`.
-5. `DatabaseMigrationRunner.ApplyMigrationsIfNeededAsync(...)` applies pending DB migrations.
-6. `BotHandlerRegistrar.RegisterHandlers(...)` activates command and reaction handlers.
-7. `BotService.StartAsync()` connects the Discord client and keeps the bot running until the shutdown token is cancelled.
-
-## Handler Registration
-
-`BotServiceProviderFactory` calls `DiscordServiceCollectionExtensions.AddDiscordRuntime(...)`, which registers the DSharpPlus 5 gateway, message, reaction, and voice event handlers with `ConfigureEventHandlers(...)`.
-
-`BotHandlerRegistrar` only enables handlers that maintain their own registration state:
+**Method:**
 
 ```csharp
-commandHandler.RegisterHandler(discordClient);
-reactionHandler.RegisterHandler(discordClient);
+private static async Task Main();
 ```
 
-This keeps startup ordering explicit: DSharpPlus event callbacks are registered during service composition, and command/reaction handling is enabled after the service graph is available.
+**Behavior:**
 
-## Environment Variables
+- `Console.CancelKeyPress` cancels the shutdown token.
+- The optional environment file is read from the current working directory only.
+- `BotApplication.RunAsync` receives the token and owns the application flow.
 
-Local development usually runs from the repository root, so the current working directory `.env` is normally the repository-root `.env` file. Docker Compose, CI, and production can provide the same keys directly as environment variables. Startup validates the required keys after optional `.env` loading, so the physical `.env` file is not required when the environment is already populated.
+**Usage:**
 
-`.env` loading uses DotNetEnv `NoClobber`, so environment variables already present in the process take precedence over values from the file.
-
-### Required
-
-- `DISCORD_TOKEN`
-- `LAVALINK_HOSTNAME`
-
-### Optional Bot
-
-- `BOT_PREFIX` (default: `!`)
-
-### Optional Lavalink
-
-- `LAVALINK_PORT` (default: `2333`)
-- `LAVALINK_SECURED` (default: `false`)
-- `LAVALINK_PASSWORD` (default: empty)
-
-### Optional PostgreSQL
-
-- `POSTGRES_HOST` (default: `localhost`)
-- `POSTGRES_PORT` (default: `5432`)
-- `POSTGRES_DB` (default: `dc_bot`)
-- `POSTGRES_USER` (default: `postgres`)
-- `POSTGRES_PASSWORD` (default: `postgres`)
-
-### Optional Lavalink Provider Settings
-
-These are consumed by `lavalink-server/application.yaml` through Docker Compose, not directly by the C# startup classes:
-
-- `SPOTIFY_CLIENT_ID`
-- `SPOTIFY_CLIENT_SECRET`
-- `APPLE_MUSIC_API_TOKEN`
-- `DEEZER_ARL`
-- `YANDEX_MUSIC_ACCESS_TOKEN`
-- `YOUTUBE_REFRESH_TOKEN`
-
-## Example .env
-
-```env
-DISCORD_TOKEN=your_bot_token_here
-BOT_PREFIX=!
-
-# Host dotnet run/tests against docker-compose: 127.0.0.1
-# Bot running inside Docker Compose network: lavalink
-LAVALINK_HOSTNAME=127.0.0.1
-LAVALINK_PORT=2333
-LAVALINK_SECURED=false
-LAVALINK_PASSWORD=your_password
-
-# Host dotnet run/tests against docker-compose: 127.0.0.1
-# Bot running inside Docker Compose network: postgres
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-POSTGRES_DB=dc_bot
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_postgres_password
-
-SPOTIFY_CLIENT_ID=
-SPOTIFY_CLIENT_SECRET=
-APPLE_MUSIC_API_TOKEN=
-DEEZER_ARL=
-YANDEX_MUSIC_ACCESS_TOKEN=
-YOUTUBE_REFRESH_TOKEN=
-```
-
-## Persistence Wiring
-
-`BotServiceProviderFactory` calls `DC_bot.Persistence.DependencyInjection.PersistenceServiceCollectionExtensions.AddPersistenceServices(...)`, which registers:
-
-- `AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(...))`
-- `IGuildDataRepository -> GuildDataRepository`
-- `IPlaybackStateRepository -> PlaybackStateRepository`
-- `IQueueRepository -> QueueRepository`
-- `IPlaylistRepository -> PlaylistRepository`
-- `IPlaylistTrackRepository -> PlaylistTrackRepository`
-- `IRepeatListRepository -> RepeatListRepository`
-- `IBotControlCommandsRepository -> BotControlCommandsRepository`
-
-`QueueRepository` keeps the public `IQueueRepository` contract, while the PostgreSQL atomic claim transaction is delegated internally to `QueueClaimService`.
-
-`DC bot.Persistence/Db/DatabaseMigrationRunner.cs` checks pending migrations and runs `MigrateAsync()` when needed.
-
-The runtime PostgreSQL connection string is built from the `POSTGRES_*` variables by `BotConfigurationLoader.BuildPostgresConnectionString()`. The current C# startup path does not read `POSTGRES_CONNECTION_STRING` directly.
-
-## Error Handling
-
-Required settings are validated before the DI container is created:
-
-- missing `DISCORD_TOKEN` prints `DISCORD_TOKEN is not set in the environment variables.`
-- missing `LAVALINK_HOSTNAME` prints `LAVALINK_HOSTNAME is not set in the environment variables.`
-
-In these cases startup exits before connecting to Discord.
-
-## Running the Bot
+Build from the repository root, then start from the bot project directory so the `localization/` and `guildFiles/` paths resolve:
 
 ```bash
-dotnet restore
-dotnet build
-dotnet run --project "DC bot/DC bot.csproj"
+dotnet build "DC bot.sln"
+cd "DC bot"
+dotnet run --project "DC bot.csproj"
 ```
+
+Provide the required process environment values or a local `.env` in that working directory. Unlike the API loader, the bot entry point does not search parent directories for `.env`. Docker Compose explicitly passes the repository-root file to the container.
+
+---
+
+## Startup Classes
+
+### BotApplication
+
+**File:** `DC bot/Startup/BotApplication.cs`
+
+**Purpose:** Coordinates configuration, service-provider lifetime, startup checks, and runtime workers.
+
+**Method:**
+
+```csharp
+public static Task RunAsync(
+    TextWriter? output = null,
+    bool isTestEnvironment = false,
+    CancellationToken cancellationToken = default);
+```
+
+**Startup sequence:**
+
+1. Check cancellation and load runtime settings.
+2. Create the service provider and explicitly resolve validated `PlaybackLifecycleOptions`.
+3. Apply pending EF migrations with the application token.
+4. Enable command and reaction handlers.
+5. Start the bot service, mobile command worker, and playback recovery loop.
+6. Cancel sibling tasks when one finishes and observe their results before disposing the provider.
+
+**Validation Checks:**
+
+- Missing `DISCORD_TOKEN` or `LAVALINK_HOSTNAME` is reported by the configuration loader before the runtime starts.
+- `MUSIC_JOIN_DEADLINE` and `MUSIC_LEAVE_DEADLINE` are required, positive supported `TimeSpan` values; invalid options fail before migration and Discord connection.
+- Caller-requested shutdown is distinguished from a fault in one of the workers.
+
+The explicit test-runtime branch starts the bot service in test mode and does not run live node recovery.
+
+---
+
+### BotConfigurationLoader
+
+**File:** `DC bot/Startup/BotConfigurationLoader.cs`
+
+**Purpose:** Converts environment values into `BotRuntimeSettings` and builds the runtime PostgreSQL connection string.
+
+**Method:**
+
+```csharp
+public static BotRuntimeSettings? LoadFromEnvironment(TextWriter output);
+```
+
+**Configuration:**
+
+The complete variable/default table is in `DC bot/README.md`. Provider credentials consumed by Lavalink are separate from the bot's configuration loader. The C# loader builds its database string from `POSTGRES_*`; it does not read `POSTGRES_CONNECTION_STRING`.
+
+---
+
+### BotServiceProviderFactory
+
+**File:** `DC bot/Startup/BotServiceProviderFactory.cs`
+
+**Purpose:** Composes logging, core services, Discord callbacks, Lavalink, shared persistence, commands, and music services.
+
+**Method:**
+
+```csharp
+public static ServiceProvider Create(BotRuntimeSettings settings);
+```
+
+`DC_bot.DependencyInjection.PersistenceServiceCollectionExtensions.AddPersistenceServices` registers database contexts and repositories from the separate persistence project. Music helpers, factories, and player/session services are provided by DI rather than fallback construction inside use cases.
+
+---
+
+### BotHandlerRegistrar
+
+**File:** `DC bot/Startup/BotHandlerRegistrar.cs`
+
+**Purpose:** Enables the command and reaction handlers after composition and migration.
+
+Discord event callbacks are configured by `DiscordServiceCollectionExtensions.AddDiscordRuntime`. Registration and handler enablement are separate steps, so a gateway callback cannot be assumed to mean that command processing is already active.
 
 ## Related Components
 
-- `Startup/README.md` - startup component details
-- `Startup/DependencyInjection/README.md` - DI registration map
-- `Configuration/BotSettings.cs` - bot configuration model
-- `Configuration/LavalinkSettings.cs` - Lavalink configuration model
-- `Service/BotService.cs` - bot lifecycle management
-- `Service/Core/CommandHandlerService.cs` - command routing
-- `Service/ReactionHandler/ReactionHandlerService.cs` - reaction handling
-- `Wrapper/DiscordClientFactory.cs` - direct/test Discord client creation outside the production DI startup path
-- `Wrapper/DiscordClientEventHandler.cs` - Discord lifecycle event handling
+- `DC bot/README.md` — Runtime setup, configuration, and playback architecture.
+- `DC bot/Startup/README.md` — Startup components and their current signatures.
+- `DC bot/Startup/DependencyInjection/README.md` — Registration modules and examples.
+- `DC bot.Persistence/Db/README.md` — Context factory and migration runner.
+- `DC bot/Service/BotControl/README.md` — Durable API command execution.
+- `DC bot/Service/Music/Lifecycle/README.md` — Session ownership, deadlines, cleanup, and recovery.

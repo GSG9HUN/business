@@ -1,51 +1,154 @@
-# Persistence Interface Models
+# Models
 
-This folder contains immutable record models and enums used by persistence contracts.
+Groups immutable records and state enums passed across repository boundaries.
 
-## Why This Folder Exists
+## Overview
 
-Repository methods should not return EF Core entities directly. Entities carry database mapping concerns, navigation properties, and persistence behavior that service code should not depend on.
-
-The records in this folder are the safer boundary shape:
-
-- immutable by default
-- easy to assert in tests
-- independent from EF Core table configuration
-- stable for bot/API service code
-
-They also keep API response DTOs separate from persistence results. A handler can map a persistence record into an API response without exposing database naming or internal columns to clients.
+- Repositories map their EF entities into these records; services and API mappers use them without knowing table mappings.
+- Models describe storage use cases rather than HTTP serialization or live SDK state. Input records, snapshot records, and conditional mutation results have different roles.
 
 ## Subfolders
 
-### Playback
+### BotControlCommand/
 
-Playback state records.
+Defines shared records and state values for bot control command operations.
 
-### Queue
+**Files:**
 
-Queue item records and queue state enum.
+- `BotControlCommandRecord.cs`
+- `BotControlCommandState.cs`
 
-### Playlists
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
 
-Saved playlist metadata and track records.
+---
 
-### MobileApps
+### BotRuntimeStatus/
 
-Mobile app user, user-guild, and refresh session records.
+Defines shared records and state values for the retained bot-runtime heartbeat and liveness contract.
 
-### BotControlCommand
+**Files:**
 
-Bot command bridge records and command state enum.
+- `BotRuntimeStatusRecord.cs`
 
-## How To Choose The Right Model
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
 
-Use these records when data crosses the persistence contract boundary. Do not use EF entities outside `DC bot.Persistence`, and do not reuse API response DTOs as repository return types.
+---
 
-If a method needs input data for persistence and that input is not an HTTP request payload, create a small contract input record here. `MobileAppUserUpsertRecord` is an example of that pattern.
+### GuildBotStatus/
 
-## Maintenance Notes
+Defines shared records and state values for persisted bot voice presence, channel display metadata, and voice-user counts.
 
-- `GuildId` and Discord user IDs are represented as `ulong` at contract level.
-- Queue item `State` uses the explicit `QueueItemState` enum at contract level.
-- Bot control command state uses `BotControlCommandState` for the API-to-bot command bridge.
-- EF Core entities stay in `DC bot.Persistence/Entities`.
+**Files:**
+
+- `GuildBotStatusRecord.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+### MobileApps/
+
+Defines shared records and state values for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+
+**Files:**
+
+- `MobileAppSessionRecord.cs`
+- `MobileAppUserGuildRecord.cs`
+- `MobileAppUserGuildUpsertRecord.cs`
+- `MobileAppUserRecord.cs`
+- `MobileAppUserUpsertRecord.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+### MobileAppUserSettings/
+
+Defines shared records and state values for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+
+**Files:**
+
+- `MobileAppLanguageCode.cs`
+- `MobileAppTheme.cs`
+- `MobileAppUserSettingsPatchRecord.cs`
+- `MobileAppUserSettingsRecord.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+### Playback/
+
+Defines shared records and state values for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `PlaybackStateRecord.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+### Playlists/
+
+Defines shared records and state values for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `PlaylistRecord.cs`
+- `PlaylistSummaryRecord.cs`
+- `PlaylistTrackCreateRecord.cs`
+- `PlaylistTrackRecord.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+### Queue/
+
+Defines shared records and state values for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `PendingPlaybackStart.cs`
+- `PlaybackBatchRecord.cs`
+- `QueueClaimResult.cs`
+- `QueueClaimStatus.cs`
+- `QueueItemRecord.cs`
+- `QueueItemRemovalRecord.cs`
+- `QueueItemState.cs`
+- `QueueItemToEnqueue.cs`
+- `QueueStartClaim.cs`
+
+**Purpose:** Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+
+---
+
+## Guild Preference Models
+
+### Guilds/
+
+Contains the immutable persistent voice preference snapshot.
+
+**Files:**
+
+- `TwentyFourSevenSettingsRecord.cs`
+- `README.md`
+
+**Purpose:** Share the saved enabled flag and preferred voice/text channel identifiers between repositories and bot services without EF or Discord dependencies.
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/BotControlCommand/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/BotRuntimeStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/GuildBotStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/MobileAppUserSettings/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

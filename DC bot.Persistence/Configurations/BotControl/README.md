@@ -1,27 +1,44 @@
-# Bot Control Configurations
+# BotControl
 
-This folder contains EF Core mappings for bot control command entities.
+Defines EF Core table mappings for durable bot commands, their claim/completion state, and cross-process change signals.
 
-## Why This Folder Exists
+## Overview
 
-Bot-control commands are the database bridge between the API process and the bot worker. The mapping here controls how command IDs, guild IDs, user IDs, command type, state, timestamps, and failure information are persisted.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-That schema matters because command claiming and state updates must be predictable across two processes.
+## Classes
 
-## Files
+### BotControlCommandsConfiguration
 
-### BotControlCommandsConfiguration.cs
+**File:** `DC bot.Persistence/Configurations/BotControl/BotControlCommandsConfiguration.cs`
 
-Maps bot control command storage.
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for bot control commands.
 
-## What To Keep Here
+**Implements / inherits:** `IEntityTypeConfiguration<BotControlCommandEntity>`.
 
-- table and column names for command storage
-- command state conversion if needed
-- indexes used by pending-command claim queries
-- timestamp and failure-message constraints
+**Methods:**
 
-## Maintenance Notes
+- `Configure` — Implements `Configure` using the contract shown below.
 
-- Command rows are used as the database bridge between the API and bot worker.
-- Keep query indexes aligned with `BotControlCommandsRepository`.
+```csharp
+public void Configure(EntityTypeBuilder<BotControlCommandEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+botControlCommandsConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/BotControl/` — Represents the database rows used for durable bot commands, their claim/completion state, and cross-process change signals.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

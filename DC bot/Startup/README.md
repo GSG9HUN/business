@@ -1,124 +1,174 @@
 # Startup
 
-This folder contains the runtime composition layer for the bot.
+Loads runtime settings, composes dependencies, applies migrations, enables handlers, and observes shutdown.
 
 ## Overview
 
-Startup code is separated from `Program.cs` so configuration loading, dependency injection, database migration execution, and runtime event wiring can be tested independently.
+- BotApplication validates lifecycle options before migrations, then runs the Discord service, mobile command worker, pending-start recovery, and persistent voice recovery together under linked cancellation.
+- The bot uses ServiceProvider directly rather than an ASP.NET Host. Explicit options resolution makes validation happen before external startup, and worker faults must not be hidden as successful cancellation.
 
-## Files
-
-### BotApplication.cs
-
-Coordinates the application startup sequence:
-
-1. load runtime settings
-2. create the DI container
-3. apply pending database migrations
-4. enable command/reaction handlers
-5. start `BotService` with the provided shutdown `CancellationToken`
-
-### BotConfigurationLoader.cs
-
-Reads environment variables and builds `BotRuntimeSettings`.
-
-Required values:
-
-- `DISCORD_TOKEN`
-- `LAVALINK_HOSTNAME`
-
-Optional values:
-
-- `BOT_PREFIX`
-- `LAVALINK_PORT`
-- `LAVALINK_SECURED`
-- `LAVALINK_PASSWORD`
-- `POSTGRES_HOST`
-- `POSTGRES_PORT`
-- `POSTGRES_DB`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-
-### BotRuntimeSettings.cs
-
-Small aggregate record that carries:
-
-- `BotSettings`
-- `LavalinkSettings`
-- PostgreSQL connection string
+## Subfolders
 
 ### DependencyInjection/
 
-Domain-specific DI registration extensions used by the composition root:
+Registers command, core, Discord, Lavalink, logging, and music dependencies at the composition root.
 
-- `LoggingServiceCollectionExtensions.cs` - `AddBotLogging()` configures console logging.
-- `CoreServiceCollectionExtensions.cs` - `AddCoreBotServices(...)` registers bot settings, command registry, localization, validation, response building, wrappers, reaction components, handlers, and file-system services.
-- `DiscordServiceCollectionExtensions.cs` - `AddDiscordRuntime(...)` creates the DSharpPlus client and wires gateway, message, reaction, and voice event callbacks.
-- `LavalinkServiceCollectionExtensions.cs` - `AddLavalinkRuntime(...)` configures Lavalink4NET HTTP and WebSocket endpoints.
-- `CommandServiceCollectionExtensions.cs` - `AddCommandServices()` registers text commands, slash command services, slash modules, and `SlashCommandProcessor`.
-- `MusicServiceCollectionExtensions.cs` - `AddMusicServices()` registers music playback, queue, repeat, playlist, notification, and progressive timer services.
+**Files:**
 
-Persistence registrations now live in `../../DC bot.Persistence/DependencyInjection/PersistenceServiceCollectionExtensions.cs` and are consumed by this composition root through the `DC bot.Persistence` project reference.
+- `CommandServiceCollectionExtensions.cs`
+- `CoreServiceCollectionExtensions.cs`
+- `DiscordServiceCollectionExtensions.cs`
+- `LavalinkServiceCollectionExtensions.cs`
+- `LoggingServiceCollectionExtensions.cs`
+- `MusicServiceCollectionExtensions.cs`
 
-### BotServiceProviderFactory.cs
+**Purpose:** BotServiceProviderFactory invokes these modules and AddPersistenceServices. Discord builder callbacks route gateway, message, reaction, and voice events to injected handlers.
 
-The DI composition root. It validates required startup settings and composes the service graph through the extension methods in `Startup/DependencyInjection/`.
+---
 
-The graph includes:
+## Classes
 
-- DSharpPlus `DiscordClient`
-- DSharpPlus 5 socket/session/guild/voice/message/reaction/unknown-event handlers
-- DSharpPlus Commands slash command processor and slash modules
-- Lavalink4NET client services
-- EF Core `BotDbContext` factory
-- repositories
-- command handlers and commands
-- Discord message wrapper factory
-- music and playlist services
-- localization, validation, response, and file-system services
+### BotApplication
 
-Discord event handlers are configured through DSharpPlus 5 builder APIs in `AddDiscordRuntime`. `BotHandlerRegistrar` only flips command/reaction handlers into their active state after the graph is built.
+**File:** `DC bot/Startup/BotApplication.cs`
 
-Current slash command modules are registered from:
+**Purpose:** Loads configuration, applies migrations, activates handlers, and starts the runtime.
 
-- `Commands/SlashCommands/Music/`
-- `Commands/SlashCommands/Queue/`
-- `Commands/SlashCommands/Playlist/`
-- `Commands/SlashCommands/Utility/`
+**Methods:**
 
-### DatabaseMigrationRunner
-
-`DC bot.Persistence/Db/DatabaseMigrationRunner.cs` creates a scoped `BotDbContext` and applies pending EF Core migrations with `MigrateAsync()`.
-
-### BotHandlerRegistrar.cs
-
-Activates runtime command/reaction handlers after the service graph has been built:
+- `RunAsync` — Loads settings, composes services, applies database migrations, activates handlers, and runs the Discord client.
 
 ```csharp
-commandHandler.RegisterHandler(discordClient);
-reactionHandler.RegisterHandler(discordClient);
+public static async Task RunAsync(
+    TextWriter? output = null,
+    bool isTestEnvironment = false,
+    CancellationToken cancellationToken = default);
 ```
 
-Gateway lifecycle, voice-state, message-created, and reaction events are already wired by `DiscordServiceCollectionExtensions.AddDiscordRuntime(...)`.
+**Usage:**
 
-## Design Notes
+The caller supplies the component and argument values used in this example.
 
-- `Program.cs` stays responsible only for process-level bootstrapping.
-- `BotServiceProviderFactory` remains the composition root, while detailed registrations stay grouped by runtime domain under `DependencyInjection/`.
-- `CommandHandlerService` receives `IDiscordMessageFactory` through DI, so the DSharpPlus message wrapper boundary remains testable.
-- `CommandHandlerService` and `HelpCommand` use `ICommandRegistry` for command lookup/enumeration instead of resolving commands from `IServiceProvider`.
-- `ReactionHandlerService` delegates control-message creation, context construction, and emoji action dispatch to focused services.
-- `BotApplication.RunAsync` and `BotService.StartAsync` accept `CancellationToken` values for controlled shutdown.
-- `DiscordClientEventHandler` uses constructor injection, not service locator lookups, even though DSharpPlus resolves the handler from the service provider at event-dispatch time.
-- `DiscordClientFactory` does not register event handlers and remains useful for tests/direct construction.
-- Slash commands use `DSharpPlus.Commands` with `SlashCommandProcessor`; the legacy `DSharpPlus.SlashCommands` package is not used.
-- Startup integration tests can resolve the full service graph without starting the bot.
+```csharp
+await BotApplication.RunAsync(output, isTestEnvironment, cancellationToken);
+```
+
+---
+
+### BotConfigurationLoader
+
+**File:** `DC bot/Startup/BotConfigurationLoader.cs`
+
+**Purpose:** Loads environment-based Discord, Lavalink, and PostgreSQL startup settings.
+
+**Methods:**
+
+- `BuildPostgresConnectionString` — Builds the PostgreSQL connection string from startup environment values and defaults.
+
+```csharp
+internal static string BuildPostgresConnectionString();
+```
+
+- `LoadFromEnvironment` — Loads runtime settings and reports missing required startup configuration.
+
+```csharp
+public static BotRuntimeSettings? LoadFromEnvironment(TextWriter output);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = BotConfigurationLoader.BuildPostgresConnectionString();
+```
+
+---
+
+### BotHandlerRegistrar
+
+**File:** `DC bot/Startup/BotHandlerRegistrar.cs`
+
+**Purpose:** Activates and registers runtime handlers after dependency injection is composed.
+
+**Methods:**
+
+- `RegisterHandlers` — Registers runtime event handlers while preventing duplicate subscriptions.
+
+```csharp
+public static void RegisterHandlers(IServiceProvider services);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+BotHandlerRegistrar.RegisterHandlers(services);
+```
+
+---
+
+## Factory Classes
+
+### BotServiceProviderFactory
+
+**File:** `DC bot/Startup/BotServiceProviderFactory.cs`
+
+**Purpose:** Builds the provider from runtime settings and domain registration extensions.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
+
+```csharp
+public static ServiceProvider Create(
+    BotSettings botSettings,
+    LavalinkSettings lavalinkSettings,
+    string? postgresConnectionString = null);
+```
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
+
+```csharp
+public static ServiceProvider Create(BotRuntimeSettings settings);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = BotServiceProviderFactory.Create(botSettings, lavalinkSettings, postgresConnectionString);
+```
+
+---
+
+## Models and Results
+
+### BotRuntimeSettings
+
+**File:** `DC bot/Startup/BotRuntimeSettings.cs`
+
+**Purpose:** Groups bot, Lavalink, and database settings needed by application startup.
+
+**Record declaration:**
+
+```csharp
+internal sealed record BotRuntimeSettings(
+    BotSettings BotSettings,
+    LavalinkSettings LavalinkSettings,
+    string PostgresConnectionString);
+```
+
+---
 
 ## Related Components
 
-- `../Program.cs` - process entry point
-- `../PROGRAM_CS_README.md` - startup flow and environment details
-- `DependencyInjection/README.md` - DI registration map
-- `../Wrapper/DiscordClientFactory.cs` - direct/test Discord client creation outside the production DI startup path
-- `../Wrapper/DiscordClientEventHandler.cs` - Discord lifecycle, voice, and gateway event handling
-- `../Service/BotService.cs` - bot lifecycle runtime
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Startup/DependencyInjection/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Configuration/` — Defines typed options for bot identity, Lavalink connectivity, search resolution, and saved-playlist limits.
+- `DC bot/Service/` — Groups process lifecycle, localization, command orchestration, music, reactions, and slash execution.
+- `DC bot/Service/Core/` — Handles text command routing, registry snapshots, argument parsing, and user/player readiness validation.
+- `DC bot/Service/ReactionHandler/` — Connects now-playing messages and Discord reactions to music controls.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

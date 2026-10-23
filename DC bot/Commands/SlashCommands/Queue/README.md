@@ -1,57 +1,183 @@
-# Queue Slash Commands
+# Queue
 
-This folder contains slash command adapters for music queue management.
+Exposes queue display, repetition, ordering, and recent batch history through slash commands.
 
-## Commands
+## Overview
 
-### QueueSlashCommand.cs
+- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 
-**Command:** `/queue`
+## Classes
 
-**Delegates to:** `ViewQueueCommand`
+### ClearSlashCommand
 
-**Behavior:** Requires a guild context, defers the interaction, and displays the current queue through the existing text
-command pipeline.
+**File:** `DC bot/Commands/SlashCommands/Queue/ClearSlashCommand.cs`
+
+**Purpose:** Adapts the clear slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public async Task ExecuteAsync(ISlashInteractionContext context, bool confirm);
+```
+
+- `Clear` — Adapts the clear slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Clear(
+    SlashCommandContext context,
+    [Parameter("confirm")][Description("Must be true to clear the queue")] bool confirm = false);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await clearSlashCommand.Clear(context, confirm);
+```
 
 ---
 
-### ShuffleSlashCommand.cs
+### HistorySlashCommand
 
-**Command:** `/shuffle`
+**File:** `DC bot/Commands/SlashCommands/Queue/HistorySlashCommand.cs`
 
-**Delegates to:** `ShuffleCommand`
+**Purpose:** Adapts the history slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:** Requires a guild context, defers the interaction, and shuffles the current queue through the existing text
-command pipeline.
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `History` — Adapts the history slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task History(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await historySlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### RepeatSlashCommand.cs
+### QueueSlashCommand
 
-**Commands:**
+**File:** `DC bot/Commands/SlashCommands/Queue/QueueSlashCommand.cs`
 
-- `/repeat track` -> `RepeatCommand`
-- `/repeat list` -> `RepeatListCommand`
+**Purpose:** Adapts the queue slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:** Uses DSharpPlus subcommands and forwards each subcommand to the matching text command name.
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Queue` — Adapts the queue slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Queue(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await queueSlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### ClearSlashCommand.cs
+### RepeatSlashCommand
 
-**Command:** `/clear confirm:<true|false>`
+**File:** `DC bot/Commands/SlashCommands/Queue/RepeatSlashCommand.cs`
 
-**Delegates to:** `ClearCommand` only when `confirm` is `true`.
+**Purpose:** Adapts the repeat slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:**
+**Methods:**
 
-1. Requires explicit confirmation before clearing queue state.
-2. Sends a localized confirmation-required message when `confirm` is `false`.
-3. Delegates to `ClearCommand` when `confirm` is `true`.
+- `ExecuteListAsync` — Adapts the execute list async slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task ExecuteListAsync(ISlashInteractionContext context);
+```
+
+- `ExecuteTrackAsync` — Adapts the execute track async slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task ExecuteTrackAsync(ISlashInteractionContext context);
+```
+
+- `List` — Adapts the list slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task List(SlashCommandContext context);
+```
+
+- `Track` — Adapts the track slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Track(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await repeatSlashCommand.ExecuteListAsync(context);
+```
+
+---
+
+### ShuffleSlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Queue/ShuffleSlashCommand.cs`
+
+**Purpose:** Adapts the shuffle slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Shuffle` — Adapts the shuffle slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Shuffle(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await shuffleSlashCommand.ExecuteAsync(context);
+```
+
+---
 
 ## Related Components
 
-- `../README.md` - slash command architecture
-- `../../TextCommands/Queue/README.md` - text command behavior reused by these adapters
-- `../../../Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
-- `../../../Service/Music/MusicServices/README.md` - queue and repeat services
+- `DC bot/Commands/SlashCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Interface/Service/Localization/` — Defines translation lookup, formatting, and guild language selection.
+- `DC bot/Interface/Service/SlashCommands/` — Connects DSharpPlus interactions to the shared text command pipeline.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

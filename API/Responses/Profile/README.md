@@ -1,26 +1,70 @@
-# Profile Responses
+# Profile
 
-This folder contains response DTOs for the authenticated mobile profile screen.
+Defines client-facing output for mobile user identity and optional preference updates.
 
-## Why This Folder Exists
+## Overview
 
-The profile screen needs user identity and app settings in an Android-friendly shape. These DTOs keep that public HTTP response separate from EF entities and repository records.
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-## Files
+## Models and Results
 
-### ProfileResponse.cs
+### ProfileResponse
 
-Top-level response for `GET /api/profile`.
+**File:** `API/Responses/Profile/ProfileResponse.cs`
 
-### ProfileUserResponse.cs
+**Purpose:** Carries the profile payload returned to HTTP and mobile clients.
 
-Discord-backed mobile user profile fields.
+**Record declaration:**
 
-### ProfileSettingsResponse.cs
+```csharp
+public sealed record ProfileResponse(ProfileUserResponse User, ProfileSettingsResponse UserSettings);
+```
 
-Saved app settings fields returned after profile load or settings update.
+---
 
-## Maintenance Notes
+### ProfileSettingsResponse
 
-- Keep Discord snowflake IDs serialized as strings.
-- Do not expose refresh token hashes or persistence-only session fields here.
+**File:** `API/Responses/Profile/ProfileSettingsResponse.cs`
+
+**Purpose:** Carries the profile settings payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record ProfileSettingsResponse(
+    string LanguageCode,
+    string Theme,
+    bool HapticFeedbackEnabled,
+    bool SoundEffectsEnabled,
+    bool TelemetryEnabled,
+    DateTimeOffset UpdatedAtUtc);
+```
+
+---
+
+### ProfileUserResponse
+
+**File:** `API/Responses/Profile/ProfileUserResponse.cs`
+
+**Purpose:** Carries the profile user payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record ProfileUserResponse(
+    string DiscordUserId,
+    string Username,
+    string? DisplayName,
+    string? AvatarUrl,
+    bool IsDiscordConnected,
+    bool IsActive);
+```
+
+---
+
+## Related Components
+
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.
