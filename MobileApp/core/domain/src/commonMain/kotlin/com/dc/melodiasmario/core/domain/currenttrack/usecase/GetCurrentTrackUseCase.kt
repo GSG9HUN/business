@@ -8,6 +8,7 @@ import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
 @Factory
 class GetCurrentTrackUseCase(
@@ -24,6 +25,8 @@ class GetCurrentTrackUseCase(
             val guild = guildRepository.getSelectedGuild(guildId = guildId)
 
             emit(Resource.Success(playbackStatus.toCurrentTrack(queue = queue, guild = guild)))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

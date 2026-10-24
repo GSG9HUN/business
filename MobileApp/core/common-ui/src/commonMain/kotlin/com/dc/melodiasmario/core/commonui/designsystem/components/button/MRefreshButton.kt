@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.refresh_button
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.top_bar_refresh_content_description
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -27,14 +27,12 @@ fun MRefreshButton(
     contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         onClick = onClick,
         modifier = modifier.size(36.dp),
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

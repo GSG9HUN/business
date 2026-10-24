@@ -6,6 +6,7 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
 @Factory
 class MoveTrackToIndexUseCase(
@@ -28,6 +29,8 @@ class MoveTrackToIndexUseCase(
                     )
                 )
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

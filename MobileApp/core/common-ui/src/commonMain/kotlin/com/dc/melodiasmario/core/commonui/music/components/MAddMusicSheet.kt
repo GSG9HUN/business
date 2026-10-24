@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -20,11 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MAddMusicMode
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
-import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +76,7 @@ fun MAddMusicSheet(
             MText(
                 modifier = Modifier.fillMaxWidth(),
                 text = labels.title,
-                color = MelodiasMarioThemeTokens.current.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )

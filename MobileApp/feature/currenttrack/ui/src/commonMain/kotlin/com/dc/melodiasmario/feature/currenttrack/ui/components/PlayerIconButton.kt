@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_play
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_repeat
@@ -27,15 +27,13 @@ fun PlayerIconButton(
     contentDescription: String? = null,
     onClick: () -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = Modifier.size(48.dp),
         shape = CircleShape,
         color = if (selected) {
-            colors.primaryAlt.copy(alpha = 0.18f)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
         } else {
-            colors.elevated
+            MaterialTheme.colorScheme.surfaceContainerHigh
         },
         enabled = enabled,
         onClick = onClick,
@@ -47,9 +45,9 @@ fun PlayerIconButton(
                 contentDescription = contentDescription,
                 colorFilter = ColorFilter.tint(
                     when {
-                        !enabled -> colors.textMuted
-                        selected -> colors.primaryAlt
-                        else -> colors.textPrimary
+                        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant
+                        selected -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurface
                     },
                 ),
             )

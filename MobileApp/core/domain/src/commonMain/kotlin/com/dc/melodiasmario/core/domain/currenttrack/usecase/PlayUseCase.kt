@@ -6,6 +6,7 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
 @Factory
 class PlayUseCase(
@@ -16,6 +17,8 @@ class PlayUseCase(
 
         try {
             emit(Resource.Success(currentTrackRepository.play(guildId = guildId)))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

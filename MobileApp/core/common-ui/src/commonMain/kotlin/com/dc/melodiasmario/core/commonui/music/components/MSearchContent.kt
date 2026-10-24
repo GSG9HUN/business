@@ -14,8 +14,8 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
-import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
 @Composable
 fun MSearchContent(

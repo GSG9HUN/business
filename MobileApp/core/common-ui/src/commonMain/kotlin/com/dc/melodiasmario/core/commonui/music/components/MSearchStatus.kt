@@ -3,6 +3,7 @@ package com.dc.melodiasmario.core.commonui.music.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -10,10 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchProviderUi
-import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchProviderUi
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
 @Composable
 fun MSearchStatus(
@@ -48,7 +48,7 @@ fun MSearchStatus(
             MText(
                 modifier = Modifier.weight(1f),
                 text = it,
-                color = MelodiasMarioThemeTokens.current.textMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
             )
             if (state.errorMessage != null) {

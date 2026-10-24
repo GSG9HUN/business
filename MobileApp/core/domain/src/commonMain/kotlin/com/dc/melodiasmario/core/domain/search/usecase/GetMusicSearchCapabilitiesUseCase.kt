@@ -6,6 +6,7 @@ import com.dc.melodiasmario.core.model.search.MusicSearchCapability
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
 @Factory
 class GetMusicSearchCapabilitiesUseCase(
@@ -17,6 +18,8 @@ class GetMusicSearchCapabilitiesUseCase(
         try {
             val capabilities = musicSearchRepository.getCapabilities(guildId)
             emit(Resource.Success(capabilities))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

@@ -3,6 +3,7 @@ package com.dc.melodiasmario.core.commonui.designsystem.components.display
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.avatar_content_description
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import org.jetbrains.compose.resources.stringResource
 
@@ -26,8 +26,8 @@ fun MAvatar(
     modifier: Modifier = Modifier,
     shape: Shape = CircleShape,
     size: Dp = 44.dp,
-    backgroundColor: Color = MelodiasMarioThemeTokens.current.primary,
-    contentColor: Color = MelodiasMarioThemeTokens.current.textPrimary,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     contentDescription: String = stringResource(Res.string.avatar_content_description),
     avatarOnClick: () -> Unit = {},
 ) {

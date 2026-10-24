@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MHelpTooltipButton
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 
 @Composable
 fun MKindSelector(

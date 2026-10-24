@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,20 +17,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun GuildSelectorPlaceholder(
     title: String,
     contentText: String,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = Modifier.fillMaxWidth().padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -38,12 +36,12 @@ fun GuildSelectorPlaceholder(
         ) {
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = colors.primary,
+                color = MaterialTheme.colorScheme.primary,
             ) {
                 MText(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                     text = "DC",
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -54,13 +52,13 @@ fun GuildSelectorPlaceholder(
             ) {
                 MText(
                     text = title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start,
                 )
                 MText(
                     text = contentText,
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                 )
             }

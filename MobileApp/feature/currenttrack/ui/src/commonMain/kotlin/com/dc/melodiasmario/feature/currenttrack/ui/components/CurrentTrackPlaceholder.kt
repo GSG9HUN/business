@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_message
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_title
@@ -30,15 +30,14 @@ fun CurrentTrackPlaceholder(
     title: String,
     contentText: String,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val musicIconContentDescription =
         stringResource(Res.string.currenttrack_music_icon_content_description)
 
     Surface(
         modifier = Modifier.fillMaxWidth().padding(12.dp),
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -54,14 +53,14 @@ fun CurrentTrackPlaceholder(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                 )
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = contentText,
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                 )
             }

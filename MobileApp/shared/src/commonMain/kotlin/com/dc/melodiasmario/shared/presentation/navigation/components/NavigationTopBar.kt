@@ -1,6 +1,7 @@
 package com.dc.melodiasmario.shared.presentation.navigation.components
 
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -10,15 +11,12 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.button.MMoreBu
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MRefreshButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MSearchButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 
 @Composable
 fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
-    val colors = MelodiasMarioThemeTokens.current
-
     MTopBar(
         modifier = modifier,
         title = config.title,
@@ -40,8 +38,8 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                         imageUrl = icon.imageUrl,
                         shape = CircleShape,
                         size = 44.dp,
-                        backgroundColor = colors.primary,
-                        contentColor = colors.textPrimary,
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         avatarOnClick = icon.onClick,
                     )
                 }
@@ -72,8 +70,8 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                         imageUrl = action.imageUrl,
                         shape = CircleShape,
                         size = 36.dp,
-                        backgroundColor = colors.primary,
-                        contentColor = colors.textPrimary,
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         contentDescription = action.contentDescription,
                         avatarOnClick = action.onClick,
                     )

@@ -3,7 +3,7 @@ package com.dc.melodiasmario.feature.playlist.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.common.presentation.runAction
+import com.dc.melodiasmario.core.presentation.runAction
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistUseCase
 import com.dc.melodiasmario.core.domain.playlist.usecase.DeletePlaylistUseCase

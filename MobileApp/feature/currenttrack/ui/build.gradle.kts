@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
@@ -55,6 +55,7 @@ kotlin {
             dependencies {
                 implementation(project(":feature:currenttrack:presentation"))
                 implementation(project(":core:common"))
+                implementation(project(":core:presentation"))
                 implementation(project(":core:common-ui"))
                 implementation(project(":core:domain"))
                 implementation(project(":core:model"))

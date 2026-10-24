@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.runtime.Composable
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
 import com.dc.melodiasmario.core.commonui.selector.model.MSelectorOption
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun <T> MOptionSelector(
@@ -34,7 +34,6 @@ fun <T> MOptionSelector(
     searchEnabled: Boolean = false,
     searchPlaceholder: String = "",
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     var query by remember { mutableStateOf("") }
     val filteredOptions = if (searchEnabled && query.isNotBlank()) {
         options.filter { option ->
@@ -53,7 +52,7 @@ fun <T> MOptionSelector(
     ) {
         MText(
             text = title,
-            color = colors.textPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Start,
         )
@@ -85,7 +84,7 @@ fun <T> MOptionSelector(
                     ) {
                         MText(
                             text = option.title,
-                            color = colors.textPrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                             textAlign = TextAlign.Start,
                         )
@@ -93,7 +92,7 @@ fun <T> MOptionSelector(
                         option.subtitle?.let { subtitle ->
                             MText(
                                 text = subtitle,
-                                color = colors.subtitle,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Start,
                             )
                         }
@@ -103,8 +102,8 @@ fun <T> MOptionSelector(
                         selected = selected,
                         onClick = { onOptionSelected(option.value) },
                         colors = RadioButtonDefaults.colors(
-                            selectedColor = colors.primary,
-                            unselectedColor = colors.textMuted,
+                            selectedColor = MaterialTheme.colorScheme.primary,
+                            unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     )
                 }
@@ -112,7 +111,7 @@ fun <T> MOptionSelector(
                 if (index < filteredOptions.lastIndex) {
                     HorizontalDivider(
                         thickness = 1.dp,
-                        color = colors.divider,
+                        color = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
             }

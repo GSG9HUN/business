@@ -2,6 +2,7 @@ package com.dc.melodiasmario.core.commonui.designsystem.components.dialog
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,7 +14,6 @@ import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 
 @Composable
@@ -28,17 +28,16 @@ fun MConfirmDialog(
     enabled: Boolean = true,
     isDestructive: Boolean = false,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
 
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismiss,
-        containerColor = colors.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             MText(
                 modifier = Modifier.fillMaxWidth(),
                 text = title,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -47,7 +46,7 @@ fun MConfirmDialog(
         text = {
             MText(
                 text = message,
-                color = colors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
             )
         },
@@ -58,13 +57,13 @@ fun MConfirmDialog(
             ) {
                 MText(
                     text = confirmText,
-                    color = if (isDestructive) colors.dangerText else colors.textPrimary,
+                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                MText(text = dismissText, color = colors.textSecondary)
+                MText(text = dismissText, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
     )

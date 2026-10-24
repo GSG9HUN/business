@@ -1,5 +1,6 @@
 package com.dc.melodiasmario.core.commonui.music.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
@@ -15,9 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.BorderStroke
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchResultUi
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchResultUi
 
 @Composable
 fun MSearchResultRow(
@@ -26,12 +26,11 @@ fun MSearchResultRow(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        color = if (selected) colors.elevated else colors.surface,
-        border = BorderStroke(1.dp, if (selected) colors.primary else colors.outline),
+        color = if (selected) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -47,7 +46,7 @@ fun MSearchResultRow(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = result.title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -56,7 +55,7 @@ fun MSearchResultRow(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = result.subtitle(labels),
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                     fontSize = 12.sp,
                     maxLines = 1,

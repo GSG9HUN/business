@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
@@ -34,8 +35,7 @@ import androidx.compose.ui.zIndex
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MQueueDragHandle
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MQueueRemoveButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.core.commonui.formatter.toDurationLabel
+import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
 
 @Composable
@@ -52,12 +52,13 @@ fun MQueueTrackCard(
     moveDownContentDescription: String,
     isFirst: Boolean = false,
     isLast: Boolean = false,
+    enabled: Boolean = true,
+    dragEnabled: Boolean = true,
     onRemove: () -> Unit = {},
     onMoveUp: () -> Unit = {},
     onMoveDown: () -> Unit = {},
     onMoveDrop: (dragOffsetPx: Float, itemHeightPx: Float) -> Unit = { _, _ -> },
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val dragOffset = remember { mutableFloatStateOf(0f) }
     val isDragging = remember { mutableStateOf(false) }
     val itemHeightPx = remember {
@@ -70,7 +71,7 @@ fun MQueueTrackCard(
         "$artist - $durationText"
     }
     val reorderAccessibilityActions = buildList {
-        if (!isFirst) {
+        if (enabled && !isFirst) {
             add(
                 CustomAccessibilityAction(
                     label = moveUpContentDescription,
@@ -82,7 +83,7 @@ fun MQueueTrackCard(
             )
         }
 
-        if (!isLast) {
+        if (enabled && !isLast) {
             add(
                 CustomAccessibilityAction(
                     label = moveDownContentDescription,
@@ -113,7 +114,15 @@ fun MQueueTrackCard(
                 itemHeightPx.floatValue = coordinates.size.height.toFloat()
                     .coerceAtLeast(ReorderableListDefaults.EstimatedItemHeightPx)
             }
-            .pointerInput(isFirst, isLast) {
+            .pointerInput(
+                enabled,
+                dragEnabled,
+                queueNumber,
+                title,
+                isFirst,
+                isLast
+            ) {
+                if (!enabled || !dragEnabled) return@pointerInput
                 detectDragGesturesAfterLongPress(
                     onDragStart = {
                         dragOffset.floatValue = 0f
@@ -135,8 +144,8 @@ fun MQueueTrackCard(
                 )
             },
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -146,7 +155,7 @@ fun MQueueTrackCard(
             MText(
                 modifier = Modifier.width(28.dp),
                 text = queueNumber.toString(),
-                color = colors.textMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
@@ -164,7 +173,7 @@ fun MQueueTrackCard(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -173,7 +182,7 @@ fun MQueueTrackCard(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = metaText,
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -189,6 +198,7 @@ fun MQueueTrackCard(
                     modifier = Modifier.zIndex(2f),
                     contentDescription = removeContentDescription,
                     onClick = onRemove,
+                    enabled = enabled,
                 )
                 MQueueDragHandle(
                     contentDescription = dragHandleContentDescription,

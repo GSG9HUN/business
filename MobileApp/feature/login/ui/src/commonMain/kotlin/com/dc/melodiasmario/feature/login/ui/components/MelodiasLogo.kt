@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,21 +16,18 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.app_name
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.melodias_mario_note
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MelodiasLogo(modifier: Modifier = Modifier) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Box(
         modifier = modifier
             .size(86.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(
                 Brush.linearGradient(
-                    colors = listOf(colors.primaryAlt, colors.cyan),
+                    colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary),
                 ),
             ),
         contentAlignment = Alignment.Center,

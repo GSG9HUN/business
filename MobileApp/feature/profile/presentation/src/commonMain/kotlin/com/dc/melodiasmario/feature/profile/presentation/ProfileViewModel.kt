@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.domain.auth.usecase.DiscordLogoutUseCase
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.common.presentation.runAction
+import com.dc.melodiasmario.core.presentation.runAction
 import com.dc.melodiasmario.core.domain.profile.usecase.ClearUserSettingsUseCase
 import com.dc.melodiasmario.core.model.profile.ProfileData
 import com.dc.melodiasmario.core.model.profile.ProfileSettingsData

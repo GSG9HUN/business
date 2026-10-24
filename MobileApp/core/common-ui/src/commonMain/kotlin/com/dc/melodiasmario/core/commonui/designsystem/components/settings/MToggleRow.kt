@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +18,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_haptics
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -31,7 +31,6 @@ fun MToggleRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
 
     Row(
         modifier = modifier
@@ -49,13 +48,13 @@ fun MToggleRow(
         ) {
             MText(
                 text = title,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
             )
             MText(
                 text = subtitle,
-                color = colors.subtitle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
             )
         }
@@ -68,7 +67,7 @@ fun MToggleRow(
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = colors.divider,
+        color = MaterialTheme.colorScheme.outlineVariant,
     )
 }
 

@@ -1,6 +1,8 @@
 package com.dc.melodiasmario.feature.queue.presentation
 
-import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.presentation.queue.TrackQueueUiState
+import com.dc.melodiasmario.core.presentation.music.search.MusicSearchUiState
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.core.model.currenttrack.Track
 
 data class QueueUiState(
@@ -9,8 +11,25 @@ data class QueueUiState(
     val guildId: String? = null,
     val guildName: String = "",
     val guildIconUrl: String? = null,
-    val tracks: List<Track> = emptyList(),
-    val isCommandInFlight: Boolean = false,
+    override val tracks: List<Track> = emptyList(),
+    override val isCommandInFlight: Boolean = false,
     val dialog: QueueDialog = QueueDialog.None,
-    val addMusic: MAddMusicSheetState = MAddMusicSheetState(),
-)
+    val playlistNameDraft: String = "",
+    override val addMusic: MAddMusicSheetState = MAddMusicSheetState()
+) : MusicSearchUiState<QueueUiState>, TrackQueueUiState<Track, QueueUiState> {
+
+    override fun withCommandInFlight(isCommandInFlight: Boolean): QueueUiState {
+        return copy(
+            isCommandInFlight = isCommandInFlight,
+            addMusic = addMusic.copy(commandInFlight = isCommandInFlight)
+        )
+    }
+
+    override fun withTracks(tracks: List<Track>): QueueUiState {
+        return copy(tracks = tracks)
+    }
+
+    override fun withAddMusic(addMusic: MAddMusicSheetState): QueueUiState {
+        return copy(addMusic = addMusic)
+    }
+}

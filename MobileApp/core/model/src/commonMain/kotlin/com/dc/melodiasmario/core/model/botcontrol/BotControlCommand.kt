@@ -4,4 +4,5 @@ data class BotControlCommand(
     val commandId: String,
     val type: String,
     val state: String,
+    val errorMessage: String? = null,
 )

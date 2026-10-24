@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,7 +22,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_offline
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_online
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild_status_unknown
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.commonui.guild.botStatusText
 import com.dc.melodiasmario.core.model.guild.BotStatus
@@ -35,13 +35,11 @@ fun GuildListItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         onClick = onClick,
     ) {
         Row(
@@ -54,8 +52,8 @@ fun GuildListItem(
                 imageUrl = guild.iconUrl,
                 shape = RoundedCornerShape(10.dp),
                 size = 44.dp,
-                backgroundColor = colors.primary,
-                contentColor = colors.textPrimary,
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             )
 
             Column(
@@ -65,7 +63,7 @@ fun GuildListItem(
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
                     text = guild.name,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
                 MText(
@@ -79,7 +77,7 @@ fun GuildListItem(
                         unknownText = stringResource(CommonUiRes.string.guild_status_unknown),
                         connectedInVoiceSuffix = stringResource(CommonUiRes.string.guild_status_in_voice_channel),
                     ),
-                    color = colors.textSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 

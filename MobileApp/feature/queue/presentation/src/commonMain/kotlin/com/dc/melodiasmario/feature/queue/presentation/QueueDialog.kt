@@ -4,4 +4,5 @@ sealed interface QueueDialog {
     data object None : QueueDialog
     data object AddMusic : QueueDialog
     data object MoreActions : QueueDialog
+    data object CreatePlaylist : QueueDialog
 }

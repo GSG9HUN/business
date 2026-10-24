@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.content.Intent
 import android.os.IBinder
-import com.dc.melodiasmario.core.common.presentation.runBackgroundBotCommand
+import com.dc.melodiasmario.core.presentation.runBackgroundBotCommand
 import com.dc.melodiasmario.core.commonui.playbacknotification.PlaybackNotificationAction
 import com.dc.melodiasmario.core.domain.playbackcommand.usecase.NextPlaybackUseCase
 import com.dc.melodiasmario.core.domain.playbackcommand.usecase.PlayPausePlaybackUseCase

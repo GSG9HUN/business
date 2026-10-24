@@ -1,4 +1,4 @@
-﻿import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -56,6 +56,7 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(project(":core:common"))
+            implementation(project(":core:presentation"))
             implementation(project(":core:common-ui"))
             implementation(project(":core:di"))
 

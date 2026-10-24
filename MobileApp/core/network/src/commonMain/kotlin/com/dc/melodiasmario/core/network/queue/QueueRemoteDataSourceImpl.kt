@@ -8,6 +8,10 @@ import org.koin.core.annotation.Single
 class QueueRemoteDataSourceImpl(
     private val queueApiService: QueueApiService
 ) : QueueRemoteDataSource {
+    override suspend fun getCommandStatus(accessToken: String, commandId: String): BotControlCommand {
+        return queueApiService.getCommandStatus(accessToken, commandId).toDomain()
+    }
+
     override suspend fun getQueue(accessToken: String, guildId: String): Queue {
         return queueApiService.getQueue(accessToken = accessToken, guildId = guildId).toDomain()
     }

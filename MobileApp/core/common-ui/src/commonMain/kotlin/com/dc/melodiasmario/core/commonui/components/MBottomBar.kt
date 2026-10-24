@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,7 +31,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_bo
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_bottom_queue
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_bottom_settings
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -41,11 +41,9 @@ fun MBottomBar(
     items: List<BottomBarItem>,
     modifier: Modifier = Modifier,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = colors.surface,
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Row(
             modifier = Modifier
@@ -70,10 +68,9 @@ private fun MBottomBarItem(
     item: BottomBarItem,
     modifier: Modifier = Modifier,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val label = stringResource(item.label)
-    val contentColor = if (item.selected) colors.textPrimary else colors.textMuted
-    val backgroundColor = if (item.selected) colors.primaryAlt.copy(alpha = 0.22f) else colors.surface
+    val contentColor = if (item.selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+    val backgroundColor = if (item.selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surface
 
     Surface(
         modifier = modifier.height(54.dp),

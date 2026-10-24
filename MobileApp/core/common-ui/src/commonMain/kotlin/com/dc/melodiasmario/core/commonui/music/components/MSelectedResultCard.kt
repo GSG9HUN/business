@@ -1,5 +1,6 @@
 package com.dc.melodiasmario.core.commonui.music.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,10 +15,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.Alignment
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchResultUi
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchResultUi
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 
 @Composable
 fun MSelectedResultCard(
@@ -26,12 +26,11 @@ fun MSelectedResultCard(
     commandInFlight: Boolean,
     onAddClicked: () -> Unit,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = colors.surface,
-        border = BorderStroke(1.dp, colors.primary),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -47,7 +46,7 @@ fun MSelectedResultCard(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = result.title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -56,7 +55,7 @@ fun MSelectedResultCard(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = result.subtitle(labels),
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                     fontSize = 12.sp,
                     maxLines = 1,

@@ -1,5 +1,6 @@
 package com.dc.melodiasmario.core.commonui.designsystem.components.button
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,18 +15,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MHelpTooltipButton(text: String) {
     var expanded by remember { mutableStateOf(false) }
-    val colors = MelodiasMarioThemeTokens.current
 
     Box {
         IconButton(onClick = { expanded = true }) {
             MText(
                 text = "?",
-                color = colors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -36,7 +35,7 @@ fun MHelpTooltipButton(text: String) {
             MText(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                 text = text,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
             )
         }

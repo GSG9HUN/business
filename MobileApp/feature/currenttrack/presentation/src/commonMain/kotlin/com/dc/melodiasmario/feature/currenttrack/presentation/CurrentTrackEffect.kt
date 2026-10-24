@@ -1,6 +1,6 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation
 
-import com.dc.melodiasmario.core.common.presentation.MviEffect
+import com.dc.melodiasmario.core.presentation.MviEffect
 
 sealed interface CurrentTrackEffect : MviEffect {
     data object NavigateToGuildSelector : CurrentTrackEffect
