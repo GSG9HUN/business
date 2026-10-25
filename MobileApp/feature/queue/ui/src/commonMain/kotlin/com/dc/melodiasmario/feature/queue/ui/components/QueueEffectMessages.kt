@@ -11,7 +11,6 @@ internal data class QueueEffectMessages(
     private val commands: QueueCommandMessages,
     private val operationFailed: String,
     private val searchFailed: String,
-    private val playlistCreated: String,
     private val playlistSaveFailed: String,
 ) {
     fun toastDataFor(effect: QueueEffect): MToastData? {
@@ -53,11 +52,6 @@ internal data class QueueEffectMessages(
                 type = MToastType.Error,
             )
 
-            QueueEffect.PlaylistCreated -> MToastData(
-                message = playlistCreated,
-                type = MToastType.Success,
-            )
-
             is QueueEffect.PlaylistSaveFailed -> MToastData(
                 message = listOfNotNull(
                     playlistSaveFailed,
@@ -75,7 +69,5 @@ internal fun queueEffectMessages() = QueueEffectMessages(
     commands = queueCommandMessages(),
     operationFailed = stringResource(Res.string.queue_command_failed),
     searchFailed = stringResource(Res.string.queue_search_failed),
-    playlistCreated = stringResource(Res.string.queue_playlist_created),
-    playlistSaveFailed =
-        stringResource(Res.string.queue_playlist_save_failed),
+    playlistSaveFailed = stringResource(Res.string.queue_playlist_save_failed),
 )

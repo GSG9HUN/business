@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">MobileApp</string>
+    <string name="playlist_results_channel">Lejátszási listák mentése</string>
+    <string name="playlist_saved_title">Lejátszási lista elmentve</string>
+    <string name="playlist_save_failed_title">Sikertelen playlistmentés</string>
+    <string name="playlist_save_success">A(z) „%1$s” lejátszási lista mentése sikerült.</string>
+    <string name="playlist_save_failure">A(z) „%1$s” lejátszási lista mentése nem sikerült.</string>
 </resources>

@@ -26,8 +26,6 @@ sealed interface QueueEffect: MviEffect {
     data object ShuffleQueueFailed : QueueEffect
     data object MoveTrackFailed : QueueEffect
 
-    data object PlaylistCreated : QueueEffect
-
     data class PlaylistSaveFailed(
         val detail: String?,
     ) : QueueEffect

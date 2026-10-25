@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MobileApp</string>
+    <string name="playlist_results_channel">Playlist saves</string>
+    <string name="playlist_saved_title">Playlist saved</string>
+    <string name="playlist_save_failed_title">Playlist save failed</string>
+    <string name="playlist_save_success">Playlist “%1$s” was saved.</string>
+    <string name="playlist_save_failure">Could not save playlist “%1$s”.</string>
+</resources>

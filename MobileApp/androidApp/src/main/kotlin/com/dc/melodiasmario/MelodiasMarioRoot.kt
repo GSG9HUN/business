@@ -18,6 +18,8 @@ import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.toThemeMode
+import com.dc.melodiasmario.core.commonui.feedback.FeedbackVibrator
+import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.core.domain.auth.usecase.RefreshSessionUseCase
 import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
 import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
@@ -28,6 +30,9 @@ fun MelodiasMarioRoot(
     userSettingsStorage: UserSettingsStorage,
     appLocaleController: AppLocaleController,
     refreshSessionUseCase: RefreshSessionUseCase,
+    toastHostState: MToastHostState,
+    isAppForeground: () -> Boolean,
+    feedbackVibrator: FeedbackVibrator
 ) {
     val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
         mutableStateListOf(AppRoute.Login)
@@ -70,7 +75,13 @@ fun MelodiasMarioRoot(
             themeMode = settings.theme.toThemeMode(),
         ) {
             if (isAuthBootstrapComplete) {
-                MelodiasMarioApp(backStack = backStack)
+                MelodiasMarioApp(
+                    backStack = backStack,
+                    toastHostState = toastHostState,
+                    hapticsEnabled = settings.hapticFeedbackEnabled,
+                    isAppForeground = isAppForeground,
+                    feedbackVibrator = feedbackVibrator
+                )
             } else {
                 MLoadingScreen()
             }
