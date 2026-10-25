@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +31,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
@@ -60,10 +60,10 @@ fun PlaylistCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         onClick = onClick,
-        color = MelodiasMarioThemeTokens.current.surface,
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = 1.dp,
-            color = MelodiasMarioThemeTokens.current.outline
+            color = MaterialTheme.colorScheme.outline
         )
     ) {
         Box {
@@ -75,7 +75,7 @@ fun PlaylistCard(
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .background(
-                            color = MelodiasMarioThemeTokens.current.primary,
+                            color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -88,7 +88,7 @@ fun PlaylistCard(
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = playlist.name,
-                    color = MelodiasMarioThemeTokens.current.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                 )
@@ -100,7 +100,7 @@ fun PlaylistCard(
                         playlist.songCount,
                         playlist.duration.toDurationString(),
                     ),
-                    color = MelodiasMarioThemeTokens.current.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                 )
             }
@@ -119,7 +119,7 @@ fun PlaylistCard(
                 ) {
                     MText(
                         text = "...",
-                        color = MelodiasMarioThemeTokens.current.textPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -144,7 +144,7 @@ fun PlaylistCard(
                         text = {
                             MText(
                                 text = stringResource(Res.string.playlists_delete_action),
-                                color = MelodiasMarioThemeTokens.current.dangerText,
+                                color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Start,
                             )
                         },

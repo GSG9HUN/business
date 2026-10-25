@@ -1,5 +1,6 @@
 package com.dc.melodiasmario.feature.login.ui
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +28,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.app_n
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.login_button
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.login_lead
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import com.dc.melodiasmario.feature.login.presentation.LoginEvent
@@ -41,11 +42,9 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     onEvent: (LoginEvent) -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = colors.surface,
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(
             modifier = Modifier
@@ -60,7 +59,7 @@ fun LoginScreen(
 
             MText(
                 text = stringResource(Res.string.app_name),
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
@@ -80,12 +79,13 @@ fun LoginScreen(
                 enabled = uiState.apiConnectionStatus == ApiConnectionStatus.Online,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primary,
-                    contentColor = colors.textPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             ) {
                 MText(
                     text = stringResource(Res.string.login_button),
+                    color = LocalContentColor.current,
                     fontWeight = FontWeight.Bold,
                 )
             }

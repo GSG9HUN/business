@@ -3,11 +3,11 @@ package com.dc.melodiasmario.core.commonui.designsystem.components.button
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MFloatingButton(
@@ -20,8 +20,8 @@ fun MFloatingButton(
     FloatingActionButton(
         modifier = modifier.size(size),
         onClick = onClick,
-        containerColor = MelodiasMarioThemeTokens.current.primary,
-        contentColor = MelodiasMarioThemeTokens.current.textPrimary,
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
         shape = shape,
     ) {
         icon()

@@ -24,6 +24,12 @@ class QueueApiService(
     private val client: HttpClient,
 ) {
 
+    suspend fun getCommandStatus(accessToken: String, commandId: String): BotControlCommandDto {
+        return client.get("$baseUrl/commands/$commandId") {
+            header("Authorization", "Bearer $accessToken")
+        }.body()
+    }
+
     suspend fun getQueue(accessToken: String, guildId: String): QueueDto {
         return client.get("$baseUrl/guilds/$guildId/queue") {
             header("Authorization", "Bearer $accessToken")

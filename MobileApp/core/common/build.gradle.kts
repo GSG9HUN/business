@@ -61,6 +61,8 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.jetbrains.navigation3.ui)
                 implementation(libs.kotlinx.serialization.json)
+
+                api(libs.kotlinx.coroutines.core)
             }
         }
 

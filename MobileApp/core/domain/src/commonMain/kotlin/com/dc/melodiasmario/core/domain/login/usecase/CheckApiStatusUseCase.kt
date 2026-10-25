@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
 import com.dc.melodiasmario.core.domain.login.StatusRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class CheckApiStatusUseCase(
     private val statusRepository: StatusRepository,
 ) {

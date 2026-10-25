@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 
 @Composable
@@ -43,17 +43,16 @@ fun MTextInputDialog(
     enabled: Boolean = true,
     canConfirm: Boolean = true,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
 
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismiss,
-        containerColor = colors.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             MText(
                 modifier = Modifier.fillMaxWidth(),
                 text = title,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -63,15 +62,15 @@ fun MTextInputDialog(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                color = colors.elevated,
-                border = BorderStroke(1.dp, colors.outline),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
                     enabled = enabled,
                     singleLine = true,
-                    textStyle = TextStyle(color = colors.textPrimary),
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
                     interactionSource = remember { MutableInteractionSource() },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -84,7 +83,7 @@ fun MTextInputDialog(
                             if (value.isBlank()) {
                                 MText(
                                     text = placeholder,
-                                    color = colors.textMuted,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Start,
                                 )
                             }
@@ -99,12 +98,12 @@ fun MTextInputDialog(
                 onClick = onConfirm,
                 enabled = enabled && canConfirm,
             ) {
-                MText(text = confirmText, color = colors.textPrimary)
+                MText(text = confirmText, color = MaterialTheme.colorScheme.onSurface)
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                MText(text = dismissText, color = colors.textSecondary)
+                MText(text = dismissText, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
     )

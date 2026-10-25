@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.core.domain.playlist.PlaylistsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class GetPlaylistsUseCase(
     private val playlistsRepository: PlaylistsRepository
 ) {

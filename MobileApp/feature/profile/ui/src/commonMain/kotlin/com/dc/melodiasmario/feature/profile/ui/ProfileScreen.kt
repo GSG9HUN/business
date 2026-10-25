@@ -2,6 +2,7 @@ package com.dc.melodiasmario.feature.profile.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,7 +11,6 @@ import com.dc.melodiasmario.core.commonui.components.MErrorScreen
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MFloatingSaveCancelBar
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
@@ -32,7 +32,6 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
 
     SetTopBarConfig(
         TopBarConfig(
@@ -47,7 +46,7 @@ fun ProfileScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = colors.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
             if (!uiState.isLoading && uiState.errorMessage == null && uiState.hasUnsavedChanges) {
                 MFloatingSaveCancelBar(

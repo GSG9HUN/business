@@ -6,9 +6,9 @@ import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
 import com.dc.melodiasmario.core.model.settings.UserSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class UpdateProfileSettingsUseCase(
     private val profileRepository: ProfileRepository
 ) {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_artwork_music
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -33,7 +33,6 @@ fun MArtwork(
     imageUrl: String? = null,
     contentDescription: String? = null,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val shape = RoundedCornerShape(14.dp)
     val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
     Box(
@@ -42,7 +41,7 @@ fun MArtwork(
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        colors.primary,
+                        MaterialTheme.colorScheme.primary,
                         Color(0xFFE05AAE),
                         Color(0xFFF3A83B),
                     ),
@@ -88,13 +87,12 @@ private fun ArtworkFallback(
     iconSize: Dp,
     contentDescription: String?,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
 
     Image(
         modifier = Modifier.size(iconSize).padding(start = 7.dp),
         painter = painterResource(icon),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(colors.textPrimary),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
     )
 }
 

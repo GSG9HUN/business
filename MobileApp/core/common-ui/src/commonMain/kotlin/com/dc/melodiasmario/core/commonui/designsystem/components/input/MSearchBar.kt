@@ -11,19 +11,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_search
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.search_placeholder
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -35,21 +38,22 @@ fun MSearchBar(
     modifier: Modifier = Modifier,
     placeholder: String = "",
     enabled: Boolean = true,
+    onSearch: () -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = colors.elevated,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         BasicTextField(
             value = query,
             onValueChange = onQueryChange,
             enabled = enabled,
             singleLine = true,
-            textStyle = TextStyle(color = colors.textPrimary),
+            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
             interactionSource = remember { MutableInteractionSource() },
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
@@ -73,7 +77,7 @@ fun MSearchBar(
                         if (query.isBlank()) {
                             MText(
                                 text = placeholder,
-                                color = colors.textMuted,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
 

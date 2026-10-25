@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MHelpTooltipButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MModeButton
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.model.MAddMusicMode
+import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
 
 @Composable
 fun MAddMusicModeSelector(

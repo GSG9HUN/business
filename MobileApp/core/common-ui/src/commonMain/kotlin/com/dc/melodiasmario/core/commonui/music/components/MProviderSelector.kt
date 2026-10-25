@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,8 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchProviderUi
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchProviderUi
 
 @Composable
 fun MProviderSelector(
@@ -29,7 +29,6 @@ fun MProviderSelector(
     onProviderChanged: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val colors = MelodiasMarioThemeTokens.current
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
@@ -44,12 +43,12 @@ fun MProviderSelector(
                 MText(
                     modifier = Modifier.weight(1f),
                     text = "$label: ${selectedProvider?.name.orEmpty()}",
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                MText(text = "v", color = colors.textSecondary)
+                MText(text = "v", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -62,7 +61,7 @@ fun MProviderSelector(
                     text = {
                         MText(
                             text = provider.name,
-                            color = if (!provider.canEnqueue) colors.textMuted else colors.textPrimary,
+                            color = if (!provider.canEnqueue) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Start,
                         )
                     },

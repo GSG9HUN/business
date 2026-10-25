@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,7 +32,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_pr
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_telemetry
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_token_status
 import com.dc.melodiasmario.core.commonui.layout.MScrollableScreenContent
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.model.profile.ProfileUser
 import com.dc.melodiasmario.core.model.settings.UserSettings
@@ -67,7 +67,6 @@ fun ProfileLoadedContent(
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val user = uiState.user
     val userSettings = uiState.draftUserSettings
     val displayName = user.displayName
@@ -94,8 +93,8 @@ fun ProfileLoadedContent(
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             shape = RoundedCornerShape(12.dp),
-            color = colors.profileCard,
-            border = BorderStroke(1.dp, colors.profileCardOutline),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -124,15 +123,15 @@ fun ProfileLoadedContent(
 
                 MBadge(
                     text = statusText,
-                    backgroundColor = if (isActive) colors.successBackground else colors.errorBackground,
-                    contentColor = if (isActive) colors.successText else colors.errorText,
+                    backgroundColor = if (isActive) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer,
+                    contentColor = if (isActive) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
         }
 
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = colors.surface,
+            color = MaterialTheme.colorScheme.surface,
         ) {
             Column {
                 MText(
@@ -193,8 +192,8 @@ fun ProfileLoadedContent(
                     trailingContent = {
                         MBadge(
                             text = stringResource(ProfileRes.string.profile_token_status_ok),
-                            backgroundColor = colors.successBackground,
-                            contentColor = colors.successText,
+                            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                     },
                 )
@@ -203,15 +202,15 @@ fun ProfileLoadedContent(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     onClick = { onEvent(ProfileEvent.LogoutClicked) },
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, colors.secondaryButtonOutline),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.secondaryButtonBackground,
-                        contentColor = colors.dangerText,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
                     MText(
                         text = stringResource(ProfileRes.string.profile_logout_button),
-                        color = colors.dangerText,
+                        color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold,
                     )
                 }

@@ -41,7 +41,7 @@ class CurrentPlaybackMonitorRepositoryImpl(
 
         monitorJob?.cancel()
         currentGuildId = guildId
-        _state.update { it.copy(guildId = guildId, errorMessage = null) }
+        _state.value = CurrentPlaybackMonitorState(guildId = guildId, isRefreshing = true)
 
         monitorJob = scope.launch {
             launch { observeRealtime(guildId) }

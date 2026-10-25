@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation
 
-import com.dc.melodiasmario.core.commonui.music.model.MAddMusicMode
-import com.dc.melodiasmario.core.commonui.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 
 sealed interface CurrentTrackEvent {
     data class LoadCurrentTrack(val guildId: String) : CurrentTrackEvent
@@ -40,4 +40,21 @@ sealed interface CurrentTrackEvent {
     data class SearchKindChanged(val kind: MMusicSearchKind) : CurrentTrackEvent
     data class SearchResultClicked(val resultId: String) : CurrentTrackEvent
     data class AddMusicModeChanged(val mode: MAddMusicMode) : CurrentTrackEvent
+}
+
+fun CurrentTrackEvent.isCommandEvent(): Boolean {
+    return when (this) {
+        CurrentTrackEvent.AddToQueueConfirmed,
+        is CurrentTrackEvent.RemoveFromQueueClicked,
+        CurrentTrackEvent.ClearQueueClicked,
+        CurrentTrackEvent.NextClicked,
+        CurrentTrackEvent.PreviousClicked,
+        CurrentTrackEvent.RepeatClicked,
+        CurrentTrackEvent.ShuffleClicked,
+        CurrentTrackEvent.PlayPauseClicked,
+        is CurrentTrackEvent.MoveToIndexClicked,
+        CurrentTrackEvent.SelectedSearchResultAddClicked -> true
+
+        else -> false
+    }
 }

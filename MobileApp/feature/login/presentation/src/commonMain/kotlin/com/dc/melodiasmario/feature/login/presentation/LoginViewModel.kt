@@ -14,9 +14,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,14 +34,19 @@ class LoginViewModel(
     private val authDeepLinkDispatcher: AuthDeepLinkDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<LoginUiState> = _uiState.onStart {
+        observeAuthTickets()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = LoginUiState()
+    )
     private val _effect = MutableSharedFlow<LoginEffect>()
     val effect = _effect.asSharedFlow()
     private val events = MutableSharedFlow<LoginEvent>(extraBufferCapacity = 64)
     private var pollingJob: Job? = null
 
     init {
-        observeAuthTickets()
         collectEvents()
     }
 
@@ -77,6 +85,7 @@ class LoginViewModel(
             }
         }
     }
+
     private suspend fun onDiscordLoginClicked() {
         startDiscordLoginUseCase().collect { result ->
             when (result) {

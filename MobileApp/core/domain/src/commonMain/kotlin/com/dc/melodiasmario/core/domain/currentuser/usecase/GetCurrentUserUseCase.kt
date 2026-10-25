@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.currentuser.CurrentUserRepository
 import com.dc.melodiasmario.core.model.currentuser.CurrentUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class GetCurrentUserUseCase(private val currentUserRepository: CurrentUserRepository) {
 
     operator fun invoke(): Flow<Resource<CurrentUser>> = flow {

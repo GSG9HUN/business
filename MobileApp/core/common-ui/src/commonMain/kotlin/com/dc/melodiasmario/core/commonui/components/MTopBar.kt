@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,7 +19,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.button.MRefres
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MSearchButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
@@ -31,11 +31,9 @@ fun MTopBar(
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = colors.elevated,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Row(
             modifier = Modifier
@@ -52,13 +50,13 @@ fun MTopBar(
             ) {
                 MText(
                     text = title,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (!subTitle.isNullOrBlank()) {
                     MText(
                         text = subTitle,
-                        color = colors.textMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

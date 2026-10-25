@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +31,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.conne
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.offline_badge
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.online_badge
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -38,23 +38,22 @@ fun ConnectionCard(
     apiConnectionStatus: ApiConnectionStatus,
     modifier: Modifier = Modifier,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val isOnline = apiConnectionStatus == ApiConnectionStatus.Online
-    val statusBackground = if (isOnline) colors.statusOnlineBackground else colors.statusOfflineBackground
-    val statusTextColor = if (isOnline) colors.statusOnlineText else colors.statusOfflineText
+    val statusBackground = if (isOnline) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer
+    val statusTextColor = if (isOnline) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.surface),
-        border = BorderStroke(1.dp, colors.outline),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
         ) {
             MText(
                 text = stringResource(Res.string.connection_section_title),
-                color = colors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
@@ -83,7 +82,7 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_title
                             },
                         ),
-                        color = colors.textPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -95,7 +94,7 @@ fun ConnectionCard(
                                 Res.string.api_unavailable_detail
                             },
                         ),
-                        color = colors.textMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp,
                     )
                 }
