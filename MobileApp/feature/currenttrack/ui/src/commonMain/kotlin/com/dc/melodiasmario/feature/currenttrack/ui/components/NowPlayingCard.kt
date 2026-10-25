@@ -1,4 +1,4 @@
-﻿package com.dc.melodiasmario.feature.currenttrack.ui.components
+package com.dc.melodiasmario.feature.currenttrack.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,8 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
-import com.dc.melodiasmario.core.commonui.formatter.toDurationLabel
+import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
@@ -63,7 +63,6 @@ fun NowPlayingCard(
     onNextClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val track = currentTrack.currentTrack ?: return
     val artistText = track.requestedBy
         ?.takeIf { it.isNotBlank() }
@@ -106,8 +105,8 @@ fun NowPlayingCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = colors.profileCard,
-        border = BorderStroke(1.dp, colors.profileCardOutline),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -129,7 +128,7 @@ fun NowPlayingCard(
                         velocity = TrackTitleMarqueeVelocity,
                     ),
                 text = track.title,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
                 fontSize = 22.sp,
                 lineHeight = 26.sp,
@@ -141,7 +140,7 @@ fun NowPlayingCard(
             MText(
                 modifier = Modifier.fillMaxWidth(),
                 text = artistText,
-                color = colors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
                 fontSize = 13.sp,
                 maxLines = 1,
@@ -153,8 +152,8 @@ fun NowPlayingCard(
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(3.dp),
-                color = colors.textPrimary,
-                trackColor = colors.outline,
+                color = MaterialTheme.colorScheme.onSurface,
+                trackColor = MaterialTheme.colorScheme.outline,
             )
 
             Row(
@@ -163,12 +162,12 @@ fun NowPlayingCard(
             ) {
                 MText(
                     text = displayedPositionSeconds.toDurationLabel(),
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                 )
                 MText(
                     text = track.durationSeconds.toDurationLabel(),
-                    color = colors.textMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                 )
             }
@@ -198,7 +197,7 @@ fun NowPlayingCard(
                             }
                         },
                     shape = CircleShape,
-                    color = colors.textPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     onClick = if (isPlayPauseLoading) ({}) else onPlayPauseClick,
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -212,7 +211,7 @@ fun NowPlayingCard(
                                 },
                             ),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(colors.background),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background),
                         )
                     }
                 }

@@ -1,4 +1,4 @@
-﻿rootProject.name = "MobileApp"
+rootProject.name = "MobileApp"
 
 pluginManagement {
     repositories {
@@ -49,6 +49,7 @@ include(":feature:queue:presentation")
 include(":feature:queue:ui")
 include(":core:common")
 include(":core:common-ui")
+include(":core:presentation")
 include(":core:model")
 include(":core:network")
 include(":core:datastore")

@@ -58,7 +58,10 @@ fun navigationEntryProvider(
 
     playlistSongsEntry()
 
-    queueEntry()
+    queueEntry(
+        onGuildClicked = { backStack.replaceAll(AppRoute.GuildSelector) },
+        toastHostState = toastHostState,
+    )
 
     currentTrackEntry(
         onGuildClicked = {

@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.jetbrains.kotlin.serialization)
@@ -46,6 +46,8 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 implementation(project(":core:common"))
+                implementation(project(":core:presentation"))
+                implementation(project(":core:common-ui"))
                 implementation(project(":core:domain"))
                 implementation(project(":core:model"))
 
@@ -63,6 +65,7 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
 

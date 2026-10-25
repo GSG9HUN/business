@@ -1,4 +1,4 @@
-﻿package com.dc.melodiasmario.feature.currenttrack.ui
+package com.dc.melodiasmario.feature.currenttrack.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,7 +34,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.guild
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_remove_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonConfig
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonIcon
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.SetFloatingActionButtonConfig
@@ -42,9 +44,9 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.commonui.guild.botStatusText
 import com.dc.melodiasmario.core.commonui.music.components.MAddMusicSheet
 import com.dc.melodiasmario.core.commonui.music.components.rememberMAddMusicLabels
-import com.dc.melodiasmario.core.commonui.music.state.MAddMusicSheetState
+import com.dc.melodiasmario.core.commonui.reorder.ReorderDragContainer
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
-import com.dc.melodiasmario.core.commonui.reorder.calculateReorderDropTargetIndex
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.model.currenttrack.Track
@@ -101,7 +103,8 @@ fun CurrentTrackScreen(
     val emptyTitle = stringResource(Res.string.currenttrack_empty_title)
     val emptyMessage = stringResource(Res.string.currenttrack_empty_message)
     val nextSectionTitle = stringResource(Res.string.currenttrack_next_section_title)
-    val profileContentDescription = stringResource(Res.string.currenttrack_profile_content_description)
+    val profileContentDescription =
+        stringResource(Res.string.currenttrack_profile_content_description)
     val playPauseContentDescription = stringResource(
         if (uiState.playback.isPlaying) {
             Res.string.currenttrack_pause_content_description
@@ -116,7 +119,7 @@ fun CurrentTrackScreen(
     val moveUpContentDescription = stringResource(Res.string.currenttrack_queue_move_up_action)
     val moveDownContentDescription = stringResource(Res.string.currenttrack_queue_move_down_action)
     val queueItemSpacing = ReorderableListDefaults.ItemSpacing
-    val queueItemSpacingPx = with(LocalDensity.current) { queueItemSpacing.toPx() }
+    val listState = rememberLazyListState()
 
     SetTopBarConfig(
         TopBarConfig(
@@ -171,114 +174,149 @@ fun CurrentTrackScreen(
                 contentText = emptyMessage,
             )
 
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(
-                    start = 12.dp,
-                    top = 12.dp,
-                    end = 12.dp,
-                    bottom = 96.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(queueItemSpacing),
-            ) {
-                item {
-                    NowPlayingCard(
-                        currentTrack = requireNotNull(uiState.playback.currentTrack),
-                        isPlaying = uiState.playback.isPlaying,
-                        repeatMode = uiState.playback.repeatMode,
-                        isPlayPauseLoading = uiState.actions.isPlayPauseLoading,
-                        repeatContentDescription = stringResource(Res.string.currenttrack_repeat_content_description),
-                        previousContentDescription = stringResource(Res.string.currenttrack_previous_content_description),
-                        playPauseContentDescription = playPauseContentDescription,
-                        nextContentDescription = stringResource(Res.string.currenttrack_next_content_description),
-                        moreContentDescription = stringResource(Res.string.currenttrack_more_content_description),
-                        onRepeatClick = { onEvent(CurrentTrackEvent.RepeatClicked) },
-                        onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
-                        onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
-                        onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
-                        onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
-                    )
-                }
+            else -> ReorderDragContainer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                listState = listState,
+                itemKeys = uiState.queue.tracks.mapIndexed { index, track ->
+                    "${track.id}:$index"
+                },
+                enabled = !uiState.actions.isCommandInFlight,
+                onMove = { fromIndex, toIndex ->
+                    val track = uiState.queue.tracks[fromIndex]
 
-                item {
-                    MText(
-                        modifier = Modifier.padding(start = 4.dp, top = 2.dp),
-                        text = nextSectionTitle,
-                        color = MelodiasMarioThemeTokens.current.textMuted,
-                        textAlign = TextAlign.Start,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                    onEvent(
+                        CurrentTrackEvent.MoveToIndexClicked(
+                            trackId = track.id,
+                            fromIndex = fromIndex,
+                            toIndex = toIndex,
+                        )
                     )
-                }
+                },
+                dragOverlay = { index ->
+                    val track = uiState.queue.tracks[index]
 
-                if (uiState.queue.tracks.isEmpty()) {
+                    MQueueTrackCard(
+                        modifier = Modifier
+                            .alpha(0.85f)
+                            .graphicsLayer {
+                                shadowElevation = 16.dp.toPx()
+                            },
+                        queueNumber = index + 1,
+                        title = track.title,
+                        artist = track.artist,
+                        durationSeconds = track.durationSeconds,
+                        thumbnailUrl = track.thumbnailUrl,
+                        removeContentDescription = removeContentDescription,
+                        dragHandleContentDescription = dragHandleContentDescription,
+                        moveUpContentDescription = moveUpContentDescription,
+                        moveDownContentDescription = moveDownContentDescription,
+                        isFirst = index == 0,
+                        isLast = index == uiState.queue.tracks.lastIndex,
+                        enabled = false,
+                        dragEnabled = false,
+                    )
+                },
+            ) { draggedIndex ->
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentPadding = PaddingValues(
+                        start = 12.dp,
+                        top = 12.dp,
+                        end = 12.dp,
+                        bottom = 96.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(queueItemSpacing),
+                ) {
                     item {
-                        QueueEmptyCard()
+                        NowPlayingCard(
+                            currentTrack = requireNotNull(uiState.playback.currentTrack),
+                            isPlaying = uiState.playback.isPlaying,
+                            repeatMode = uiState.playback.repeatMode,
+                            isPlayPauseLoading = uiState.actions.isPlayPauseLoading,
+                            repeatContentDescription = stringResource(Res.string.currenttrack_repeat_content_description),
+                            previousContentDescription = stringResource(Res.string.currenttrack_previous_content_description),
+                            playPauseContentDescription = playPauseContentDescription,
+                            nextContentDescription = stringResource(Res.string.currenttrack_next_content_description),
+                            moreContentDescription = stringResource(Res.string.currenttrack_more_content_description),
+                            onRepeatClick = { onEvent(CurrentTrackEvent.RepeatClicked) },
+                            onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
+                            onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
+                            onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
+                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
+                        )
                     }
-                } else {
-                    itemsIndexed(
-                        items = uiState.queue.tracks,
-                        key = { index, track -> "${track.id}:$index" }
-                    ) { index, track ->
-                        MQueueTrackCard(
-                            modifier = Modifier.animateItem(),
-                            queueNumber = index + 1,
-                            title = track.title,
-                            artist = track.artist,
-                            durationSeconds = track.durationSeconds,
-                            thumbnailUrl = track.thumbnailUrl,
-                            removeContentDescription = removeContentDescription,
-                            dragHandleContentDescription = dragHandleContentDescription,
-                            moveUpContentDescription = moveUpContentDescription,
-                            moveDownContentDescription = moveDownContentDescription,
-                            isFirst = index == 0,
-                            isLast = index == uiState.queue.tracks.lastIndex,
-                            onRemove = {
-                                onEvent(
-                                    CurrentTrackEvent.RemoveFromQueueClicked(
-                                        trackId = track.id,
-                                        index = index,
-                                    )
-                                )
-                            },
-                            onMoveUp = {
-                                onEvent(
-                                    CurrentTrackEvent.MoveToIndexClicked(
-                                        trackId = track.id,
-                                        fromIndex = index,
-                                        toIndex = index - 1,
-                                    )
-                                )
-                            },
-                            onMoveDown = {
-                                onEvent(
-                                    CurrentTrackEvent.MoveToIndexClicked(
-                                        trackId = track.id,
-                                        fromIndex = index,
-                                        toIndex = index + 1,
-                                    )
-                                )
-                            },
-                            onMoveDrop = { dragOffsetPx, itemHeightPx ->
-                                val targetIndex = calculateReorderDropTargetIndex(
-                                    fromIndex = index,
-                                    itemCount = uiState.queue.tracks.size,
-                                    dragOffsetPx = dragOffsetPx,
-                                    itemHeightPx = itemHeightPx,
-                                    itemSpacingPx = queueItemSpacingPx,
-                                )
 
-                                if (targetIndex != index) {
+                    item {
+                        MText(
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp),
+                            text = nextSectionTitle,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Start,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+
+                    if (uiState.queue.tracks.isEmpty()) {
+                        item {
+                            QueueEmptyCard()
+                        }
+                    } else {
+                        itemsIndexed(
+                            items = uiState.queue.tracks,
+                            key = { index, track -> "${track.id}:$index" }
+                        ) { index, track ->
+                            MQueueTrackCard(
+                                modifier = Modifier
+                                    .animateItem()
+                                    .alpha(
+                                        if (index == draggedIndex) 0f else 1f
+                                    ),
+                                queueNumber = index + 1,
+                                title = track.title,
+                                artist = track.artist,
+                                durationSeconds = track.durationSeconds,
+                                thumbnailUrl = track.thumbnailUrl,
+                                removeContentDescription = removeContentDescription,
+                                dragHandleContentDescription = dragHandleContentDescription,
+                                moveUpContentDescription = moveUpContentDescription,
+                                moveDownContentDescription = moveDownContentDescription,
+                                isFirst = index == 0,
+                                isLast = index == uiState.queue.tracks.lastIndex,
+                                enabled = !uiState.actions.isCommandInFlight &&
+                                        draggedIndex == null,
+                                dragEnabled = false,
+                                onRemove = {
+                                    onEvent(
+                                        CurrentTrackEvent.RemoveFromQueueClicked(
+                                            trackId = track.id,
+                                            index = index,
+                                        )
+                                    )
+                                },
+                                onMoveUp = {
                                     onEvent(
                                         CurrentTrackEvent.MoveToIndexClicked(
                                             trackId = track.id,
                                             fromIndex = index,
-                                            toIndex = targetIndex,
+                                            toIndex = index - 1,
+                                        )
+                                    )
+                                },
+                                onMoveDown = {
+                                    onEvent(
+                                        CurrentTrackEvent.MoveToIndexClicked(
+                                            trackId = track.id,
+                                            fromIndex = index,
+                                            toIndex = index + 1,
                                         )
                                     )
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }

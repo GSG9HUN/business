@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,15 +27,13 @@ import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 @Composable
 fun MToast(
     modifier: Modifier = Modifier,
     data: MToastData,
 ) {
-    val themeColors = MelodiasMarioThemeTokens.current
-    val colors = data.type.colors()
+    val statusStyle = data.type.statusStyle()
 
     Surface(
         modifier = modifier
@@ -48,8 +47,8 @@ fun MToast(
             .widthIn(max = 560.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = themeColors.elevated,
-        border = BorderStroke(1.dp, colors.borderColor),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, statusStyle.borderColor),
         shadowElevation = 10.dp,
     ) {
         Row(
@@ -58,15 +57,15 @@ fun MToast(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             ToastStatusMark(
-                label = colors.markLabel,
-                backgroundColor = colors.markBackgroundColor,
-                contentColor = colors.contentColor,
+                label = statusStyle.markLabel,
+                backgroundColor = statusStyle.markBackgroundColor,
+                contentColor = statusStyle.contentColor,
             )
 
             MText(
                 modifier = Modifier.weight(1f),
                 text = data.message,
-                color = themeColors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 18.sp,
@@ -105,22 +104,21 @@ private data class ToastColors(
 )
 
 @Composable
-private fun MToastType.colors(): ToastColors {
-    val colors = MelodiasMarioThemeTokens.current
+private fun MToastType.statusStyle(): ToastColors {
 
     return when (this) {
         MToastType.Success -> ToastColors(
             markLabel = "OK",
-            markBackgroundColor = colors.successBackground,
-            contentColor = colors.successText,
-            borderColor = colors.successText.copy(alpha = 0.35f),
+            markBackgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            borderColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.35f),
         )
 
         MToastType.Error -> ToastColors(
             markLabel = "!",
-            markBackgroundColor = colors.errorBackground,
-            contentColor = colors.errorText,
-            borderColor = colors.errorText.copy(alpha = 0.35f),
+            markBackgroundColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            borderColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.35f),
         )
 
         MToastType.Warning -> ToastColors(
@@ -132,9 +130,9 @@ private fun MToastType.colors(): ToastColors {
 
         MToastType.Info -> ToastColors(
             markLabel = "i",
-            markBackgroundColor = colors.primary.copy(alpha = 0.18f),
-            contentColor = colors.cyan,
-            borderColor = colors.outline,
+            markBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            contentColor = MaterialTheme.colorScheme.secondary,
+            borderColor = MaterialTheme.colorScheme.outline,
         )
     }
 }

@@ -3,6 +3,7 @@ package com.dc.melodiasmario.core.data.playlist
 import com.dc.melodiasmario.core.data.auth.AuthorizedSessionProvider
 import com.dc.melodiasmario.core.domain.playlist.PlaylistsRepository
 import com.dc.melodiasmario.core.model.playlist.Playlist
+import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.network.playlist.PlaylistsRemoteDataSource
 import org.koin.core.annotation.Single
 
@@ -35,12 +36,31 @@ class PlaylistsRepositoryImpl(
         )
     }
 
-    override suspend fun createPlaylist(guildId: String, playlistName: String) {
+    override suspend fun createPlaylist(guildId: String, playlistName: String): Playlist {
         val accessToken = authorizedSessionProvider.getValidSession()
-        playlistsRemoteDataSource.createPlaylist(
+        return playlistsRemoteDataSource.createPlaylist(
             accessToken = accessToken,
             guildId = guildId,
             playlistName = playlistName
-        )
+        ).toDomain()
     }
+
+    override suspend fun addTrack(playlistId: String, songUrl: String): BotControlCommand {
+        return playlistsRemoteDataSource.addTrack(authorizedSessionProvider.getValidSession(), playlistId, songUrl)
+    }
+    override suspend fun createPlaylistFromTracks(
+        guildId: String,
+        playlistName: String,
+        trackUrls: List<String>,
+    ): Playlist {
+        val accessToken = authorizedSessionProvider.getValidSession()
+
+        return playlistsRemoteDataSource.createPlaylistFromTracks(
+            accessToken = accessToken,
+            guildId = guildId,
+            playlistName = playlistName,
+            trackUrls = trackUrls,
+        ).toDomain()
+    }
+
 }

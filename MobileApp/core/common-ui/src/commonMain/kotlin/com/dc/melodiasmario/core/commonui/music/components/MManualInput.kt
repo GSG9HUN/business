@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,7 +17,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 
 
 @Composable
@@ -26,19 +26,18 @@ fun MManualInput(
     onValueChange: (String) -> Unit,
     enabled: Boolean,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = colors.elevated,
-        border = BorderStroke(1.dp, colors.outline),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             enabled = enabled,
             singleLine = true,
-            textStyle = TextStyle(color = colors.textPrimary),
+            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
             interactionSource = remember { MutableInteractionSource() },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 13.dp),
             decorationBox = { innerTextField ->
@@ -49,7 +48,7 @@ fun MManualInput(
                     if (value.isBlank()) {
                         MText(
                             text = placeholder,
-                            color = colors.textMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Start,
                         )
                     }

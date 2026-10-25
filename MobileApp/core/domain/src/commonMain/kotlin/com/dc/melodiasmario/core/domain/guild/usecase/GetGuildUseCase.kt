@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.guild.GuildRepository
 import com.dc.melodiasmario.core.model.guild.Guild
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class GetGuildUseCase(
     private val guildRepository: GuildRepository,
 ) {

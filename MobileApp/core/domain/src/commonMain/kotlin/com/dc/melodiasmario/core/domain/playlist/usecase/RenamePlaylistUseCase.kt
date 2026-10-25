@@ -4,9 +4,9 @@ import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.domain.playlist.PlaylistsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class RenamePlaylistUseCase(
     private val playlistsRepository: PlaylistsRepository
 ) {

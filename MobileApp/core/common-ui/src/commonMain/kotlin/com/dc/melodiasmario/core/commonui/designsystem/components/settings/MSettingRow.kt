@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +22,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_chevron_right
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_language
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -35,7 +35,6 @@ fun MSettingRow(
     onClick: (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
     val rowModifier = if (onClick != null) {
         modifier
             .fillMaxWidth()
@@ -61,13 +60,13 @@ fun MSettingRow(
         ) {
             MText(
                 text = title,
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
             )
             MText(
                 text = subtitle,
-                color = colors.subtitle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
             )
         }
@@ -79,14 +78,14 @@ fun MSettingRow(
                 painter = painterResource(Res.drawable.ic_profile_chevron_right),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = colors.textPrimary,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = colors.divider,
+        color = MaterialTheme.colorScheme.outlineVariant,
     )
 }
 

@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.auth.AuthRepository
 import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class DiscordLogoutUseCase(
     private val authRepository: AuthRepository,
     private val secureAuthSessionStorage: SecureAuthSessionStorage

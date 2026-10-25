@@ -1,4 +1,4 @@
-﻿import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -14,6 +14,7 @@ kotlin {
 dependencies {
     implementation(project(":shared"))
     implementation(project(":core:common"))
+    implementation(project(":core:presentation"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:di"))
     implementation(project(":feature:playlistsong:presentation"))

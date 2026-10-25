@@ -1,8 +1,11 @@
 package com.dc.melodiasmario.core.network.playlist
 
 import com.dc.melodiasmario.core.common.AppConstants
+import com.dc.melodiasmario.core.network.playlist.dto.CreatePlaylistFromTracksRequestDto
 import com.dc.melodiasmario.core.network.playlist.dto.CreatePlaylistRequestDto
 import com.dc.melodiasmario.core.network.playlist.dto.PlaylistDto
+import com.dc.melodiasmario.core.network.playlist.dto.AddPlaylistTrackRequestDto
+import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.playlist.dto.RenamePlaylistRequestDto
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
@@ -47,11 +50,33 @@ class PlaylistsApiService(
         }.body<Unit>()
     }
 
-    suspend fun createPlaylist(accessToken: String, guildId: String, playlistName: String) {
+    suspend fun createPlaylist(accessToken: String, guildId: String, playlistName: String): PlaylistDto {
         return client.post("$baseUrl/guilds/$guildId/playlists") {
             header("Authorization", "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody(CreatePlaylistRequestDto(playlistName = playlistName))
-        }.body<Unit>()
+        }.body()
     }
+
+    suspend fun addTrack(accessToken: String, playlistId: String, songUrl: String): BotControlCommandDto {
+        return client.post("$baseUrl/playlists/$playlistId/tracks") {
+            header("Authorization", "Bearer $accessToken")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(AddPlaylistTrackRequestDto(songUrl))
+        }.body()
+    }
+    /**
+     * Placeholder for creating a playlist and saving its ordered track list in one request.
+     * No HTTP request is sent until the backend endpoint and response contract are available.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun createPlaylistFromTracks(
+        accessToken: String,
+        guildId: String,
+        request: CreatePlaylistFromTracksRequestDto,
+    ): PlaylistDto {
+        // TODO: Replace this intentional failure with the bulk playlist endpoint call.
+        throw NullPointerException("The bulk playlist API endpoint is not implemented yet.")
+    }
+
 }

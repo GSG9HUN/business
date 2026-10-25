@@ -5,9 +5,9 @@ import com.dc.melodiasmario.core.domain.auth.AuthRepository
 import com.dc.melodiasmario.core.common.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class StartDiscordLoginUseCase(private val authRepository: AuthRepository) {
 
     operator fun invoke(): Flow<Resource<DiscordLoginUrl>> = flow{

@@ -1,6 +1,6 @@
 package com.dc.melodiasmario.feature.login.presentation
 
-import com.dc.melodiasmario.core.common.presentation.MviEffect
+import com.dc.melodiasmario.core.presentation.MviEffect
 
 sealed interface LoginEffect : MviEffect {
     data object NavigateToGuildSelector : LoginEffect

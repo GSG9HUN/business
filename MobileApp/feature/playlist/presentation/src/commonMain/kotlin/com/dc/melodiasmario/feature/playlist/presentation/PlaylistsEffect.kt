@@ -1,6 +1,6 @@
 package com.dc.melodiasmario.feature.playlist.presentation
 
-import com.dc.melodiasmario.core.common.presentation.MviEffect
+import com.dc.melodiasmario.core.presentation.MviEffect
 
 sealed interface PlaylistsEffect : MviEffect {
     data object NavigateToGuildSelector : PlaylistsEffect

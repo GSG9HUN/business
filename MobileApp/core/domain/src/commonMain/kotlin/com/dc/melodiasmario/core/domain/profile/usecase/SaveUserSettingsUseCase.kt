@@ -2,9 +2,9 @@ package com.dc.melodiasmario.core.domain.profile.usecase
 
 import com.dc.melodiasmario.core.domain.profile.UserSettingsRepository
 import com.dc.melodiasmario.core.model.settings.UserSettings
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 
-@Single
+@Factory
 class SaveUserSettingsUseCase(
     private val userSettingsRepository: UserSettingsRepository
 ) {

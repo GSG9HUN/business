@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.retry_button
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -26,8 +26,6 @@ fun MErrorScreen(
     errorMessage: String,
     onClick: () -> Unit,
 ) {
-    val colors = MelodiasMarioThemeTokens.current
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -37,7 +35,7 @@ fun MErrorScreen(
     ) {
         MText(
             text = errorMessage,
-            color = colors.errorText,
+            color = MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.Bold,
         )
 
@@ -45,15 +43,15 @@ fun MErrorScreen(
             modifier = Modifier.padding(top = 16.dp),
             onClick = onClick,
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, colors.secondaryButtonOutline),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             colors = ButtonDefaults.buttonColors(
-                containerColor = colors.secondaryButtonBackground,
-                contentColor = colors.textPrimary,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ) {
             MText(
                 text = stringResource(Res.string.retry_button),
-                color = colors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
             )
         }

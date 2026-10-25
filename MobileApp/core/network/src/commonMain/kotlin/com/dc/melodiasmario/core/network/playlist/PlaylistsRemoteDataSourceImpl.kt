@@ -1,6 +1,8 @@
 package com.dc.melodiasmario.core.network.playlist
 
+import com.dc.melodiasmario.core.network.playlist.dto.CreatePlaylistFromTracksRequestDto
 import com.dc.melodiasmario.core.network.playlist.dto.PlaylistDto
+import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import org.koin.core.annotation.Single
 
 @Single(binds = [PlaylistsRemoteDataSource::class])
@@ -32,11 +34,31 @@ class PlaylistsRemoteDataSourceImpl(
         accessToken: String,
         guildId: String,
         playlistName: String
-    ) {
-        playlistsApiService.createPlaylist(
+    ): PlaylistDto {
+        return playlistsApiService.createPlaylist(
             accessToken = accessToken,
             guildId = guildId,
             playlistName = playlistName
         )
     }
+
+    override suspend fun addTrack(accessToken: String, playlistId: String, songUrl: String): BotControlCommand {
+        return playlistsApiService.addTrack(accessToken, playlistId, songUrl).toDomain()
+    }
+    override suspend fun createPlaylistFromTracks(
+        accessToken: String,
+        guildId: String,
+        playlistName: String,
+        trackUrls: List<String>,
+    ): PlaylistDto {
+        return playlistsApiService.createPlaylistFromTracks(
+            accessToken = accessToken,
+            guildId = guildId,
+            request = CreatePlaylistFromTracksRequestDto(
+                playlistName = playlistName,
+                trackUrls = trackUrls,
+            ),
+        )
+    }
+
 }

@@ -5,9 +5,10 @@ import com.dc.melodiasmario.core.domain.queue.QueueRepository
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
-@Single
+@Factory
 class AddToQueueUseCase(
     private val queueRepository: QueueRepository
 ) {
@@ -16,6 +17,8 @@ class AddToQueueUseCase(
 
         try {
             emit(Resource.Success(queueRepository.addToQueue(guildId = guildId, query = query)))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

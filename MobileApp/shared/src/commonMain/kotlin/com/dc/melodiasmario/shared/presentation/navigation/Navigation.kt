@@ -2,6 +2,7 @@ package com.dc.melodiasmario.shared.presentation.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -16,7 +17,6 @@ import com.dc.melodiasmario.core.common.navigation.shouldShowFloatingButton
 import com.dc.melodiasmario.core.commonui.components.MBottomBar
 import com.dc.melodiasmario.core.commonui.feedback.components.MToastHost
 import com.dc.melodiasmario.core.commonui.feedback.state.rememberMToastHostState
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeTokens
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.LocalFloatingActionButtonController
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.rememberFloatingActionButtonController
 import com.dc.melodiasmario.core.commonui.topbar.LocalTopBarController
@@ -26,12 +26,10 @@ import com.dc.melodiasmario.shared.presentation.navigation.components.Navigation
 
 @Composable
 fun Navigation(backStack: SnapshotStateList<AppRoute>) {
-
     val currentRoute = backStack.last()
     val topBarController = rememberTopBarController()
     val floatingActionButtonController = rememberFloatingActionButtonController()
     val toastHostState = rememberMToastHostState()
-    val colors = MelodiasMarioThemeTokens.current
 
     CompositionLocalProvider(
         LocalTopBarController provides topBarController,
@@ -39,7 +37,7 @@ fun Navigation(backStack: SnapshotStateList<AppRoute>) {
     ) {
         Box {
             Scaffold(
-                containerColor = colors.background,
+                containerColor = MaterialTheme.colorScheme.background,
                 topBar = {
                     topBarController.config?.let { config ->
                        NavigationTopBar(config = config)

@@ -32,6 +32,8 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":core:common"))
+                api(project(":core:presentation"))
+                implementation(project(":core:model"))
 
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.compose.runtime)
