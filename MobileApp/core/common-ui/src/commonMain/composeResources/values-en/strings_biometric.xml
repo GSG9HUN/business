@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometric_prompt_title">Unlock application</string>
+    <string name="biometric_prompt_reason">Authenticate with biometrics or your device screen lock.</string>
+    <string name="biometric_locked_title">Application locked</string>
+    <string name="biometric_unlock">Unlock</string>
+    <string name="biometric_retry">Try again</string>
+    <string name="biometric_sign_out">Sign out on this device</string>
+    <string name="biometric_not_authenticated">Authentication was not completed.</string>
+    <string name="biometric_unavailable">Device authentication is unavailable. Check your screen lock and biometric settings.</string>
+    <string name="biometric_storage_failure">Could not access or save application lock settings.</string>
+    <string name="biometric_setting_title">Biometric app lock</string>
+    <string name="biometric_setting_subtitle">Unlock with biometrics or your device credential. This setting is saved immediately on this device.</string>
+</resources>

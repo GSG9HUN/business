@@ -27,6 +27,8 @@ microsoft-signalr = "10.0.13"
 rxjava3 = "3.1.12"
 coreVersion = "1.19.1"
 androidx-media = "1.8.0"
+androidx-biometric = "1.1.0"
+androidx-fragment = "1.9.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -42,6 +44,8 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
+androidx-fragment = { module = "androidx.fragment:fragment", version.ref = "androidx-fragment" }
 
 # Koin
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin-core" }

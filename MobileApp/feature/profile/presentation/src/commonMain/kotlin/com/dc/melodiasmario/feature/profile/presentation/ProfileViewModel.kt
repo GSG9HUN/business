@@ -67,9 +67,16 @@ class ProfileViewModel(
             is ProfileEvent.ThemeSelected -> onThemeSelected(event.theme)
             ProfileEvent.CancelSettingsClicked -> onCancelSettingsClicked()
             ProfileEvent.SaveSettingsClicked -> onSaveSettingsClicked()
+            is ProfileEvent.BiometricLockChanged -> onBiometricLockChanged(event.enabled)
+
         }
     }
 
+    private suspend fun onBiometricLockChanged(enabled: Boolean) {
+        _effect.emit(
+            ProfileEffect.ChangeBiometricLock(enabled = enabled)
+        )
+    }
 
     private suspend fun onScreenOpened() {
         loadProfile()

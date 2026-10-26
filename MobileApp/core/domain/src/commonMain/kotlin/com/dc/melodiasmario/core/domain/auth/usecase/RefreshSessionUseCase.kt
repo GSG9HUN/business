@@ -7,6 +7,7 @@ import com.dc.melodiasmario.core.model.auth.AuthSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
+import kotlin.coroutines.cancellation.CancellationException
 
 @Factory
 class RefreshSessionUseCase(
@@ -22,6 +23,8 @@ class RefreshSessionUseCase(
             val newRefreshToken = authRepository
                 .refreshSession(refreshToken = refreshToken)
             emit(Resource.Success(newRefreshToken))
+        } catch (error: CancellationException) {
+            throw error
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

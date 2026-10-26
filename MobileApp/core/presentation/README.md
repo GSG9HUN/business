@@ -84,3 +84,14 @@ Android build verified with this invocation: BUILD SUCCESSFUL (51 seconds, 446 a
 - core/model: business data models.
 - core/common-ui: Compose components, themes, localized labels, and platform UI integrations.
 - feature/currenttrack/presentation and feature/queue/presentation: feature events, effects, ViewModels, and command adapters.
+
+### biometric/
+
+**Files:** AppLockController.kt, AppLockUiState.kt, AppLockError.kt, BiometricResult.kt.
+
+**Purpose:** Coordinate the device-local application lock, initial settings load,
+authenticated setting changes, local sign-out, and background timeout. Native prompts
+and persistence are supplied through callbacks. The controller has no Compose or
+platform dependency and owns no coroutine scope or timer job.
+
+See [the implementation walkthrough](../../docs/biometric-app-lock.md).

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometric_prompt_title">Alkalmazás feloldása</string>
+    <string name="biometric_prompt_reason">Azonosítsd magad biometrikával vagy a telefon képernyőzárával.</string>
+    <string name="biometric_locked_title">Az alkalmazás zárolva van</string>
+    <string name="biometric_unlock">Feloldás</string>
+    <string name="biometric_retry">Újrapróbálkozás</string>
+    <string name="biometric_sign_out">Kijelentkezés ezen a készüléken</string>
+    <string name="biometric_not_authenticated">Nem történt sikeres azonosítás.</string>
+    <string name="biometric_unavailable">A készülékazonosítás nem érhető el. Ellenőrizd a telefon képernyőzárát és biometrikus beállításait.</string>
+    <string name="biometric_storage_failure">Nem sikerült elérni vagy menteni az alkalmazászár beállítását.</string>
+    <string name="biometric_setting_title">Biometrikus alkalmazászár</string>
+    <string name="biometric_setting_subtitle">Feloldás biometrikával vagy készülékkóddal. Ez a beállítás azonnal mentődik ezen a készüléken.</string>
+</resources>

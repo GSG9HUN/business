@@ -23,6 +23,9 @@ import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.core.domain.auth.usecase.RefreshSessionUseCase
 import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
 import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
+import com.dc.melodiasmario.core.commonui.biometric.AppLockHost
+import com.dc.melodiasmario.core.commonui.biometric.BiometricAuthenticator
+import com.dc.melodiasmario.core.presentation.biometric.AppLockController
 
 @Composable
 fun MelodiasMarioRoot(
@@ -32,7 +35,9 @@ fun MelodiasMarioRoot(
     refreshSessionUseCase: RefreshSessionUseCase,
     toastHostState: MToastHostState,
     isAppForeground: () -> Boolean,
-    feedbackVibrator: FeedbackVibrator
+    feedbackVibrator: FeedbackVibrator,
+    appLockController: AppLockController,
+    biometricAuthenticator: BiometricAuthenticator
 ) {
     val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
         mutableStateListOf(AppRoute.Login)
@@ -45,26 +50,6 @@ fun MelodiasMarioRoot(
         userSettingsStorage.getSettings()?.let(userSettingsStore::setSettings)
     }
 
-    LaunchedEffect(Unit) {
-        refreshSessionUseCase().collect { result ->
-            when (result) {
-                is Resource.Success -> {
-                    backStack.clear()
-                    backStack.add(AppRoute.GuildSelector)
-                    isAuthBootstrapComplete = true
-                }
-
-                is Resource.Error -> {
-                    backStack.clear()
-                    backStack.add(AppRoute.Login)
-                    isAuthBootstrapComplete = true
-                }
-
-                Resource.Loading -> Unit
-            }
-        }
-    }
-
     LaunchedEffect(settings.languageCode) {
         appLocaleController.applyLocale(settings.languageCode)
         appliedLanguageCode = settings.languageCode
@@ -74,16 +59,50 @@ fun MelodiasMarioRoot(
         MelodiasMarioTheme(
             themeMode = settings.theme.toThemeMode(),
         ) {
-            if (isAuthBootstrapComplete) {
-                MelodiasMarioApp(
-                    backStack = backStack,
-                    toastHostState = toastHostState,
-                    hapticsEnabled = settings.hapticFeedbackEnabled,
-                    isAppForeground = isAppForeground,
-                    feedbackVibrator = feedbackVibrator
-                )
-            } else {
-                MLoadingScreen()
+            AppLockHost(
+                controller = appLockController,
+                authenticator = biometricAuthenticator,
+                onSignedOut = {
+                    backStack.clear()
+                    backStack.add(AppRoute.Login)
+                    isAuthBootstrapComplete = true
+                },
+            ) {
+                LaunchedEffect(Unit) {
+                    if (!isAuthBootstrapComplete) {
+                        refreshSessionUseCase().collect { result ->
+                            when (result) {
+                                is Resource.Success -> {
+                                    backStack.clear()
+                                    backStack.add(
+                                        AppRoute.GuildSelector,
+                                    )
+                                    isAuthBootstrapComplete = true
+                                }
+
+                                is Resource.Error -> {
+                                    backStack.clear()
+                                    backStack.add(AppRoute.Login)
+                                    isAuthBootstrapComplete = true
+                                }
+
+                                Resource.Loading -> Unit
+                            }
+                        }
+                    }
+                }
+
+                if (isAuthBootstrapComplete) {
+                    MelodiasMarioApp(
+                        backStack = backStack,
+                        toastHostState = toastHostState,
+                        hapticsEnabled = settings.hapticFeedbackEnabled,
+                        isAppForeground = isAppForeground,
+                        feedbackVibrator = feedbackVibrator,
+                    )
+                } else {
+                    MLoadingScreen()
+                }
             }
         }
     }
