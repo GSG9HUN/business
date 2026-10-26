@@ -1,14 +1,19 @@
 # Properties
 
-This folder contains ASP.NET Core launch configuration.
+Contains launch profiles used by local ASP.NET Core development tools.
 
-## Files
+## Overview
 
-### launchSettings.json
+- launchSettings.json supplies local process URLs and launch options. Container binding is configured separately by Docker Compose.
+- Launch profiles are developer settings, not a substitute for required OAuth, signing, and database configuration.
 
-Local development launch profiles for the API project.
+## Launch Profiles
 
-## Notes
+**File:** `launchSettings.json`
 
-- Do not store secrets here.
-- Runtime secrets should come from environment variables or the repository root `.env` file used during local development.
+**Purpose:** Supplies local process profiles and URLs. Container binding comes from Docker Compose instead.
+
+## Related Components
+
+- `API/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

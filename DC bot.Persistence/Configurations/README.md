@@ -1,64 +1,140 @@
-# Persistence Configurations
+# Configurations
 
-This folder contains EF Core `IEntityTypeConfiguration<T>` classes grouped by feature.
+Groups PostgreSQL table, key, index, relationship, and conversion mappings by feature.
 
-## Why This Folder Exists
+## Overview
 
-Entities describe data in C# terms, but configuration classes describe how that data is stored in PostgreSQL. Keeping mapping outside the entity classes prevents entity files from becoming mixed with table names, indexes, conversions, and cascade rules.
-
-`BotDbContext.OnModelCreating` applies these configurations explicitly.
-
-## What Configuration Classes Define
-
-Configuration classes define:
-
-- table names and column names
-- primary and foreign keys
-- indexes and uniqueness constraints
-- default values and required fields
-- enum/value conversions
+- BotDbContext applies these IEntityTypeConfiguration implementations when constructing its EF model.
+- Entity shape belongs in Entities; storage behavior belongs in Repositories. A schema-affecting mapping change normally needs a new migration.
 
 ## Subfolders
 
-### Guilds
+### BotControl/
 
-Guild data and premium audit table mappings.
+Defines EF Core table mappings for durable bot commands, their claim/completion state, and cross-process change signals.
 
-### Playback
+**Files:**
 
-Playback state and repeat-list table mappings.
+- `BotControlCommandsConfiguration.cs`
 
-### Queue
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 
-Guild queue item table mappings.
+---
 
-### Playlists
+### GuildBotStatus/
 
-Saved playlist and playlist track table mappings.
+Defines EF Core table mappings for persisted bot voice presence, channel display metadata, and voice-user counts.
 
-### MobileApps
+**Files:**
 
-Mobile app user, user-guild link, and refresh session table mappings.
+- `GuildBotStatusConfiguration.cs`
 
-### BotControl
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 
-API-to-bot command bridge table mappings.
+---
 
-### Shared
+### Guilds/
 
-Shared EF configuration helpers.
+Defines EF Core table mappings for guild defaults, premium state, and the mapped premium-audit schema.
 
-## How To Maintain Mappings
+**Files:**
 
-When an entity changes, update the matching configuration in the same feature folder. If the change affects the database schema, create a migration after the configuration is updated.
+- `GuildDataConfiguration.cs`
+- `GuildPremiumAuditConfiguration.cs`
 
-Avoid relying on EF default naming for persisted schema. This project uses explicit snake_case table and column names so migrations stay predictable.
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 
-## Maintenance Notes
+---
 
-- Naming convention uses snake_case table and column names.
-- `GuildQueueItemConfiguration` converts `QueueItemState` to the existing `short` `state` column and defaults new rows to `Queued`.
-- `PlaylistConfiguration` enforces unique playlist names per guild.
-- `PlaylistTrackConfiguration` enforces unique order numbers inside one playlist.
-- Mobile app user IDs are Discord user IDs and are stored as the primary key.
-- When changing entity shape, update configuration and add a migration.
+### MobileApps/
+
+Defines EF Core table mappings for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+
+**Files:**
+
+- `MobileAppSessionsConfiguration.cs`
+- `MobileAppUsersConfiguration.cs`
+- `MobileRealtimeGuildMembershipsConfiguration.cs`
+- `UserGuildsConfiguration.cs`
+
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+
+---
+
+### MobileAppUserSettings/
+
+Defines EF Core table mappings for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+
+**Files:**
+
+- `MobileAppUserSettingsConfiguration.cs`
+
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+
+---
+
+### Playback/
+
+Defines EF Core table mappings for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `GuildPlaybackStateConfiguration.cs`
+- `GuildRepeatListItemConfiguration.cs`
+- `PlaybackBatchConfiguration.cs`
+- `PlaybackBatchItemConfiguration.cs`
+
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+
+---
+
+### Playlists/
+
+Defines EF Core table mappings for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `PlaylistConfiguration.cs`
+- `PlaylistTrackConfiguration.cs`
+
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+
+---
+
+### Queue/
+
+Defines EF Core table mappings for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `GuildQueueItemConfiguration.cs`
+
+**Purpose:** These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+
+---
+
+### Shared/
+
+Centralizes the Discord guild identifier conversion used by entity mappings.
+
+**Files:**
+
+- `GuildIdPropertyBuilderExtensions.cs`
+
+**Purpose:** Feature configuration classes call GuildIdPropertyBuilderExtensions rather than repeating provider conversion rules.
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/Configurations/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/GuildBotStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/Guilds/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/MobileApps/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/MobileAppUserSettings/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Configurations/Shared/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

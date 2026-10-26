@@ -1,49 +1,66 @@
-﻿# IO
+# IO
 
-This folder contains file system abstraction implementation.
+Implements the injected file-system boundary for translation and guild preference data.
 
-## Files
+## Overview
 
-### PhysicalFileSystem.cs
+- PhysicalFileSystem performs the local file operations requested through IFileSystem.
+- Keep storage paths configurable through their owning code and keep application decisions outside this infrastructure adapter.
 
-**Purpose:** Production file system implementation of `IFileSystem` interface.
+## Classes
 
-```csharp
-public sealed class PhysicalFileSystem : IFileSystem
-{
-    public bool DirectoryExists(string path) => Directory.Exists(path);
-    public void CreateDirectory(string path) => Directory.CreateDirectory(path);
-    public bool FileExists(string path) => File.Exists(path);
-    public string ReadAllText(string path) => File.ReadAllText(path);
-    public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
-}
-```
+### PhysicalFileSystem
+
+**File:** `DC bot/IO/PhysicalFileSystem.cs`
+
+**Purpose:** Implements the file-system boundary using local directories and text files.
+
+**Implements / inherits:** `IFileSystem`.
 
 **Methods:**
 
-- `DirectoryExists()` - Check if directory exists
-- `CreateDirectory()` - Create directory
-- `FileExists()` - Check if file exists
-- `ReadAllText()` - Read file contents
-- `WriteAllText()` - Write file contents
+- `CreateDirectory` — Creates a directory required for subsequent file writes.
+
+```csharp
+public void CreateDirectory(string path);
+```
+
+- `DirectoryExists` — Checks whether the supplied directory path exists.
+
+```csharp
+public bool DirectoryExists(string path);
+```
+
+- `FileExists` — Checks whether the supplied file path exists.
+
+```csharp
+public bool FileExists(string path);
+```
+
+- `ReadAllText` — Reads complete file text through the file-system boundary.
+
+```csharp
+public string ReadAllText(string path);
+```
+
+- `WriteAllText` — Writes complete file text through the file-system boundary.
+
+```csharp
+public void WriteAllText(string path, string contents);
+```
 
 **Usage:**
 
+The caller supplies the component and argument values used in this example.
+
 ```csharp
-// In LocalizationService
-var fileSystem = new PhysicalFileSystem();
-var exists = fileSystem.FileExists("localization/eng.json");
-var content = fileSystem.ReadAllText(path);
+physicalFileSystem.CreateDirectory(path);
 ```
 
-**Used By:**
-
-- `Service/LocalizationService.cs` - Language file operations
-- `DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs` - Verifies filesystem behavior with a temporary test directory
+---
 
 ## Related Components
 
-- **Interface/Service/IO/IFileSystem.cs** - Interface contract
-- **Service/LocalizationService.cs** - Uses for language files
-- **DC bot tests/UnitTests/IO/PhysicalFileSystemTests.cs** - Unit coverage for this implementation
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Interface/Service/IO/` — Abstracts the file operations required by localization and guild preference storage.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

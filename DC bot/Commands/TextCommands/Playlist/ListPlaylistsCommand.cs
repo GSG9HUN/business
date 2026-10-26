@@ -12,6 +12,15 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Playlist;
 
+/// <summary>
+/// Handles the list playlists text command through validation, service, and localized response boundaries.
+/// </summary>
+/// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="userValidation">The user validation service dependency used by this boundary.</param>
+/// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
+/// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="playlistService">The playlist service dependency used by this boundary.</param>
+/// <param name="commandHelper">The command helper dependency used by this boundary.</param>
 public class ListPlaylistsCommand(
     ILogger<ListPlaylistsCommand> logger,
     IUserValidationService userValidation,
@@ -20,24 +29,34 @@ public class ListPlaylistsCommand(
     IPlaylistService playlistService,
     ICommandHelper commandHelper) : ICommand
 {
+
+    /// <inheritdoc />
     public string Name => "listPlaylists";
+
+    /// <inheritdoc />
     public string Description => localizationService.Get(LocalizationKeys.ListPlaylistsCommandDescription);
 
+    /// <summary>
+    /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
+    /// </summary>
+    /// <param name="message">The message supplying command context and the response channel.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
+        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 
-        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
-        if (validationResult is null) return;
+        if (validationResult is null)
+        {
+            return;
+        }
 
         var guildId = message.Channel.Guild.Id;
-        var result = await playlistService.ListPlaylistsAsync(guildId);
-
+        var result = await playlistService.ListPlaylistsAsync(guildId, default);
         switch (result.Status)
         {
             case ListPlaylistsStatus.Listed:
-                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ListPlaylistsCommandResponse,
-                    FormatPlaylists(guildId, result.Playlists));
+                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ListPlaylistsCommandResponse, FormatPlaylists(guildId, result.Playlists));
                 break;
             case ListPlaylistsStatus.NoPlaylists:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ListPlaylistsCommandNoPlaylists);
@@ -52,11 +71,14 @@ public class ListPlaylistsCommand(
         logger.CommandExecuted(Name);
     }
 
+    /// <summary>
+    /// Formats playlist names and track counts for a Discord response.
+    /// </summary>
+    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
+    /// <param name="playlists">The playlists supplied for this operation.</param>
+    /// <returns>The formatted, serialized, or resolved text value.</returns>
     private string FormatPlaylists(ulong guildId, IReadOnlyList<PlaylistSummaryDto> playlists)
     {
-        return string.Join(Environment.NewLine, playlists.Select((playlist, index) =>
-            localizationService.Get(guildId, LocalizationKeys.ListPlaylistsCommandItem, index + 1,
-                DiscordTextSanitizer.EscapeMentions(playlist.Name),
-                playlist.TrackCount)));
+        return string.Join(Environment.NewLine, playlists.Select((playlist, index) => localizationService.Get(guildId, LocalizationKeys.ListPlaylistsCommandItem, index + 1, DiscordTextSanitizer.EscapeMentions(playlist.Name), playlist.TrackCount)));
     }
 }

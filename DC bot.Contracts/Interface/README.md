@@ -1,32 +1,28 @@
 # Interface
 
-This folder groups contracts that are expressed as interfaces.
+Groups contracts consumed across project boundaries.
 
-## Why This Folder Exists
+## Overview
 
-An interface in this project is a promise made by one project and consumed by another. The consuming code should be able to depend on the promise without knowing which concrete class fulfills it.
+- The Service/Persistence tree defines operations implemented by DC bot.Persistence and used by the bot and API.
+- Keep concrete repositories, SDK wrappers, and HTTP request or response DTOs in their owning projects.
 
-For example, bot/API code can depend on `IQueueRepository`, while `DC bot.Persistence` provides `QueueRepository`. That lets tests replace the repository with a fake and lets the implementation change without rewriting the service layer.
+## Subfolders
 
-## Current Shape
+### Service/
 
-Right now this folder contains service-facing interfaces under `Service/`.
+Groups persistence abstractions used by application services and handlers.
 
-The extra `Service` level exists because interfaces can belong to different architectural boundaries. If this project later grows, it could contain API-facing, worker-facing, or integration-facing contracts without mixing them into one flat folder.
+**Files:**
 
-## What Belongs Here
+- `README.md` — Folder overview and navigation to its source components.
 
-- cross-project interfaces
-- abstractions used by services
-- interfaces whose implementation lives in another project
+**Purpose:** Feature interfaces expose immutable records and cancellable operations; the persistence project supplies database implementations.
 
-## What Does Not Belong Here
+---
 
-- implementation classes
-- EF Core entities
-- request/response DTOs
-- test-only fakes
+## Related Components
 
-## Maintenance Notes
-
-If all contracts stay persistence-only, a flatter `Persistence/` root would be simpler. If the project grows beyond persistence, keeping `Interface/Service/...` makes the boundary more explicit.
+- `DC bot.Contracts/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/Interface/Service/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

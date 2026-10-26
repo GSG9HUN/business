@@ -1,109 +1,156 @@
-﻿# Core Interfaces
+# Core
 
-This folder contains core application interface contracts.
+Defines command lookup, argument helpers, and user/player validation boundaries.
 
-## Files
+## Overview
 
-### ICommandHelper.cs
+- Command routing and command implementations depend on these abstractions; implementations live in Service/Core.
+- Keep registry lookup, argument parsing, and readiness validation as separate responsibilities rather than expanding ICommand itself.
 
-**Purpose:** Command validation and argument extraction helpers.
+## Interfaces
+
+### ICommandHelper
+
+**File:** `DC bot/Interface/Core/ICommandHelper.cs`
+
+**Purpose:** Defines the command helper boundary so callers are independent of its concrete implementation.
+
+**Methods:**
+
+- `TryGetArgumentAsync` — Resolves a required argument and presents usage guidance when absent.
 
 ```csharp
-public interface ICommandHelper
-{
-    Task<UserValidationResult?> TryValidateUserAsync(
-        IUserValidationService userValidation,
-        IResponseBuilder responseBuilder,
-        IDiscordMessage message);
+Task<string?> TryGetArgumentAsync(
+    IDiscordMessage message,
+    IResponseBuilder responseBuilder,
+    ILogger logger,
+    string commandName,
+    CancellationToken cancellationToken = default);
+```
 
-    Task<string?> TryGetArgumentAsync(
-        IDiscordMessage message,
-        IResponseBuilder responseBuilder,
-        ILogger logger,
-        string commandName);
+- `TryParseSavePlaylistArguments` — Parses a playlist name and source argument while preserving quoted values.
 
-    Task<(string, string)?> TryParseSavePlaylistArguments(
-        IDiscordMessage message,
-        IResponseBuilder responseBuilder,
-        ILogger logger,
-        string commandName);
-}
+```csharp
+Task<(
+    IDiscordMessage message,
+    IResponseBuilder responseBuilder,
+    ILogger logger,
+    string commandName,
+    CancellationToken cancellationToken = default);
+```
+
+- `TryValidateUserAsync` — Runs user validation and sends a localized failure response when validation fails.
+
+```csharp
+Task<UserValidationResult?> TryValidateUserAsync(
+    IUserValidationService userValidation,
+    IResponseBuilder responseBuilder,
+    IDiscordMessage message,
+    CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await commandHelper.TryGetArgumentAsync(message, responseBuilder, logger, commandName, cancellationToken);
+```
+
+---
+
+### ICommandRegistry
+
+**File:** `DC bot/Interface/Core/ICommandRegistry.cs`
+
+**Purpose:** Defines the command registry boundary so callers are independent of its concrete implementation.
+
+**Properties:**
+
+```csharp
+// The registered text commands available for dispatch.
+IReadOnlyCollection<ICommand> Commands { get; }
 ```
 
 **Methods:**
 
-- `TryValidateUserAsync()` - Validates user and sends error if invalid
-- `TryGetArgumentAsync()` - Extracts command arguments from message
-- `TryParseSavePlaylistArguments()` - Extracts two required arguments for playlist commands that need name plus URL, track number, or another name
+- `TryGetCommand` — Looks up a command by name without rebuilding the lazy registry snapshot.
 
-**Implementation:** `Service/Core/CommandValidationService.cs`
+```csharp
+bool TryGetCommand(string commandName, out ICommand command);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = commandRegistry.TryGetCommand(commandName, out var command);
+```
 
 ---
 
-### ICommandRegistry.cs
+### IUserValidationService
 
-**Purpose:** Stable lookup contract for registered text commands.
+**File:** `DC bot/Interface/Core/IUserValidationService.cs`
 
-```csharp
-public interface ICommandRegistry
-{
-    IReadOnlyCollection<ICommand> Commands { get; }
-    bool TryGetCommand(string commandName, out ICommand command);
-}
-```
-
-**Implementation:** `Service/Core/CommandRegistry.cs`
-
-**Consumers:** `CommandHandlerService` and `HelpCommand`
-
----
-
-### IValidationService.cs
-
-**Purpose:** Player and connection validation.
-
-```csharp
-public interface IValidationService
-{
-    Task<PlayerValidationResult> ValidatePlayerAsync(IAudioService audioService, ulong guildId);
-    Task<ConnectionValidationResult> ValidateConnectionAsync(ILavalinkPlayer connection);
-}
-```
+**Purpose:** Defines the user validation service boundary so callers are independent of its concrete implementation.
 
 **Methods:**
 
-- `ValidatePlayerAsync()` - Check if player exists for guild
-- `ValidateConnectionAsync()` - Check if connection is established
+- `ValidateUserAsync` — Checks that the requesting Discord user may perform voice-bound music operations.
 
-**Implementation:** `Service/Core/ValidationService.cs`
+```csharp
+public Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message, CancellationToken cancellationToken = default);
+```
+
+- `IsBotUser` — Checks whether an event user is the currently authenticated bot.
+
+```csharp
+public bool IsBotUser(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await userValidationService.ValidateUserAsync(message, cancellationToken);
+```
 
 ---
 
-### IUserValidationService.cs
+### IValidationService
 
-**Purpose:** User validation for command execution.
+**File:** `DC bot/Interface/Core/IValidationService.cs`
 
-```csharp
-public interface IUserValidationService
-{
-    Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message);
-    bool IsBotUser(IDiscordMessage message);
-}
-```
+**Purpose:** Defines the validation service boundary so callers are independent of its concrete implementation.
 
 **Methods:**
 
-- `ValidateUserAsync()` - Validate user is in voice channel, not a bot, etc.
-- `IsBotUser()` - Check if message author is a bot
+- `ValidateConnectionAsync` — Validates Lavalink readiness using available player and remote voice-state evidence.
 
-**Implementation:** `Service/Core/ValidationService.cs`
+```csharp
+public Task<ConnectionValidationResult> ValidateConnectionAsync(
+    ILavalinkPlayer connection,
+    CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await validationService.ValidateConnectionAsync(connection, cancellationToken);
+```
 
 ---
 
 ## Related Components
 
-- **Service/Core/ValidationService.cs** - Implements these interfaces
-- **Service/Core/CommandRegistry.cs** - Implements command lookup
-- **Helper/Validation/** - Validation result types
-- **Commands/** - Use these interfaces for validation
-
+- `DC bot/Interface/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Helper/Validation/` — Carries user, player, and connection validation outcomes without requiring exceptions for ordinary rejection.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Interface/Service/Presentation/` — Defines localized success, warning, error, and validation responses.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

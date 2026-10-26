@@ -1,143 +1,301 @@
-# Music Commands
+# Music
 
-This folder contains text commands for music playback control.
+Exposes voice join/leave and playback controls through text commands.
 
-## Commands
+## Overview
 
-### PlayCommand.cs
+- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Repeated previous commands navigate only the active canonical batch. The command reports when no earlier eligible item exists; history is a separate read-only command.
 
-**Command:** `!play <query|url>`
+## Classes
 
-**Description:** Play music from a URL or search query.
+### JoinCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/JoinCommand.cs`
+
+**Purpose:** Handles the join text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `join`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
 **Usage:**
 
-```
-!play https://www.youtube.com/watch?v=dQw4w9WgXcQ
-!play never gonna give you up
-!play spotify:track:3cfOd4CMv2snFaKAnMdnvK
-```
-
-**Behavior:**
-
-1. Validates user is in a voice channel
-2. Extracts the query/URL argument through `ICommandHelper`
-3. Resolves query/URL via `ITrackSearchResolverService`
-4. Calls `ILavaLinkService.PlayAsyncUrl()` or `PlayAsyncQuery()`
-5. Starts playback or queues the loaded track through the music services
-
-**Supported Sources:** YouTube, YouTube Music, Spotify, SoundCloud, Apple Music, Deezer, Yandex Music, Bandcamp, and direct URLs supported by Lavalink.
-
----
-
-### PauseCommand.cs
-
-**Command:** `!pause`
-
-**Description:** Pause the currently playing track.
-
-**Behavior:**
-
-1. Validates user
-2. Calls `ILavaLinkService.PauseAsync()`
-3. Pauses playback without clearing queue state
-
----
-
-### ResumeCommand.cs
-
-**Command:** `!resume`
-
-**Description:** Resume a paused track.
-
-**Behavior:**
-
-1. Validates user
-2. Calls `ILavaLinkService.ResumeAsync()`
-3. Resumes playback from paused position
-
----
-
-### SkipCommand.cs
-
-**Command:** `!skip`
-
-**Description:** Skip the current track and continue with the next queued item when one exists.
-
-**Behavior:**
-
-1. Validates user
-2. Calls `ILavaLinkService.SkipAsync()`
-3. Stops the current track and lets the playback event flow advance the queue
-
----
-
-### JoinCommand.cs
-
-**Command:** `!join`
-
-**Description:** Make the bot join the user's voice channel and start queued playback.
-
-**Behavior:**
-
-1. Validates user is in a voice channel
-2. Calls `ILavaLinkService.StartPlayingQueue()`
-3. Joins the user's voice channel
-4. Starts playing queued tracks if any are available
-
----
-
-### LeaveCommand.cs
-
-**Command:** `!leave`
-
-**Description:** Disconnect the bot from the voice channel.
-
-**Behavior:**
-
-1. Validates user
-2. Calls `ILavaLinkService.LeaveVoiceChannel()`
-3. Stops playback if needed
-4. Cleans up playback handlers/timer state and disconnects
-
----
-
-## Common Pattern
-
-All music commands follow this pattern:
+The caller supplies the component and argument values used in this example.
 
 ```csharp
-public async Task ExecuteAsync(IDiscordMessage message)
-{
-    logger.CommandInvoked(Name);
-
-    var validationResult = await commandHelper.TryValidateUserAsync(
-        userValidation, responseBuilder, message);
-    if (validationResult is null) return;
-
-    // Command-specific logic
-    await lavaLinkService.DoSomethingAsync();
-
-    logger.CommandExecuted(Name);
-}
+await joinCommand.ExecuteAsync(message);
 ```
 
-## Dependencies
+---
 
-All music commands inject a subset of:
+### LeaveCommand
 
-- `ILogger<T>` - Structured logging
-- `ICommandHelper` - Command validation and argument helpers
-- `ILocalizationService` - Multi-language support
-- `IResponseBuilder` - Discord response sending
-- `IUserValidationService` - User/voice state validation
-- `ILavaLinkService` - Music playback orchestration
-- `ITrackSearchResolverService` - Query/URL search mode resolution
+**File:** `DC bot/Commands/TextCommands/Music/LeaveCommand.cs`
+
+**Purpose:** Handles the leave text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `leave`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await leaveCommand.ExecuteAsync(message);
+```
+
+---
+
+### PauseCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/PauseCommand.cs`
+
+**Purpose:** Handles the pause text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `pause`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await pauseCommand.ExecuteAsync(message);
+```
+
+---
+
+### PlayCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/PlayCommand.cs`
+
+**Purpose:** Handles the play text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `play`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await playCommand.ExecuteAsync(message);
+```
+
+---
+
+### PreviousCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/PreviousCommand.cs`
+
+**Purpose:** Handles the previous text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `previous`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await previousCommand.ExecuteAsync(message);
+```
+
+---
+
+### ResumeCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/ResumeCommand.cs`
+
+**Purpose:** Handles the resume text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `resume`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await resumeCommand.ExecuteAsync(message);
+```
+
+---
+
+### SkipCommand
+
+**File:** `DC bot/Commands/TextCommands/Music/SkipCommand.cs`
+
+**Purpose:** Handles the skip text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `skip`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await skipCommand.ExecuteAsync(message);
+```
+
+---
+
+## Persistent Voice Command
+
+### TwentyFourSevenCommand
+
+**File:** `TwentyFourSevenCommand.cs`
+
+**Purpose:** Displays or changes the guild's saved twenty-four-seven voice preferences.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+```text
+!24-7
+!24-7 true
+!24-7 false
+```
+
+The first form displays the saved mode. Enabling validates the caller's voice membership and establishes or validates a player before saving its channel. Disabling only changes the saved flag and retains preferred channels.
+
+**Validation Checks:**
+
+- Ignore bot authors and reject non-guild messages.
+- Accept only one boolean argument when changing the mode.
+- Status and disable operations do not require voice membership.
+- Join validation failures use the existing validation response; unexpected failures produce a localized error.
+- The separate persistent voice worker monitors enabled guilds and restores confirmed playback checkpoints without requiring another listener.
+- `leave` routes through `PersistentVoiceLeaveService`: save disabled mode first, then complete owned cleanup and close the batch. Cancelling the command wait does not abandon admitted leave.
+
+---
 
 ## Related Components
 
-- `Interface/ICommand.cs` - Command contract
-- `Interface/Core/ICommandHelper.cs` - Command helper contract
-- `Service/Core/CommandValidationService.cs` - Command helper implementation
-- `Service/Music/MusicServices/` - Queue, repeat, track handling
-- `Service/Music/LavaLinkService.cs` - Main playback orchestration
+- `DC bot/Commands/TextCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Interface/Core/` — Defines command lookup, argument helpers, and user/player validation boundaries.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

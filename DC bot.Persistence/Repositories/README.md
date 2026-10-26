@@ -1,55 +1,159 @@
-# Persistence Repositories
+# Repositories
 
-This folder contains repository implementations for persistence contracts.
+Implements shared storage contracts with EF Core and PostgreSQL-specific concurrency and notification behavior.
 
-## Why This Folder Exists
+## Overview
 
-Repositories are the only normal application code that should know both sides of the persistence boundary:
-
-- contract interfaces and records from `DC bot.Contracts`
-- EF Core context, entities, and mapping behavior from this project
-
-That makes repositories the translation layer between service-friendly methods and database operations.
+- Repositories open short-lived contexts, map entities to contract records, and publish change signals where required. Feature folders separate command, playback, queue, profile, and playlist storage.
+- Services consume contracts rather than tracked entities. Serializable retries and rollback cleanup are shared infrastructure concerns, not command-handler logic.
 
 ## Subfolders
 
-### Guilds
+### BotControl/
 
-Guild data and premium state repository implementation.
+Implements shared storage operations for durable bot commands, their claim/completion state, and cross-process change signals.
 
-### Playback
+**Files:**
 
-Playback state and repeat-list repository implementations.
+- `BotControlCommandsRepository.cs`
+- `PostgreSqlBotControlCommandNotifier.cs`
 
-### Queue
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 
-Queue repository implementation and queue claim helpers.
+---
 
-### Playlists
+### GuildBotStatus/
 
-Saved playlist and playlist track repository implementations.
+Implements shared storage operations for persisted bot voice presence, channel display metadata, and voice-user counts.
 
-### MobileApps
+**Files:**
 
-Mobile app user, user-guild access, and refresh session repository implementations.
+- `GuildBotStatusRealtimeNotifier.cs`
+- `GuildBotStatusRepository.cs`
 
-### BotControl
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 
-API-to-bot command bridge repository implementation.
+---
 
-### Status
+### Guilds/
 
-Database status repository implementation.
+Implements shared storage operations for guild defaults, premium state, and the mapped premium-audit schema.
 
-## How Repositories Should Behave
+**Files:**
 
-Repository methods should express use cases rather than raw table access. For example, `ClaimNextQueuedItemAsync` is better than exposing a generic "update queue row" method because the operation has concurrency rules that belong inside the repository implementation.
+- `GuildDataBootstrapper.cs`
+- `GuildDataRepository.cs`
 
-Use short-lived contexts from `IDbContextFactory<BotDbContext>`. Keep transactions close to the operation that needs atomic behavior.
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 
-## Maintenance Notes
+---
 
-- Repositories use `IDbContextFactory<BotDbContext>` and short-lived contexts.
-- Guild IDs are represented as `ulong` in repository contracts and EF entities.
-- Queue item state is represented as `QueueItemState` in repository code and converted to the `short` database value by EF configuration.
-- Repository namespaces remain stable even though files are feature-scoped physically.
+### MobileApps/
+
+Implements shared storage operations for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+
+**Files:**
+
+- `MobileAppSessionRepository.cs`
+- `MobileAppUserRepository.cs`
+- `MobileRealtimeMembershipRepository.cs`
+
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
+
+---
+
+### MobileAppUserSettings/
+
+Implements shared storage operations for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+
+**Files:**
+
+- `MobileAppUserSettingsRepository.cs`
+
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
+
+---
+
+### Playback/
+
+Implements shared storage operations for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `PlaybackRealtimeNotifier.cs`
+- `PlaybackStateRepository.cs`
+- `RepeatListRepository.cs`
+
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
+
+---
+
+### Playlists/
+
+Implements shared storage operations for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `PlaylistRepository.cs`
+- `PlaylistTrackRepository.cs`
+
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
+
+---
+
+### Queue/
+
+Implements shared storage operations for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `QueueBatchRepository.cs`
+- `QueueBatchStore.cs`
+- `QueueClaimService.cs`
+- `QueueItemMapper.cs`
+- `QueueRealtimeNotifier.cs`
+- `QueueRepository.cs`
+
+**Purpose:** Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
+
+---
+
+### Shared/
+
+Provides PostgreSQL transaction retries and owned rollback handling shared by repositories.
+
+**Files:**
+
+- `PostgreSqlConcurrencyHelper.cs`
+- `TransactionCleanup.cs`
+
+**Purpose:** PostgreSqlConcurrencyHelper retries supported concurrency conflicts. TransactionCleanup attempts rollback with a fresh five-second deadline even if the caller was cancelled.
+
+---
+
+### Status/
+
+Implements IDbStatusCheck without requiring a feature-specific data query.
+
+**Files:**
+
+- `DbStatusCheck.cs`
+
+**Purpose:** DbStatusCheck creates a context through the factory and calls the provider's connectivity check with caller cancellation.
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/Repositories/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/GuildBotStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Guilds/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/MobileApps/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/MobileAppUserSettings/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Shared/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Repositories/Status/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

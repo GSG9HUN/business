@@ -1,37 +1,23 @@
-﻿# Properties
+# Properties
 
-This folder contains assembly-level project properties.
+Contains assembly-level metadata for supported internal test access.
 
-## Why This Folder Exists
+## Overview
 
-The `Properties` folder is the conventional place for assembly-level metadata in .NET projects. It is not part of bot runtime behavior; it only describes compiled assembly attributes.
+- AssemblyInfo.cs exposes internal implementation details to the test assembly without making those types public application APIs.
+- Keep friend-assembly declarations limited to intentional testing boundaries. This folder does not register runtime services.
 
-Most metadata can now live in the `.csproj`, so this folder should stay small.
-
-## Files
+## Assembly Metadata
 
 ### AssemblyInfo.cs
 
-**Purpose:** Assembly metadata and attributes.
+**File:** `DC bot/Properties/AssemblyInfo.cs`
 
-**Contains:**
-
-- Assembly version information
-- Company and product information
-- Copyright and license details
-
-**Note:** Most metadata is now defined in `.csproj` file rather than code.
-
-## When To Change This
-
-Change this folder only when assembly-level attributes are needed and they cannot be represented cleanly in `DC bot.csproj`.
-
-Do not add runtime configuration, DI setup, bot settings, or command metadata here.
+**Purpose:** Declares friend-assembly access used by the local test project without turning internal helpers into public runtime APIs.
 
 ---
 
 ## Related Components
 
-- **DC bot.csproj** - Project configuration
-- **Program.cs** - Application entry point
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

@@ -5,9 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Repositories.MobileApps;
 
-public class MobileRealtimeMembershipRepository(IDbContextFactory<BotDbContext> dbContextFactory)
-    : IMobileRealtimeMembershipRepository
+/// <summary>
+/// Reads and mutates mobile realtime membership state using short-lived contexts from the injected EF factory.
+/// </summary>
+/// <param name = "dbContextFactory">The injected factory used to create a fresh context for each operation or transaction attempt.</param>
+public class MobileRealtimeMembershipRepository(
+    IDbContextFactory<BotDbContext> dbContextFactory) : IMobileRealtimeMembershipRepository
 {
+
+    /// <inheritdoc/>
     public async Task UpsertGuildMembershipAsync(
         string connectionId,
         ulong discordUserId,
@@ -15,21 +21,11 @@ public class MobileRealtimeMembershipRepository(IDbContextFactory<BotDbContext> 
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        var existing = await dbContext.MobileRealtimeGuildMemberships
-            .FirstOrDefaultAsync(
-                membership => membership.ConnectionId == connectionId && membership.GuildId == guildId,
-                cancellationToken);
+        var existing = await dbContext.MobileRealtimeGuildMemberships.FirstOrDefaultAsync(membership => membership.ConnectionId == connectionId && membership.GuildId == guildId, cancellationToken);
 
         if (existing is null)
         {
-            dbContext.MobileRealtimeGuildMemberships.Add(new MobileRealtimeGuildMembershipEntity
-            {
-                ConnectionId = connectionId,
-                DiscordUserId = discordUserId,
-                GuildId = guildId,
-                JoinedAtUtc = DateTimeOffset.UtcNow
-            });
+            dbContext.MobileRealtimeGuildMemberships.Add(new MobileRealtimeGuildMembershipEntity { ConnectionId = connectionId, DiscordUserId = discordUserId, GuildId = guildId, JoinedAtUtc = DateTimeOffset.UtcNow });
         }
         else
         {
@@ -40,6 +36,7 @@ public class MobileRealtimeMembershipRepository(IDbContextFactory<BotDbContext> 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc/>
     public async Task RemoveGuildMembershipAsync(
         string connectionId,
         ulong discordUserId,
@@ -47,40 +44,27 @@ public class MobileRealtimeMembershipRepository(IDbContextFactory<BotDbContext> 
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        await dbContext.MobileRealtimeGuildMemberships
-            .Where(membership =>
-                membership.ConnectionId == connectionId &&
-                membership.DiscordUserId == discordUserId &&
-                membership.GuildId == guildId)
+        await dbContext.MobileRealtimeGuildMemberships.Where(membership => membership.ConnectionId == connectionId && membership.DiscordUserId == discordUserId && membership.GuildId == guildId)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
-    public async Task RemoveConnectionMembershipsAsync(
-        string connectionId,
-        CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task RemoveConnectionMembershipsAsync(string connectionId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        await dbContext.MobileRealtimeGuildMemberships
-            .Where(membership => membership.ConnectionId == connectionId)
+        await dbContext.MobileRealtimeGuildMemberships.Where(membership => membership.ConnectionId == connectionId)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<ulong>> GetAuthorizedSubscribedUserIdsAsync(
         ulong guildId,
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        return await dbContext.MobileRealtimeGuildMemberships
-            .AsNoTracking()
+        return await dbContext.MobileRealtimeGuildMemberships.AsNoTracking()
             .Where(membership => membership.GuildId == guildId)
-            .Join(
-                dbContext.UserGuilds.AsNoTracking(),
-                membership => new { membership.DiscordUserId, membership.GuildId },
-                access => new { access.DiscordUserId, access.GuildId },
-                (membership, _) => membership.DiscordUserId)
+            .Join(dbContext.UserGuilds.AsNoTracking(), membership => new { membership.DiscordUserId, membership.GuildId }, access => new { access.DiscordUserId, access.GuildId }, (membership, _) => membership.DiscordUserId)
             .Distinct()
             .ToListAsync(cancellationToken);
     }

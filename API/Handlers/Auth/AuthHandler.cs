@@ -7,23 +7,44 @@ using API.Services.Auth;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.MobileAppUserSettings;
 using DC_bot.Interface.Service.Persistence.Models.MobileApps;
+using Microsoft.Extensions.Options;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers.Auth;
 
+/// <summary>
+/// Coordinates Discord OAuth callbacks, mobile login tickets, refresh rotation, and logout.
+/// </summary>
 public static class AuthHandler
 {
-    public static Task<IResult> DiscordStart(
-        DiscordOAuthService discordOAuthService,
-        OAuthStateStore stateStore)
+
+    /// <summary>
+    /// Creates a cached OAuth state and returns the Discord authorization URL without network I/O.
+    /// </summary>
+    /// <param name="discordOAuthService">The injected discord oauth service dependency.</param>
+    /// <param name="stateStore">The injected state store dependency.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
+    public static Task<IResult> DiscordStart(DiscordOAuthService discordOAuthService, OAuthStateStore stateStore)
     {
         var state = stateStore.Create();
         var authorizeUrl = discordOAuthService.CreateAuthorizeUrl(state);
         ApiResult<object> result = ApiResult<object>.Ok(new { AuthorizeUrl = authorizeUrl });
-
         return Task.FromResult(DomainToHttpMapper.ToHttpResult(result));
     }
 
+    /// <summary>
+    /// Consumes OAuth state, synchronizes the Discord user and guilds, and redirects with a mobile login ticket.
+    /// </summary>
+    /// <param name="code">The code value for this operation.</param>
+    /// <param name="state">The state value for this operation.</param>
+    /// <param name="discordOAuthService">The injected discord oauth service dependency.</param>
+    /// <param name="stateStore">The injected state store dependency.</param>
+    /// <param name="ticketStore">The injected ticket store dependency.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="settingsRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="options">The injected typed configuration for this component.</param>
+    /// <param name="ct">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> DiscordCallback(
         string code,
         string state,
@@ -32,7 +53,7 @@ public static class AuthHandler
         AuthTicketStore ticketStore,
         IMobileAppUserRepository userRepository,
         IMobileAppUserSettingsRepository settingsRepository,
-        IConfiguration configuration,
+        IOptions<DiscordOAuthOptions> options,
         CancellationToken ct)
     {
         ApiResult<object> result;
@@ -46,36 +67,26 @@ public static class AuthHandler
         var token = await discordOAuthService.ExchangeCodeAsync(code, ct);
         var discordUser = await discordOAuthService.GetCurrentUserAsync(token.AccessToken, ct);
         var discordGuilds = await discordOAuthService.GetCurrentUserGuildsAsync(token.AccessToken, ct);
-
         var discordUserId = ulong.Parse(discordUser.Id);
-
-        await userRepository.UpsertUserAsync(
-            new MobileAppUserUpsertRecord(
-                discordUserId,
-                discordUser.Username,
-                discordUser.GlobalName,
-                discordUser.Avatar),
-            ct);
-
+        await userRepository.UpsertUserAsync(new MobileAppUserUpsertRecord(discordUserId, discordUser.Username, discordUser.GlobalName, discordUser.Avatar), ct);
         await settingsRepository.EnsureExistsAsync(discordUserId, ct);
-        
-        var guildRecords = discordGuilds
-            .Select(guild => new MobileAppUserGuildUpsertRecord(
-                ulong.Parse(guild.Id),
-                guild.Name,
-                guild.Icon,
-                guild.Permissions,
-                guild.Owner))
+        var guildRecords = discordGuilds.Select(guild => new MobileAppUserGuildUpsertRecord(ulong.Parse(guild.Id), guild.Name, guild.Icon, guild.Permissions, guild.Owner))
             .ToList();
-
         await userRepository.SyncUserGuildsAsync(discordUserId, guildRecords, ct);
-
         var ticket = ticketStore.Create(discordUserId);
-        var androidRedirectUri = configuration["DiscordOAuth:AndroidRedirectUri"] ?? "myapp://auth";
-
+        var androidRedirectUri = options.Value.AndroidRedirectUri;
         return HttpResults.Redirect($"{androidRedirectUri}?ticket={Uri.EscapeDataString(ticket)}");
     }
 
+    /// <summary>
+    /// Consumes a mobile login ticket, persists a session, and returns access and refresh tokens.
+    /// </summary>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="ticketStore">The injected ticket store dependency.</param>
+    /// <param name="tokenService">The injected token service dependency.</param>
+    /// <param name="sessionRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="ct">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> Exchange(
         ExchangeRequest request,
         AuthTicketStore ticketStore,
@@ -84,6 +95,7 @@ public static class AuthHandler
         CancellationToken ct)
     {
         ApiResult<object> result;
+
         if (!ticketStore.Consume(request.Ticket, out var discordUserId))
         {
             result = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized.");
@@ -97,16 +109,18 @@ public static class AuthHandler
         var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds)
             .ToUnixTimeMilliseconds();
         await sessionRepository.CreateAsync(sessionId, discordUserId, refreshTokenHash, refreshExpiresAt, ct);
-
-        result = ApiResult<object>.Ok(new AuthSessionResponse(
-            tokenService.CreateAccessToken(sessionId, discordUserId),
-            refreshToken,
-            AppTokenService.AccessTokenExpiresInSeconds,
-            expiresAtMillis
-        ));
+        result = ApiResult<object>.Ok(new AuthSessionResponse(tokenService.CreateAccessToken(sessionId, discordUserId), refreshToken, AppTokenService.AccessTokenExpiresInSeconds, expiresAtMillis));
         return DomainToHttpMapper.ToHttpResult(result);
     }
 
+    /// <summary>
+    /// Validates a stored refresh session and conditionally rotates its refresh-token hash before issuing tokens.
+    /// </summary>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="tokenService">The injected token service dependency.</param>
+    /// <param name="sessionRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="ct">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> Refresh(
         RefreshRequest request,
         AppTokenService tokenService,
@@ -117,8 +131,9 @@ public static class AuthHandler
         var oldHash = tokenService.HashRefreshToken(request.RefreshToken);
         var session = await sessionRepository.GetByRefreshTokenHashAsync(oldHash, ct);
 
-        if (session is null || session.RevokedAtUtc is not null ||
-            session.RefreshTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
+        if (session is null
+            || session.RevokedAtUtc is not null
+            || session.RefreshTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
         {
             result = ApiResult<object>.Fail(ApiErrorCode.Unauthorized, "Unauthorized.");
             return DomainToHttpMapper.ToHttpResult(result);
@@ -127,14 +142,9 @@ public static class AuthHandler
         var newRefreshToken = tokenService.CreateRefreshToken();
         var newHash = tokenService.HashRefreshToken(newRefreshToken);
         var newRefreshExpiresAt = DateTimeOffset.UtcNow.AddDays(30);
-        var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds).ToUnixTimeMilliseconds();
-            
-        var rotated = await sessionRepository.RotateRefreshTokenAsync(
-            session.SessionId,
-            oldHash,
-            newHash,
-            newRefreshExpiresAt,
-            ct);
+        var expiresAtMillis = DateTimeOffset.UtcNow.AddSeconds(AppTokenService.AccessTokenExpiresInSeconds)
+            .ToUnixTimeMilliseconds();
+        var rotated = await sessionRepository.RotateRefreshTokenAsync(session.SessionId, oldHash, newHash, newRefreshExpiresAt, ct);
 
         if (!rotated)
         {
@@ -142,15 +152,18 @@ public static class AuthHandler
             return DomainToHttpMapper.ToHttpResult(result);
         }
 
-        result = ApiResult<object>.Ok(new AuthSessionResponse(
-            tokenService.CreateAccessToken(session.SessionId, session.DiscordUserId),
-            newRefreshToken,
-            AppTokenService.AccessTokenExpiresInSeconds,
-            expiresAtMillis));
-
+        result = ApiResult<object>.Ok(new AuthSessionResponse(tokenService.CreateAccessToken(session.SessionId, session.DiscordUserId), newRefreshToken, AppTokenService.AccessTokenExpiresInSeconds, expiresAtMillis));
         return DomainToHttpMapper.ToHttpResult(result);
     }
 
+    /// <summary>
+    /// Revokes the session identified by the supplied refresh token when it exists.
+    /// </summary>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="tokenService">The injected token service dependency.</param>
+    /// <param name="sessionRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="ct">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> Logout(
         RefreshRequest request,
         AppTokenService tokenService,

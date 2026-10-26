@@ -1,31 +1,103 @@
-# Mobile App Entities
+# MobileApps
 
-This folder contains mobile app authentication and access EF Core entities.
+Represents the database rows used for mobile identities, guild access, refresh sessions, and realtime subscription membership.
 
-## Why This Folder Exists
+## Overview
 
-Discord login gives the API external identity data, but the app needs its own persisted users, guild access links, and refresh sessions. These entities represent that mobile app auth data in the database.
+- Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+- Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 
-## Files
+## Classes
 
-### MobileAppUserEntity.cs
+### MobileAppSessionEntity
 
-Stores Discord user profile data used by the mobile app.
+**File:** `DC bot.Persistence/Entities/MobileApps/MobileAppSessionEntity.cs`
 
-### UserGuildEntity.cs
+**Purpose:** Represents the persisted mobile app session row mapped by the EF Core model.
 
-Join entity linking a Discord user to guilds that exist in `guild_data`.
+**Properties:**
 
-### MobileAppSessionEntity.cs
+```csharp
+// The identifier of the mobile application session.
+public Guid SessionId { get; set; }
+public ulong DiscordUserId { get; set; }
+public string RefreshTokenHash { get; set; }
+public DateTimeOffset CreatedAtUtc { get; set; }
+public DateTimeOffset LastRefreshedAtUtc { get; set; }
+public DateTimeOffset RefreshTokenExpiresAtUtc { get; set; }
+public DateTimeOffset? RevokedAtUtc { get; set; }
+public MobileAppUserEntity User { get; set; }
+```
 
-Stores refresh session metadata and refresh token hashes.
+---
 
-## What The Entities Represent
+### MobileAppUserEntity
 
-`MobileAppUserEntity` stores the Discord profile fields needed by the app. `UserGuildEntity` is the join row that says which known guilds the user can access. `MobileAppSessionEntity` represents one refresh session for one device/login.
+**File:** `DC bot.Persistence/Entities/MobileApps/MobileAppUserEntity.cs`
 
-## Maintenance Notes
+**Purpose:** Represents the persisted mobile app user row mapped by the EF Core model.
 
-- `DiscordUserId` is the primary identifier for mobile app users.
-- `UserGuildEntity` represents access, not a full user list on the guild.
-- Refresh tokens are stored as hashes only.
+**Properties:**
+
+```csharp
+// The Discord user identifier.
+public ulong DiscordUserId { get; set; }
+public string Username { get; set; }
+public string? GlobalName { get; set; }
+public string? AvatarHash { get; set; }
+public DateTimeOffset CreatedAtUtc { get; set; }
+public DateTimeOffset LastLoginAtUtc { get; set; }
+public ICollection<UserGuildEntity> Guilds { get; set; }
+public MobileAppUserSettingsEntity? Settings { get; set; }
+```
+
+---
+
+### MobileRealtimeGuildMembershipEntity
+
+**File:** `DC bot.Persistence/Entities/MobileApps/MobileRealtimeGuildMembershipEntity.cs`
+
+**Purpose:** Represents the persisted mobile realtime guild membership row mapped by the EF Core model.
+
+**Properties:**
+
+```csharp
+// The SignalR connection identifier associated with this membership.
+public string ConnectionId { get; set; }
+public ulong DiscordUserId { get; set; }
+public ulong GuildId { get; set; }
+public DateTimeOffset JoinedAtUtc { get; set; }
+```
+
+---
+
+### UserGuildEntity
+
+**File:** `DC bot.Persistence/Entities/MobileApps/UserGuildEntity.cs`
+
+**Purpose:** Represents the persisted user guild row mapped by the EF Core model.
+
+**Properties:**
+
+```csharp
+// The Discord user identifier.
+public ulong DiscordUserId { get; set; }
+public ulong GuildId { get; set; }
+public ulong Permissions { get; set; }
+public bool IsOwner { get; set; }
+public string Name { get; set; }
+public string? IconHash { get; set; }
+public DateTimeOffset LastSeenAtUtc { get; set; }
+public MobileAppUserEntity User { get; set; }
+public GuildDataEntity Guild { get; set; }
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Entities/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Entities/Guilds/` — Represents the database rows used for guild defaults, premium state, and the mapped premium-audit schema.
+- `DC bot.Persistence/Entities/MobileAppUserSettings/` — Represents the database rows used for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

@@ -1,41 +1,103 @@
-# Mobile App Models
+# MobileApps
 
-This folder contains mobile app user and session persistence records.
+Defines shared records and state values for mobile identities, guild access, refresh sessions, and realtime subscription membership.
 
-## Why This Folder Exists
+## Overview
 
-The mobile app auth flow has data that is not the same as an API request and not the same as an EF entity. These records describe what crosses the repository boundary during Discord login, guild sync, and refresh-session handling.
+- Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+- Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 
-## Files
+## Models and Results
 
-### MobileAppUserRecord.cs
+### MobileAppSessionRecord
 
-Immutable mobile app user record.
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/MobileAppSessionRecord.cs`
 
-### MobileAppUserUpsertRecord.cs
+**Purpose:** Carries immutable mobile app session values across the shared storage or mobile-command boundary.
 
-Input record for inserting or updating a mobile app user.
+**Record declaration:**
 
-### MobileAppUserGuildRecord.cs
+```csharp
+public sealed record MobileAppSessionRecord(
+    Guid SessionId,
+    ulong DiscordUserId,
+    string RefreshTokenHash,
+    DateTimeOffset RefreshTokenExpiresAtUtc,
+    DateTimeOffset? RevokedAtUtc);
+```
 
-Immutable record describing one guild visible to a mobile app user.
+---
 
-### MobileAppUserGuildUpsertRecord.cs
+### MobileAppUserGuildRecord
 
-Input record for syncing a user's visible guild list.
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/MobileAppUserGuildRecord.cs`
 
-### MobileAppSessionRecord.cs
+**Purpose:** Carries immutable mobile app user guild values across the shared storage or mobile-command boundary.
 
-Immutable refresh session record.
+**Record declaration:**
 
-## Flow Context
+```csharp
+public sealed record MobileAppUserGuildRecord(
+    ulong GuildId,
+    string Name,
+    string? IconHash,
+    ulong Permissions,
+    bool IsOwner,
+    DateTimeOffset LastSeenAtUtc);
+```
 
-During login, Discord user data is converted into `MobileAppUserUpsertRecord`. Guild data from Discord is converted into `MobileAppUserGuildUpsertRecord`, then the repository stores only guild links that match guilds known by the bot.
+---
 
-When the app refreshes its session, the API uses `MobileAppSessionRecord` to validate expiry/revocation and rotate the stored refresh token hash.
+### MobileAppUserGuildUpsertRecord
 
-## Maintenance Notes
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/MobileAppUserGuildUpsertRecord.cs`
 
-- These models represent Discord login/session data at the persistence contract boundary.
-- Store token hashes and session metadata here, not raw refresh token values.
-- Keep API response formatting in `API/Responses/Auth`.
+**Purpose:** Carries immutable mobile app user guild upsert values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record MobileAppUserGuildUpsertRecord(ulong GuildId, string Name, string? IconHash, ulong Permissions, bool IsOwner);
+```
+
+---
+
+### MobileAppUserRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/MobileAppUserRecord.cs`
+
+**Purpose:** Carries immutable mobile app user values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record MobileAppUserRecord(
+    ulong DiscordUserId,
+    string Username,
+    string? GlobalName,
+    string? AvatarHash,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset LastLoginAtUtc);
+```
+
+---
+
+### MobileAppUserUpsertRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/MobileApps/MobileAppUserUpsertRecord.cs`
+
+**Purpose:** Carries immutable mobile app user upsert values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record MobileAppUserUpsertRecord(ulong DiscordUserId, string Username, string? GlobalName, string? AvatarHash);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

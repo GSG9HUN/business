@@ -1,27 +1,50 @@
-# Queue Requests
+# Queue
 
-This folder contains request DTOs for queue operations.
+Defines client-supplied input for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
 
-## Why This Folder Exists
+## Overview
 
-Queue write endpoints need client input such as a URL, search query, or requested search mode. This folder keeps that HTTP input shape separate from queue persistence records and bot-control command records.
+- Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+- Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
 
-## Files
+## Classes
 
-### EnqueueRequest.cs
+### EnqueueRequest
 
-Carries a query or URL and optional search mode for adding media to a guild queue.
+**File:** `API/Requests/Queue/EnqueueRequest.cs`
 
-Fields:
+**Purpose:** Carries client input for enqueue processing; handlers and endpoint filters validate its values.
 
-- `Query` - search query, track URL, or playlist URL
-- `SearchMode` - optional client-selected search behavior
+**Properties:**
 
-## Flow Context
+```csharp
+// The search query or track URL.
+public string Query { get; init; }
+public string? SearchMode { get; init; }
+public string? VoiceChannelId { get; init; }
+public string? TextChannelId { get; init; }
+```
 
-The API receives this request, validates route/user context, and then maps the work into the correct command or service flow. The request object itself should not know how playback, queue persistence, or bot command dispatch works.
+**Methods:**
 
-## Maintenance Notes
+- `Deconstruct` — Exposes the request values through tuple-style deconstruction without validation or normalization.
 
-- Queue size and playback rules are enforced by service/repository layers, not by this DTO.
-- Keep this DTO focused on client input only.
+```csharp
+public void Deconstruct(out string query, out string? searchMode);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+enqueueRequest.Deconstruct(out var query, out var searchMode);
+```
+
+---
+
+## Related Components
+
+- `API/Requests/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

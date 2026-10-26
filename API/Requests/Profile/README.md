@@ -1,26 +1,35 @@
-# Profile Requests
+# Profile
 
-This folder contains request DTOs for authenticated mobile profile settings endpoints.
+Defines client-supplied input for mobile user identity and optional preference updates.
 
-## Why This Folder Exists
+## Overview
 
-Profile settings updates are HTTP input from Android. They should stay separate from persistence records because a client update can be partial, while persistence records represent the full saved settings state.
+- Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+- Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
 
-## Files
+## Models and Results
 
-### UpdateProfileSettingsRequest.cs
+### UpdateProfileSettingsRequest
 
-Request body for `PATCH /api/profile/settings`.
+**File:** `API/Requests/Profile/UpdateProfileSettingsRequest.cs`
 
-Fields:
+**Purpose:** Carries client input for update profile settings processing; handlers and endpoint filters validate its values.
 
-- `LanguageCode` - optional language code
-- `Theme` - optional app theme value
-- `HapticFeedbackEnabled` - optional haptic feedback toggle
-- `SoundEffectsEnabled` - optional sound effects toggle
-- `TelemetryEnabled` - optional telemetry toggle
+**Record declaration:**
 
-## Maintenance Notes
+```csharp
+public sealed record UpdateProfileSettingsRequest(
+    string? LanguageCode,
+    string? Theme,
+    bool? HapticFeedbackEnabled,
+    bool? SoundEffectsEnabled,
+    bool? TelemetryEnabled);
+```
 
-- Nullable fields mean "leave unchanged".
-- The authenticated Discord user ID must come from JWT claims, not the request body.
+---
+
+## Related Components
+
+- `API/Requests/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

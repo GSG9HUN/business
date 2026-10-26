@@ -1,34 +1,44 @@
-# Auth Requests
+# Auth
 
-This folder contains request DTOs for mobile authentication endpoints.
+Defines client-supplied input for application access/refresh tokens and short-lived login exchange input.
 
-## Why This Folder Exists
+## Overview
 
-The mobile auth flow has client-provided values that should be treated as HTTP input, not persistence records. A one-time ticket and a refresh token are transport values coming from Android, and handlers decide how to validate and use them.
+- Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+- Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
 
-## Files
+## Models and Results
 
-### ExchangeRequest.cs
+### ExchangeRequest
 
-Request body for `/api/auth/exchange`.
+**File:** `API/Requests/Auth/ExchangeRequest.cs`
 
-Fields:
+**Purpose:** Carries client input for exchange processing; handlers and endpoint filters validate its values.
 
-- `Ticket` - one-time ticket issued by the Discord callback redirect flow
+**Record declaration:**
 
-### RefreshRequest.cs
+```csharp
+public sealed record ExchangeRequest(string Ticket);
+```
 
-Request body for `/api/auth/refresh` and `/api/auth/logout`.
+---
 
-Fields:
+### RefreshRequest
 
-- `RefreshToken` - opaque mobile app refresh token
+**File:** `API/Requests/Auth/RefreshRequest.cs`
 
-## Flow Context
+**Purpose:** Carries client input for refresh processing; handlers and endpoint filters validate its values.
 
-`ExchangeRequest` is used after Discord callback redirect gives Android a one-time ticket. `RefreshRequest` is used when Android rotates or revokes its app session.
+**Record declaration:**
 
-## Maintenance Notes
+```csharp
+public sealed record RefreshRequest(string RefreshToken);
+```
 
-- Refresh tokens are sent by the client but stored server-side only as hashes.
-- Tickets should be short-lived and single-use.
+---
+
+## Related Components
+
+- `API/Requests/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

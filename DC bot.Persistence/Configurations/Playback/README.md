@@ -1,32 +1,122 @@
-# Playback Configurations
+# Playback
 
-This folder contains EF Core mappings for playback entities.
+Defines EF Core table mappings for current playback state, repeat flags, start ownership, and canonical batch metadata.
 
-## Why This Folder Exists
+## Overview
 
-Playback state has one-row-per-guild behavior, while repeat-list items are ordered child rows. Those two persistence shapes need different constraints and relationships.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-Keeping their mappings together makes the playback schema easier to reason about.
+## Classes
 
-## Files
+### GuildPlaybackStateConfiguration
 
-### GuildPlaybackStateConfiguration.cs
+**File:** `DC bot.Persistence/Configurations/Playback/GuildPlaybackStateConfiguration.cs`
 
-Maps playback state columns and relationships.
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for guild playback state.
 
-### GuildRepeatListItemConfiguration.cs
+**Implements / inherits:** `IEntityTypeConfiguration<GuildPlaybackStateEntity>`.
 
-Maps repeat-list rows and ordering constraints.
+**Methods:**
 
-## What To Keep Here
+- `Configure` — Implements `Configure` using the contract shown below.
 
-- playback state table mapping
-- repeat flag column mapping
-- current track and current queue item columns
-- repeat-list ordering constraints
-- guild relationships for playback tables
+```csharp
+public void Configure(EntityTypeBuilder<GuildPlaybackStateEntity> builder);
+```
 
-## Maintenance Notes
+**Usage:**
 
-- Playback state is one row per guild.
-- Repeat-list items are ordered within a guild.
+The caller supplies the component and argument values used in this example.
+
+```csharp
+guildPlaybackStateConfiguration.Configure(builder);
+```
+
+---
+
+### GuildRepeatListItemConfiguration
+
+**File:** `DC bot.Persistence/Configurations/Playback/GuildRepeatListItemConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for guild repeat list item.
+
+**Implements / inherits:** `IEntityTypeConfiguration<GuildRepeatListItemEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<GuildRepeatListItemEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+guildRepeatListItemConfiguration.Configure(builder);
+```
+
+---
+
+### PlaybackBatchConfiguration
+
+**File:** `DC bot.Persistence/Configurations/Playback/PlaybackBatchConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for playback batch.
+
+**Implements / inherits:** `IEntityTypeConfiguration<PlaybackBatchEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<PlaybackBatchEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+playbackBatchConfiguration.Configure(builder);
+```
+
+---
+
+### PlaybackBatchItemConfiguration
+
+**File:** `DC bot.Persistence/Configurations/Playback/PlaybackBatchItemConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for playback batch item.
+
+**Implements / inherits:** `IEntityTypeConfiguration<PlaybackBatchItemEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<PlaybackBatchItemEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+playbackBatchItemConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/Playback/` — Represents the database rows used for current playback state, repeat flags, start ownership, and canonical batch metadata.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

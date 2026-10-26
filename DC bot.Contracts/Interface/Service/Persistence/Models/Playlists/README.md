@@ -1,35 +1,78 @@
-# Playlist Models
+# Playlists
 
-This folder contains saved playlist persistence records.
+Defines shared records and state values for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Why This Folder Exists
+## Overview
 
-Playlist services need data for two different views: playlist metadata and ordered playlist tracks. These records represent those views without exposing EF Core navigation properties or database table details.
+- Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+- Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 
-## Files
+## Models and Results
 
-### PlaylistRecord.cs
+### PlaylistRecord
 
-Immutable saved playlist detail record.
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/PlaylistRecord.cs`
 
-### PlaylistSummaryRecord.cs
+**Purpose:** Carries immutable playlist values across the shared storage or mobile-command boundary.
 
-Immutable saved playlist summary record with track count.
+**Record declaration:**
 
-### PlaylistTrackCreateRecord.cs
+```csharp
+public sealed record PlaylistRecord(long Id, ulong GuildId, string Name);
+```
 
-Input record used when adding tracks to a playlist.
+---
 
-### PlaylistTrackRecord.cs
+### PlaylistSummaryRecord
 
-Immutable saved playlist track record.
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/PlaylistSummaryRecord.cs`
 
-## Flow Context
+**Purpose:** Carries immutable playlist summary values across the shared storage or mobile-command boundary.
 
-`PlaylistSummaryRecord` supports list views without loading every track. `PlaylistRecord` and `PlaylistTrackRecord` support detail/load flows where ordered tracks are needed. `PlaylistTrackCreateRecord` is used when commands ask the repository to append tracks.
+**Record declaration:**
 
-## Maintenance Notes
+```csharp
+public sealed record PlaylistSummaryRecord(long Id, ulong GuildId, string Name, int TrackCount);
+```
 
-- Playlist models are used by playlist services instead of EF Core entities.
-- Keep playlist ordering explicit through order numbers.
-- Do not add API-only formatting fields here.
+---
+
+### PlaylistTrackCreateRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/PlaylistTrackCreateRecord.cs`
+
+**Purpose:** Carries immutable playlist track create values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record PlaylistTrackCreateRecord(string Source, string TrackIdentifier, string TrackUri);
+```
+
+---
+
+### PlaylistTrackRecord
+
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Playlists/PlaylistTrackRecord.cs`
+
+**Purpose:** Carries immutable playlist track values across the shared storage or mobile-command boundary.
+
+**Record declaration:**
+
+```csharp
+public sealed record PlaylistTrackRecord(
+    long Id,
+    long PlaylistId,
+    int OrderNumber,
+    string Source,
+    string TrackIdentifier,
+    string TrackUri);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

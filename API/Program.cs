@@ -14,6 +14,7 @@ using DC_bot.DependencyInjection;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 
 LoadDotEnv();
 
@@ -43,6 +44,19 @@ builder.Services.AddOpenApi();
 builder.Services.AddPersistenceServices(postgresConnectionString);
 builder.Services.AddMemoryCache();
 builder.Services.AddMusicSearch(builder.Configuration);
+builder.Services.AddOptions<AppAuthOptions>()
+    .Bind(builder.Configuration.GetSection("AppAuth"))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey)
+        && !string.IsNullOrWhiteSpace(options.Issuer)
+        && !string.IsNullOrWhiteSpace(options.Audience), "AppAuth settings are required.")
+    .ValidateOnStart();
+builder.Services.AddOptions<DiscordOAuthOptions>()
+    .Bind(builder.Configuration.GetSection("DiscordOAuth"))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.ClientId)
+        && !string.IsNullOrWhiteSpace(options.ClientSecret)
+        && !string.IsNullOrWhiteSpace(options.RedirectUri)
+        && !string.IsNullOrWhiteSpace(options.AndroidRedirectUri), "DiscordOAuth settings are required.")
+    .ValidateOnStart();
 
 builder.Services.AddHttpClient<DiscordOAuthService>();
 builder.Services.AddSingleton<AppTokenService>()
@@ -51,7 +65,7 @@ builder.Services.AddSingleton<AppTokenService>()
     .AddScoped<IBotControlRealtimePublisher, BotControlRealtimePublisher>()
     .AddScoped<IGuildRealtimePublisher, GuildRealtimePublisher>()
     .AddScoped<IPlaybackSnapshotService, PlaybackSnapshotService>()
-    .AddSingleton(new PostgresRealtimeOptions(postgresConnectionString))
+    .AddSingleton(Options.Create(new PostgresRealtimeOptions(postgresConnectionString)))
     .AddSingleton<AuthTicketStore>()
     .AddHostedService<MobileRealtimePostgresListener>();
 
@@ -81,8 +95,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
 
-                if (!string.IsNullOrEmpty(accessToken) && 
-                    path.StartsWithSegments("/hubs/mobile"))
+                if (!string.IsNullOrEmpty(accessToken)
+                    && path.StartsWithSegments("/hubs/mobile"))
                 {
                     context.Token = accessToken;
                 }
@@ -135,7 +149,8 @@ static void LoadDotEnv()
             continue;
         }
 
-        Env.NoClobber().Load(envPath);
+        Env.NoClobber()
+            .Load(envPath);
         return;
     }
 }
