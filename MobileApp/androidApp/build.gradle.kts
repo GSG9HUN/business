@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":feature:removesong:ui"))
     implementation(project(":feature:settings:presentation"))
     implementation(project(":feature:settings:ui"))
+    implementation(libs.androidx.fragment)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtimeCompose)

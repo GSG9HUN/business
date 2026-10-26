@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit = {},
+    appLockState: AppLockUiState = AppLockUiState(),
 ) {
 
     SetTopBarConfig(
@@ -72,6 +74,7 @@ fun ProfileScreen(
                 modifier = Modifier.padding(innerPadding),
                 uiState = uiState,
                 onEvent = onEvent,
+                appLockState = appLockState,
             )
         }
     }

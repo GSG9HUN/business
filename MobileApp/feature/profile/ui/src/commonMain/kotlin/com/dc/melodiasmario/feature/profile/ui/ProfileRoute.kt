@@ -9,6 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dc.melodiasmario.core.commonui.biometric.LocalAppLockController
+import com.dc.melodiasmario.core.commonui.biometric.rememberBiometricAuthentication
 import com.dc.melodiasmario.core.model.settings.UserSettings
 import com.dc.melodiasmario.core.commonui.selector.components.MOptionSelectorBottomSheet
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
@@ -41,6 +43,9 @@ fun ProfileRoute(
     toastHostState: MToastHostState,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
+    val appLockController = LocalAppLockController.current
+    val appLockState by appLockController.uiState.collectAsStateWithLifecycle()
+    val authenticate = rememberBiometricAuthentication()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var activeSelector by remember { mutableStateOf<ProfileSelectorType?>(null) }
     val profileSaveSuccessText = stringResource(Res.string.profile_save_success)
@@ -48,12 +53,20 @@ fun ProfileRoute(
     val logoutFailedText = stringResource(Res.string.profile_logout_failed)
     val logoutSuccessText = stringResource(Res.string.profile_logout_success)
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(
+        viewModel,
+        appLockController,
+        authenticate
+    ) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 ProfileEffect.NavigateBack -> onBack()
 
-                ProfileEffect.NavigateToLogin -> logout()
+                ProfileEffect.NavigateToLogin -> {
+                    if (appLockController.signOut()) {
+                        logout()
+                    }
+                }
 
                 ProfileEffect.OpenAppearanceSelector -> {
                     activeSelector = ProfileSelectorType.Theme
@@ -88,7 +101,6 @@ fun ProfileRoute(
                             type = MToastType.Error,
                         )
                     )
-
                 }
 
                 ProfileEffect.LogoutSuccess -> {
@@ -99,6 +111,13 @@ fun ProfileRoute(
                         )
                     )
                 }
+
+                is ProfileEffect.ChangeBiometricLock -> {
+                    appLockController.changeEnabled(
+                        enabled = effect.enabled,
+                        authenticate = authenticate,
+                    )
+                }
             }
         }
     }
@@ -107,7 +126,10 @@ fun ProfileRoute(
         viewModel.onEvent(ProfileEvent.ScreenOpened)
     }
     ProfileScreen(
-        modifier = modifier, uiState = uiState, onEvent = viewModel::onEvent
+        modifier = modifier,
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        appLockState = appLockState,
     )
 
     when (activeSelector) {

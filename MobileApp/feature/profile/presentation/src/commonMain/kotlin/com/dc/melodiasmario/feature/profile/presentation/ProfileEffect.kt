@@ -11,4 +11,5 @@ sealed interface ProfileEffect : MviEffect {
     data object SettingsSavedFailed : ProfileEffect
     data object LogoutSuccess : ProfileEffect
     data object LogoutFailed : ProfileEffect
+    data class ChangeBiometricLock(val enabled: Boolean) : ProfileEffect
 }
