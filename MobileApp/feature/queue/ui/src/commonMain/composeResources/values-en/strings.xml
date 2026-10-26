@@ -20,7 +20,6 @@
     <string name="queue_cancel">Cancel</string>
     <string name="queue_command_succeeded">Queue updated.</string>
     <string name="queue_command_failed">The operation could not be completed.</string>
-    <string name="queue_playlist_created">Playlist saved.</string>
     <string name="queue_command_accepted">The bot accepted the operation.</string>
     <string name="queue_command_timed_out">No confirmation arrived. Refresh the queue before retrying; the operation may still complete.</string>
     <string name="queue_track_added">Music added to the queue.</string>

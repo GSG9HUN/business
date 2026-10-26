@@ -11,7 +11,6 @@ import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCas
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.StartCurrentPlaybackMonitorUseCase
-import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistFromQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.MoveTrackToIndexUseCase
@@ -26,6 +25,7 @@ import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
 import com.dc.melodiasmario.feature.queue.presentation.command.QueueCommandHandler
 import com.dc.melodiasmario.core.presentation.command.PendingBotCommandTracker
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistController
+import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistSaveManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +50,7 @@ class QueueViewModel(
     clearQueueUseCase: ClearQueueUseCase,
     shuffleQueueUseCase: ShuffleQueueUseCase,
     moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
-    createPlaylistFromQueueUseCase: CreatePlaylistFromQueueUseCase,
+    playlistSaveManager: QueuePlaylistSaveManager,
     getMusicSearchCapabilitiesUseCase: GetMusicSearchCapabilitiesUseCase,
     searchMusicUseCase: SearchMusicUseCase,
 ) : ViewModel() {
@@ -120,7 +120,7 @@ class QueueViewModel(
     )
 
     private val playlistController = QueuePlaylistController(
-        createPlaylistFromQueueUseCase = createPlaylistFromQueueUseCase,
+        saveManager = playlistSaveManager,
         state = _uiState,
         effects = _effect,
         currentGuildIdProvider = { currentGuildId },

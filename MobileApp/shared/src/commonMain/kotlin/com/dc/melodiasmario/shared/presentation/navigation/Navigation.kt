@@ -15,8 +15,9 @@ import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.common.navigation.shouldShowBottomBar
 import com.dc.melodiasmario.core.common.navigation.shouldShowFloatingButton
 import com.dc.melodiasmario.core.commonui.components.MBottomBar
+import com.dc.melodiasmario.core.commonui.feedback.FeedbackVibrator
 import com.dc.melodiasmario.core.commonui.feedback.components.MToastHost
-import com.dc.melodiasmario.core.commonui.feedback.state.rememberMToastHostState
+import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.LocalFloatingActionButtonController
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.rememberFloatingActionButtonController
 import com.dc.melodiasmario.core.commonui.topbar.LocalTopBarController
@@ -25,11 +26,16 @@ import com.dc.melodiasmario.shared.presentation.navigation.components.Navigation
 import com.dc.melodiasmario.shared.presentation.navigation.components.NavigationTopBar
 
 @Composable
-fun Navigation(backStack: SnapshotStateList<AppRoute>) {
+fun Navigation(
+    backStack: SnapshotStateList<AppRoute>,
+    toastHostState: MToastHostState,
+    hapticsEnabled: Boolean,
+    isAppForeground: () -> Boolean,
+    feedbackVibrator: FeedbackVibrator
+) {
     val currentRoute = backStack.last()
     val topBarController = rememberTopBarController()
     val floatingActionButtonController = rememberFloatingActionButtonController()
-    val toastHostState = rememberMToastHostState()
 
     CompositionLocalProvider(
         LocalTopBarController provides topBarController,
@@ -79,6 +85,9 @@ fun Navigation(backStack: SnapshotStateList<AppRoute>) {
             }
             MToastHost(
                 hostState = toastHostState,
+                hapticsEnabled = hapticsEnabled,
+                isAppForeground = isAppForeground,
+                feedbackVibrator = feedbackVibrator,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
         }

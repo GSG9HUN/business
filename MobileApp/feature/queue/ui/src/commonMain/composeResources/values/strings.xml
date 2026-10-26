@@ -20,7 +20,6 @@
     <string name="queue_cancel">Mégse</string>
     <string name="queue_command_succeeded">A sor módosítása sikerült.</string>
     <string name="queue_command_failed">A műveletet nem sikerült befejezni.</string>
-    <string name="queue_playlist_created">A lejátszási lista mentése sikerült.</string>
     <string name="queue_command_accepted">A bot elfogadta a műveletet.</string>
     <string name="queue_command_timed_out">Nem érkezett visszaigazolás. Frissítsd a sort újrapróbálás előtt; a művelet még befejeződhet.</string>
     <string name="queue_track_added">A zene hozzáadása sikerült.</string>

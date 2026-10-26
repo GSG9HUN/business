@@ -1,6 +1,5 @@
 package com.dc.melodiasmario.feature.queue.presentation.playlist
 
-import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistFromQueueUseCase
 import com.dc.melodiasmario.feature.queue.presentation.QueueEffect
 import com.dc.melodiasmario.feature.queue.presentation.QueueUiState
 import kotlinx.coroutines.CancellationException
@@ -8,8 +7,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal class QueuePlaylistController(
-    private val createPlaylistFromQueueUseCase:
-    CreatePlaylistFromQueueUseCase,
+    private val saveManager: QueuePlaylistSaveManager,
     private val state: MutableStateFlow<QueueUiState>,
     private val effects: MutableSharedFlow<QueueEffect>,
     private val currentGuildIdProvider: () -> String?,
@@ -27,14 +25,15 @@ internal class QueuePlaylistController(
         val trackUrls = snapshot.tracks.map { it.id }
 
         try {
-            createPlaylistFromQueueUseCase(
+            val result = saveManager.save(
                 guildId = guildId,
                 name = name,
                 trackUrls = trackUrls,
             )
 
-            onCloseDialog()
-            effects.emit(QueueEffect.PlaylistCreated)
+            if (result.succeeded && currentGuildIdProvider() == guildId) {
+                onCloseDialog()
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
