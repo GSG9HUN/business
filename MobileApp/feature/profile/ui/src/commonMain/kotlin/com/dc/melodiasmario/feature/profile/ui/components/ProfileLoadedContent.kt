@@ -11,6 +11,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import com.dc.melodiasmario.core.commonui.biometric.BiometricLockSetting
+import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +68,7 @@ fun ProfileLoadedContent(
     modifier: Modifier = Modifier,
     uiState: ProfileUiState,
     onEvent: (ProfileEvent) -> Unit,
+    appLockState: AppLockUiState = AppLockUiState(),
 ) {
     val user = uiState.user
     val userSettings = uiState.draftUserSettings
@@ -178,6 +181,13 @@ fun ProfileLoadedContent(
                     onCheckedChange = { onEvent(ProfileEvent.TelemetryChanged(it)) },
                 )
 
+                BiometricLockSetting(
+                    state = appLockState,
+                    onCheckedChange = { enabled ->
+                        onEvent(ProfileEvent.BiometricLockChanged(enabled))
+                    },
+                )
+
                 MText(
                     modifier = Modifier.padding(top = 26.dp),
                     text = stringResource(ProfileRes.string.profile_session_section),
@@ -242,6 +252,11 @@ private fun ProfileLoadedContentPreview() {
                 settingsUpdatedAtUtc = "2026-10-09T12:00:00Z",
             ),
             onEvent = {},
+            appLockState = AppLockUiState(
+                isInitialized = true,
+                isEnabled = true,
+                isLocked = false,
+            ),
         )
     }
 }

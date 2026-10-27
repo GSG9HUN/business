@@ -99,15 +99,15 @@ class PlaybackForegroundService : Service() {
         when (intent?.action) {
             PlaybackNotificationAction.START -> {
                 val nextGuildId = intent.getStringExtra(PlaybackNotificationAction.EXTRA_GUILD_ID)
-                    ?: return START_STICKY
+                    ?: return START_NOT_STICKY
 
                 guildId = nextGuildId
                 startMonitor(nextGuildId)
             }
 
             PlaybackNotificationAction.STOP -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
+                stopPlaybackService()
+                return START_NOT_STICKY
             }
 
             PlaybackNotificationAction.PREVIOUS -> runPrevious()
@@ -117,7 +117,7 @@ class PlaybackForegroundService : Service() {
             PlaybackNotificationAction.NEXT -> runNext()
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -126,6 +126,11 @@ class PlaybackForegroundService : Service() {
         scope.cancel()
         mediaSessionController.release()
         super.onDestroy()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopPlaybackService()
     }
 
     private fun runCommand(block: suspend () -> Unit) {
@@ -156,6 +161,11 @@ class PlaybackForegroundService : Service() {
 
     private fun requireGuildId(): String = requireNotNull(guildId)
 
+    private fun stopPlaybackService() {
+        scope.cancel()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
     private companion object {
         const val NOTIFICATION_ID = 4201
     }

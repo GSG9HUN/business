@@ -14,4 +14,5 @@ sealed interface ProfileEvent {
     data class TelemetryChanged(val enabled: Boolean) : ProfileEvent
     data class LanguageSelected(val languageCode: String) : ProfileEvent
     data class ThemeSelected(val theme: String) : ProfileEvent
+    data class BiometricLockChanged(val enabled: Boolean) : ProfileEvent
 }

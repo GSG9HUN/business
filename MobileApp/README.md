@@ -85,3 +85,14 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+## Biometric application lock
+
+An optional device-local application lock protects the foreground UI before session
+restoration and after at least 30 seconds in the background. The profile switch uses
+the existing event/effect path and is persisted separately from server profile settings.
+Previewable controls receive immutable state rather than platform services.
+This is a UI lock, not biometric key-bound token storage.
+
+See [the implementation walkthrough](docs/biometric-app-lock.md) for architecture,
+previews, validation steps, and outstanding iOS integration.

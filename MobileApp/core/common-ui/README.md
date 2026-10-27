@@ -53,3 +53,13 @@ Compile and package the Android app with:
 
 The build checks Android compilation and packaging. Visual behavior in both
 themes and iOS compilation need their respective runtime / platform checks.
+
+## Biometric UI
+
+The biometric package contains native authenticator and lifecycle adapters, an
+application lock host, a lock screen, localized errors, and a stateless profile toggle.
+AppLockHost supplies the controller and authenticator to routes. ProfileRoute passes
+controller state through the screen to BiometricLockSetting. Visual components have
+theme-wrapped previews that do not open native prompts or require DI.
+
+See [the implementation walkthrough](../../docs/biometric-app-lock.md).
