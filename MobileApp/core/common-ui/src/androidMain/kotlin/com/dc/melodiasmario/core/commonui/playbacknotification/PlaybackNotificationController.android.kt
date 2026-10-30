@@ -4,24 +4,22 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 
+/**
+ * Owns playback notification coordination and its lifecycle-bound operations.
+ */
 actual class PlaybackNotificationController(
-    private val context: Context,
+    private val context: Context
 ) {
-    actual fun start(guildId: String) {
+    /**
+     * Starts playback notification controller for the supplied configuration.
+     */
+    actual fun start(guildId: String): Unit {
         val intent = Intent()
             .setClassName(context.packageName, PLAYBACK_SERVICE_CLASS)
             .setAction(PlaybackNotificationAction.START)
             .putExtra(PlaybackNotificationAction.EXTRA_GUILD_ID, guildId)
 
         ContextCompat.startForegroundService(context, intent)
-    }
-
-    actual fun stop() {
-        val intent = Intent()
-            .setClassName(context.packageName, PLAYBACK_SERVICE_CLASS)
-            .setAction(PlaybackNotificationAction.STOP)
-
-        context.startService(intent)
     }
 
     private companion object {

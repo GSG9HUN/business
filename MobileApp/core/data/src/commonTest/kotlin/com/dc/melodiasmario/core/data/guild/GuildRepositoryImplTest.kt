@@ -6,17 +6,17 @@ import kotlin.test.Test
 class GuildRepositoryImplTest {
 
     @Test
-    fun getGuildsRequestsValidAccessTokenBeforeCallingRemoteDataSource() {
-        // TODO: Given authorized session provider returns token, when getGuilds is called, then token is used remotely.
+    fun getGuildsRequestsValidAccessTokenBeforeCallingRemoteDataSource(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsReturnsRemoteGuilds() {
-        // TODO: Given remote data source returns guilds, when getGuilds is called, then same guilds are returned.
+    fun getGuildsReturnsRemoteGuilds(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsPropagatesSessionProviderFailure() {
-        // TODO: Given authorized session provider fails, when getGuilds is called, then error is propagated.
+    fun getGuildsPropagatesSessionProviderFailure(): Unit {
+        throw NotImplementedError()
     }
 }

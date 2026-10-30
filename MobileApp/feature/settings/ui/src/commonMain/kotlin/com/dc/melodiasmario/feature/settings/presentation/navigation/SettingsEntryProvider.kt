@@ -4,7 +4,10 @@ import androidx.navigation3.runtime.EntryProviderScope
 import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.settings.ui.SettingsRoute
 
-fun EntryProviderScope<AppRoute>.settingsEntry() {
+/**
+ * Registers the settings destination and its navigation callbacks.
+ */
+fun EntryProviderScope<AppRoute>.settingsEntry(): Unit {
     entry<AppRoute.Settings> { route ->
         SettingsRoute(guildId = route.guildId)
     }

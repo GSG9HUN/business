@@ -6,6 +6,9 @@ import com.dc.melodiasmario.core.model.guild.Guild
 import com.dc.melodiasmario.core.network.guild.GuildRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements guild data access using the injected data sources.
+ */
 @Single(binds = [GuildRepository::class])
 class GuildRepositoryImpl(
     private val guildRemoteDataSource: GuildRemoteDataSource,

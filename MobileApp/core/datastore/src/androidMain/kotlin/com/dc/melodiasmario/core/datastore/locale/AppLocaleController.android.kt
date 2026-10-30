@@ -5,11 +5,17 @@ import android.content.res.Configuration
 import android.os.LocaleList
 import java.util.Locale
 
+/**
+ * Owns app locale coordination and its lifecycle-bound operations.
+ */
 actual class AppLocaleController(
-    private val context: Context,
+    private val context: Context
 ) {
-    actual fun applyLocale(languageCode: String) {
-        val locale = Locale.forLanguageTag(languageCode.takeIf { it.isNotBlank() } ?: DEFAULT_LANGUAGE_CODE)
+    /**
+     * Applies the selected language through the platform locale adapter.
+     */
+    actual fun applyLocale(languageCode: String): Unit {
+        val locale = Locale.forLanguageTag(languageCode.takeIf { textValue -> textValue.isNotBlank() } ?: DEFAULT_LANGUAGE_CODE)
         Locale.setDefault(locale)
 
         val configuration = Configuration(context.resources.configuration)

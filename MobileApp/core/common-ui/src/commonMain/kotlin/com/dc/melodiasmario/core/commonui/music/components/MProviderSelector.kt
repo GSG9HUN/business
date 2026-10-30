@@ -21,32 +21,35 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchProviderUi
 
+/**
+ * Renders provider selector from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MProviderSelector(
     label: String,
     selectedProvider: MMusicSearchProviderUi?,
     providers: List<MMusicSearchProviderUi>,
-    onProviderChanged: (String) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
+    onProviderChanged: (providerId: String) -> Unit
+): Unit {
+    var expanded by remember { mutableStateOf(value = false) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             modifier = Modifier.fillMaxWidth(),
-            onClick = { expanded = true },
+            onClick = { expanded = true }
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {
                 MText(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f),
                     text = "$label: ${selectedProvider?.name.orEmpty()}",
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 MText(text = "v", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -54,7 +57,7 @@ fun MProviderSelector(
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false }
         ) {
             providers.forEach { provider ->
                 DropdownMenuItem(
@@ -62,13 +65,13 @@ fun MProviderSelector(
                         MText(
                             text = provider.name,
                             color = if (!provider.canEnqueue) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Start,
+                            textAlign = TextAlign.Start
                         )
                     },
                     onClick = {
                         expanded = false
                         onProviderChanged(provider.id)
-                    },
+                    }
                 )
             }
         }

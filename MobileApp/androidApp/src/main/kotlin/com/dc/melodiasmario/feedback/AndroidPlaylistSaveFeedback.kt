@@ -18,49 +18,52 @@ import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistSaveFeedback
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistSaveResult
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
+/**
+ * Provides android playlist save feedback for the feedback layer.
+ */
 class AndroidPlaylistSaveFeedback(
     private val context: Context,
     private val appVisibility: AppVisibility,
-    private val toastHostState: MToastHostState,
+    private val toastHostState: MToastHostState
 ) : QueuePlaylistSaveFeedback {
 
-    override suspend fun show(result: QueuePlaylistSaveResult) {
-        withContext(Dispatchers.Main.immediate) {
+    override suspend fun show(result: QueuePlaylistSaveResult): Unit {
+        withContext(context = Dispatchers.Main.immediate) {
             val message = context.getString(
                 if (result.succeeded) {
                     R.string.playlist_save_success
                 } else {
                     R.string.playlist_save_failure
                 },
-                result.playlistName,
+                result.playlistName
             )
 
             if (appVisibility.isForeground) {
                 toastHostState.showToast(
-                    MToastData(
+                    toast = MToastData(
                         message = if (result.succeeded) {
                             message
                         } else {
                             listOfNotNull(
                                 message,
-                                result.errorDetail?.takeIf {
-                                    it.isNotBlank()
-                                },
-                            ).joinToString("\n")
+                                result.errorDetail?.takeIf { textValue ->
+                                    textValue.isNotBlank()
+                                }
+                            ).joinToString(separator = "\n")
                         },
                         type = if (result.succeeded) {
                             MToastType.Success
                         } else {
                             MToastType.Error
-                        },
+                        }
                     )
                 )
             } else {
-                showNotification(result, message)
+                showNotification(result = result, message = message)
             }
         }
     }
@@ -68,13 +71,13 @@ class AndroidPlaylistSaveFeedback(
     @SuppressLint("MissingPermission")
     private fun showNotification(
         result: QueuePlaylistSaveResult,
-        message: String,
+        message: String
     ) {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
@@ -95,20 +98,17 @@ class AndroidPlaylistSaveFeedback(
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
 
-        val contentIntent = launchIntent?.let {
+        val contentIntent = launchIntent?.let { launchIntent ->
             PendingIntent.getActivity(
                 context,
                 0,
-                it,
+                launchIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE,
+                        PendingIntent.FLAG_IMMUTABLE
             )
         }
 
-        val notification = NotificationCompat.Builder(
-            context,
-            CHANNEL_ID,
-        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 context.getString(
@@ -121,7 +121,8 @@ class AndroidPlaylistSaveFeedback(
             )
             .setContentText(message)
             .setStyle(
-                NotificationCompat.BigTextStyle().bigText(message)
+                NotificationCompat.BigTextStyle()
+                    .bigText(message)
             )
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
@@ -135,7 +136,7 @@ class AndroidPlaylistSaveFeedback(
             notificationManager.notify(
                 "playlist-save-${UUID.randomUUID()}",
                 NOTIFICATION_ID,
-                notification,
+                notification
             )
         } catch (_: SecurityException) {
         }
@@ -153,7 +154,7 @@ class AndroidPlaylistSaveFeedback(
         val channel = NotificationChannel(
             CHANNEL_ID,
             context.getString(R.string.playlist_results_channel),
-            NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             enableVibration(true)
         }

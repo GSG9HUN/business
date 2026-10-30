@@ -12,7 +12,13 @@ import androidx.media.app.NotificationCompat.MediaStyle
 import com.dc.melodiasmario.R
 import com.dc.melodiasmario.core.commonui.playbacknotification.PlaybackNotificationAction
 
+/**
+ * Groups playback notification mapper values used by the application.
+ */
 object PlaybackNotificationMapper {
+    /**
+     * Creates the playback notification from the supplied media metadata.
+     */
     fun create(
         context: Context,
         mediaSessionToken: MediaSessionCompat.Token,
@@ -20,9 +26,9 @@ object PlaybackNotificationMapper {
         title: String,
         artist: String,
         artwork: Bitmap?,
-        isPlaying: Boolean,
+        isPlaying: Boolean
     ): Notification {
-        PlaybackNotificationChannel.ensureCreated(context)
+        PlaybackNotificationChannel.ensureCreated(context = context)
 
         return NotificationCompat.Builder(context, PlaybackNotificationChannel.ID)
             .setSmallIcon(R.drawable.ic_notification)
@@ -32,7 +38,7 @@ object PlaybackNotificationMapper {
             .setOnlyAlertOnce(true)
             .setOngoing(false)
             .setAutoCancel(true)
-            .setDeleteIntent(pendingIntent(context, PlaybackNotificationAction.STOP, guildId))
+            .setDeleteIntent(pendingIntent(context = context, action = PlaybackNotificationAction.STOP, guildId = guildId))
             .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setColor(NOTIFICATION_COLOR)
@@ -42,17 +48,33 @@ object PlaybackNotificationMapper {
                     .setMediaSession(mediaSessionToken)
                     .setShowActionsInCompactView(0, 1, 2)
             )
-            .addAction(action(context, PlaybackNotificationAction.PREVIOUS, R.drawable.ic_previous, "Previous", guildId))
             .addAction(
                 action(
-                    context,
-                    PlaybackNotificationAction.PLAY_PAUSE,
-                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
-                    if (isPlaying) "Pause" else "Play",
-                    guildId,
+                    context = context,
+                    action = PlaybackNotificationAction.PREVIOUS,
+                    icon = R.drawable.ic_previous,
+                    title = "Previous",
+                    guildId = guildId
                 )
             )
-            .addAction(action(context, PlaybackNotificationAction.NEXT, R.drawable.ic_next, "Next", guildId))
+            .addAction(
+                action(
+                    context = context,
+                    action = PlaybackNotificationAction.PLAY_PAUSE,
+                    icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                    title = if (isPlaying) "Pause" else "Play",
+                    guildId = guildId
+                )
+            )
+            .addAction(
+                action(
+                    context = context,
+                    action = PlaybackNotificationAction.NEXT,
+                    icon = R.drawable.ic_next,
+                    title = "Next",
+                    guildId = guildId
+                )
+            )
             .build()
     }
 
@@ -61,9 +83,9 @@ object PlaybackNotificationMapper {
         action: String,
         icon: Int,
         title: String,
-        guildId: String,
+        guildId: String
     ): NotificationCompat.Action {
-        return NotificationCompat.Action(icon, title, pendingIntent(context, action, guildId))
+        return NotificationCompat.Action(icon, title, pendingIntent(context = context, action = action, guildId = guildId))
     }
 
     private fun pendingIntent(context: Context, action: String, guildId: String): PendingIntent {
@@ -75,7 +97,7 @@ object PlaybackNotificationMapper {
             context,
             action.hashCode(),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 

@@ -12,71 +12,74 @@ import com.dc.melodiasmario.core.presentation.biometric.AppLockController
 import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import kotlinx.coroutines.launch
 
+/**
+ * Renders app lock host from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun AppLockHost(
-    controller: AppLockController,
-    authenticator: BiometricAuthenticator,
+    appLockController: AppLockController,
+    biometricAuthenticator: BiometricAuthenticator,
     onSignedOut: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    val state by controller.uiState.collectAsState()
+    content: @Composable () -> Unit
+): Unit {
+    val state by appLockController.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    val authenticate = rememberBiometricAuthentication(authenticator)
+    val authenticate = rememberBiometricAuthentication(biometricAuthenticator = biometricAuthenticator)
 
-    BindAppLockLifecycle(controller)
+    BindAppLockLifecycle(appLockController = appLockController)
 
-    LaunchedEffect(controller) {
-        controller.initialize()
+    LaunchedEffect(key1 = appLockController) {
+        appLockController.initialize()
     }
 
-    LaunchedEffect(authenticator, state.isInitialized, state.isLocked) {
+    LaunchedEffect(key1 = biometricAuthenticator, key2 = state.isInitialized, key3 = state.isLocked) {
         if (state.isInitialized && state.isLocked) {
-            controller.unlock(authenticate)
+            appLockController.unlock(authenticate = authenticate)
         }
     }
 
     CompositionLocalProvider(
-        LocalAppLockController provides controller,
-        LocalBiometricAuthenticator provides authenticator,
+        localAppLockController provides appLockController,
+        localBiometricAuthenticator provides biometricAuthenticator
     ) {
         AppLockHostContent(
-            state = state,
+            uiState = state,
             onUnlock = {
                 scope.launch {
-                    controller.unlock(authenticate)
+                    appLockController.unlock(authenticate = authenticate)
                 }
             },
             onRetryInitialization = {
                 scope.launch {
-                    controller.initialize()
+                    appLockController.initialize()
                 }
             },
             onSignOut = {
                 scope.launch {
-                    if (controller.signOut()) {
+                    if (appLockController.signOut()) {
                         onSignedOut()
                     }
                 }
             },
-            content = content,
+            content = content
         )
     }
 }
 
 @Composable
 private fun AppLockHostContent(
-    state: AppLockUiState,
+    uiState: AppLockUiState,
     onUnlock: () -> Unit,
     onRetryInitialization: () -> Unit,
     onSignOut: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
-    if (!state.isInitialized || state.isLocked) {
+    if (!uiState.isInitialized || uiState.isLocked) {
         AppLockScreen(
-            state = state,
+            uiState = uiState,
             onUnlock = onUnlock,
             onRetryInitialization = onRetryInitialization,
-            onSignOut = onSignOut,
+            onSignOut = onSignOut
         )
     } else {
         content()
@@ -88,15 +91,15 @@ private fun AppLockHostContent(
 private fun AppLockHostPreview() {
     MelodiasMarioTheme {
         AppLockHostContent(
-            state = AppLockUiState(
+            uiState = AppLockUiState(
                 isInitialized = true,
                 isEnabled = true,
-                isLocked = true,
+                isLocked = true
             ),
             onUnlock = {},
             onRetryInitialization = {},
             onSignOut = {},
-            content = {},
+            content = {}
         )
     }
 }

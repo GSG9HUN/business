@@ -7,8 +7,11 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
 
+/**
+ * Provides feedback vibrator for the feedback layer.
+ */
 actual class FeedbackVibrator(
-    context: Context,
+    context: Context
 ) {
     private val applicationContext = context.applicationContext
 
@@ -20,7 +23,7 @@ actual class FeedbackVibrator(
                 ?.defaultVibrator
         } else {
             applicationContext.getSystemService(
-                Context.VIBRATOR_SERVICE,
+                Context.VIBRATOR_SERVICE
             ) as? Vibrator
         }
 
@@ -29,8 +32,11 @@ actual class FeedbackVibrator(
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .build()
 
+    /**
+     * Requests platform haptic feedback for the supplied interaction.
+     */
     @Suppress("DEPRECATION")
-    actual fun vibrate() {
+    actual fun vibrate(): Unit {
         val vibrator = vibrator ?: return
 
         if (!vibrator.hasVibrator()) {
@@ -51,7 +57,7 @@ actual class FeedbackVibrator(
             0L,
             220L,
             140L,
-            220L,
+            220L
         )
 
         try {

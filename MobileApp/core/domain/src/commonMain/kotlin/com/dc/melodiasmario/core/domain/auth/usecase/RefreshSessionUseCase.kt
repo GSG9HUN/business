@@ -4,29 +4,35 @@ import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.domain.auth.AuthRepository
 import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
 import com.dc.melodiasmario.core.model.auth.AuthSession
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
-import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Exposes refresh session as a domain operation.
+ */
 @Factory
 class RefreshSessionUseCase(
     private val authRepository: AuthRepository,
     private val secureAuthSessionStorage: SecureAuthSessionStorage
 ) {
+    /**
+     * Executes the refresh session domain operation.
+     */
     operator fun invoke(): Flow<Resource<AuthSession>> = flow {
-        emit(Resource.Loading)
+        emit(value = Resource.Loading)
 
         try {
             val session = secureAuthSessionStorage.getSession()
             val refreshToken = session?.refreshToken ?: throw Exception("No refresh token found")
             val newRefreshToken = authRepository
                 .refreshSession(refreshToken = refreshToken)
-            emit(Resource.Success(newRefreshToken))
+            emit(value = Resource.Success(data = newRefreshToken))
         } catch (error: CancellationException) {
             throw error
-        } catch (e: Exception) {
-            emit(Resource.Error(e))
+        } catch (exception: Exception) {
+            emit(value = Resource.Error(error = exception))
         }
     }
 }

@@ -16,7 +16,10 @@ import com.dc.melodiasmario.feedback.AppVisibility
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-val androidAppModule = module {
+/**
+ * Android app module exposed by this module.
+ */
+val androidAppModule: org.koin.core.module.Module = module {
     single {
         AppLocaleController(
             context = androidContext()
@@ -29,7 +32,7 @@ val androidAppModule = module {
     }
     single(createdAtStart = true) {
         AppVisibility(
-            application = androidContext() as Application,
+            application = androidContext() as Application
         )
     }
     single {
@@ -39,17 +42,17 @@ val androidAppModule = module {
         AndroidPlaylistSaveFeedback(
             context = androidContext(),
             appVisibility = get(),
-            toastHostState = get(),
+            toastHostState = get()
         )
     }
     single {
         FeedbackVibrator(
-            context = androidContext(),
+            context = androidContext()
         )
     }
     single {
         BiometricSettingsStorage(
-            context = androidContext(),
+            context = androidContext()
         )
     }
 
@@ -65,8 +68,8 @@ val androidAppModule = module {
             loadEnabled = {
                 settingsStorage.isEnabled()
             },
-            saveEnabled = {
-                settingsStorage.setEnabled(it)
+            saveEnabled = { enabled ->
+                settingsStorage.setEnabled(enabled = enabled)
             },
             clearLocalSession = {
                 sessionStorage.clearSession()
@@ -74,7 +77,7 @@ val androidAppModule = module {
             },
             nowMillis = {
                 SystemClock.elapsedRealtime()
-            },
+            }
         )
     }
 }

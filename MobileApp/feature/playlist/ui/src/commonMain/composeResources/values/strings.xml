@@ -35,4 +35,9 @@
     <string name="playlists_delete_success">Lejátszási lista törölve.</string>
     <string name="playlists_delete_failed">Nem sikerült törölni a lejátszási listát.</string>
     <string name="playlists_name_placeholder">Lejátszási lista neve</string>
+    <string name="playlists_artwork_title">Lejátszási lista borítója</string>
+    <string name="playlists_artwork_placeholder">Kép URL; üresen hagyva automatikus borító</string>
+    <string name="playlists_artwork_save">Borító mentése</string>
+    <string name="playlists_artwork_success">Borító elmentve.</string>
+    <string name="playlists_artwork_failed">Nem sikerült elmenteni a borítót.</string>
 </resources>

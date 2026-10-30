@@ -3,16 +3,22 @@ package com.dc.melodiasmario.core.datastore.auth
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import org.json.JSONObject
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import org.json.JSONObject
 
+/**
+ * Provides auth session cipher for the auth layer.
+ */
 actual open class AuthSessionCipher {
     private var cachedSecretKey: SecretKey? = null
 
+    /**
+     * Encrypts plaintext into the platform authentication-storage payload.
+     */
     actual open fun encrypt(plainText: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
@@ -26,6 +32,9 @@ actual open class AuthSessionCipher {
             .toString()
     }
 
+    /**
+     * Decrypts a stored authentication payload back to plaintext.
+     */
     actual open fun decrypt(encryptedPayload: String): String {
         val json = JSONObject(encryptedPayload)
         val iv = Base64.decode(json.getString(JSON_IV), Base64.NO_WRAP)
@@ -35,20 +44,23 @@ actual open class AuthSessionCipher {
         cipher.init(
             Cipher.DECRYPT_MODE,
             getOrCreateSecretKey(),
-            GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv),
+            GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv)
         )
 
-        return cipher.doFinal(cipherText).toString(Charsets.UTF_8)
+        return cipher.doFinal(cipherText)
+            .toString(Charsets.UTF_8)
     }
 
     private fun getOrCreateSecretKey(): SecretKey {
-        cachedSecretKey?.let { return it }
+        cachedSecretKey?.let { cachedSecretKey -> return cachedSecretKey }
 
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
-            load(null)
-        }
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            .apply {
+                load(null)
+            }
 
         val existingKey = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+
         if (existingKey != null) {
             cachedSecretKey = existingKey
             return existingKey
@@ -56,12 +68,12 @@ actual open class AuthSessionCipher {
 
         val keyGenerator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
-            ANDROID_KEYSTORE,
+            ANDROID_KEYSTORE
         )
 
         val keySpec = KeyGenParameterSpec.Builder(
             KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
         )
             .setKeySize(KEY_SIZE_BITS)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -70,7 +82,8 @@ actual open class AuthSessionCipher {
             .build()
 
         keyGenerator.init(keySpec)
-        return keyGenerator.generateKey().also { cachedSecretKey = it }
+        return keyGenerator.generateKey()
+            .also { generatedSecretKey -> cachedSecretKey = generatedSecretKey }
     }
 
     private companion object {

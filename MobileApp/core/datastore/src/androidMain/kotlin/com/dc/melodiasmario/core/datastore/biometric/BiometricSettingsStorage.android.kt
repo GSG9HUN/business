@@ -4,22 +4,31 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Provides biometric settings storage for the biometric layer.
+ */
 actual class BiometricSettingsStorage(
-    context: Context,
+    context: Context
 ) {
     private val preferences = context.applicationContext.getSharedPreferences(
         "biometric_settings",
-        Context.MODE_PRIVATE,
+        Context.MODE_PRIVATE
     )
 
-    actual suspend fun isEnabled(): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Reports whether enabled.
+     */
+    actual suspend fun isEnabled(): Boolean = withContext(context = Dispatchers.IO) {
         preferences.getBoolean(KEY_ENABLED, false)
     }
 
-    actual suspend fun setEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
+    /**
+     * Persists the requested enabled setting.
+     */
+    actual suspend fun setEnabled(enabled: Boolean): Unit {
+        withContext(context = Dispatchers.IO) {
             check(
-                preferences.edit()
+                value = preferences.edit()
                     .putBoolean(KEY_ENABLED, enabled)
                     .commit()
             ) {

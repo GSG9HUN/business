@@ -3,17 +3,29 @@ package com.dc.melodiasmario.shared.presentation.navigation
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.dc.melodiasmario.core.common.navigation.AppRoute
 
-fun SnapshotStateList<AppRoute>.navigate(route: AppRoute) {
-    if(lastOrNull() == route) return
+/**
+ * Pushes the supplied destination onto the navigation back stack.
+ */
+fun SnapshotStateList<AppRoute>.navigate(route: AppRoute): Unit {
+    if(lastOrNull() == route) {
+        return
+    }
+
     add(route)
 }
 
-fun SnapshotStateList<AppRoute>.replaceAll(route: AppRoute) {
+/**
+ * Replaces the navigation back stack with the supplied destination.
+ */
+fun SnapshotStateList<AppRoute>.replaceAll(route: AppRoute): Unit {
     clear()
     add(route)
 }
 
-fun SnapshotStateList<AppRoute>.goBack() {
+/**
+ * Removes the current destination when back navigation is possible.
+ */
+fun SnapshotStateList<AppRoute>.goBack(): Unit {
     if (size > 1) {
         removeLastOrNull()
     }

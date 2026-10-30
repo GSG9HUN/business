@@ -9,21 +9,28 @@ import com.dc.melodiasmario.core.network.profile.ProfileRemoteDataSource
 import com.dc.melodiasmario.core.network.profile.dto.toUpdateProfileSettingsDto
 import org.koin.core.annotation.Single
 
+/**
+ * Implements profile data access using the injected data sources.
+ */
 @Single(binds = [ProfileRepository::class])
 class ProfileRepositoryImpl(
     private val profileRemoteDataSource: ProfileRemoteDataSource,
-    private val authorizedSessionProvider: AuthorizedSessionProvider,
+    private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : ProfileRepository {
     override suspend fun getProfile(): ProfileData {
+        val accessToken = authorizedSessionProvider.getValidSession()
         return profileRemoteDataSource.getProfile(
-            accessToken = authorizedSessionProvider.getValidSession(),
-        ).toDomain()
+            accessToken = accessToken
+        )
     }
 
     override suspend fun updateProfileSettings(userSettings: UserSettings): ProfileSettingsData {
+        val accessToken = authorizedSessionProvider.getValidSession()
+        val userSettings = userSettings.toUpdateProfileSettingsDto()
+
         return profileRemoteDataSource.updateProfileSettings(
-            accessToken = authorizedSessionProvider.getValidSession(),
-            userSettings = userSettings.toUpdateProfileSettingsDto(),
-        ).toProfileSettingsData()
+            accessToken = accessToken,
+            userSettings = userSettings
+        )
     }
 }

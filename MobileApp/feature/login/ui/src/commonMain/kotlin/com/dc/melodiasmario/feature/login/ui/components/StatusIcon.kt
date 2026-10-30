@@ -14,24 +14,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
+/**
+ * Renders status icon from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun StatusIcon(
     text: String,
     backgroundColor: Color,
-    textColor: Color,
-) {
+    textColor: Color
+): Unit {
     Box(
         modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .size(size = 48.dp)
+            .clip(shape = RoundedCornerShape(size = 12.dp))
             .background(backgroundColor),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         MText(
             text = text,
             color = textColor,
             fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
     }
 }

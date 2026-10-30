@@ -25,43 +25,48 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_music_icon_content_description
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders current track placeholder from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun CurrentTrackPlaceholder(
     title: String,
-    contentText: String,
-) {
+    contentText: String
+): Unit {
     val musicIconContentDescription =
-        stringResource(Res.string.currenttrack_music_icon_content_description)
+        stringResource(resource = Res.string.currenttrack_music_icon_content_description)
 
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(all = 12.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(all = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             MArtwork(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(size = 48.dp),
                 iconSize = 30.dp,
                 contentDescription = musicIconContentDescription
             )
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(weight = 1f)) {
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = contentText,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
             }
         }
@@ -70,10 +75,9 @@ fun CurrentTrackPlaceholder(
 
 @Preview
 @Composable
-fun CurrentTrackPlaceholderPreview() {
+private fun CurrentTrackPlaceholderPreview() {
     CurrentTrackPlaceholder(
-        title = stringResource(Res.string.currenttrack_empty_title),
-        contentText = stringResource(Res.string.currenttrack_empty_message),
+        title = stringResource(resource = Res.string.currenttrack_empty_title),
+        contentText = stringResource(resource = Res.string.currenttrack_empty_message)
     )
 }
-

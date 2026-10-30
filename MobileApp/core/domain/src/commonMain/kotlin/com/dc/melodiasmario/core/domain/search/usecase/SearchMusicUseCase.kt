@@ -5,15 +5,21 @@ import com.dc.melodiasmario.core.common.TrackSearchPrefix
 import com.dc.melodiasmario.core.domain.search.MusicSearchRepository
 import com.dc.melodiasmario.core.model.search.MusicSearchPage
 import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Factory
-import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Exposes search music as a domain operation.
+ */
 @Factory
 class SearchMusicUseCase(
     private val musicSearchRepository: MusicSearchRepository
 ) {
+    /**
+     * Executes the search music domain operation.
+     */
     operator fun invoke(
         guildId: String,
         provider: TrackSearchPrefix,
@@ -22,7 +28,7 @@ class SearchMusicUseCase(
         pageToken: String? = null
     ): Flow<Resource<MusicSearchPage>> =
         flow {
-            emit(Resource.Loading)
+            emit(value = Resource.Loading)
 
             try {
                 val result = musicSearchRepository.search(
@@ -30,13 +36,13 @@ class SearchMusicUseCase(
                     provider = provider,
                     kind = kind,
                     query = query,
-                    pageToken = pageToken,
+                    pageToken = pageToken
                 )
-                emit(Resource.Success(result))
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                emit(Resource.Error(e))
+                emit(value = Resource.Success(data = result))
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (exception: Exception) {
+                emit(value = Resource.Error(error = exception))
             }
         }
 }
