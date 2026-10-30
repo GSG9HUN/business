@@ -15,7 +15,8 @@ class ShuffleQueueUseCase(
     operator fun invoke(guildId: String): Flow<Resource<BotControlCommand>> = flow {
         emit(Resource.Loading)
         try {
-            emit(Resource.Success(queueRepository.shuffleQueue(guildId = guildId)))
+            val shuffleQueueControlCommand = queueRepository.shuffleQueue(guildId = guildId)
+            emit(Resource.Success(shuffleQueueControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

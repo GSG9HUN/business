@@ -9,7 +9,7 @@ data class MusicSearchCapabilityDto(
     val supportsTrackSearch: Boolean = false,
     val supportsPlaylistSearch: Boolean = false,
     val canEnqueue: Boolean = false,
-    val unavailableReason: String? = null,
+    val unavailableReason: String? = null
 ){
     fun toDomain() = MusicSearchCapability(
         provider = providerId.toTrackSearchPrefixOrNull(),

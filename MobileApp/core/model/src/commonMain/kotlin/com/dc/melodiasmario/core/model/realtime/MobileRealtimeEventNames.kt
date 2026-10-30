@@ -35,10 +35,4 @@ object MobileRealtimeEventNames {
     const val BotJoinedVoiceChannel = "BotJoinedVoiceChannel"
     const val BotLeftVoiceChannel = "BotLeftVoiceChannel"
     const val BotVoiceUserCountChanged = "BotVoiceUserCountChanged"
-    const val GuildAccessChanged = "GuildAccessChanged"
-    const val GuildListChanged = "GuildListChanged"
-
-    const val ProfileUpdated = "ProfileUpdated"
-    const val SessionRevoked = "SessionRevoked"
-    const val SessionRefreshRequired = "SessionRefreshRequired"
 }

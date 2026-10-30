@@ -6,5 +6,5 @@ data class QueueRealtimeEvent(
     override val guildId: String,
     override val eventName: String,
     val updatedAtUtc: String,
-    val snapshot: Queue,
+    val snapshot: Queue
 ) : RealtimeEvent

@@ -13,13 +13,13 @@ import org.koin.core.annotation.Property
 
 @Single
 class MusicSearchApiService(
-    private val client: HttpClient,
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
+    private val client: HttpClient
 ) {
     suspend fun getCapabilities(
         accessToken: String,
-        guildId: String,
+        guildId: String
     ): List<MusicSearchCapabilityDto> {
         return client.get("$baseUrl/guilds/$guildId/music-search/capabilities") {
             header("Authorization", "Bearer $accessToken")
@@ -32,7 +32,7 @@ class MusicSearchApiService(
         provider: String,
         kind: String,
         query: String,
-        pageToken: String?,
+        pageToken: String?
     ): MusicSearchResponseDto {
         return client.get("$baseUrl/guilds/$guildId/music-search") {
             header("Authorization", "Bearer $accessToken")

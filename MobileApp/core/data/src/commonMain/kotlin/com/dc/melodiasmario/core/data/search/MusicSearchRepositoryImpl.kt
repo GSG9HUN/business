@@ -14,10 +14,13 @@ import org.koin.core.annotation.Single
 class MusicSearchRepositoryImpl(
     private val musicSearchRemoteDataSource: MusicSearchRemoteDataSource,
     private val authorizedSessionProvider: AuthorizedSessionProvider
-): MusicSearchRepository {
+) : MusicSearchRepository {
     override suspend fun getCapabilities(guildId: String): List<MusicSearchCapability> {
         val accessToken = authorizedSessionProvider.getValidSession()
-        return musicSearchRemoteDataSource.getCapabilities(accessToken, guildId)
+        return musicSearchRemoteDataSource.getCapabilities(
+            accessToken = accessToken,
+            guildId = guildId
+        )
     }
 
     override suspend fun search(
@@ -28,7 +31,14 @@ class MusicSearchRepositoryImpl(
         pageToken: String?
     ): MusicSearchPage {
         val accessToken = authorizedSessionProvider.getValidSession()
-        return musicSearchRemoteDataSource.search(accessToken, guildId, provider, kind, query, pageToken)
+        return musicSearchRemoteDataSource.search(
+            accessToken = accessToken,
+            guildId = guildId,
+            provider = provider,
+            kind = kind,
+            query = query,
+            pageToken = pageToken
+        )
     }
 }
 

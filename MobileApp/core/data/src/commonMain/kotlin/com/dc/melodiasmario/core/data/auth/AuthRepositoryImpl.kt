@@ -18,15 +18,15 @@ class AuthRepositoryImpl (
 
     override suspend fun exchangeTicket(ticket: String): AuthSession {
         val session = authRemoteDataSource.exchangeTicket(ticket = ticket)
-        secureAuthSessionStorage.saveSession(session)
-        authSessionMemoryCache.save(session)
+        secureAuthSessionStorage.saveSession(session = session)
+        authSessionMemoryCache.save(session = session)
         return session
     }
 
     override suspend fun refreshSession(refreshToken: String): AuthSession {
         val session = authRemoteDataSource.refreshSession(refreshToken = refreshToken)
-        secureAuthSessionStorage.saveSession(session)
-        authSessionMemoryCache.save(session)
+        secureAuthSessionStorage.saveSession(session = session)
+        authSessionMemoryCache.save(session = session)
         return session
     }
 

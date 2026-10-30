@@ -5,7 +5,7 @@ import org.koin.core.annotation.Factory
 
 @Factory
 class ObserveCurrentPlaybackMonitorUseCase(
-    private val repository: CurrentPlaybackMonitorRepository,
+    private val currentPlaybackMonitorRepository: CurrentPlaybackMonitorRepository
 ) {
-    operator fun invoke() = repository.state
+    operator fun invoke() = currentPlaybackMonitorRepository.state
 }

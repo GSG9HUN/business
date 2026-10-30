@@ -9,7 +9,7 @@ data class GuildBotStatusRealtimeEventDto(
     val guildId: String,
     val eventName: String,
     val updatedAtUtc: String,
-    val snapshot: BotStatusDto,
+    val snapshot: BotStatusDto
 ) {
     fun toDomain() = GuildBotStatusRealtimeEvent(
         guildId = guildId,

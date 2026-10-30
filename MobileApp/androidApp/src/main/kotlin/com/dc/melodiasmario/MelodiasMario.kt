@@ -23,7 +23,7 @@ class MelodiasMario : Application() {
 
             modules(
                 SharedModule().module(),
-                androidAppModule,
+                androidAppModule
             )
         }
     }

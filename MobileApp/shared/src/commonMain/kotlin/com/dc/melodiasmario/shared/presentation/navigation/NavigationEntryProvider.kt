@@ -7,9 +7,8 @@ import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.currenttrack.presentation.navigation.currentTrackEntry
 import com.dc.melodiasmario.feature.guild.presentation.navigation.guildSelectorEntry
 import com.dc.melodiasmario.feature.login.presentation.navigation.loginEntry
-import com.dc.melodiasmario.feature.playlist.presentation.navigation.playlistSongsEntry
 import com.dc.melodiasmario.feature.playlist.presentation.navigation.playlistsEntry
-import com.dc.melodiasmario.feature.playlistsong.presentation.navigation.playlistSongEntry
+import com.dc.melodiasmario.feature.playlisttrack.presentation.navigation.playlistTrackEntry
 import com.dc.melodiasmario.feature.profile.presentation.navigation.profileEntry
 import com.dc.melodiasmario.feature.queue.presentation.navigation.queueEntry
 import com.dc.melodiasmario.feature.removesong.presentation.navigation.removeSongEntry
@@ -38,7 +37,7 @@ fun navigationEntryProvider(
         toastHostState = toastHostState,
         onPlaylistClicked = { route, playlistId ->
             backStack.navigate(
-                AppRoute.PlaylistSongs(
+                AppRoute.PlaylistTrack(
                     guildId = route.guildId,
                     playlistId = playlistId,
                 )
@@ -56,7 +55,7 @@ fun navigationEntryProvider(
         toastHostState = toastHostState,
     )
 
-    playlistSongsEntry()
+
 
     queueEntry(
         onGuildClicked = { backStack.replaceAll(AppRoute.GuildSelector) },
@@ -73,7 +72,10 @@ fun navigationEntryProvider(
         toastHostState = toastHostState,
     )
 
-    playlistSongEntry()
+    playlistTrackEntry(
+        onBack = { backStack.goBack() },
+        toastHostState = toastHostState,
+    )
 
     removeSongEntry()
 

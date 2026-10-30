@@ -7,7 +7,7 @@ import org.koin.core.annotation.Factory
 /** Submits the displayed queue snapshot as one ordered track list. */
 @Factory
 class CreatePlaylistFromQueueUseCase(
-    private val repository: PlaylistsRepository,
+    private val playlistsRepository: PlaylistsRepository,
 ) {
     suspend operator fun invoke(
         guildId: String,
@@ -19,7 +19,7 @@ class CreatePlaylistFromQueueUseCase(
             "Some queue tracks have no usable URL."
         }
 
-        return repository.createPlaylistFromTracks(
+        return playlistsRepository.createPlaylistFromTracks(
             guildId = guildId,
             playlistName = name.trim(),
             trackUrls = trackUrls,

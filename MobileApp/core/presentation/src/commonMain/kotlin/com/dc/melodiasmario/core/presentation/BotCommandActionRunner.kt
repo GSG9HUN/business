@@ -14,7 +14,7 @@ suspend fun <State, Effect : MviEffect, Command> Flow<Resource<Command>>.runBotC
     onLoading: ((State) -> State)? = null,
     onAccepted: ((State) -> State)? = null,
     onError: ((State, Throwable) -> State)? = null,
-    afterAccepted: (suspend (Command) -> Unit)? = null,
+    afterAccepted: (suspend (Command) -> Unit)? = null
 ) {
     collect { result ->
         when (result) {

@@ -12,8 +12,10 @@ class CurrentTrackRemoteDataSourceImpl(
         accessToken: String,
         guildId: String
     ): PlaybackStatus {
-        return currentTrackApiService.getPlaybackStatus(accessToken = accessToken, guildId = guildId)
-            .toDomain()
+        return currentTrackApiService.getPlaybackStatus(
+            accessToken = accessToken,
+            guildId = guildId
+        ).toDomain()
     }
 
     override suspend fun nextTrack(accessToken: String, guildId: String): BotControlCommand {
@@ -36,7 +38,7 @@ class CurrentTrackRemoteDataSourceImpl(
         return currentTrackApiService.setRepeatMode(
             accessToken = accessToken,
             guildId = guildId,
-            mode = mode,
+            mode = mode
         )
     }
 }

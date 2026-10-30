@@ -10,6 +10,6 @@ class ObserveGuildRealtimeUseCase(
     private val realtimeRepository: RealtimeRepository
 ) {
     operator fun invoke(guildId: String): Flow<RealtimeEvent> {
-        return realtimeRepository.observeGuildRealtime(guildId)
+        return realtimeRepository.observeGuildRealtime(guildId = guildId)
     }
 }

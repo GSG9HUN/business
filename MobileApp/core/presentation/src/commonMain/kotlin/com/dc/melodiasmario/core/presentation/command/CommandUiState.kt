@@ -5,6 +5,6 @@ interface CommandUiState<State> {
     val isCommandInFlight: Boolean
 
     fun withCommandInFlight(
-        isCommandInFlight: Boolean,
+        isCommandInFlight: Boolean
     ): State
 }

@@ -8,7 +8,7 @@ import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 interface MusicSearchRemoteDataSource {
     suspend fun getCapabilities(
         accessToken: String,
-        guildId: String,
+        guildId: String
     ): List<MusicSearchCapability>
 
     suspend fun search(
@@ -17,6 +17,6 @@ interface MusicSearchRemoteDataSource {
         provider: TrackSearchPrefix,
         kind: MusicSearchResultKind,
         query: String,
-        pageToken: String?,
+        pageToken: String?
     ): MusicSearchPage
 }

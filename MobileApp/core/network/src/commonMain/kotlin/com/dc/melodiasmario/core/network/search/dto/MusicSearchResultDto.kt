@@ -14,7 +14,7 @@ data class MusicSearchResultDto(
     val durationSeconds: Int? = null,
     val itemCount: Int? = null,
     val canonicalUrl: String? = null,
-    val canEnqueue: Boolean = canonicalUrl != null,
+    val canEnqueue: Boolean = canonicalUrl != null
 ){
     fun toDomainOrNull(): MusicSearchResult? {
         val provider = providerId.toTrackSearchPrefixOrNull() ?: return null

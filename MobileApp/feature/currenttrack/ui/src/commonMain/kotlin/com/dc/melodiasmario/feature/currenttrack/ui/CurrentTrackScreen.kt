@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.components.MErrorScreen
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
-import com.dc.melodiasmario.core.commonui.components.MQueueTrackCard
+import com.dc.melodiasmario.core.commonui.components.MTrackItemRow
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreAction
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreActionsDialog
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
@@ -197,13 +197,13 @@ fun CurrentTrackScreen(
                 dragOverlay = { index ->
                     val track = uiState.queue.tracks[index]
 
-                    MQueueTrackCard(
+                    MTrackItemRow(
                         modifier = Modifier
                             .alpha(0.85f)
                             .graphicsLayer {
                                 shadowElevation = 16.dp.toPx()
                             },
-                        queueNumber = index + 1,
+                        trackNumber = index + 1,
                         title = track.title,
                         artist = track.artist,
                         durationSeconds = track.durationSeconds,
@@ -269,13 +269,13 @@ fun CurrentTrackScreen(
                             items = uiState.queue.tracks,
                             key = { index, track -> "${track.id}:$index" }
                         ) { index, track ->
-                            MQueueTrackCard(
+                            MTrackItemRow(
                                 modifier = Modifier
                                     .animateItem()
                                     .alpha(
                                         if (index == draggedIndex) 0f else 1f
                                     ),
-                                queueNumber = index + 1,
+                                trackNumber = index + 1,
                                 title = track.title,
                                 artist = track.artist,
                                 durationSeconds = track.durationSeconds,

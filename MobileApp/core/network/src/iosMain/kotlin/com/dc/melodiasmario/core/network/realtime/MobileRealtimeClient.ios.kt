@@ -17,8 +17,6 @@ actual class MobileRealtimeClient {
         guildId: String
     ): Flow<RealtimeEvent> = emptyFlow()
 
-    actual suspend fun connect(accessToken: String, guildId: String) = Unit
-
     actual suspend fun disconnect() {
         _connectionState.value = RealtimeConnectionState.Disconnected
     }

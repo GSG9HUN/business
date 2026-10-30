@@ -19,7 +19,7 @@ import org.koin.core.annotation.Single
 class ProfileApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun getProfile(accessToken: String): ProfileDto {
         return client.get("$baseUrl/profile") {

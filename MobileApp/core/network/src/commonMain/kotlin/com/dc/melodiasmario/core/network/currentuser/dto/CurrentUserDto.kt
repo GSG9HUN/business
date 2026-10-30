@@ -14,6 +14,6 @@ data class CurrentUserDto(
         id = discordUserId,
         displayName = displayName,
         username = username,
-        avatarUrl = avatarUrl,
+        avatarUrl = avatarUrl
     )
 }

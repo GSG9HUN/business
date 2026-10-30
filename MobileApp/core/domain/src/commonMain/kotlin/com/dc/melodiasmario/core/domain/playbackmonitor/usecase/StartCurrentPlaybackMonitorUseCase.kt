@@ -5,7 +5,7 @@ import org.koin.core.annotation.Factory
 
 @Factory
 class StartCurrentPlaybackMonitorUseCase(
-    private val repository: CurrentPlaybackMonitorRepository,
+    private val currentPlaybackMonitorRepository: CurrentPlaybackMonitorRepository
 ) {
-    operator fun invoke(guildId: String) = repository.start(guildId)
+    operator fun invoke(guildId: String) = currentPlaybackMonitorRepository.start(guildId)
 }

@@ -9,12 +9,13 @@ import org.koin.core.annotation.Factory
 
 @Factory
 class NextPlaybackUseCase(
-    private val repository: PlaybackCommandRepository,
+    private val playBackCommandRepository: PlaybackCommandRepository
 ) {
     operator fun invoke(guildId: String): Flow<Resource<BotControlCommand>> = flow {
         emit(Resource.Loading)
         try {
-            emit(Resource.Success(repository.next(guildId)))
+            val nextControlCommand = playBackCommandRepository.next(guildId = guildId)
+            emit(Resource.Success(nextControlCommand))
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

@@ -12,5 +12,5 @@ data class BotControlCommandRealtimeEvent(
     val createdAtUtc: String,
     val claimedAtUtc: String?,
     val completedAtUtc: String?,
-    override val eventName: String,
+    override val eventName: String
 ) : RealtimeEvent

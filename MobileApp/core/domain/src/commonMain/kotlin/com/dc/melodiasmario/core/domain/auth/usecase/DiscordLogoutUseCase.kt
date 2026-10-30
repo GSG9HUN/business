@@ -18,7 +18,7 @@ class DiscordLogoutUseCase(
         try {
             val session = secureAuthSessionStorage.getSession()
             val refreshToken = session?.refreshToken ?: throw Exception("No refresh token found")
-            authRepository.logout(refreshToken)
+            authRepository.logout(refreshToken = refreshToken)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             emit(Resource.Error(e))

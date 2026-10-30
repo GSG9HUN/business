@@ -17,7 +17,7 @@ fun MusicSearchCapability.toProviderUi(): MMusicSearchProviderUi? {
         canEnqueue = canEnqueue,
         supportsTrackSearch = supportsTrackSearch,
         supportsPlaylistSearch = supportsPlaylistSearch,
-        unavailableReason = unavailableReason,
+        unavailableReason = unavailableReason
     )
 }
 
@@ -33,7 +33,7 @@ fun MusicSearchResult.toResultUi(): MMusicSearchResultUi {
         durationText = durationSeconds?.toDurationLabel(),
         itemCount = itemCount,
         canonicalUrl = canonicalUrl,
-        canEnqueue = canEnqueue,
+        canEnqueue = canEnqueue
     )
 }
 

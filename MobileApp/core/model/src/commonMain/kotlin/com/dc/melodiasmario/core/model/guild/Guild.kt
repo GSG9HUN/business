@@ -5,5 +5,5 @@ data class Guild (
     val name: String,
     val iconUrl: String? = null,
     val accessLevel: GuildAccessLevel,
-    val botStatus: BotStatus? = null,
+    val botStatus: BotStatus? = null
 )

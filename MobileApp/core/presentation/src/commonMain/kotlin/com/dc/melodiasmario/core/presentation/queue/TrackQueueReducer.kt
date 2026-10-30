@@ -11,8 +11,8 @@ class TrackQueueReducer {
         }
 
         val tracks = state.tracks.toMutableList()
-        val movedTrack = tracks.removeAt(fromIndex)
-        tracks.add(toIndex, movedTrack)
-        return state.withTracks(tracks)
+        val movedTrack = tracks.removeAt(index = fromIndex)
+        tracks.add(index = toIndex, element = movedTrack)
+        return state.withTracks(tracks = tracks)
     }
 }

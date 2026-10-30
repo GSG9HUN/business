@@ -12,7 +12,7 @@ class BotCommandRealtimeObserver(
     private val scope: CoroutineScope,
     private val observeGuildRealtime: (String) -> Flow<RealtimeEvent>,
     private val onSucceeded: suspend (BotControlCommandRealtimeEvent) -> Unit,
-    private val onFailed: suspend (BotControlCommandRealtimeEvent) -> Unit,
+    private val onFailed: suspend (BotControlCommandRealtimeEvent) -> Unit
 ) {
     private var job: Job? = null
     private var currentGuildId: String? = null

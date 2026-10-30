@@ -6,5 +6,5 @@ data class PlaybackRealtimeEvent(
     override val guildId: String,
     override val eventName: String,
     val updatedAtUtc: String,
-    val snapshot: PlaybackStatus,
+    val snapshot: PlaybackStatus
 ) : RealtimeEvent

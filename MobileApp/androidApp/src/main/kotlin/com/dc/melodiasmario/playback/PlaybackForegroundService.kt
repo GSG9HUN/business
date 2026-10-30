@@ -62,7 +62,7 @@ class PlaybackForegroundService : Service() {
                 title = "Melodias Mario",
                 artist = "Loading playback",
                 artwork = null,
-                isPlaying = false,
+                isPlaying = false
             )
         )
 
@@ -74,7 +74,7 @@ class PlaybackForegroundService : Service() {
 
                 guildId = safeGuildId
                 latestIsPlaying = currentTrack.isPlaying
-                val artwork = loadArtwork(track.thumbnailUrl)
+                val artwork = loadArtwork(url = track.thumbnailUrl)
 
                 val notification = PlaybackNotificationMapper.create(
                     context = this@PlaybackForegroundService,
@@ -83,10 +83,10 @@ class PlaybackForegroundService : Service() {
                     title = track.title,
                     artist = track.artist,
                     artwork = artwork,
-                    isPlaying = currentTrack.isPlaying,
+                    isPlaying = currentTrack.isPlaying
                 )
 
-                mediaSessionController.update(currentTrack, artwork)
+                mediaSessionController.update(currentTrack = currentTrack, artwork = artwork)
                 startForeground(NOTIFICATION_ID, notification)
             }
         }
@@ -102,7 +102,7 @@ class PlaybackForegroundService : Service() {
                     ?: return START_NOT_STICKY
 
                 guildId = nextGuildId
-                startMonitor(nextGuildId)
+                startMonitor(guildId = nextGuildId)
             }
 
             PlaybackNotificationAction.STOP -> {
@@ -138,15 +138,18 @@ class PlaybackForegroundService : Service() {
     }
 
     private fun runPrevious() = runCommand {
-        previousPlayback(requireGuildId()).runBackgroundBotCommand()
+        previousPlayback(guildId = requireGuildId()).runBackgroundBotCommand()
     }
 
     private fun runPlayPause() = runCommand {
-        playPausePlayback(requireGuildId(), latestIsPlaying).runBackgroundBotCommand()
+        playPausePlayback(
+            guildId = requireGuildId(),
+            isPlaying = latestIsPlaying
+        ).runBackgroundBotCommand()
     }
 
     private fun runNext() = runCommand {
-        nextPlayback(requireGuildId()).runBackgroundBotCommand()
+        nextPlayback(guildId = requireGuildId()).runBackgroundBotCommand()
     }
 
     private suspend fun loadArtwork(url: String?): Bitmap? {
@@ -166,6 +169,7 @@ class PlaybackForegroundService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
+
     private companion object {
         const val NOTIFICATION_ID = 4201
     }

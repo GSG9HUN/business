@@ -12,11 +12,21 @@ class PlaylistsRepositoryImpl(
     private val playlistsRemoteDataSource: PlaylistsRemoteDataSource,
     private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : PlaylistsRepository {
+    override suspend fun setArtwork(playlistId: String, artworkUri: String?) {
+        val accessToken = authorizedSessionProvider.getValidSession()
+        playlistsRemoteDataSource.setArtwork(
+            accessToken = accessToken,
+            playlistId = playlistId,
+            artworkUri = artworkUri
+        )
+    }
+
     override suspend fun getPlaylists(guildId: String): List<Playlist> {
         val accessToken = authorizedSessionProvider.getValidSession()
         return playlistsRemoteDataSource.getPlaylists(
-            accessToken = accessToken, guildId = guildId
-        ).map { it.toDomain() }
+            accessToken = accessToken,
+            guildId = guildId
+        )
     }
 
     override suspend fun deletePlaylist(playlistId: String) {
@@ -42,12 +52,18 @@ class PlaylistsRepositoryImpl(
             accessToken = accessToken,
             guildId = guildId,
             playlistName = playlistName
-        ).toDomain()
+        )
     }
 
     override suspend fun addTrack(playlistId: String, songUrl: String): BotControlCommand {
-        return playlistsRemoteDataSource.addTrack(authorizedSessionProvider.getValidSession(), playlistId, songUrl)
+        val accessToken = authorizedSessionProvider.getValidSession()
+        return playlistsRemoteDataSource.addTrack(
+            accessToken = accessToken,
+            playlistId = playlistId,
+            songUrl = songUrl
+        )
     }
+
     override suspend fun createPlaylistFromTracks(
         guildId: String,
         playlistName: String,
@@ -60,7 +76,6 @@ class PlaylistsRepositoryImpl(
             guildId = guildId,
             playlistName = playlistName,
             trackUrls = trackUrls,
-        ).toDomain()
+        )
     }
-
 }

@@ -11,8 +11,8 @@ class UserSettingsStore {
     private val _settings = MutableStateFlow(UserSettings.Default)
     val settings: StateFlow<UserSettings> = _settings.asStateFlow()
 
-    fun setSettings(settings: UserSettings) {
-        _settings.value = settings
+    fun setSettings(userSettings: UserSettings) {
+        _settings.value = userSettings
     }
 
     fun clear() {

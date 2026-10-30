@@ -30,6 +30,9 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.model.playlist.GuildData
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_placeholder
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_save
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_add_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_cancel
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_count
@@ -163,10 +166,26 @@ fun PlaylistsScreen(
                                 )
                             )
                         },
+                        onArtworkClick = { onEvent(PlaylistsEvent.ArtworkClicked(playlist.id)) },
                     )
                 }
             }
         }
+    }
+
+    if (uiState.dialog is PlaylistsDialog.Artwork) {
+        MTextInputDialog(
+            title = stringResource(Res.string.playlists_artwork_title),
+            value = uiState.artworkDraft,
+            onValueChange = { onEvent(PlaylistsEvent.ArtworkDraftChanged(it)) },
+            onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
+            onConfirm = { onEvent(PlaylistsEvent.ArtworkConfirmed) },
+            placeholder = stringResource(Res.string.playlists_artwork_placeholder),
+            confirmText = stringResource(Res.string.playlists_artwork_save),
+            dismissText = stringResource(Res.string.playlists_cancel),
+            enabled = !uiState.isLoading,
+            canConfirm = uiState.artworkDraft.length <= 2048,
+        )
     }
 
     if (uiState.dialog is PlaylistsDialog.Create) {

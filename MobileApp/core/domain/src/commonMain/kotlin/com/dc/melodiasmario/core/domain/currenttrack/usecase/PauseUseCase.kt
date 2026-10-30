@@ -16,7 +16,8 @@ class PauseUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(currentTrackRepository.pause(guildId = guildId)))
+            val pauseControlCommand = currentTrackRepository.pause(guildId = guildId)
+            emit(Resource.Success(pauseControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -8,12 +8,12 @@ data class AuthSessionDto(
     val accessToken: String,
     val refreshToken: String,
     val expiresInSeconds: Int,
-    val expiresAtMillis: Long,
+    val expiresAtMillis: Long
 ) {
     fun toDomain() = AuthSession(
         accessToken = accessToken,
         refreshToken = refreshToken,
         expiresInSeconds = expiresInSeconds,
-        expiresAtMillis = expiresAtMillis,
+        expiresAtMillis = expiresAtMillis
     )
 }

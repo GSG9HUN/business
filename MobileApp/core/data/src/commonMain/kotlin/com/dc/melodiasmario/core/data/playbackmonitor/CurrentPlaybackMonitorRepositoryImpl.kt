@@ -44,29 +44,22 @@ class CurrentPlaybackMonitorRepositoryImpl(
         _state.value = CurrentPlaybackMonitorState(guildId = guildId, isRefreshing = true)
 
         monitorJob = scope.launch {
-            launch { observeRealtime(guildId) }
+            launch { observeRealtime(guildId = guildId) }
             launch { observeConnection() }
-            launch { pollFallback(guildId) }
-            refreshInternal(guildId)
+            launch { pollFallback(guildId = guildId) }
+            refreshInternal(guildId = guildId)
         }
-    }
-
-    override fun stop() {
-        monitorJob?.cancel()
-        monitorJob = null
-        currentGuildId = null
-        _state.value = CurrentPlaybackMonitorState()
     }
 
     override fun refresh() {
         val guildId = currentGuildId ?: return
-        scope.launch { refreshInternal(guildId) }
+        scope.launch { refreshInternal(guildId = guildId) }
     }
 
     private suspend fun observeRealtime(guildId: String) {
         observeGuildRealtimeUseCase(guildId).collect { event ->
             if (event.eventName.shouldRefreshPlayback()) {
-                refreshInternal(guildId)
+                refreshInternal(guildId = guildId)
             }
         }
     }
@@ -82,12 +75,12 @@ class CurrentPlaybackMonitorRepositoryImpl(
     private suspend fun pollFallback(guildId: String) {
         while (currentCoroutineContext().isActive) {
             delay(15_000.milliseconds)
-            refreshInternal(guildId)
+            refreshInternal(guildId = guildId)
         }
     }
 
     private suspend fun refreshInternal(guildId: String) {
-        getCurrentTrackUseCase(guildId).collect { result ->
+        getCurrentTrackUseCase(guildId = guildId).collect { result ->
             when (result) {
                 Resource.Loading -> _state.update { it.copy(isRefreshing = true) }
 

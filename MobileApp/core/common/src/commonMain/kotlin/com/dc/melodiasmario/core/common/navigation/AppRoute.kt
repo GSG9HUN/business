@@ -28,16 +28,10 @@ sealed interface AppRoute : NavKey {
     data class Settings(val guildId: String) : AppRoute
 
     @Serializable
-    data class PlaylistSong(val guildId: String) : AppRoute
+    data class PlaylistTrack(val guildId: String, val playlistId: String) : AppRoute
 
     @Serializable
     data class RemoveSong(val guildId: String) : AppRoute
-
-    @Serializable
-    data class PlaylistSongs(
-        val guildId: String,
-        val playlistId: String,
-    ) : AppRoute
 }
 
 fun AppRoute.guildIdOrNull(): String? {
@@ -46,15 +40,14 @@ fun AppRoute.guildIdOrNull(): String? {
         is AppRoute.Queue -> guildId
         is AppRoute.CurrentTrack -> guildId
         is AppRoute.Settings -> guildId
-        is AppRoute.PlaylistSong -> guildId
+        is AppRoute.PlaylistTrack -> guildId
         is AppRoute.RemoveSong -> guildId
-        is AppRoute.PlaylistSongs -> guildId
         else -> null
     }
 }
 
 fun AppRoute.shouldShowBottomBar(): Boolean {
-    return guildIdOrNull() != null
+    return guildIdOrNull() != null && this !is AppRoute.PlaylistTrack
 }
 
 fun AppRoute.shouldShowFloatingButton(): Boolean {

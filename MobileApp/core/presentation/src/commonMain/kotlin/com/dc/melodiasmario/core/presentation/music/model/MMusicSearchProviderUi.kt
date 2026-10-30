@@ -6,5 +6,5 @@ data class MMusicSearchProviderUi(
     val canEnqueue: Boolean,
     val supportsTrackSearch: Boolean,
     val supportsPlaylistSearch: Boolean,
-    val unavailableReason: String? = null,
+    val unavailableReason: String? = null
 )

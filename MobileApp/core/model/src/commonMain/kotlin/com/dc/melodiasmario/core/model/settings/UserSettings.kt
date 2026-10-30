@@ -5,7 +5,7 @@ data class UserSettings(
     val theme: String,
     val hapticFeedbackEnabled: Boolean,
     val soundEffectsEnabled: Boolean,
-    val telemetryEnabled: Boolean,
+    val telemetryEnabled: Boolean
 ) {
     companion object {
         val Default = UserSettings(
@@ -13,7 +13,7 @@ data class UserSettings(
             theme = "system",
             hapticFeedbackEnabled = false,
             soundEffectsEnabled = true,
-            telemetryEnabled = false,
+            telemetryEnabled = false
         )
     }
 }

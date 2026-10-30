@@ -5,7 +5,7 @@ import org.koin.core.annotation.Factory
 
 @Factory
 class RefreshCurrentPlaybackMonitorUseCase(
-    private val repository: CurrentPlaybackMonitorRepository,
+    private val currentPlaybackMonitorRepository: CurrentPlaybackMonitorRepository
 ) {
-    operator fun invoke() = repository.refresh()
+    operator fun invoke() = currentPlaybackMonitorRepository.refresh()
 }

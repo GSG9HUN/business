@@ -32,6 +32,7 @@ fun MArtwork(
     iconSize: Dp = 54.dp,
     imageUrl: String? = null,
     contentDescription: String? = null,
+    fallbackImage: DrawableResource? = null,
 ) {
     val shape = RoundedCornerShape(14.dp)
     val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
@@ -58,6 +59,7 @@ fun MArtwork(
                 contentScale = ContentScale.Crop,
                 loading = {
                     ArtworkFallback(
+                        image = fallbackImage,
                         icon = icon,
                         iconSize = iconSize,
                         contentDescription = contentDescription,
@@ -65,6 +67,7 @@ fun MArtwork(
                 },
                 error = {
                     ArtworkFallback(
+                        image = fallbackImage,
                         icon = icon,
                         iconSize = iconSize,
                         contentDescription = contentDescription,
@@ -73,6 +76,7 @@ fun MArtwork(
             )
         } else {
             ArtworkFallback(
+                image = fallbackImage,
                 icon = icon,
                 iconSize = iconSize,
                 contentDescription = contentDescription,
@@ -83,10 +87,20 @@ fun MArtwork(
 
 @Composable
 private fun ArtworkFallback(
+    image: DrawableResource?,
     icon: DrawableResource,
     iconSize: Dp,
     contentDescription: String?,
 ) {
+    if (image != null) {
+        Image(
+            painter = painterResource(image),
+            contentDescription = contentDescription,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+        return
+    }
 
     Image(
         modifier = Modifier.size(iconSize).padding(start = 7.dp),

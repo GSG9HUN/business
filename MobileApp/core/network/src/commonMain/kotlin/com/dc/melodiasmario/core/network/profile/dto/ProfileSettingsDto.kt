@@ -11,18 +11,18 @@ data class ProfileSettingsDto(
     val hapticFeedbackEnabled: Boolean,
     val soundEffectsEnabled: Boolean,
     val telemetryEnabled: Boolean,
-    val updatedAtUtc: String,
+    val updatedAtUtc: String
 ) {
     fun toDomain() = UserSettings(
         languageCode = languageCode,
         theme = theme,
         hapticFeedbackEnabled = hapticFeedbackEnabled,
         soundEffectsEnabled = soundEffectsEnabled,
-        telemetryEnabled = telemetryEnabled,
+        telemetryEnabled = telemetryEnabled
     )
 
     fun toProfileSettingsData() = ProfileSettingsData(
         userSettings = toDomain(),
-        settingsUpdatedAtUtc = updatedAtUtc,
+        settingsUpdatedAtUtc = updatedAtUtc
     )
 }

@@ -1,6 +1,9 @@
 package com.dc.melodiasmario.feature.playlist.presentation
 
 sealed interface PlaylistsEvent {
+    data class ArtworkClicked(val playlistId: String) : PlaylistsEvent
+    data class ArtworkDraftChanged(val artworkUri: String) : PlaylistsEvent
+    data object ArtworkConfirmed : PlaylistsEvent
     data object AvatarClicked : PlaylistsEvent
     data object RefreshClicked : PlaylistsEvent
     data object SearchClicked : PlaylistsEvent

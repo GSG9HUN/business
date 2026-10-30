@@ -11,7 +11,7 @@ data class QueueTrackDto(
     val duration: Int = 0,
     val trackUri: String = "",
     val artworkUri: String? = null,
-    val requestedBy: String? = null,
+    val requestedBy: String? = null
 ) {
     fun toDomain() = Track(
         id = trackUri.ifBlank { position.toString() },
@@ -19,6 +19,6 @@ data class QueueTrackDto(
         artist = author,
         durationSeconds = duration,
         thumbnailUrl = artworkUri,
-        requestedBy = requestedBy,
+        requestedBy = requestedBy
     )
 }

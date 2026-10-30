@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.core.network.profile
 
-import com.dc.melodiasmario.core.network.profile.dto.ProfileDto
-import com.dc.melodiasmario.core.network.profile.dto.ProfileSettingsDto
+import com.dc.melodiasmario.core.model.profile.ProfileData
+import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
 import com.dc.melodiasmario.core.network.profile.dto.UpdateProfileSettingsDto
 import org.koin.core.annotation.Single
 
@@ -9,17 +9,17 @@ import org.koin.core.annotation.Single
 class ProfileRemoteDataSourceImpl(
     private val profileApiService: ProfileApiService,
 ) : ProfileRemoteDataSource {
-    override suspend fun getProfile(accessToken: String): ProfileDto {
-        return profileApiService.getProfile(accessToken = accessToken)
+    override suspend fun getProfile(accessToken: String): ProfileData {
+        return profileApiService.getProfile(accessToken = accessToken).toDomain()
     }
 
     override suspend fun updateProfileSettings(
         accessToken: String,
         userSettings: UpdateProfileSettingsDto
-    ): ProfileSettingsDto {
+    ): ProfileSettingsData {
         return profileApiService.updateProfileSettings(
             accessToken = accessToken,
-            userSettings = userSettings,
-        )
+            userSettings = userSettings
+        ).toProfileSettingsData()
     }
 }

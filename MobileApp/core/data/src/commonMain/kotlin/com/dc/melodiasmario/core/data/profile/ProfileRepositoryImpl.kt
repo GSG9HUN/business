@@ -15,15 +15,19 @@ class ProfileRepositoryImpl(
     private val authorizedSessionProvider: AuthorizedSessionProvider,
 ) : ProfileRepository {
     override suspend fun getProfile(): ProfileData {
+        val accessToken = authorizedSessionProvider.getValidSession()
         return profileRemoteDataSource.getProfile(
-            accessToken = authorizedSessionProvider.getValidSession(),
-        ).toDomain()
+            accessToken = accessToken,
+        )
     }
 
     override suspend fun updateProfileSettings(userSettings: UserSettings): ProfileSettingsData {
+        val accessToken = authorizedSessionProvider.getValidSession()
+        val userSettings = userSettings.toUpdateProfileSettingsDto()
+
         return profileRemoteDataSource.updateProfileSettings(
-            accessToken = authorizedSessionProvider.getValidSession(),
-            userSettings = userSettings.toUpdateProfileSettingsDto(),
-        ).toProfileSettingsData()
+            accessToken = accessToken,
+            userSettings = userSettings,
+        )
     }
 }

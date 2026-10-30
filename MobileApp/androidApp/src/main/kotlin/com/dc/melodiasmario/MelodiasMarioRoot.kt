@@ -51,13 +51,13 @@ fun MelodiasMarioRoot(
     }
 
     LaunchedEffect(settings.languageCode) {
-        appLocaleController.applyLocale(settings.languageCode)
+        appLocaleController.applyLocale(languageCode = settings.languageCode)
         appliedLanguageCode = settings.languageCode
     }
 
     key(appliedLanguageCode) {
         MelodiasMarioTheme(
-            themeMode = settings.theme.toThemeMode(),
+            themeMode = settings.theme.toThemeMode()
         ) {
             AppLockHost(
                 controller = appLockController,
@@ -74,9 +74,7 @@ fun MelodiasMarioRoot(
                             when (result) {
                                 is Resource.Success -> {
                                     backStack.clear()
-                                    backStack.add(
-                                        AppRoute.GuildSelector,
-                                    )
+                                    backStack.add(AppRoute.GuildSelector)
                                     isAuthBootstrapComplete = true
                                 }
 
@@ -98,7 +96,7 @@ fun MelodiasMarioRoot(
                         toastHostState = toastHostState,
                         hapticsEnabled = settings.hapticFeedbackEnabled,
                         isAppForeground = isAppForeground,
-                        feedbackVibrator = feedbackVibrator,
+                        feedbackVibrator = feedbackVibrator
                     )
                 } else {
                     MLoadingScreen()

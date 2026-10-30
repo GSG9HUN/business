@@ -8,12 +8,12 @@ data class BotControlCommandDto(
     val commandId: String,
     val type: String,
     val state: String,
-    val errorMessage: String? = null,
+    val errorMessage: String? = null
 ) {
     fun toDomain() = BotControlCommand(
         commandId = commandId,
         type = type,
         state = state,
-        errorMessage = errorMessage,
+        errorMessage = errorMessage
     )
 }

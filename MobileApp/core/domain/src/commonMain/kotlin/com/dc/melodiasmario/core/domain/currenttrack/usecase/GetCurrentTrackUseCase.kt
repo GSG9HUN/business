@@ -23,8 +23,9 @@ class GetCurrentTrackUseCase(
             val playbackStatus = currentTrackRepository.getPlaybackStatus(guildId = guildId)
             val queue = queueRepository.getQueue(guildId = guildId)
             val guild = guildRepository.getSelectedGuild(guildId = guildId)
+            val data = playbackStatus.toCurrentTrack(queue = queue, guild = guild)
 
-            emit(Resource.Success(playbackStatus.toCurrentTrack(queue = queue, guild = guild)))
+            emit(Resource.Success(data))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

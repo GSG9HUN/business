@@ -15,7 +15,7 @@ suspend fun <State, Effect : MviEffect, Data> Flow<Resource<Data>>.runAction(
     onSuccess: ((State) -> State)? = null,
     onSuccessWithData: ((State, Data) -> State)? = null,
     onError: ((State, Throwable) -> State)? = null,
-    afterSuccess: (suspend () -> Unit)? = null,
+    afterSuccess: (suspend () -> Unit)? = null
 ) {
     collect { result ->
         when (result) {

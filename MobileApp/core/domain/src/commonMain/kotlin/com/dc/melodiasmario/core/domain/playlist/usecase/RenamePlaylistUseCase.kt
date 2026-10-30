@@ -10,9 +10,7 @@ import org.koin.core.annotation.Factory
 class RenamePlaylistUseCase(
     private val playlistsRepository: PlaylistsRepository
 ) {
-    operator fun invoke(
-        playlistId: String, newPlaylistName: String
-    ): Flow<Resource<Unit>> = flow {
+    operator fun invoke(playlistId: String, newPlaylistName: String): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading)
         try {
             playlistsRepository.renamePlaylist(playlistId = playlistId, newName = newPlaylistName)

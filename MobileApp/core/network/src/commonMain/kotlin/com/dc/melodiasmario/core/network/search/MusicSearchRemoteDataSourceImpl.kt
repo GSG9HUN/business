@@ -9,12 +9,13 @@ import org.koin.core.annotation.Single
 @Single(binds = [MusicSearchRemoteDataSource::class])
 class MusicSearchRemoteDataSourceImpl(
     private val musicSearchApiService: MusicSearchApiService
-): MusicSearchRemoteDataSource {
+) : MusicSearchRemoteDataSource {
     override suspend fun getCapabilities(
         accessToken: String,
         guildId: String
     ): List<MusicSearchCapability> {
-        return musicSearchApiService.getCapabilities(accessToken = accessToken, guildId = guildId).map { it.toDomain() }
+        return musicSearchApiService.getCapabilities(accessToken = accessToken, guildId = guildId)
+            .map { it.toDomain() }
     }
 
     override suspend fun search(

@@ -20,7 +20,7 @@ import org.koin.core.annotation.Single
 class CurrentTrackApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun getPlaybackStatus(accessToken: String, guildId: String): PlaybackStatusDto {
         return client.get("$baseUrl/guilds/$guildId/player") {

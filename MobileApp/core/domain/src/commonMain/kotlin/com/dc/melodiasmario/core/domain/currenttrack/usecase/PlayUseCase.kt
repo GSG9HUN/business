@@ -16,7 +16,8 @@ class PlayUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(currentTrackRepository.play(guildId = guildId)))
+            val playControlCommand = currentTrackRepository.play(guildId = guildId)
+            emit(Resource.Success(playControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

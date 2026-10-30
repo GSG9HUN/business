@@ -56,17 +56,23 @@ class MusicSearchController<State, Effect>(
             failureEffect = failureEffect,
             onLoading = {
                 it.withAddMusic(
-                    musicSearchReducer.capabilitiesLoading(it.addMusic)
+                    musicSearchReducer.capabilitiesLoading(state = it.addMusic)
                 )
             },
             onSuccessWithData = { currentState, capabilities ->
                 currentState.withAddMusic(
-                    musicSearchReducer.capabilitiesLoaded(currentState.addMusic, capabilities)
+                    musicSearchReducer.capabilitiesLoaded(
+                        state = currentState.addMusic,
+                        capabilities = capabilities
+                    )
                 )
             },
             onError = { currentState, error ->
                 currentState.withAddMusic(
-                    musicSearchReducer.capabilitiesFailed(currentState.addMusic, error)
+                    musicSearchReducer.capabilitiesFailed(
+                        state = currentState.addMusic,
+                        error = error
+                    )
                 )
             },
         )
@@ -77,7 +83,7 @@ class MusicSearchController<State, Effect>(
 
         state.update {
             it.withAddMusic(
-                musicSearchReducer.queryChanged(it.addMusic, query)
+                musicSearchReducer.queryChanged(state = it.addMusic, query = query)
             )
         }
 
@@ -93,7 +99,7 @@ class MusicSearchController<State, Effect>(
 
         state.update {
             it.withAddMusic(
-                musicSearchReducer.providerChanged(it.addMusic, providerId)
+                musicSearchReducer.providerChanged(state = it.addMusic, providerId = providerId)
             )
         }
 
@@ -104,7 +110,7 @@ class MusicSearchController<State, Effect>(
         cancelInFlightSearch()
 
         state.update {
-            it.withAddMusic(musicSearchReducer.kindChanged(it.addMusic, kind))
+            it.withAddMusic(musicSearchReducer.kindChanged(state = it.addMusic, kind = kind))
         }
 
         submit()
@@ -131,7 +137,7 @@ class MusicSearchController<State, Effect>(
     fun selectResult(resultId: String) {
         state.update {
             it.withAddMusic(
-                musicSearchReducer.resultSelected(it.addMusic, resultId)
+                musicSearchReducer.resultSelected(state = it.addMusic, resultId = resultId)
             )
         }
     }
@@ -139,7 +145,7 @@ class MusicSearchController<State, Effect>(
     fun updateMode(mode: MAddMusicMode) {
         state.update {
             it.withAddMusic(
-                musicSearchReducer.modeChanged(it.addMusic, mode)
+                musicSearchReducer.modeChanged(state = it.addMusic, mode = mode)
             )
         }
     }
@@ -174,7 +180,7 @@ class MusicSearchController<State, Effect>(
         val requestKey = searchRequestKey
 
         state.update {
-            it.withAddMusic(musicSearchReducer.searchLoading(it.addMusic, append))
+            it.withAddMusic(musicSearchReducer.searchLoading(state = it.addMusic, append = append))
         }
 
         searchJob = scope.launch {
@@ -186,7 +192,7 @@ class MusicSearchController<State, Effect>(
                 guildId = guildId,
                 requestKey = requestKey,
                 search = search,
-                append = append,
+                append = append
             )
         }
     }
@@ -221,7 +227,11 @@ class MusicSearchController<State, Effect>(
             search.selectedProviderId.toTrackSearchPrefixOrDefault(),
             search.selectedKind.toDomainKind(),
             search.query.trim(),
-            if (append) search.nextPageToken else null,
+            if (append) {
+                search.nextPageToken
+            } else {
+                null
+            },
         ).filter {
             requestKey == searchRequestKey && currentGuildIdProvider() == guildId
         }.runAction(
@@ -229,16 +239,28 @@ class MusicSearchController<State, Effect>(
             effects = effects,
             failureEffect = failureEffect,
             onLoading = {
-                it.withAddMusic(musicSearchReducer.searchLoading(it.addMusic, append))
+                it.withAddMusic(
+                    musicSearchReducer.searchLoading(
+                        state = it.addMusic,
+                        append = append
+                    )
+                )
             },
             onSuccessWithData = { currentState, page ->
                 currentState.withAddMusic(
-                    musicSearchReducer.searchLoaded(currentState.addMusic, page, append)
+                    musicSearchReducer.searchLoaded(
+                        state = currentState.addMusic,
+                        page = page,
+                        append = append
+                    )
                 )
             },
             onError = { currentState, error ->
                 currentState.withAddMusic(
-                    musicSearchReducer.searchFailed(currentState.addMusic, error)
+                    musicSearchReducer.searchFailed(
+                        state = currentState.addMusic,
+                        error = error
+                    )
                 )
             },
         )

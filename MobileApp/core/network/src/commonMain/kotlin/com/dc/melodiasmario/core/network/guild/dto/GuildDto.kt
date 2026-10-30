@@ -17,7 +17,7 @@ data class GuildDto(
         name = name.ifBlank { guildId.toString() },
         iconUrl = iconUrl,
         accessLevel = accessLevel.toGuildAccessLevel(),
-        botStatus = botStatus.toDomain(),
+        botStatus = botStatus.toDomain()
     )
 }
 

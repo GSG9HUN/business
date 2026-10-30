@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_success
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_failed
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_create_failed
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_create_success
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_delete_failed
@@ -20,10 +22,14 @@ internal data class PlaylistsEffectMessages(
     private val renameFailed: String,
     private val deleteSuccess: String,
     private val deleteFailed: String,
+    private val artworkSuccess: String,
+    private val artworkFailed: String,
 ) {
     fun toastDataFor(effect: PlaylistsEffect): MToastData? = when (effect) {
+        PlaylistsEffect.ArtworkSaved -> success(artworkSuccess)
+        PlaylistsEffect.ArtworkSaveFailed -> error(artworkFailed)
         PlaylistsEffect.NavigateToGuildSelector,
-        is PlaylistsEffect.NavigateToPlaylistSongs -> null
+        is PlaylistsEffect.NavigateToPlaylistTracks -> null
 
         PlaylistsEffect.PlaylistCreated -> success(createSuccess)
         PlaylistsEffect.PlaylistCreateFailed -> error(createFailed)
@@ -46,6 +52,8 @@ internal data class PlaylistsEffectMessages(
 
 @Composable
 internal fun playlistsEffectMessages() = PlaylistsEffectMessages(
+    artworkSuccess = stringResource(Res.string.playlists_artwork_success),
+    artworkFailed = stringResource(Res.string.playlists_artwork_failed),
     createSuccess = stringResource(Res.string.playlists_create_success),
     createFailed = stringResource(Res.string.playlists_create_failed),
     renameSuccess = stringResource(Res.string.playlists_rename_success),

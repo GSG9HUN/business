@@ -5,7 +5,7 @@ Android and iOS applications.
 
 ## Overview
 
-- Reusable controls, music-search sheets, queue cards, and feedback components.
+- Reusable controls, music-search sheets, track item rows, and feedback components.
 - Top-bar and floating-action-button configuration.
 - Shared queue drag handling and edge scrolling.
 - Material 3 light, dark, and system-following themes.
@@ -63,3 +63,15 @@ controller state through the screen to BiometricLockSetting. Visual components h
 theme-wrapped previews that do not open native prompts or require DI.
 
 See [the implementation walkthrough](../../docs/biometric-app-lock.md).
+
+## Playback and reorder lifecycle
+
+PlaybackNotificationController exposes notification startup. The Android foreground service owns notification STOP actions and task-removal cleanup. ReorderDragContainer calculates the drop target from visible list geometry; there is no separate unused index helper.
+
+## Track item rows
+
+MTrackItemRow in components/ is shared by QueueScreen, CurrentTrackScreen, and PlaylistTrackScreen, including drag overlays. It displays trackNumber, artwork, title, artist and duration, a remove button, and a drag handle. enabled controls interaction; reorderEnabled separately gates move accessibility actions and local dragging. Container-managed dragging uses dragEnabled = false to avoid competing gesture handlers. Queue ordering is unchanged; playlist ordering remains disabled until backend support exists.
+
+## Playlist Fallback Artwork
+
+`components/MPlaylistArtwork.kt` prefers the API image URL and uses bundled vector covers selected by `PlaylistArtworkTheme.fromName` when the image is missing, loading, or failed. Night Drive uses a neon city/road image, Chill uses a sunset/waves image, and Workout uses a lightning image. Other names retain the gradient/music icon. Both playlist cards and detail headers use this component. `MArtwork.fallbackImage` accepts an optional full-size local fallback without changing queue artwork defaults.

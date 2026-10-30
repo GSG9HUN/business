@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ExchangeAuthTicketRequestDto(
-    val ticket: String,
+    val ticket: String
 )

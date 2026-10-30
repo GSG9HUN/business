@@ -23,6 +23,11 @@ internal fun String.toMusicSearchResultKindOrNull(): MusicSearchResultKind? {
     return when (lowercase()) {
         "track" -> MusicSearchResultKind.TRACK
         "playlist" -> MusicSearchResultKind.PLAYLIST
-        else -> MusicSearchResultKind.entries.firstOrNull { it.name.equals(this, ignoreCase = true) }
+        else -> MusicSearchResultKind.entries.firstOrNull {
+            it.name.equals(
+                this,
+                ignoreCase = true
+            )
+        }
     }
 }
