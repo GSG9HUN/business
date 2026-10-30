@@ -20,6 +20,12 @@ import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
 import com.dc.melodiasmario.core.model.search.MusicSearchCapability
 import com.dc.melodiasmario.core.model.search.MusicSearchPage
 import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,23 +39,17 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlaylistTrackViewModelTest {
-    private val dispatcher = StandardTestDispatcher()
-    private lateinit var repository: FakePlaylistRepository
-    private lateinit var viewModel: PlaylistTrackViewModel
+    private val standardTestDispatcher = StandardTestDispatcher()
+    private lateinit var fakePlaylistRepository: FakePlaylistRepository
+    private lateinit var playlistTrackViewModel: PlaylistTrackViewModel
 
     @BeforeTest
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-        repository = FakePlaylistRepository()
+    fun setUp(): Unit {
+        Dispatchers.setMain(standardTestDispatcher)
+        fakePlaylistRepository = FakePlaylistRepository()
         val searchRepository = object : MusicSearchRepository {
             override suspend fun getCapabilities(guildId: String): List<MusicSearchCapability> = emptyList()
             override suspend fun search(
@@ -57,152 +57,170 @@ class PlaylistTrackViewModelTest {
                 provider: TrackSearchPrefix,
                 kind: MusicSearchResultKind,
                 query: String,
-                pageToken: String?,
-            ): MusicSearchPage = error("Unexpected search")
+                pageToken: String?
+            ): MusicSearchPage = error(message = "Unexpected search")
         }
         val realtimeRepository = object : RealtimeRepository {
-            override val connectionState = MutableStateFlow(RealtimeConnectionState.Disconnected)
+            override val connectionState = MutableStateFlow(value = RealtimeConnectionState.Disconnected)
             override fun observeGuildRealtime(guildId: String): Flow<RealtimeEvent> = emptyFlow()
             override suspend fun disconnect() = Unit
         }
-        viewModel = PlaylistTrackViewModel(
-            getPlaylistDetailUseCase = GetPlaylistDetailUseCase(repository),
-            removePlaylistTrackUseCase = RemovePlaylistTrackUseCase(repository),
-            addPlaylistTrackUseCase = AddPlaylistTrackUseCase(repository),
-            loadPlaylistUseCase = LoadPlaylistUseCase(repository),
-            getMusicSearchCapabilitiesUseCase = GetMusicSearchCapabilitiesUseCase(searchRepository),
-            searchMusicUseCase = SearchMusicUseCase(searchRepository),
-            observeGuildRealtimeUseCase = ObserveGuildRealtimeUseCase(realtimeRepository),
+        playlistTrackViewModel = PlaylistTrackViewModel(
+            getPlaylistDetailUseCase = GetPlaylistDetailUseCase(playlistTrackRepository = fakePlaylistRepository),
+            removePlaylistTrackUseCase = RemovePlaylistTrackUseCase(playlistTrackRepository = fakePlaylistRepository),
+            addPlaylistTrackUseCase = AddPlaylistTrackUseCase(playlistTrackRepository = fakePlaylistRepository),
+            loadPlaylistUseCase = LoadPlaylistUseCase(playlistTrackRepository = fakePlaylistRepository),
+            getMusicSearchCapabilitiesUseCase = GetMusicSearchCapabilitiesUseCase(musicSearchRepository = searchRepository),
+            searchMusicUseCase = SearchMusicUseCase(musicSearchRepository = searchRepository),
+            observeGuildRealtimeUseCase = ObserveGuildRealtimeUseCase(realtimeRepository = realtimeRepository)
         )
     }
 
     @AfterTest
-    fun tearDown() {
-        viewModel.viewModelScope.cancel()
+    fun tearDown(): Unit {
+        playlistTrackViewModel.viewModelScope.cancel()
         Dispatchers.resetMain()
     }
 
     @Test
-    fun failedLoadCanBeRetried() = runTest(dispatcher) {
-        repository.failGet = true
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+    fun failedLoadCanBeRetried() = runTest(context = standardTestDispatcher) {
+        fakePlaylistRepository.failGet = true
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
-        assertTrue(viewModel.uiState.value.hasLoadError)
-        assertFalse(viewModel.uiState.value.isLoading)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.hasLoadError)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isLoading)
 
-        repository.failGet = false
-        viewModel.onEvent(PlaylistTrackEvent.Refresh)
+        fakePlaylistRepository.failGet = false
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Refresh)
         runCurrent()
-        assertTrue(viewModel.uiState.value.canModify)
-        assertEquals("1", viewModel.uiState.value.playlist?.id)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.canModify)
+        assertEquals(expected = "1", actual = playlistTrackViewModel.uiState.value.playlist?.id)
     }
 
     @Test
-    fun manualInputUsesSharedValidationBeforeSubmitting() = runTest(dispatcher) {
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+    fun manualInputUsesSharedValidationBeforeSubmitting() = runTest(context = standardTestDispatcher) {
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
+
         for (invalid in listOf("a", "https://", " ")) {
-            viewModel.onEvent(PlaylistTrackEvent.ManualDraftChanged(invalid))
+            playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.ManualDraftChanged(value = invalid))
             runCurrent()
-            assertFalse(viewModel.uiState.value.addMusic.canSubmitManual)
-            viewModel.onEvent(PlaylistTrackEvent.ManualAdd)
+            assertFalse(actual = playlistTrackViewModel.uiState.value.addMusic.canSubmitManual)
+            playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.ManualAdd)
             runCurrent()
         }
-        assertTrue(repository.addedQueries.isEmpty())
-        assertFalse(viewModel.uiState.value.isCommandInFlight)
 
-        viewModel.onEvent(PlaylistTrackEvent.ManualDraftChanged("  valid query  "))
+        assertTrue(actual = fakePlaylistRepository.addedQueries.isEmpty())
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
+
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.ManualDraftChanged(value = "  valid query  "))
         runCurrent()
-        assertTrue(viewModel.uiState.value.addMusic.canSubmitManual)
-        viewModel.onEvent(PlaylistTrackEvent.ManualAdd)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.addMusic.canSubmitManual)
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.ManualAdd)
         runCurrent()
-        assertEquals(listOf("valid query"), repository.addedQueries)
-        assertFalse(viewModel.uiState.value.isCommandInFlight)
+        assertEquals(expected = listOf("valid query"), actual = fakePlaylistRepository.addedQueries)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
     }
 
     @Test
-    fun failedRemovalKeepsDialogAndReleasesLockForRetry() = runTest(dispatcher) {
+    fun failedRemovalKeepsDialogAndReleasesLockForRetry() = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
-        backgroundScope.launch(dispatcher) { viewModel.effect.collect { effects.add(it) } }
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+        backgroundScope.launch(context = standardTestDispatcher) {
+            playlistTrackViewModel.effect.collect { effect ->
+                effects.add(element = effect)
+            }
+        }
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
-        viewModel.onEvent(PlaylistTrackEvent.RemoveClicked(1))
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveClicked(orderNumber = 1))
         runCurrent()
-        repository.failRemove = true
-        viewModel.onEvent(PlaylistTrackEvent.RemoveConfirmed(1))
+        fakePlaylistRepository.failRemove = true
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveConfirmed(orderNumber = 1))
         runCurrent()
-        assertFalse(viewModel.uiState.value.isCommandInFlight)
-        assertEquals(PlaylistTrackDialog.ConfirmRemove(1), viewModel.uiState.value.dialog)
-        assertTrue(PlaylistTrackEffect.OperationFailed in effects)
-        assertFalse(PlaylistTrackEffect.TrackRemoved in effects)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
+        assertEquals(expected = PlaylistTrackDialog.ConfirmRemove(orderNumber = 1), actual = playlistTrackViewModel.uiState.value.dialog)
+        assertTrue(actual = PlaylistTrackEffect.OperationFailed in effects)
+        assertFalse(actual = PlaylistTrackEffect.TrackRemoved in effects)
 
-        repository.failRemove = false
-        viewModel.onEvent(PlaylistTrackEvent.RemoveConfirmed(1))
+        fakePlaylistRepository.failRemove = false
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveConfirmed(orderNumber = 1))
         runCurrent()
-        assertTrue(viewModel.uiState.value.tracks.isEmpty())
-        assertEquals(PlaylistTrackDialog.None, viewModel.uiState.value.dialog)
-        assertEquals(1, effects.count { it == PlaylistTrackEffect.TrackRemoved })
+        assertTrue(actual = playlistTrackViewModel.uiState.value.tracks.isEmpty())
+        assertEquals(expected = PlaylistTrackDialog.None, actual = playlistTrackViewModel.uiState.value.dialog)
+        assertEquals(expected = 1, actual = effects.count { effect -> effect == PlaylistTrackEffect.TrackRemoved })
     }
 
     @Test
-    fun duplicateCommandsAreBlockedButBackStillWorks() = runTest(dispatcher) {
+    fun duplicateCommandsAreBlockedButBackStillWorks() = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
-        backgroundScope.launch(dispatcher) { viewModel.effect.collect { effects.add(it) } }
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+        backgroundScope.launch(context = standardTestDispatcher) {
+            playlistTrackViewModel.effect.collect { effect ->
+                effects.add(element = effect)
+            }
+        }
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
-        repository.removeGate = CompletableDeferred()
-        viewModel.onEvent(PlaylistTrackEvent.RemoveConfirmed(1))
-        viewModel.onEvent(PlaylistTrackEvent.RemoveConfirmed(1))
+        fakePlaylistRepository.removeGate = CompletableDeferred()
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveConfirmed(orderNumber = 1))
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveConfirmed(orderNumber = 1))
         runCurrent()
-        assertEquals(1, repository.removeCalls)
-        assertTrue(viewModel.uiState.value.isCommandInFlight)
-        viewModel.onEvent(PlaylistTrackEvent.BackClicked)
+        assertEquals(expected = 1, actual = fakePlaylistRepository.removeCalls)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.BackClicked)
         runCurrent()
-        assertTrue(PlaylistTrackEffect.NavigateBack in effects)
-        repository.removeGate?.complete(Unit)
+        assertTrue(actual = PlaylistTrackEffect.NavigateBack in effects)
+        fakePlaylistRepository.removeGate?.complete(Unit)
         runCurrent()
-        assertFalse(viewModel.uiState.value.isCommandInFlight)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
     }
 
     @Test
-    fun changingPlaylistCancelsOldCommandWithoutSuccessEffect() = runTest(dispatcher) {
+    fun changingPlaylistCancelsOldCommandWithoutSuccessEffect() = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
-        backgroundScope.launch(dispatcher) { viewModel.effect.collect { effects.add(it) } }
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+        backgroundScope.launch(context = standardTestDispatcher) {
+            playlistTrackViewModel.effect.collect { effect ->
+                effects.add(element = effect)
+            }
+        }
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
-        repository.removeGate = CompletableDeferred()
-        viewModel.onEvent(PlaylistTrackEvent.RemoveConfirmed(1))
+        fakePlaylistRepository.removeGate = CompletableDeferred()
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.RemoveConfirmed(orderNumber = 1))
         runCurrent()
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "2"))
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "2"))
         runCurrent()
-        repository.removeGate?.complete(Unit)
+        fakePlaylistRepository.removeGate?.complete(Unit)
         runCurrent()
-        assertEquals("2", viewModel.uiState.value.playlist?.id)
-        assertFalse(viewModel.uiState.value.isCommandInFlight)
-        assertFalse(PlaylistTrackEffect.TrackRemoved in effects)
+        assertEquals(expected = "2", actual = playlistTrackViewModel.uiState.value.playlist?.id)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
+        assertFalse(actual = PlaylistTrackEffect.TrackRemoved in effects)
     }
 
     @Test
-    fun acceptedCommandDoesNotReportSuccessBeforeCompletion() = runTest(dispatcher) {
+    fun acceptedCommandDoesNotReportSuccessBeforeCompletion() = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
-        backgroundScope.launch(dispatcher) { viewModel.effect.collect { effects.add(it) } }
-        viewModel.onEvent(PlaylistTrackEvent.Load("guild", "1"))
+        backgroundScope.launch(context = standardTestDispatcher) {
+            playlistTrackViewModel.effect.collect { effect ->
+                effects.add(element = effect)
+            }
+        }
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
-        repository.commandState = "accepted"
-        viewModel.onEvent(PlaylistTrackEvent.LoadPlaylist)
+        fakePlaylistRepository.commandState = "accepted"
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.LoadPlaylist)
         runCurrent()
-        assertTrue(PlaylistTrackEffect.CommandAccepted in effects)
-        assertFalse(PlaylistTrackEffect.PlaylistLoaded in effects)
-        assertTrue(viewModel.uiState.value.isCommandInFlight)
+        assertTrue(actual = PlaylistTrackEffect.CommandAccepted in effects)
+        assertFalse(actual = PlaylistTrackEffect.PlaylistLoaded in effects)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.isCommandInFlight)
     }
 
     @Test
-    fun playlistFromAnotherGuildIsNotDisplayed() = runTest(dispatcher) {
-        viewModel.onEvent(PlaylistTrackEvent.Load("another-guild", "1"))
+    fun playlistFromAnotherGuildIsNotDisplayed() = runTest(context = standardTestDispatcher) {
+        playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "another-guild", playlistId = "1"))
         runCurrent()
-        assertTrue(viewModel.uiState.value.hasLoadError)
-        assertEquals(null, viewModel.uiState.value.playlist)
-        assertFalse(viewModel.uiState.value.canModify)
+        assertTrue(actual = playlistTrackViewModel.uiState.value.hasLoadError)
+        assertEquals(expected = null, actual = playlistTrackViewModel.uiState.value.playlist)
+        assertFalse(actual = playlistTrackViewModel.uiState.value.canModify)
     }
 
     private class FakePlaylistRepository : PlaylistTrackRepository {
@@ -212,25 +230,33 @@ class PlaylistTrackViewModelTest {
         var removeGate: CompletableDeferred<Unit>? = null
         var commandState = "succeeded"
         val addedQueries = mutableListOf<String>()
-        private var tracks = listOf(PlaylistTrack(1, "Track", "Artist", 60, "https://example.com/track"))
+        private var tracks = listOf(
+            PlaylistTrack(
+                orderNumber = 1,
+                title = "Track",
+                author = "Artist",
+                durationSeconds = 60,
+                trackUri = "https://example.com/track"
+            )
+        )
 
         override suspend fun getPlaylist(playlistId: String): PlaylistDetail {
-            check(!failGet) { "Load failed" }
-            return PlaylistDetail(playlistId, "guild", "Playlist", tracks)
+            check(value = !failGet) { "Load failed" }
+            return PlaylistDetail(id = playlistId, guildId = "guild", name = "Playlist", tracks = tracks)
         }
 
         override suspend fun removeTrack(playlistId: String, trackNumber: Int) {
             removeCalls++
-            check(!failRemove) { "Remove failed" }
+            check(value = !failRemove) { "Remove failed" }
             removeGate?.await()
-            tracks = tracks.filterNot { it.orderNumber == trackNumber }
+            tracks = tracks.filterNot { track -> track.orderNumber == trackNumber }
         }
 
         override suspend fun addTrack(playlistId: String, query: String): BotControlCommand {
-            addedQueries.add(query)
-            return BotControlCommand("add", "add", commandState)
+            addedQueries.add(element = query)
+            return BotControlCommand(commandId = "add", type = "add", state = commandState)
         }
 
-        override suspend fun loadPlaylist(playlistId: String) = BotControlCommand("load", "load", commandState)
+        override suspend fun loadPlaylist(playlistId: String) = BotControlCommand(commandId = "load", type = "load", state = commandState)
     }
 }

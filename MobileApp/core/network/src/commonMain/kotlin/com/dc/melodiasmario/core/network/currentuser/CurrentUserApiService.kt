@@ -9,15 +9,22 @@ import io.ktor.client.request.header
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends current user API requests through the configured HTTP client.
+ */
 @Single
 class CurrentUserApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Retrieves the authenticated user account.
+     */
     suspend fun getCurrentUser(accessToken: String): CurrentUserDto {
-        return client.get("$baseUrl/profile/me") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/profile/me") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 }

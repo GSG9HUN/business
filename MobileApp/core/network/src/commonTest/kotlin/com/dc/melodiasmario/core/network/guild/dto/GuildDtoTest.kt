@@ -6,17 +6,17 @@ import kotlin.test.Test
 class GuildDtoTest {
 
     @Test
-    fun toDomainMapsBasicGuildFields() {
-        // TODO: Verify guildId, name, iconUrl, accessLevel, and botStatus are mapped correctly.
+    fun toDomainMapsBasicGuildFields(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsUnknownAccessLevelToFallbackValue() {
-        // TODO: Verify unknown backend accessLevel values do not crash mapping.
+    fun toDomainMapsUnknownAccessLevelToFallbackValue(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsNullBotStatusSafelyIfBackendAllowsIt() {
-        // TODO: Verify behavior for missing/null botStatus once backend contract is finalized.
+    fun toDomainMapsNullBotStatusSafelyIfBackendAllowsIt(): Unit {
+        throw NotImplementedError()
     }
 }

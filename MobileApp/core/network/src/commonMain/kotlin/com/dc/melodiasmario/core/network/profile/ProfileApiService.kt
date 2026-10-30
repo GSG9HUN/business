@@ -15,26 +15,37 @@ import io.ktor.http.contentType
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends profile API requests through the configured HTTP client.
+ */
 @Single
 class ProfileApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Retrieves the authenticated user profile and settings.
+     */
     suspend fun getProfile(accessToken: String): ProfileDto {
-        return client.get("$baseUrl/profile") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/profile") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Persists the supplied profile-setting changes.
+     */
     suspend fun updateProfileSettings(
         accessToken: String,
-        userSettings: UpdateProfileSettingsDto,
+        userSettings: UpdateProfileSettingsDto
     ): ProfileSettingsDto {
-        return client.patch("$baseUrl/profile/settings") {
-            header("Authorization", "Bearer $accessToken")
-            contentType(ContentType.Application.Json)
-            setBody(userSettings)
-        }.body<ProfileSettingsDto>()
+        return httpClient.patch(urlString = "$baseUrl/profile/settings") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            contentType(type = ContentType.Application.Json)
+            setBody(body = userSettings)
+        }
+            .body<ProfileSettingsDto>()
     }
 }

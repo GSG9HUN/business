@@ -4,6 +4,15 @@ import com.dc.melodiasmario.core.model.guild.Guild
 import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents guild dto in the API transport contract.
+ *
+ * @property guildId Identifier of the guild owning this value.
+ * @property name Name.
+ * @property iconUrl Icon url.
+ * @property accessLevel Access level.
+ * @property botStatus Bot status.
+ */
 @Serializable
 data class GuildDto(
     val guildId: Long,
@@ -12,7 +21,10 @@ data class GuildDto(
     val accessLevel: String,
     val botStatus: BotStatusDto
 ) {
-    fun toDomain() = Guild(
+    /**
+     * Maps this value to domain.
+     */
+    fun toDomain(): Guild = Guild(
         id = guildId.toString(),
         name = name.ifBlank { guildId.toString() },
         iconUrl = iconUrl,

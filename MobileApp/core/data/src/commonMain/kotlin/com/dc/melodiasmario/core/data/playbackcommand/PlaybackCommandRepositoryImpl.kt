@@ -5,9 +5,12 @@ import com.dc.melodiasmario.core.domain.playbackcommand.PlaybackCommandRepositor
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import org.koin.core.annotation.Single
 
+/**
+ * Implements playback command data access using the injected data sources.
+ */
 @Single(binds = [PlaybackCommandRepository::class])
 class PlaybackCommandRepositoryImpl(
-    private val currentTrackRepository: CurrentTrackRepository,
+    private val currentTrackRepository: CurrentTrackRepository
 ) : PlaybackCommandRepository {
     override suspend fun previous(guildId: String): BotControlCommand {
         return currentTrackRepository.previousTrack(guildId = guildId)
@@ -19,7 +22,7 @@ class PlaybackCommandRepositoryImpl(
 
     override suspend fun playPause(
         guildId: String,
-        isPlaying: Boolean,
+        isPlaying: Boolean
     ): BotControlCommand {
         return if (isPlaying) {
             currentTrackRepository.pause(guildId = guildId)

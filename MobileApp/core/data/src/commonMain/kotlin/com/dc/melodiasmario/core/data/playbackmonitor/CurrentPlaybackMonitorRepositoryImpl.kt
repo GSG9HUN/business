@@ -8,9 +8,12 @@ import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveRealtimeConnecti
 import com.dc.melodiasmario.core.model.playbackmonitor.CurrentPlaybackMonitorState
 import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
 import com.dc.melodiasmario.core.model.realtime.RealtimeConnectionState
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,32 +21,34 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.currentCoroutineContext
 import org.koin.core.annotation.Single
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Implements current playback monitor data access using the injected data sources.
+ */
 @Single(binds = [CurrentPlaybackMonitorRepository::class])
 class CurrentPlaybackMonitorRepositoryImpl(
     private val getCurrentTrackUseCase: GetCurrentTrackUseCase,
     private val observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase,
-    private val observeRealtimeConnectionStateUseCase: ObserveRealtimeConnectionStateUseCase,
+    private val observeRealtimeConnectionStateUseCase: ObserveRealtimeConnectionStateUseCase
 ) : CurrentPlaybackMonitorRepository {
-    private val scope = CoroutineScope(SupervisorJob())
-    private val _state = MutableStateFlow(CurrentPlaybackMonitorState())
-    override val state: StateFlow<CurrentPlaybackMonitorState> = _state.asStateFlow()
+    private val coroutineScope = CoroutineScope(context = SupervisorJob())
+    private val _playbackMonitorState = MutableStateFlow(value = CurrentPlaybackMonitorState())
+    override val playbackMonitorState: StateFlow<CurrentPlaybackMonitorState> = _playbackMonitorState.asStateFlow()
 
     private var monitorJob: Job? = null
     private var currentGuildId: String? = null
 
-    override fun start(guildId: String) {
-        if (currentGuildId == guildId && monitorJob?.isActive == true) return
+    override fun start(guildId: String): Unit {
+        if (currentGuildId == guildId && monitorJob?.isActive == true) {
+            return
+        }
 
         monitorJob?.cancel()
         currentGuildId = guildId
-        _state.value = CurrentPlaybackMonitorState(guildId = guildId, isRefreshing = true)
+        _playbackMonitorState.value = CurrentPlaybackMonitorState(guildId = guildId, isRefreshing = true)
 
-        monitorJob = scope.launch {
+        monitorJob = coroutineScope.launch {
             launch { observeRealtime(guildId = guildId) }
             launch { observeConnection() }
             launch { pollFallback(guildId = guildId) }
@@ -51,13 +56,14 @@ class CurrentPlaybackMonitorRepositoryImpl(
         }
     }
 
-    override fun refresh() {
+    override fun refresh(): Unit {
         val guildId = currentGuildId ?: return
-        scope.launch { refreshInternal(guildId = guildId) }
+        coroutineScope.launch { refreshInternal(guildId = guildId) }
     }
 
     private suspend fun observeRealtime(guildId: String) {
-        observeGuildRealtimeUseCase(guildId).collect { event ->
+        observeGuildRealtimeUseCase(guildId = guildId).collect { event ->
+
             if (event.eventName.shouldRefreshPlayback()) {
                 refreshInternal(guildId = guildId)
             }
@@ -66,15 +72,15 @@ class CurrentPlaybackMonitorRepositoryImpl(
 
     private suspend fun observeConnection() {
         observeRealtimeConnectionStateUseCase().collect { connectionState ->
-            _state.update {
-                it.copy(isConnected = connectionState == RealtimeConnectionState.Connected)
+            _playbackMonitorState.update { currentPlaybackMonitorState ->
+                currentPlaybackMonitorState.copy(isConnected = connectionState == RealtimeConnectionState.Connected)
             }
         }
     }
 
     private suspend fun pollFallback(guildId: String) {
         while (currentCoroutineContext().isActive) {
-            delay(15_000.milliseconds)
+            delay(duration = 15_000.milliseconds)
             refreshInternal(guildId = guildId)
         }
     }
@@ -82,22 +88,25 @@ class CurrentPlaybackMonitorRepositoryImpl(
     private suspend fun refreshInternal(guildId: String) {
         getCurrentTrackUseCase(guildId = guildId).collect { result ->
             when (result) {
-                Resource.Loading -> _state.update { it.copy(isRefreshing = true) }
+                Resource.Loading -> _playbackMonitorState.update { currentPlaybackMonitorState -> currentPlaybackMonitorState.copy(
+                    isRefreshing = true
+                ) }
 
-                is Resource.Success -> _state.update {
-                    it.copy(
+                is Resource.Success -> _playbackMonitorState.update { currentPlaybackMonitorState ->
+                    currentPlaybackMonitorState.copy(
                         guildId = guildId,
                         currentTrack = result.data,
                         isRefreshing = false,
-                        lastUpdatedAtMillis = Clock.System.now().toEpochMilliseconds(),
-                        errorMessage = null,
+                        lastUpdatedAtMillis = Clock.System.now()
+                            .toEpochMilliseconds(),
+                        errorMessage = null
                     )
                 }
 
-                is Resource.Error -> _state.update {
-                    it.copy(
+                is Resource.Error -> _playbackMonitorState.update { currentPlaybackMonitorState ->
+                    currentPlaybackMonitorState.copy(
                         isRefreshing = false,
-                        errorMessage = result.error.message,
+                        errorMessage = result.error.message
                     )
                 }
             }
@@ -130,7 +139,7 @@ class CurrentPlaybackMonitorRepositoryImpl(
             MobileRealtimeEventNames.GuildBotStatusChanged,
             MobileRealtimeEventNames.BotJoinedVoiceChannel,
             MobileRealtimeEventNames.BotLeftVoiceChannel,
-            MobileRealtimeEventNames.BotVoiceUserCountChanged,
+            MobileRealtimeEventNames.BotVoiceUserCountChanged
         )
     }
 }

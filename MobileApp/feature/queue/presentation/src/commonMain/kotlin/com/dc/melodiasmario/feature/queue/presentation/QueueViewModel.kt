@@ -3,10 +3,7 @@ package com.dc.melodiasmario.feature.queue.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.presentation.command.CommandLock
-import com.dc.melodiasmario.core.presentation.music.search.MusicSearchController
 import com.dc.melodiasmario.core.commonui.music.validation.canSubmitMusicInput
-import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
@@ -20,6 +17,9 @@ import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUse
 import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
 import com.dc.melodiasmario.core.model.playbackmonitor.CurrentPlaybackMonitorState
+import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
+import com.dc.melodiasmario.core.presentation.command.CommandLock
+import com.dc.melodiasmario.core.presentation.music.search.MusicSearchController
 import com.dc.melodiasmario.core.presentation.playbackmonitor.PlaybackMonitorObserver
 import com.dc.melodiasmario.feature.queue.presentation.command.QueueCommandHandler
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistController
@@ -27,6 +27,7 @@ import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistSav
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,6 +37,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
+/**
+ * Coordinates queue events, observable UI state, and one-time effects.
+ */
 @KoinViewModel
 class QueueViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
@@ -48,96 +52,105 @@ class QueueViewModel(
     private val clearQueueUseCase: ClearQueueUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
-    private val playlistSaveManager: QueuePlaylistSaveManager,
+    private val queuePlaylistSaveManager: QueuePlaylistSaveManager,
     private val getMusicSearchCapabilitiesUseCase: GetMusicSearchCapabilitiesUseCase,
-    private val searchMusicUseCase: SearchMusicUseCase,
+    private val searchMusicUseCase: SearchMusicUseCase
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(QueueUiState())
+    private val _uiState = MutableStateFlow(value = QueueUiState())
 
+    /**
+     * Read-only presentation state observed by UI consumers.
+     */
     val uiState: StateFlow<QueueUiState> = _uiState
         .onStart {
             playbackMonitorObserver.start()
-        }.stateIn(
+        }
+        .stateIn(
             scope = viewModelScope,
-            started = WhileSubscribed(5_000),
-            initialValue = QueueUiState(),
+            started = WhileSubscribed(stopTimeoutMillis = 5_000),
+            initialValue = QueueUiState()
         )
     private val events = MutableSharedFlow<QueueEvent>(extraBufferCapacity = 64)
     private val playbackMonitorObserver = PlaybackMonitorObserver(
-        scope = viewModelScope,
+        coroutineScope = viewModelScope,
         observePlayback = observeCurrentPlaybackMonitorUseCase::invoke,
-        onPlayback = ::updatePlayback,
+        onPlayback = ::updatePlayback
     )
 
     private val _effect = MutableSharedFlow<QueueEffect>()
-    val effect = _effect.asSharedFlow()
+
+    /**
+     * One-time presentation outcomes observed by UI consumers.
+     */
+    val effect: SharedFlow<QueueEffect> = _effect.asSharedFlow()
 
     private var currentGuildId: String? = null
     private var currentUserId: String? = null
     private var commandVersion = 0L
     private var commandJob: Job? = null
-    private val commandLock = CommandLock(_uiState)
+    private val commandLock = CommandLock(uiState = _uiState)
 
-
-    private val commandCoordinator = BotCommandCoordinator(
-        scope = viewModelScope,
+    private val botCommandCoordinator = BotCommandCoordinator(
+        coroutineScope = viewModelScope,
         observeGuildRealtime = observeGuildRealtimeUseCase::invoke,
-        currentUserIdProvider = { currentUserId },
+        currentUserIdProvider = { currentUserId }
     )
 
-    private val commandHandler = QueueCommandHandler(
+    private val queueCommandHandler = QueueCommandHandler(
         addToQueueUseCase = addToQueueUseCase,
         removeFromQueueUseCase = removeFromQueueUseCase,
         clearQueueUseCase = clearQueueUseCase,
         shuffleQueueUseCase = shuffleQueueUseCase,
         moveTrackToIndexUseCase = moveTrackToIndexUseCase,
-        state = _uiState,
+        uiState = _uiState,
         effects = _effect,
         currentGuildIdProvider = { currentGuildId },
         onTrackPendingCommand = { command ->
-            commandCoordinator.handleCompletion(
+            botCommandCoordinator.handleCompletion(
                 command = command,
-                onSucceeded = { _effect.emit(QueueEffect.BotCommandSucceeded(command.type)) },
+                onSucceeded = { _effect.emit(value = QueueEffect.BotCommandSucceeded(commandType = command.type)) },
                 onFailed = { errorKey ->
                     _effect.emit(
-                        QueueEffect.BotCommandFailed(
-                            command.type,
-                            errorKey
+                        value = QueueEffect.BotCommandFailed(
+                            commandType = command.type,
+                            errorKey = errorKey
                         )
                     )
                 },
-                onTimedOut = { _effect.emit(QueueEffect.BotCommandTimedOut) },
-                onCompleted = { refreshCurrentPlaybackMonitorUseCase() },
+                onTimedOut = { _effect.emit(value = QueueEffect.BotCommandTimedOut) },
+                onCompleted = { refreshCurrentPlaybackMonitorUseCase() }
             )
         },
         onCloseDialog = ::closeDialog,
-        onMoveFailed = { refreshCurrentPlaybackMonitorUseCase() },
+        onMoveFailed = { refreshCurrentPlaybackMonitorUseCase() }
     )
 
-    private val searchController = MusicSearchController(
+    private val musicSearchController = MusicSearchController(
         getCapabilities = getMusicSearchCapabilitiesUseCase::invoke,
         searchMusic = searchMusicUseCase::invoke,
-        state = _uiState,
+        uiState = _uiState,
         effects = _effect,
         failureEffect = QueueEffect.SearchFailed,
-        scope = viewModelScope,
-        currentGuildIdProvider = { currentGuildId },
+        coroutineScope = viewModelScope,
+        currentGuildIdProvider = { currentGuildId }
     )
 
-    private val playlistController = QueuePlaylistController(
-        saveManager = playlistSaveManager,
-        state = _uiState,
+    private val queuePlaylistController = QueuePlaylistController(
+        queuePlaylistSaveManager = queuePlaylistSaveManager,
+        uiState = _uiState,
         effects = _effect,
         currentGuildIdProvider = { currentGuildId },
-        onCloseDialog = ::closeDialog,
+        onCloseDialog = ::closeDialog
     )
 
     init {
         collectEvents()
     }
 
-
-    fun onEvent(event: QueueEvent) {
+    /**
+     * Submits a user or lifecycle event to the feature event-processing flow.
+     */
+    fun onEvent(event: QueueEvent): Unit {
         if (event.isCommandEvent()) {
             if (!startCommandIfIdle()) {
                 return
@@ -146,42 +159,41 @@ class QueueViewModel(
             val version = commandVersion
             commandJob = viewModelScope.launch {
                 try {
-                    handleCommandEvent(event)
+                    handleCommandEvent(event = event)
                 } finally {
-                    finishCommand(version)
+                    finishCommand(version = version)
                 }
             }
             return
         }
 
         viewModelScope.launch {
-            events.emit(event)
+            events.emit(value = event)
         }
     }
-
 
     private fun collectEvents() {
         viewModelScope.launch {
             events.collect { event ->
-                handleEvent(event)
+                handleEvent(event = event)
             }
         }
     }
 
     private suspend fun handleEvent(event: QueueEvent) {
         when (event) {
-            is QueueEvent.LoadQueue -> loadQueue(event.guildId)
+            is QueueEvent.LoadQueue -> loadQueue(guildId = event.guildId)
 
             QueueEvent.RefreshClicked -> refreshClicked()
 
             QueueEvent.GuildClicked -> {
-                _effect.emit(QueueEffect.NavigateToGuildSelector)
+                _effect.emit(value = QueueEffect.NavigateToGuildSelector)
             }
 
             QueueEvent.AddMusicClicked -> addMusicClicked()
 
             QueueEvent.MoreClicked -> {
-                openDialog(QueueDialog.MoreActions)
+                openDialog(dialog = QueueDialog.MoreActions)
             }
 
             QueueEvent.DialogDismissed -> {
@@ -191,35 +203,35 @@ class QueueViewModel(
             }
 
             is QueueEvent.ManualDraftChanged -> {
-                updateManualDraft(event.value)
+                updateManualDraft(value = event.value)
             }
 
-            is QueueEvent.AddMusicModeChanged -> searchController.updateMode(event.mode)
+            is QueueEvent.AddMusicModeChanged -> musicSearchController.updateMode(mode = event.mode)
 
             is QueueEvent.SearchQueryChanged -> {
-                searchController.onQueryChanged(event.query)
+                musicSearchController.onQueryChanged(query = event.query)
             }
 
-            QueueEvent.SearchSubmitted -> searchController.submit()
+            QueueEvent.SearchSubmitted -> musicSearchController.submit()
 
-            QueueEvent.SearchRetryClicked -> searchController.retry()
+            QueueEvent.SearchRetryClicked -> musicSearchController.retry()
 
-            QueueEvent.SearchNextPageRequested -> searchController.loadNextPage()
+            QueueEvent.SearchNextPageRequested -> musicSearchController.loadNextPage()
 
-            QueueEvent.SearchCapabilitiesRetryClicked -> searchController.loadCapabilities()
+            QueueEvent.SearchCapabilitiesRetryClicked -> musicSearchController.loadCapabilities()
 
-            is QueueEvent.SearchProviderChanged -> searchController.onProviderChanged(event.providerId)
+            is QueueEvent.SearchProviderChanged -> musicSearchController.onProviderChanged(providerId = event.providerId)
 
-            is QueueEvent.SearchKindChanged -> searchController.onKindChanged(event.kind)
+            is QueueEvent.SearchKindChanged -> musicSearchController.onKindChanged(kind = event.kind)
 
-            is QueueEvent.SearchResultClicked -> searchController.selectResult(event.resultId)
+            is QueueEvent.SearchResultClicked -> musicSearchController.selectResult(resultId = event.resultId)
 
             QueueEvent.MakePlaylistFromQueueClicked -> makePlaylistClicked()
 
             is QueueEvent.PlaylistNameChanged -> {
-                _uiState.update {
-                    it.copy(
-                        playlistNameDraft = event.value,
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(
+                        playlistNameDraft = event.value
                     )
                 }
             }
@@ -231,7 +243,7 @@ class QueueViewModel(
             QueueEvent.CreatePlaylistConfirmed,
             is QueueEvent.RemoveTrackClicked,
             is QueueEvent.MoveTrackClicked -> {
-                runCommandIfIdle { handleCommandEvent(event) }
+                runCommandIfIdle { handleCommandEvent(event = event) }
             }
         }
     }
@@ -239,9 +251,9 @@ class QueueViewModel(
     private suspend fun loadQueue(guildId: String) {
         if (currentGuildId != guildId) {
             clearCommandExecution()
-            searchController.resetForGuildChange(
+            musicSearchController.resetForGuildChange(
                 newGuildId = guildId,
-                currentGuildId = currentGuildId,
+                currentGuildId = currentGuildId
             )
 
             currentGuildId = guildId
@@ -250,10 +262,10 @@ class QueueViewModel(
             _uiState.value = QueueUiState(guildId = guildId)
         }
 
-        commandCoordinator.start(guildId)
-        startCurrentPlaybackMonitorUseCase(guildId)
+        botCommandCoordinator.start(guildId = guildId)
+        startCurrentPlaybackMonitorUseCase(guildId = guildId)
 
-        updatePlayback(observeCurrentPlaybackMonitorUseCase().value)
+        updatePlayback(playback = observeCurrentPlaybackMonitorUseCase().value)
 
         loadCurrentUser()
     }
@@ -265,21 +277,22 @@ class QueueViewModel(
             return
         }
 
-        val track = playback.currentTrack?.takeIf { it.guildId == guildId }
+        val track = playback.currentTrack?.takeIf { currentTrack -> currentTrack.guildId == guildId }
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 isLoading = track == null && playback.isRefreshing,
                 errorMessage = playback.errorMessage,
                 guildName = track?.guildName.orEmpty(),
                 guildIconUrl = track?.guildIconUrl,
-                tracks = track?.queuedTracks.orEmpty(),
+                tracks = track?.queuedTracks.orEmpty()
             )
         }
     }
 
     private suspend fun loadCurrentUser() {
         getCurrentUserUseCase().collect { result ->
+
             if (result is Resource.Success) {
                 currentUserId = result.data.id
             }
@@ -291,8 +304,8 @@ class QueueViewModel(
             return
         }
 
-        openDialog(QueueDialog.AddMusic)
-        searchController.loadCapabilities()
+        openDialog(dialog = QueueDialog.AddMusic)
+        musicSearchController.loadCapabilities()
     }
 
     private fun refreshClicked() {
@@ -302,7 +315,7 @@ class QueueViewModel(
 
         closeDialog()
 
-        _uiState.update { it.copy(isLoading = it.tracks.isEmpty(), errorMessage = null) }
+        _uiState.update { currentUiState -> currentUiState.copy(isLoading = currentUiState.tracks.isEmpty(), errorMessage = null) }
 
         refreshCurrentPlaybackMonitorUseCase()
     }
@@ -312,8 +325,8 @@ class QueueViewModel(
             return
         }
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 dialog = QueueDialog.CreatePlaylist,
                 playlistNameDraft = ""
             )
@@ -323,10 +336,10 @@ class QueueViewModel(
     private suspend fun handleCommandEvent(event: QueueEvent) {
         when (event) {
             QueueEvent.CreatePlaylistConfirmed -> {
-                playlistController.createPlaylist()
+                queuePlaylistController.createPlaylist()
             }
 
-            else -> commandHandler.handle(event)
+            else -> queueCommandHandler.handle(event)
         }
     }
 
@@ -339,7 +352,7 @@ class QueueViewModel(
         try {
             action()
         } finally {
-            finishCommand(version)
+            finishCommand(version = version)
         }
     }
 
@@ -347,6 +360,7 @@ class QueueViewModel(
         if (currentGuildId == null || _uiState.value.isLoading) {
             return false
         }
+
         if (!commandLock.startIfIdle()) {
             return false
         }
@@ -362,9 +376,9 @@ class QueueViewModel(
     }
 
     private fun updateManualDraft(value: String) {
-        _uiState.update {
-            it.copy(
-                addMusic = it.addMusic.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
+                addMusic = currentUiState.addMusic.copy(
                     manualDraft = value,
                     canSubmitManual = value.canSubmitMusicInput()
                 )
@@ -373,14 +387,14 @@ class QueueViewModel(
     }
 
     private fun openDialog(dialog: QueueDialog) {
-        _uiState.update { it.copy(dialog = dialog) }
+        _uiState.update { currentUiState -> currentUiState.copy(dialog = dialog) }
     }
 
     private fun closeDialog() {
-        searchController.clear()
+        musicSearchController.clear()
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 dialog = QueueDialog.None,
                 playlistNameDraft = ""
             )
@@ -395,12 +409,12 @@ class QueueViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared() {
-        commandCoordinator.clear()
+    override fun onCleared(): Unit {
+        botCommandCoordinator.clear()
         playbackMonitorObserver.stop()
 
         clearCommandExecution()
-        searchController.cancel()
+        musicSearchController.cancel()
 
         super.onCleared()
     }

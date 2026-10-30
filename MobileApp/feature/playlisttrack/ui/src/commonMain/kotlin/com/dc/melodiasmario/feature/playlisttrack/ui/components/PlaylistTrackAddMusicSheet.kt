@@ -6,26 +6,29 @@ import com.dc.melodiasmario.core.commonui.music.components.rememberMAddMusicLabe
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackEvent
 
+/**
+ * Renders playlist track add music sheet from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 internal fun PlaylistTrackAddMusicSheet(
-    state: MAddMusicSheetState,
-    onEvent: (PlaylistTrackEvent) -> Unit,
-) {
+    mAddMusicSheetState: MAddMusicSheetState,
+    onEvent: (playlistTrackEvent: PlaylistTrackEvent) -> Unit
+): Unit {
     MAddMusicSheet(
-        state = state,
-        labels = rememberMAddMusicLabels(),
+        mAddMusicSheetState = mAddMusicSheetState,
+        mAddMusicLabels = rememberMAddMusicLabels(),
         onDismiss = { onEvent(PlaylistTrackEvent.DismissDialog) },
-        onModeChanged = { onEvent(PlaylistTrackEvent.ModeChanged(it)) },
-        onManualDraftChanged = { onEvent(PlaylistTrackEvent.ManualDraftChanged(it)) },
+        onModeChanged = { addMusicMode -> onEvent(PlaylistTrackEvent.ModeChanged(mode = addMusicMode)) },
+        onManualDraftChanged = { manualDraft -> onEvent(PlaylistTrackEvent.ManualDraftChanged(value = manualDraft)) },
         onManualConfirm = { onEvent(PlaylistTrackEvent.ManualAdd) },
-        onSearchQueryChanged = { onEvent(PlaylistTrackEvent.SearchQueryChanged(it)) },
+        onSearchQueryChanged = { searchQuery -> onEvent(PlaylistTrackEvent.SearchQueryChanged(value = searchQuery)) },
         onSearchSubmitted = { onEvent(PlaylistTrackEvent.SearchSubmitted) },
-        onProviderChanged = { onEvent(PlaylistTrackEvent.ProviderChanged(it)) },
-        onKindChanged = { onEvent(PlaylistTrackEvent.KindChanged(it)) },
-        onResultClicked = { onEvent(PlaylistTrackEvent.ResultClicked(it)) },
+        onProviderChanged = { providerId -> onEvent(PlaylistTrackEvent.ProviderChanged(id = providerId)) },
+        onKindChanged = { musicSearchKind -> onEvent(PlaylistTrackEvent.KindChanged(kind = musicSearchKind)) },
+        onResultClicked = { searchResultId -> onEvent(PlaylistTrackEvent.ResultClicked(id = searchResultId)) },
         onSelectedResultAddClicked = { onEvent(PlaylistTrackEvent.AddSelectedResult) },
         onNextPageRequested = { onEvent(PlaylistTrackEvent.NextPage) },
         onSearchRetryClicked = { onEvent(PlaylistTrackEvent.RetrySearch) },
-        onCapabilitiesRetryClicked = { onEvent(PlaylistTrackEvent.RetryCapabilities) },
+        onCapabilitiesRetryClicked = { onEvent(PlaylistTrackEvent.RetryCapabilities) }
     )
 }

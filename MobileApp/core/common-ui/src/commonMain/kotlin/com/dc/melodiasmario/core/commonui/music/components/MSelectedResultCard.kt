@@ -1,48 +1,58 @@
 package com.dc.melodiasmario.core.commonui.music.components
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.Alignment
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
-import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchResultUi
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
+import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchResultUi
 
+/**
+ * Renders selected result card from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSelectedResultCard(
     result: MMusicSearchResultUi,
-    labels: MAddMusicLabels,
+    mAddMusicLabels: MAddMusicLabels,
     commandInFlight: Boolean,
-    onAddClicked: () -> Unit,
-) {
+    onAddClicked: () -> Unit
+): Unit {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(size = 8.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 10.dp)
         ) {
             MArtwork(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(size = 44.dp),
                 iconSize = 22.dp,
-                imageUrl = result.thumbnailUrl,
+                imageUrl = result.thumbnailUrl
             )
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(weight = 1f)) {
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = result.title,
@@ -50,27 +60,27 @@ fun MSelectedResultCard(
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 MText(
                     modifier = Modifier.fillMaxWidth(),
-                    text = result.subtitle(labels),
+                    text = result.subtitle(mAddMusicLabels = mAddMusicLabels),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Start,
                     fontSize = 12.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Button(
                 onClick = onAddClicked,
-                enabled = result.canEnqueue && result.canonicalUrl != null && !commandInFlight,
+                enabled = result.canEnqueue && result.canonicalUrl != null && !commandInFlight
             ) {
                 MText(
                     text = if (result.kind == MMusicSearchKind.Playlist) {
-                        labels.addPlaylist
+                        mAddMusicLabels.addPlaylist
                     } else {
-                        labels.addTrack
+                        mAddMusicLabels.addTrack
                     }
                 )
             }

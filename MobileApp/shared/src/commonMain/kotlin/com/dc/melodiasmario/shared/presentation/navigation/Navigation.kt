@@ -18,13 +18,16 @@ import com.dc.melodiasmario.core.commonui.components.MBottomBar
 import com.dc.melodiasmario.core.commonui.feedback.FeedbackVibrator
 import com.dc.melodiasmario.core.commonui.feedback.components.MToastHost
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
-import com.dc.melodiasmario.core.commonui.floatingactionbutton.LocalFloatingActionButtonController
+import com.dc.melodiasmario.core.commonui.floatingactionbutton.localFloatingActionButtonController
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.rememberFloatingActionButtonController
-import com.dc.melodiasmario.core.commonui.topbar.LocalTopBarController
+import com.dc.melodiasmario.core.commonui.topbar.localTopBarController
 import com.dc.melodiasmario.core.commonui.topbar.rememberTopBarController
 import com.dc.melodiasmario.shared.presentation.navigation.components.NavigationFloatingActionButton
 import com.dc.melodiasmario.shared.presentation.navigation.components.NavigationTopBar
 
+/**
+ * Renders navigation from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun Navigation(
     backStack: SnapshotStateList<AppRoute>,
@@ -32,14 +35,14 @@ fun Navigation(
     hapticsEnabled: Boolean,
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator
-) {
+): Unit {
     val currentRoute = backStack.last()
     val topBarController = rememberTopBarController()
     val floatingActionButtonController = rememberFloatingActionButtonController()
 
     CompositionLocalProvider(
-        LocalTopBarController provides topBarController,
-        LocalFloatingActionButtonController provides floatingActionButtonController,
+        localTopBarController provides topBarController,
+        localFloatingActionButtonController provides floatingActionButtonController
     ) {
         Box {
             Scaffold(
@@ -54,16 +57,18 @@ fun Navigation(
                         val items = bottomBarItems(
                             currentRoute = currentRoute,
                             onNavigate = { route ->
-                                backStack.navigate(route)
-                            },
+                                backStack.navigate(route = route)
+                            }
                         )
-                        items.takeIf { it.isNotEmpty() }?.let {
-                            MBottomBar(items = it)
-                        }
+                        items.takeIf { item -> item.isNotEmpty() }
+                            ?.let { navigationItems ->
+                                MBottomBar(items = navigationItems)
+                            }
                     }
                 },
                 floatingActionButton = {
                     val config = floatingActionButtonController.config
+
                     if (currentRoute.shouldShowFloatingButton() && config != null) {
                         NavigationFloatingActionButton(config = config)
                     }
@@ -71,7 +76,7 @@ fun Navigation(
             )
             { innerPadding ->
                 NavDisplay(
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier.padding(paddingValues = innerPadding),
                     backStack = backStack,
                     onBack = { backStack.goBack() },
                     transitionSpec = { melodiasForwardTransition() },
@@ -80,7 +85,7 @@ fun Navigation(
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator()
                     ),
-                    entryProvider = navigationEntryProvider(backStack, toastHostState)
+                    entryProvider = navigationEntryProvider(backStack = backStack, toastHostState = toastHostState)
                 )
             }
             MToastHost(
@@ -88,7 +93,7 @@ fun Navigation(
                 hapticsEnabled = hapticsEnabled,
                 isAppForeground = isAppForeground,
                 feedbackVibrator = feedbackVibrator,
-                modifier = Modifier.align(Alignment.TopCenter),
+                modifier = Modifier.align(Alignment.TopCenter)
             )
         }
     }

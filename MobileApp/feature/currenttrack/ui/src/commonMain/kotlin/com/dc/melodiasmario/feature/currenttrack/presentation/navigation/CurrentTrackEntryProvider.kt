@@ -5,11 +5,14 @@ import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.feature.currenttrack.ui.CurrentTrackRoute
 
+/**
+ * Registers the current track destination and its navigation callbacks.
+ */
 fun EntryProviderScope<AppRoute>.currentTrackEntry(
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
     toastHostState: MToastHostState
-) {
+): Unit {
     entry<AppRoute.CurrentTrack> { route ->
         CurrentTrackRoute(
             guildId = route.guildId,

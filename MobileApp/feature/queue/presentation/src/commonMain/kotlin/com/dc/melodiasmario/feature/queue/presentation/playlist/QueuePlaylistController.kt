@@ -6,29 +6,35 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
+/**
+ * Owns queue playlist coordination and its lifecycle-bound operations.
+ */
 internal class QueuePlaylistController(
-    private val saveManager: QueuePlaylistSaveManager,
-    private val state: MutableStateFlow<QueueUiState>,
+    private val queuePlaylistSaveManager: QueuePlaylistSaveManager,
+    private val uiState: MutableStateFlow<QueueUiState>,
     private val effects: MutableSharedFlow<QueueEffect>,
     private val currentGuildIdProvider: () -> String?,
-    private val onCloseDialog: () -> Unit,
+    private val onCloseDialog: () -> Unit
 ) {
-    suspend fun createPlaylist() {
+    /**
+     * Creates a named playlist for the requested guild.
+     */
+    suspend fun createPlaylist(): Unit {
         val guildId = currentGuildIdProvider() ?: return
-        val snapshot = state.value
+        val snapshot = uiState.value
         val name = snapshot.playlistNameDraft.trim()
 
         if (name.isBlank() || snapshot.tracks.isEmpty()) {
             return
         }
 
-        val trackUrls = snapshot.tracks.map { it.id }
+        val trackUrls = snapshot.tracks.map { track -> track.id }
 
         try {
-            val result = saveManager.save(
+            val result = queuePlaylistSaveManager.save(
                 guildId = guildId,
                 name = name,
-                trackUrls = trackUrls,
+                trackUrls = trackUrls
             )
 
             if (result.succeeded && currentGuildIdProvider() == guildId) {
@@ -38,8 +44,8 @@ internal class QueuePlaylistController(
             throw error
         } catch (error: Exception) {
             effects.emit(
-                QueueEffect.PlaylistSaveFailed(
-                    detail = error.message,
+                value = QueueEffect.PlaylistSaveFailed(
+                    detail = error.message
                 )
             )
         }

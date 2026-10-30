@@ -9,21 +9,32 @@ import io.ktor.client.request.header
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends guild API requests through the configured HTTP client.
+ */
 @Single
 class GuildApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Retrieves the guilds available to the authenticated user.
+     */
     suspend fun getGuilds(accessToken: String): List<GuildDto> {
-        return client.get("$baseUrl/guilds/") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/guilds/") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Retrieves details for the selected guild.
+     */
     suspend fun getSelectedGuild(accessToken: String, guildId: String): GuildDto? {
-        return client.get("$baseUrl/guilds/$guildId") {
-            header("Authorization", "Bearer $accessToken")
-        }.body<GuildDto?>()
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body<GuildDto?>()
     }
 }

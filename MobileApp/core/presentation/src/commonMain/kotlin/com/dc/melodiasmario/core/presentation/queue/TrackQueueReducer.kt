@@ -1,18 +1,24 @@
 package com.dc.melodiasmario.core.presentation.queue
 
+/**
+ * Creates updated track queue presentation state from the supplied changes.
+ */
 class TrackQueueReducer {
 
-    fun <Track, State> reorder(state: State, fromIndex: Int, toIndex: Int): State where State : TrackQueueUiState<Track, State> {
+    /**
+     * Returns queue state after moving a track between the supplied indexes.
+     */
+    fun <Track, State> reorder(uiState: State, fromIndex: Int, toIndex: Int): State where State : TrackQueueUiState<Track, State> {
         if (fromIndex == toIndex
-            || fromIndex !in state.tracks.indices
-            || toIndex !in state.tracks.indices
+            || fromIndex !in uiState.tracks.indices
+            || toIndex !in uiState.tracks.indices
         ) {
-            return state
+            return uiState
         }
 
-        val tracks = state.tracks.toMutableList()
+        val tracks = uiState.tracks.toMutableList()
         val movedTrack = tracks.removeAt(index = fromIndex)
         tracks.add(index = toIndex, element = movedTrack)
-        return state.withTracks(tracks = tracks)
+        return uiState.withTracks(tracks = tracks)
     }
 }

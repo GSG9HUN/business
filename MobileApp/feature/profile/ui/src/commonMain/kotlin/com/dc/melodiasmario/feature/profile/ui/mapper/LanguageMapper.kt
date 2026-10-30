@@ -6,9 +6,12 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_language
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_hungarian
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Maps this value to language label.
+ */
 @Composable
 fun String.toLanguageLabel(): String = when (this.lowercase()) {
-    "hu" -> stringResource(Res.string.profile_language_hungarian)
-    "en" -> stringResource(Res.string.profile_language_english)
+    "hu" -> stringResource(resource = Res.string.profile_language_hungarian)
+    "en" -> stringResource(resource = Res.string.profile_language_english)
     else -> uppercase()
 }

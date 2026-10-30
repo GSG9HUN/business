@@ -22,52 +22,55 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ * Renders toggle row from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MToggleRow(
     icon: DrawableResource,
     title: String,
     subtitle: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+    onCheckedChange: (checked: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+): Unit {
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 14.dp)
     ) {
         MSettingsIconBox(
-            painter = painterResource(icon),
+            painter = painterResource(resource = icon)
         )
 
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(weight = 1f)
         ) {
             MText(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Start
             )
             MText(
                 text = subtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Start
             )
         }
 
         MSwitchButton(
             checked = checked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = onCheckedChange
         )
     }
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = MaterialTheme.colorScheme.outlineVariant,
+        color = MaterialTheme.colorScheme.outlineVariant
     )
 }
 
@@ -81,7 +84,7 @@ private fun MToggleRowPreview() {
             title = "Haptics",
             subtitle = "Use subtle feedback for controls",
             checked = true,
-            onCheckedChange = {},
+            onCheckedChange = {}
         )
     }
 }

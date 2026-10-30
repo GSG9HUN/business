@@ -1,5 +1,16 @@
 package com.dc.melodiasmario.core.model.profile
 
+/**
+ * Represents profile user shared between application layers.
+ *
+ * @property id Id.
+ * @property displayName Display name.
+ * @property username Username.
+ * @property provider Provider.
+ * @property avatarUrl Avatar url.
+ * @property isActive Is active.
+ * @property isDiscordConnected Is discord connected.
+ */
 data class ProfileUser(
     val id: String,
     val displayName: String,
@@ -9,8 +20,14 @@ data class ProfileUser(
     val isActive: Boolean,
     val isDiscordConnected: Boolean
 ) {
+    /**
+     * Shared values and operations for the enclosing type.
+     */
     companion object {
-        val Default = ProfileUser(
+        /**
+         * Default exposed by companion.
+         */
+        val Default: ProfileUser = ProfileUser(
             id = "",
             displayName = "",
             username = "",

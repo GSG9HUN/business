@@ -16,28 +16,31 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_queue_empty
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders queue empty card from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
-fun QueueEmptyCard() {
-    val emptyQueueText = stringResource(Res.string.currenttrack_queue_empty)
+fun QueueEmptyCard(): Unit {
+    val emptyQueueText = stringResource(resource = Res.string.currenttrack_queue_empty)
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         MText(
-            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            modifier = Modifier.padding(all = 14.dp)
+                .fillMaxWidth(),
             text = emptyQueueText,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Start,
+            textAlign = TextAlign.Start
         )
     }
 }
 
 @Preview
 @Composable
-fun QueueEmptyCardPreview() {
+private fun QueueEmptyCardPreview() {
     QueueEmptyCard()
 }
-

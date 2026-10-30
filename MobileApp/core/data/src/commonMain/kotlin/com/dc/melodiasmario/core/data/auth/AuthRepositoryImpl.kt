@@ -1,18 +1,20 @@
 package com.dc.melodiasmario.core.data.auth
 
-import com.dc.melodiasmario.core.network.auth.AuthRemoteDataSource
-import com.dc.melodiasmario.core.model.auth.AuthSession
-import com.dc.melodiasmario.core.model.auth.DiscordLoginUrl
 import com.dc.melodiasmario.core.domain.auth.AuthRepository
 import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
-
+import com.dc.melodiasmario.core.model.auth.AuthSession
+import com.dc.melodiasmario.core.model.auth.DiscordLoginUrl
+import com.dc.melodiasmario.core.network.auth.AuthRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements auth data access using the injected data sources.
+ */
 @Single(binds = [AuthRepository::class])
 class AuthRepositoryImpl (
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val secureAuthSessionStorage: SecureAuthSessionStorage,
-    private val authSessionMemoryCache: AuthSessionMemoryCache,
+    private val authSessionMemoryCache: AuthSessionMemoryCache
 ): AuthRepository {
     override suspend fun startDiscordLogin(): DiscordLoginUrl = authRemoteDataSource.startDiscordLogin()
 
@@ -30,7 +32,7 @@ class AuthRepositoryImpl (
         return session
     }
 
-    override suspend fun logout(refreshToken: String) {
+    override suspend fun logout(refreshToken: String): Unit {
         authRemoteDataSource.logout(refreshToken = refreshToken)
         secureAuthSessionStorage.clearSession()
         authSessionMemoryCache.clear()

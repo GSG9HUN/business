@@ -12,18 +12,21 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 
+/**
+ * Renders empty route screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun EmptyRouteScreen(
     text: String,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             MText(text = text)
         }

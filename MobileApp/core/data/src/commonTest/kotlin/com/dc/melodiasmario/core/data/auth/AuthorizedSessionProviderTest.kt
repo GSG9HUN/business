@@ -4,12 +4,12 @@ import com.dc.melodiasmario.core.domain.auth.AuthRepository
 import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
 import com.dc.melodiasmario.core.model.auth.AuthSession
 import com.dc.melodiasmario.core.model.auth.DiscordLoginUrl
-import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.Test
 import kotlin.time.Clock
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 
 class AuthorizedSessionProviderTest {
 
@@ -25,12 +25,12 @@ class AuthorizedSessionProviderTest {
             provider.getValidSession()
         }
 
-        assertEquals("No session found", exception.message)
+        assertEquals(expected = "No session found", actual = exception.message)
     }
 
     @Test
     fun getValidSessionReturnsCurrentAccessTokenWhenSessionIsStillValid(): TestResult = runTest {
-        val repository = FakeAuthRepository()
+        val fakeAuthRepository = FakeAuthRepository()
         val provider = AuthorizedSessionProvider(
             secureAuthSessionStorage = FakeSessionStorage(
                 session = authSession(
@@ -39,20 +39,20 @@ class AuthorizedSessionProviderTest {
                     expiresAtMillis = futureMillis()
                 )
             ),
-            authRepository = repository,
+            authRepository = fakeAuthRepository,
             authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val accessToken = provider.getValidSession()
 
-        assertEquals("current-access", accessToken)
-        assertEquals(0, repository.refreshCalls)
+        assertEquals(expected = "current-access", actual = accessToken)
+        assertEquals(expected = 0, actual = fakeAuthRepository.refreshCalls)
     }
 
     @Test
     fun getValidSessionRefreshesSessionWhenCurrentSessionIsExpiredOrCloseToExpiry(): TestResult =
         runTest {
-            val repository = FakeAuthRepository(
+            val fakeAuthRepository = FakeAuthRepository(
                 refreshedSession = authSession(
                     accessToken = "new-access",
                     refreshToken = "new-refresh"
@@ -66,14 +66,14 @@ class AuthorizedSessionProviderTest {
                         expiresAtMillis = expiredMillis()
                     )
                 ),
-                authRepository = repository,
+                authRepository = fakeAuthRepository,
                 authSessionMemoryCache = AuthSessionMemoryCache()
             )
 
             provider.getValidSession()
 
-            assertEquals(1, repository.refreshCalls)
-            assertEquals("old-refresh", repository.lastRefreshToken)
+            assertEquals(expected = 1, actual = fakeAuthRepository.refreshCalls)
+            assertEquals(expected = "old-refresh", actual = fakeAuthRepository.lastRefreshToken)
         }
 
     @Test
@@ -97,7 +97,7 @@ class AuthorizedSessionProviderTest {
 
         val accessToken = provider.getValidSession()
 
-        assertEquals("new-access", accessToken)
+        assertEquals(expected = "new-access", actual = accessToken)
     }
 
     private class FakeSessionStorage(
@@ -126,10 +126,10 @@ class AuthorizedSessionProviderTest {
             private set
 
         override suspend fun startDiscordLogin(): DiscordLoginUrl =
-            error("Not used by this test")
+            error(message = "Not used by this test")
 
         override suspend fun exchangeTicket(ticket: String): AuthSession =
-            error("Not used by this test")
+            error(message = "Not used by this test")
 
         override suspend fun refreshSession(refreshToken: String): AuthSession {
             refreshCalls++
@@ -138,7 +138,7 @@ class AuthorizedSessionProviderTest {
         }
 
         override suspend fun logout(refreshToken: String) {
-            error("Not used by this test")
+            error(message = "Not used by this test")
         }
     }
 
@@ -154,8 +154,10 @@ class AuthorizedSessionProviderTest {
             expiresAtMillis = expiresAtMillis
         )
 
-        fun futureMillis(): Long = Clock.System.now().toEpochMilliseconds() + 120_000L
+        fun futureMillis(): Long = Clock.System.now()
+            .toEpochMilliseconds() + 120_000L
 
-        fun expiredMillis(): Long = Clock.System.now().toEpochMilliseconds() - 1L
+        fun expiredMillis(): Long = Clock.System.now()
+            .toEpochMilliseconds() - 1L
     }
 }

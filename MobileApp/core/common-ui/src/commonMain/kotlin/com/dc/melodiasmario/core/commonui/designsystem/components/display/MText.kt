@@ -12,6 +12,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
+/**
+ * Renders text from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MText(
     modifier: Modifier = Modifier,
@@ -23,8 +26,8 @@ fun MText(
     fontSize: TextUnit = TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: TextOverflow = TextOverflow.Clip,
-) {
+    overflow: TextOverflow = TextOverflow.Clip
+): Unit {
     Text(
         modifier = modifier,
         text = text,
@@ -35,6 +38,6 @@ fun MText(
         lineHeight = lineHeight,
         fontWeight = fontWeight,
         maxLines = maxLines,
-        overflow = overflow,
+        overflow = overflow
     )
 }

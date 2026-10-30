@@ -17,61 +17,88 @@ import io.ktor.http.HttpHeaders
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends queue API requests through the configured HTTP client.
+ */
 @Single
 class QueueApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
 
+    /**
+     * Retrieves the current playback queue for the requested guild.
+     */
     suspend fun getQueue(accessToken: String, guildId: String): QueueDto {
-        return client.get("$baseUrl/guilds/$guildId/queue") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId/queue") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests adding the supplied music query or URL to the guild playback queue.
+     */
     suspend fun addToQueue(
         accessToken: String,
         guildId: String,
         query: String
     ): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/queue/enqueue") {
-            header("Authorization", "Bearer $accessToken")
-            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            setBody(EnqueueRequestDto(query = query))
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/queue/enqueue") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(body = EnqueueRequestDto(query = query))
+        }
+            .body()
     }
 
+    /**
+     * Requests removal of a track from the playback queue.
+     */
     suspend fun removeFromQueue(
         accessToken: String,
         guildId: String,
         trackNumber: String
     ): BotControlCommandDto {
-        return client.delete("$baseUrl/guilds/$guildId/queue/$trackNumber") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.delete(urlString = "$baseUrl/guilds/$guildId/queue/$trackNumber") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests clearing the guild playback queue.
+     */
     suspend fun clearQueue(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.delete("$baseUrl/guilds/$guildId/queue") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.delete(urlString = "$baseUrl/guilds/$guildId/queue") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests shuffling the guild playback queue.
+     */
     suspend fun shuffleQueue(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/queue/shuffle") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/queue/shuffle") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests moving a queued track between zero-based queue indexes.
+     */
     suspend fun moveTrackToIndex(
         accessToken: String,
         guildId: String,
         trackIndex: Int,
         targetIndex: Int
     ): BotControlCommandDto {
-        return client.patch("$baseUrl/guilds/$guildId/queue/$trackIndex/move-to/$targetIndex") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.patch(urlString = "$baseUrl/guilds/$guildId/queue/$trackIndex/move-to/$targetIndex") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 }

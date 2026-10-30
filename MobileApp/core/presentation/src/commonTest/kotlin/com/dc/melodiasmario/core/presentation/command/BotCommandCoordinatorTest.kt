@@ -4,200 +4,242 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
 import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
 import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.test.*
-import kotlin.test.*
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BotCommandCoordinatorTest {
     @Test
     fun completionBeforeHttpResponseIsRetained() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, coordinator.awaitCompletion(command()))
-        coordinator.clear()
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = botCommandCoordinator.awaitCompletion(command = command()))
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun onlyMatchingCommandAndGuildCanCompleteWaiter() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        val result = async { coordinator.awaitCompletion(command()) }
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        events.emit(event("unrelated"))
-        events.emit(event("command", guild = "another"))
+        events.emit(value = event(id = "unrelated"))
+        events.emit(value = event(id = "command", guild = "another"))
         runCurrent()
-        assertFalse(result.isCompleted)
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, result.await())
-        coordinator.clear()
+        assertFalse(actual = result.isCompleted)
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = result.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun userFilterIsPreserved() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events }, currentUserIdProvider = { "user" })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(
+            coroutineScope = backgroundScope,
+            observeGuildRealtime = { events },
+            currentUserIdProvider = { "user" }
+        )
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        events.emit(event("command", user = "other"))
-        val result = async { coordinator.awaitCompletion(command()) }
+        events.emit(value = event(id = "command", user = "other"))
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        assertFalse(result.isCompleted)
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, result.await())
-        coordinator.clear()
+        assertFalse(actual = result.isCompleted)
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = result.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun earlyEventIsRecheckedWhenUserBecomesKnown() = runTest {
         var userId: String? = null
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events }, currentUserIdProvider = { userId })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(
+            coroutineScope = backgroundScope,
+            observeGuildRealtime = { events },
+            currentUserIdProvider = { userId }
+        )
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        events.emit(event("command", user = "other"))
+        events.emit(value = event(id = "command", user = "other"))
         userId = "user"
-        val result = async { coordinator.awaitCompletion(command()) }
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        assertFalse(result.isCompleted)
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, result.await())
-        coordinator.clear()
+        assertFalse(actual = result.isCompleted)
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = result.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun concurrentDistinctCommandsCanFinishOutOfOrder() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        val first = async { coordinator.awaitCompletion(command("first")) }
-        val second = async { coordinator.awaitCompletion(command("second")) }
+        val first = async { botCommandCoordinator.awaitCompletion(command = command(id = "first")) }
+        val second = async { botCommandCoordinator.awaitCompletion(command = command(id = "second")) }
         runCurrent()
-        events.emit(event("second"))
-        assertEquals(BotCommandResult.Succeeded, second.await())
-        assertFalse(first.isCompleted)
-        events.emit(event("first"))
-        assertEquals(BotCommandResult.Succeeded, first.await())
-        coordinator.clear()
+        events.emit(value = event(id = "second"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = second.await())
+        assertFalse(actual = first.isCompleted)
+        events.emit(value = event(id = "first"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = first.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun failurePreservesErrorKey() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        val result = async { coordinator.awaitCompletion(command()) }
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        events.emit(event("command", succeeded = false))
-        assertEquals(BotCommandResult.Failed("rejected"), result.await())
-        coordinator.clear()
+        events.emit(value = event(id = "command", succeeded = false))
+        assertEquals(expected = BotCommandResult.Failed(errorKey = "rejected"), actual = result.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun httpTerminalStatesReturnWithoutWaiting() = runTest {
-        val coordinator = BotCommandCoordinator(backgroundScope, { MutableSharedFlow() })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(
+            coroutineScope = backgroundScope,
+            observeGuildRealtime = { MutableSharedFlow() }
+        )
+        botCommandCoordinator.start(guildId = "guild")
+
         for (state in listOf("done", "succeeded")) {
-            assertEquals(BotCommandResult.Succeeded, coordinator.awaitCompletion(command(state = state)))
+            assertEquals(expected = BotCommandResult.Succeeded, actual = botCommandCoordinator.awaitCompletion(
+                command = command(
+                    state = state
+                )
+            ))
         }
+
         for (state in listOf("failed", "interrupted")) {
-            assertEquals(BotCommandResult.Failed(), coordinator.awaitCompletion(command(state = state)))
+            assertEquals(expected = BotCommandResult.Failed(), actual = botCommandCoordinator.awaitCompletion(
+                command = command(
+                    state = state
+                )
+            ))
         }
-        coordinator.clear()
+
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun timeoutDoesNotPoisonNextCommand() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events }, timeoutMillis = 1_000)
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(
+            coroutineScope = backgroundScope,
+            observeGuildRealtime = { events },
+            timeoutMillis = 1_000
+        )
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        assertEquals(BotCommandResult.TimedOut, coordinator.awaitCompletion(command("missing")))
-        events.emit(event("next"))
-        assertEquals(BotCommandResult.Succeeded, coordinator.awaitCompletion(command("next")))
-        coordinator.clear()
+        assertEquals(expected = BotCommandResult.TimedOut, actual = botCommandCoordinator.awaitCompletion(
+            command = command(
+                id = "missing"
+            )
+        ))
+        events.emit(value = event(id = "next"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = botCommandCoordinator.awaitCompletion(
+            command = command(
+                id = "next"
+            )
+        ))
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun repeatedStartForSameGuildPreservesPendingCommand() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        val result = async { coordinator.awaitCompletion(command()) }
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        coordinator.start("guild")
-        assertFalse(result.isCancelled)
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, result.await())
-        coordinator.clear()
+        botCommandCoordinator.start(guildId = "guild")
+        assertFalse(actual = result.isCancelled)
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = result.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun guildChangeCancelsOldWaitersAndDropsEarlyEvents() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        events.emit(event("early"))
-        val old = async { coordinator.awaitCompletion(command()) }
+        events.emit(value = event(id = "early"))
+        val old = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        coordinator.start("new")
+        botCommandCoordinator.start(guildId = "new")
         runCurrent()
-        assertTrue(old.isCancelled)
-        val current = async { coordinator.awaitCompletion(command("early")) }
+        assertTrue(actual = old.isCancelled)
+        val current = async { botCommandCoordinator.awaitCompletion(command = command(id = "early")) }
         runCurrent()
-        assertFalse(current.isCompleted)
-        events.emit(event("early", guild = "new"))
-        assertEquals(BotCommandResult.Succeeded, current.await())
-        coordinator.clear()
+        assertFalse(actual = current.isCompleted)
+        events.emit(value = event(id = "early", guild = "new"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = current.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun callerCancellationDoesNotLeakItsWaiter() = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
-        val coordinator = BotCommandCoordinator(backgroundScope, { events })
-        coordinator.start("guild")
+        val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
+        botCommandCoordinator.start(guildId = "guild")
         runCurrent()
-        val cancelled = async { coordinator.awaitCompletion(command()) }
+        val cancelled = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
         cancelled.cancelAndJoin()
-        val retry = async { coordinator.awaitCompletion(command()) }
+        val retry = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        events.emit(event("command"))
-        assertEquals(BotCommandResult.Succeeded, retry.await())
-        coordinator.clear()
+        events.emit(value = event(id = "command"))
+        assertEquals(expected = BotCommandResult.Succeeded, actual = retry.await())
+        botCommandCoordinator.clear()
     }
 
     @Test
     fun clearCancelsWaitingCaller() = runTest {
-        val coordinator = BotCommandCoordinator(backgroundScope, { MutableSharedFlow() })
-        coordinator.start("guild")
-        val result = async { coordinator.awaitCompletion(command()) }
+        val botCommandCoordinator = BotCommandCoordinator(
+            coroutineScope = backgroundScope,
+            observeGuildRealtime = { MutableSharedFlow() }
+        )
+        botCommandCoordinator.start(guildId = "guild")
+        val result = async { botCommandCoordinator.awaitCompletion(command = command()) }
         runCurrent()
-        coordinator.clear()
+        botCommandCoordinator.clear()
         assertFailsWith<CancellationException> { result.await() }
     }
 
     private fun command(id: String = "command", state: String = "pending") =
-        BotControlCommand(id, "test", state)
+        BotControlCommand(commandId = id, type = "test", state = state)
 
     private fun event(
         id: String,
         guild: String = "guild",
         user: String = "user",
-        succeeded: Boolean = true,
+        succeeded: Boolean = true
     ) = BotControlCommandRealtimeEvent(
         commandId = id,
         guildId = guild,
@@ -211,6 +253,6 @@ class BotCommandCoordinatorTest {
         claimedAtUtc = null,
         completedAtUtc = null,
         eventName = if (succeeded) MobileRealtimeEventNames.BotControlCommandSucceeded
-            else MobileRealtimeEventNames.BotControlCommandFailed,
+            else MobileRealtimeEventNames.BotControlCommandFailed
     )
 }

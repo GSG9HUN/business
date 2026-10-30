@@ -21,28 +21,31 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders search button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSearchButton(
     onClick: () -> Unit,
     contentDescription: String,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Surface(
         onClick = onClick,
-        modifier = modifier.size(44.dp),
-        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.size(size = 44.dp),
+        shape = RoundedCornerShape(size = 14.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(Res.drawable.ic_search),
+                painter = painterResource(resource = Res.drawable.ic_search),
                 contentDescription = contentDescription,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(size = 18.dp)
             )
         }
     }
@@ -53,6 +56,6 @@ fun MSearchButton(
 private fun MSearchButtonPreview() {
     MSearchButton(
         onClick = {},
-        contentDescription = stringResource(Res.string.top_bar_search_content_description),
+        contentDescription = stringResource(resource = Res.string.top_bar_search_content_description)
     )
 }

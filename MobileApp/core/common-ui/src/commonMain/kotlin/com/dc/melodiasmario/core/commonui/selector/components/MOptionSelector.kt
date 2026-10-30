@@ -24,21 +24,24 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MSearchBar
 import com.dc.melodiasmario.core.commonui.selector.model.MSelectorOption
 
+/**
+ * Renders option selector from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun <T> MOptionSelector(
     modifier: Modifier = Modifier,
     title: String,
     options: List<MSelectorOption<T>>,
     selectedValue: T,
-    onOptionSelected: (T) -> Unit,
+    onOptionSelected: (selectedOption: T) -> Unit,
     searchEnabled: Boolean = false,
-    searchPlaceholder: String = "",
-) {
-    var query by remember { mutableStateOf("") }
+    searchPlaceholder: String = ""
+): Unit {
+    var query by remember { mutableStateOf(value = "") }
     val filteredOptions = if (searchEnabled && query.isNotBlank()) {
         options.filter { option ->
-            option.title.contains(query, ignoreCase = true) ||
-                option.subtitle?.contains(query, ignoreCase = true) == true
+            option.title.contains(other = query, ignoreCase = true) ||
+                option.subtitle?.contains(other = query, ignoreCase = true) == true
         }
     } else {
         options
@@ -48,25 +51,25 @@ fun <T> MOptionSelector(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 12.dp)
     ) {
         MText(
             text = title,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Start,
+            textAlign = TextAlign.Start
         )
 
         if (searchEnabled) {
             MSearchBar(
                 query = query,
-                onQueryChange = { query = it },
-                placeholder = searchPlaceholder,
+                onQueryChange = { searchQuery -> query = searchQuery },
+                placeholder = searchPlaceholder
             )
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             filteredOptions.forEachIndexed { index, option ->
                 val selected = option.value == selectedValue
@@ -77,23 +80,23 @@ fun <T> MOptionSelector(
                         .clickable { onOptionSelected(option.value) }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(weight = 1f)
                     ) {
                         MText(
                             text = option.title,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                            textAlign = TextAlign.Start,
+                            textAlign = TextAlign.Start
                         )
 
                         option.subtitle?.let { subtitle ->
                             MText(
                                 text = subtitle,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Start,
+                                textAlign = TextAlign.Start
                             )
                         }
                     }
@@ -103,15 +106,15 @@ fun <T> MOptionSelector(
                         onClick = { onOptionSelected(option.value) },
                         colors = RadioButtonDefaults.colors(
                             selectedColor = MaterialTheme.colorScheme.primary,
-                            unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
+                            unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
 
                 if (index < filteredOptions.lastIndex) {
                     HorizontalDivider(
                         thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
             }

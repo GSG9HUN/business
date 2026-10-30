@@ -19,21 +19,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeMode
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 
+/**
+ * Renders text input dialog from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MTextInputDialog(
     title: String,
     value: String,
-    onValueChange: (String) -> Unit,
+    onValueChange: (inputValue: String) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
@@ -41,8 +44,8 @@ fun MTextInputDialog(
     confirmText: String,
     dismissText: String,
     enabled: Boolean = true,
-    canConfirm: Boolean = true,
-) {
+    canConfirm: Boolean = true
+): Unit {
 
     AlertDialog(
         modifier = modifier,
@@ -55,15 +58,15 @@ fun MTextInputDialog(
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(size = 12.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
             ) {
                 BasicTextField(
                     value = value,
@@ -78,25 +81,26 @@ fun MTextInputDialog(
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart,
+                            contentAlignment = Alignment.CenterStart
                         ) {
                             if (value.isBlank()) {
                                 MText(
                                     text = placeholder,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Start,
+                                    textAlign = TextAlign.Start
                                 )
                             }
+
                             innerTextField()
                         }
-                    },
+                    }
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                enabled = enabled && canConfirm,
+                enabled = enabled && canConfirm
             ) {
                 MText(text = confirmText, color = MaterialTheme.colorScheme.onSurface)
             }
@@ -105,7 +109,7 @@ fun MTextInputDialog(
             OutlinedButton(onClick = onDismiss) {
                 MText(text = dismissText, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        },
+        }
     )
 }
 
@@ -113,18 +117,19 @@ fun MTextInputDialog(
 @Composable
 private fun MTextInputDialogPreview() {
     MelodiasMarioTheme(themeMode = MelodiasMarioThemeMode.Dark) {
-        var value by remember { mutableStateOf("Morning Mix") }
+        var value by remember { mutableStateOf(value = "Morning Mix") }
 
         MTextInputDialog(
             title = "Rename playlist",
             value = value,
-            onValueChange = { value = it },
+            onValueChange = { inputValue -> value = inputValue },
             onDismiss = {},
             onConfirm = {},
             placeholder = "Playlist name",
             confirmText = "Rename",
             dismissText = "Cancel",
-            canConfirm = value.trim().isNotEmpty(),
+            canConfirm = value.trim()
+                .isNotEmpty()
         )
     }
 }

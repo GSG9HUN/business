@@ -13,30 +13,33 @@ import com.dc.melodiasmario.feature.login.presentation.LoginViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Connects login presentation state and effects to its screen callbacks.
+ */
 @Composable
 fun LoginRoute(
     modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = koinViewModel(),
+    loginViewModel: LoginViewModel = koinViewModel(),
     onLoginSuccess: () -> Unit = {},
-    externalUrlOpenerImpl: ExternalUrlOpener = koinInject(),
-) {
-    val uiState by viewModel.uiState.collectAsState()
+    externalUrlOpenerImpl: ExternalUrlOpener = koinInject()
+): Unit {
+    val uiState by loginViewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.onEvent(LoginEvent.StartStatusPolling)
+    LaunchedEffect(key1 = Unit) {
+        loginViewModel.onEvent(event = LoginEvent.StartStatusPolling)
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(key1 = Unit) {
         onDispose {
-            viewModel.onEvent(LoginEvent.StopStatusPolling)
+            loginViewModel.onEvent(event = LoginEvent.StopStatusPolling)
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
+    LaunchedEffect(key1 = Unit) {
+        loginViewModel.effect.collect { effect ->
             when (effect) {
                 is LoginEffect.OpenExternalUrl -> {
-                    externalUrlOpenerImpl.openUrl(effect.url)
+                    externalUrlOpenerImpl.openUrl(url = effect.url)
                 }
                 LoginEffect.NavigateToGuildSelector -> onLoginSuccess()
                 is LoginEffect.ShowError -> {
@@ -50,6 +53,6 @@ fun LoginRoute(
     LoginScreen(
         uiState = uiState,
         modifier = modifier,
-        onEvent = viewModel::onEvent,
+        onEvent = loginViewModel::onEvent
     )
 }

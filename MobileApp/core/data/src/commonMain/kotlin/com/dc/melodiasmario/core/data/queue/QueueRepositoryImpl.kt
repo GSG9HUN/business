@@ -7,6 +7,9 @@ import com.dc.melodiasmario.core.model.queue.Queue
 import com.dc.melodiasmario.core.network.queue.QueueRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements queue data access using the injected data sources.
+ */
 @Single(binds = [QueueRepository::class])
 class QueueRepositoryImpl(
     private val queueRemoteDataSource: QueueRemoteDataSource,
@@ -17,7 +20,7 @@ class QueueRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return queueRemoteDataSource.getQueue(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -26,7 +29,7 @@ class QueueRepositoryImpl(
         return queueRemoteDataSource.addToQueue(
             accessToken = accessToken,
             guildId = guildId,
-            query = query,
+            query = query
         )
     }
 
@@ -35,7 +38,7 @@ class QueueRepositoryImpl(
         return queueRemoteDataSource.removeFromQueue(
             accessToken = accessToken,
             guildId = guildId,
-            trackNumber = trackNumber,
+            trackNumber = trackNumber
         )
     }
 
@@ -43,7 +46,7 @@ class QueueRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return queueRemoteDataSource.clearQueue(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -51,7 +54,7 @@ class QueueRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return queueRemoteDataSource.shuffleQueue(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -61,7 +64,7 @@ class QueueRepositoryImpl(
             accessToken = accessToken,
             guildId = guildId,
             trackIndex = trackIndex,
-            targetIndex = targetIndex,
+            targetIndex = targetIndex
         )
     }
 }

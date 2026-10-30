@@ -4,12 +4,15 @@ import androidx.navigation3.runtime.EntryProviderScope
 import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.feature.login.ui.LoginRoute
 
+/**
+ * Registers the login destination and its navigation callbacks.
+ */
 fun EntryProviderScope<AppRoute>.loginEntry(
-    onLoginSuccess: () -> Unit,
-) {
+    onLoginSuccess: () -> Unit
+): Unit {
     entry<AppRoute.Login> {
         LoginRoute(
-            onLoginSuccess = onLoginSuccess,
+            onLoginSuccess = onLoginSuccess
         )
     }
 }

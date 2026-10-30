@@ -26,34 +26,37 @@ import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
+/**
+ * Renders add music sheet from the supplied parameters and forwards interaction callbacks.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MAddMusicSheet(
-    state: MAddMusicSheetState,
-    labels: MAddMusicLabels,
+    mAddMusicSheetState: MAddMusicSheetState,
+    mAddMusicLabels: MAddMusicLabels,
     onDismiss: () -> Unit,
-    onModeChanged: (MAddMusicMode) -> Unit,
-    onManualDraftChanged: (String) -> Unit,
+    onModeChanged: (addMusicMode: MAddMusicMode) -> Unit,
+    onManualDraftChanged: (manualDraft: String) -> Unit,
     onManualConfirm: () -> Unit,
-    onSearchQueryChanged: (String) -> Unit,
+    onSearchQueryChanged: (searchQuery: String) -> Unit,
     onSearchSubmitted: () -> Unit,
-    onProviderChanged: (String) -> Unit,
-    onKindChanged: (MMusicSearchKind) -> Unit,
-    onResultClicked: (String) -> Unit,
+    onProviderChanged: (providerId: String) -> Unit,
+    onKindChanged: (musicSearchKind: MMusicSearchKind) -> Unit,
+    onResultClicked: (resultId: String) -> Unit,
     onSelectedResultAddClicked: () -> Unit,
     onNextPageRequested: () -> Unit,
     onSearchRetryClicked: () -> Unit,
-    onCapabilitiesRetryClicked: () -> Unit,
-) {
+    onCapabilitiesRetryClicked: () -> Unit
+): Unit {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(key1 = Unit) {
         sheetState.expand()
     }
 
-    LaunchedEffect(imeBottom) {
+    LaunchedEffect(key1 = imeBottom) {
         if (imeBottom > 0) {
             sheetState.expand()
         }
@@ -61,36 +64,36 @@ fun MAddMusicSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        sheetState = sheetState
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.92f)
+                .fillMaxHeight(fraction = 0.92f)
                 .heightIn(max = 720.dp)
                 .imePadding()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(space = 14.dp)
         ) {
             MText(
                 modifier = Modifier.fillMaxWidth(),
-                text = labels.title,
+                text = mAddMusicLabels.title,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
 
             MAddMusicModeSelector(
-                labels = labels,
-                selectedMode = state.mode,
-                onModeChanged = onModeChanged,
+                mAddMusicLabels = mAddMusicLabels,
+                selectedMode = mAddMusicSheetState.mode,
+                onModeChanged = onModeChanged
             )
 
-            when (state.mode) {
+            when (mAddMusicSheetState.mode) {
                 MAddMusicMode.Search -> MSearchContent(
-                    state = state,
-                    labels = labels,
+                    mAddMusicSheetState = mAddMusicSheetState,
+                    mAddMusicLabels = mAddMusicLabels,
                     onQueryChanged = onSearchQueryChanged,
                     onSearchSubmitted = onSearchSubmitted,
                     onProviderChanged = onProviderChanged,
@@ -99,15 +102,15 @@ fun MAddMusicSheet(
                     onSelectedResultAddClicked = onSelectedResultAddClicked,
                     onNextPageRequested = onNextPageRequested,
                     onSearchRetryClicked = onSearchRetryClicked,
-                    onCapabilitiesRetryClicked = onCapabilitiesRetryClicked,
+                    onCapabilitiesRetryClicked = onCapabilitiesRetryClicked
                 )
 
                 MAddMusicMode.Manual -> MManualContent(
-                    state = state,
-                    labels = labels,
+                    mAddMusicSheetState = mAddMusicSheetState,
+                    mAddMusicLabels = mAddMusicLabels,
                     onDraftChanged = onManualDraftChanged,
                     onConfirm = onManualConfirm,
-                    onDismiss = onDismiss,
+                    onDismiss = onDismiss
                 )
             }
         }

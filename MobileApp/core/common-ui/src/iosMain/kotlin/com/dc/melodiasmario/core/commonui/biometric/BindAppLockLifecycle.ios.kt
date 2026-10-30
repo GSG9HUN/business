@@ -11,18 +11,21 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationState
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 
+/**
+ * Renders bind app lock lifecycle from the supplied parameters and forwards interaction callbacks.
+ */
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun BindAppLockLifecycle(
-    controller: AppLockController,
-) {
-    DisposableEffect(controller) {
+    appLockController: AppLockController
+): Unit {
+    DisposableEffect(key1 = appLockController) {
         val center = NSNotificationCenter.defaultCenter
 
         if (UIApplication.sharedApplication.applicationState == UIApplicationState.UIApplicationStateBackground) {
-            controller.onBackground()
+            appLockController.onBackground()
         } else {
-            controller.onForeground()
+            appLockController.onForeground()
         }
 
         val backgroundObserver = center.addObserverForName(
@@ -30,8 +33,8 @@ actual fun BindAppLockLifecycle(
             `object` = null,
             queue = NSOperationQueue.mainQueue,
             usingBlock = {
-                controller.onBackground()
-            },
+                appLockController.onBackground()
+            }
         )
 
         val foregroundObserver = center.addObserverForName(
@@ -39,8 +42,8 @@ actual fun BindAppLockLifecycle(
             `object` = null,
             queue = NSOperationQueue.mainQueue,
             usingBlock = {
-                controller.onForeground()
-            },
+                appLockController.onForeground()
+            }
         )
 
         onDispose {

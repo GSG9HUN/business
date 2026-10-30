@@ -1,7 +1,7 @@
 package com.dc.melodiasmario.feature.profile.ui
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,16 +9,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dc.melodiasmario.core.commonui.biometric.LocalAppLockController
+import com.dc.melodiasmario.core.commonui.biometric.localAppLockController
 import com.dc.melodiasmario.core.commonui.biometric.rememberBiometricAuthentication
-import com.dc.melodiasmario.core.model.settings.UserSettings
-import com.dc.melodiasmario.core.commonui.selector.components.MOptionSelectorBottomSheet
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
-import com.dc.melodiasmario.feature.profile.presentation.ProfileViewModel
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.commonui.selector.components.MOptionSelectorBottomSheet
 import com.dc.melodiasmario.core.model.profile.ProfileUser
+import com.dc.melodiasmario.core.model.settings.UserSettings
 import com.dc.melodiasmario.feature.profile.generated.resources.Res
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_language_title
@@ -29,36 +28,40 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_save_suc
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEffect
 import com.dc.melodiasmario.feature.profile.presentation.ProfileEvent
 import com.dc.melodiasmario.feature.profile.presentation.ProfileUiState
+import com.dc.melodiasmario.feature.profile.presentation.ProfileViewModel
 import com.dc.melodiasmario.feature.profile.ui.selector.ProfileSelectorType
 import com.dc.melodiasmario.feature.profile.ui.selector.profileLanguageOptions
 import com.dc.melodiasmario.feature.profile.ui.selector.profileThemeOptions
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Connects profile presentation state and effects to its screen callbacks.
+ */
 @Composable
 fun ProfileRoute(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     logout: () -> Unit = {},
     toastHostState: MToastHostState,
-    viewModel: ProfileViewModel = koinViewModel(),
-) {
-    val appLockController = LocalAppLockController.current
+    profileViewModel: ProfileViewModel = koinViewModel()
+): Unit {
+    val appLockController = localAppLockController.current
     val appLockState by appLockController.uiState.collectAsStateWithLifecycle()
     val authenticate = rememberBiometricAuthentication()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var activeSelector by remember { mutableStateOf<ProfileSelectorType?>(null) }
-    val profileSaveSuccessText = stringResource(Res.string.profile_save_success)
-    val profileSaveFailedText = stringResource(Res.string.profile_save_failed)
-    val logoutFailedText = stringResource(Res.string.profile_logout_failed)
-    val logoutSuccessText = stringResource(Res.string.profile_logout_success)
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    var activeSelector by remember { mutableStateOf<ProfileSelectorType?>(value = null) }
+    val profileSaveSuccessText = stringResource(resource = Res.string.profile_save_success)
+    val profileSaveFailedText = stringResource(resource = Res.string.profile_save_failed)
+    val logoutFailedText = stringResource(resource = Res.string.profile_logout_failed)
+    val logoutSuccessText = stringResource(resource = Res.string.profile_logout_success)
 
     LaunchedEffect(
-        viewModel,
-        appLockController,
-        authenticate
+        key1 = profileViewModel,
+        key2 = appLockController,
+        key3 = authenticate
     ) {
-        viewModel.effect.collect { effect ->
+        profileViewModel.effect.collect { effect ->
             when (effect) {
                 ProfileEffect.NavigateBack -> onBack()
 
@@ -78,36 +81,36 @@ fun ProfileRoute(
 
                 ProfileEffect.SettingsSaved -> {
                     toastHostState.showToast(
-                        MToastData(
+                        toast = MToastData(
                             message = profileSaveSuccessText,
-                            type = MToastType.Success,
+                            type = MToastType.Success
                         )
                     )
                 }
 
                 ProfileEffect.SettingsSavedFailed -> {
                     toastHostState.showToast(
-                        MToastData(
+                        toast = MToastData(
                             message = profileSaveFailedText,
-                            type = MToastType.Error,
+                            type = MToastType.Error
                         )
                     )
                 }
 
                 ProfileEffect.LogoutFailed -> {
                     toastHostState.showToast(
-                        MToastData(
+                        toast = MToastData(
                             message = logoutFailedText,
-                            type = MToastType.Error,
+                            type = MToastType.Error
                         )
                     )
                 }
 
                 ProfileEffect.LogoutSuccess -> {
                     toastHostState.showToast(
-                        MToastData(
+                        toast = MToastData(
                             message = logoutSuccessText,
-                            type = MToastType.Success,
+                            type = MToastType.Success
                         )
                     )
                 }
@@ -115,49 +118,49 @@ fun ProfileRoute(
                 is ProfileEffect.ChangeBiometricLock -> {
                     appLockController.changeEnabled(
                         enabled = effect.enabled,
-                        authenticate = authenticate,
+                        authenticate = authenticate
                     )
                 }
             }
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.onEvent(ProfileEvent.ScreenOpened)
+    LaunchedEffect(key1 = Unit) {
+        profileViewModel.onEvent(event = ProfileEvent.ScreenOpened)
     }
     ProfileScreen(
         modifier = modifier,
         uiState = uiState,
-        onEvent = viewModel::onEvent,
-        appLockState = appLockState,
+        onEvent = profileViewModel::onEvent,
+        appLockState = appLockState
     )
 
     when (activeSelector) {
         ProfileSelectorType.Language -> {
             MOptionSelectorBottomSheet(
-                title = stringResource(Res.string.profile_language_title),
+                title = stringResource(resource = Res.string.profile_language_title),
                 options = profileLanguageOptions(),
                 selectedValue = uiState.draftUserSettings.languageCode,
                 searchEnabled = true,
                 onDismiss = { activeSelector = null },
-                onOptionSelected = {
+                onOptionSelected = { selectedOption ->
                     activeSelector = null
-                    viewModel.onEvent(ProfileEvent.LanguageSelected(it))
-                },
+                    profileViewModel.onEvent(event = ProfileEvent.LanguageSelected(languageCode = selectedOption))
+                }
             )
         }
 
         ProfileSelectorType.Theme -> {
             MOptionSelectorBottomSheet(
-                title = stringResource(Res.string.profile_appearance_title),
+                title = stringResource(resource = Res.string.profile_appearance_title),
                 options = profileThemeOptions(),
                 selectedValue = uiState.draftUserSettings.theme,
                 searchEnabled = false,
                 onDismiss = { activeSelector = null },
-                onOptionSelected = {
+                onOptionSelected = { selectedOption ->
                     activeSelector = null
-                    viewModel.onEvent(ProfileEvent.ThemeSelected(it))
-                },
+                    profileViewModel.onEvent(event = ProfileEvent.ThemeSelected(theme = selectedOption))
+                }
             )
         }
 
@@ -168,7 +171,7 @@ fun ProfileRoute(
 
 @Preview(showBackground = true)
 @Composable
-fun ProfileRoutePreview() {
+private fun ProfileRoutePreview() {
     MelodiasMarioTheme {
         ProfileScreen(
             uiState = ProfileUiState(
@@ -185,17 +188,16 @@ fun ProfileRoutePreview() {
                     theme = "light",
                     hapticFeedbackEnabled = true,
                     soundEffectsEnabled = true,
-                    telemetryEnabled = true,
+                    telemetryEnabled = true
                 ), settingsUpdatedAtUtc = "2023-01-01T00:00:00Z"
             )
         )
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun ProfileRoutePreview2() {
+private fun ProfileRoutePreview2() {
     MelodiasMarioTheme {
         ProfileScreen(
             uiState = ProfileUiState(
@@ -212,7 +214,7 @@ fun ProfileRoutePreview2() {
                     theme = "light",
                     hapticFeedbackEnabled = true,
                     soundEffectsEnabled = true,
-                    telemetryEnabled = true,
+                    telemetryEnabled = true
                 ), settingsUpdatedAtUtc = "2023-01-01T00:00:00Z"
             )
         )

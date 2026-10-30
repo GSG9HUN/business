@@ -6,7 +6,7 @@ import kotlin.test.assertNull
 
 class TrackSearchPrefixTest {
     @Test
-    fun recognizesAllBotPrefixesAndAliases() {
+    fun recognizesAllBotPrefixesAndAliases(): Unit {
         val expected = mapOf(
             TrackSearchPrefix.SPOTIFY to listOf("sptfy", "spotify"),
             TrackSearchPrefix.SOUNDCLOUD to listOf("scsearch", "soundcloud"),
@@ -15,24 +15,31 @@ class TrackSearchPrefixTest {
             TrackSearchPrefix.APPLE_MUSIC to listOf("amsearch", "applemusic"),
             TrackSearchPrefix.DEEZER to listOf("dzsearch", "deezer"),
             TrackSearchPrefix.YANDEX_MUSIC to listOf("ymsearch", "yandexmusic"),
-            TrackSearchPrefix.BANDCAMP to listOf("bcsearch", "bandcamp"),
+            TrackSearchPrefix.BANDCAMP to listOf("bcsearch", "bandcamp")
         )
-        assertEquals(expected.keys, TrackSearchPrefix.entries.toSet())
+        assertEquals(expected = expected.keys, actual = TrackSearchPrefix.entries.toSet())
         expected.forEach { (provider, prefixes) ->
-            assertEquals(prefixes, listOf(provider.prefix, provider.alias))
+            assertEquals(expected = prefixes, actual = listOf(provider.prefix, provider.alias))
             prefixes.forEach { prefix ->
-                assertEquals(provider, TrackSearchPrefix.fromInput("$prefix:track"))
-                assertEquals(provider, TrackSearchPrefix.fromInput("${prefix.uppercase()}:track"))
-                assertEquals(provider, TrackSearchPrefix.fromInput("$prefix:"))
+                assertEquals(expected = provider, actual = TrackSearchPrefix.fromInput(input = "$prefix:track"))
+                assertEquals(expected = provider, actual = TrackSearchPrefix.fromInput(input = "${prefix.uppercase()}:track"))
+                assertEquals(expected = provider, actual = TrackSearchPrefix.fromInput(input = "$prefix:"))
             }
         }
     }
 
     @Test
-    fun doesNotTreatUrlsOrUnprefixedQueriesAsSearchPrefixes() {
-        listOf("", "youtube", "a song", "unknown:track", ":track",
-            "https://youtube.com/watch?v=123", " youtube:track").forEach {
-            assertNull(TrackSearchPrefix.fromInput(it))
+    fun doesNotTreatUrlsOrUnprefixedQueriesAsSearchPrefixes(): Unit {
+        listOf(
+            "",
+            "youtube",
+            "a song",
+            "unknown:track",
+            ":track",
+            "https://youtube.com/watch?v=123",
+            " youtube:track"
+        ).forEach { inputQuery ->
+            assertNull(actual = TrackSearchPrefix.fromInput(input = inputQuery))
         }
     }
 }

@@ -3,29 +3,29 @@ package com.dc.melodiasmario.feature.currenttrack.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.presentation.command.CommandLock
-import com.dc.melodiasmario.core.presentation.music.search.MusicSearchController
-import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
-import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
-import com.dc.melodiasmario.core.domain.queue.usecase.MoveTrackToIndexUseCase
+import com.dc.melodiasmario.core.commonui.music.validation.canSubmitMusicInput
+import com.dc.melodiasmario.core.commonui.playbacknotification.PlaybackNotificationController
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.NextTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PauseUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PreviousTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCase
-import com.dc.melodiasmario.core.domain.queue.usecase.RemoveFromQueueUseCase
-import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
-import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
-import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
-import com.dc.melodiasmario.core.commonui.music.validation.canSubmitMusicInput
-import com.dc.melodiasmario.core.commonui.playbacknotification.PlaybackNotificationController
-import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.StartCurrentPlaybackMonitorUseCase
+import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
+import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
+import com.dc.melodiasmario.core.domain.queue.usecase.MoveTrackToIndexUseCase
+import com.dc.melodiasmario.core.domain.queue.usecase.RemoveFromQueueUseCase
+import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUseCase
+import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
+import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
 import com.dc.melodiasmario.core.model.playbackmonitor.CurrentPlaybackMonitorState
+import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
+import com.dc.melodiasmario.core.presentation.command.CommandLock
+import com.dc.melodiasmario.core.presentation.music.search.MusicSearchController
 import com.dc.melodiasmario.core.presentation.playbackmonitor.PlaybackMonitorObserver
 import com.dc.melodiasmario.feature.currenttrack.presentation.command.CurrentTrackCommandHandler
 import com.dc.melodiasmario.feature.currenttrack.presentation.dialog.CurrentTrackDialog
@@ -34,6 +34,7 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrack
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -43,6 +44,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
+/**
+ * Coordinates current track events, observable UI state, and one-time effects.
+ */
 @KoinViewModel
 class CurrentTrackViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
@@ -64,34 +68,43 @@ class CurrentTrackViewModel(
     private val refreshCurrentPlaybackMonitorUseCase: RefreshCurrentPlaybackMonitorUseCase,
     private val playbackNotificationController: PlaybackNotificationController
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(CurrentTrackUiState())
+    private val _uiState = MutableStateFlow(value = CurrentTrackUiState())
+
+    /**
+     * Read-only presentation state observed by UI consumers.
+     */
     val uiState: StateFlow<CurrentTrackUiState> = _uiState.onStart {
         playbackMonitorObserver.start()
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(5_000),
-        initialValue = CurrentTrackUiState()
-    )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = WhileSubscribed(stopTimeoutMillis = 5_000),
+            initialValue = CurrentTrackUiState()
+        )
     private val playbackMonitorObserver = PlaybackMonitorObserver(
-        scope = viewModelScope,
+        coroutineScope = viewModelScope,
         observePlayback = observeCurrentPlaybackMonitorUseCase::invoke,
-        onPlayback = ::updatePlayback,
+        onPlayback = ::updatePlayback
     )
     private val events = MutableSharedFlow<CurrentTrackEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<CurrentTrackEffect>()
-    val effect = _effect.asSharedFlow()
+
+    /**
+     * One-time presentation outcomes observed by UI consumers.
+     */
+    val effect: SharedFlow<CurrentTrackEffect> = _effect.asSharedFlow()
     private var currentGuildId: String? = null
     private var currentUserId: String? = null
     private var commandJob: Job? = null
     private var commandVersion = 0L
 
-    private val commandLock = CommandLock(_uiState)
-    private val commandCoordinator = BotCommandCoordinator(
-        scope = viewModelScope,
+    private val commandLock = CommandLock(uiState = _uiState)
+    private val botCommandCoordinator = BotCommandCoordinator(
+        coroutineScope = viewModelScope,
         observeGuildRealtime = observeGuildRealtimeUseCase::invoke,
-        currentUserIdProvider = { currentUserId },
+        currentUserIdProvider = { currentUserId }
     )
-    private val commandHandler = CurrentTrackCommandHandler(
+    private val currentTrackCommandHandler = CurrentTrackCommandHandler(
         addToQueueUseCase = addToQueueUseCase,
         clearQueueUseCase = clearQueueUseCase,
         nextTrackUseCase = nextTrackUseCase,
@@ -102,66 +115,71 @@ class CurrentTrackViewModel(
         removeFromQueueUseCase = removeFromQueueUseCase,
         moveTrackToIndexUseCase = moveTrackToIndexUseCase,
         shuffleQueueUseCase = shuffleQueueUseCase,
-        state = _uiState,
+        uiState = _uiState,
         effects = _effect,
         currentGuildIdProvider = { currentGuildId },
         onTrackPendingCommand = { command ->
-            commandCoordinator.handleCompletion(
+            botCommandCoordinator.handleCompletion(
                 command = command,
-                onSucceeded = { _effect.emit(CurrentTrackEffect.BotCommandSucceeded(command.type)) },
+                onSucceeded = { _effect.emit(value = CurrentTrackEffect.BotCommandSucceeded(commandType = command.type)) },
                 onFailed = { errorKey ->
                     _effect.emit(
-                        CurrentTrackEffect.BotCommandFailed(
-                            command.type,
-                            errorKey
+                        value = CurrentTrackEffect.BotCommandFailed(
+                            commandType = command.type,
+                            errorKey = errorKey
                         )
                     )
                 },
                 onTimedOut = { },
-                onCompleted = { refreshCurrentPlaybackMonitorUseCase() },
+                onCompleted = { refreshCurrentPlaybackMonitorUseCase() }
             )
         },
         onCloseDialog = ::closeDialog,
-        onMoveFailed = { refreshCurrentPlaybackMonitorUseCase() },
+        onMoveFailed = { refreshCurrentPlaybackMonitorUseCase() }
     )
-    private val searchController = MusicSearchController(
+    private val musicSearchController = MusicSearchController(
         getCapabilities = getMusicSearchCapabilitiesUseCase::invoke,
         searchMusic = searchMusicUseCase::invoke,
-        state = _uiState,
+        uiState = _uiState,
         effects = _effect,
         failureEffect = CurrentTrackEffect.SearchFailed,
-        scope = viewModelScope,
-        currentGuildIdProvider = { currentGuildId },
+        coroutineScope = viewModelScope,
+        currentGuildIdProvider = { currentGuildId }
     )
 
     init {
         collectEvents()
     }
 
-    fun onEvent(event: CurrentTrackEvent) {
+    /**
+     * Submits a user or lifecycle event to the feature event-processing flow.
+     */
+    fun onEvent(event: CurrentTrackEvent): Unit {
         if (event.isCommandEvent()) {
-            if (!startCommandIfIdle()) return
+            if (!startCommandIfIdle()) {
+                return
+            }
 
             val version = commandVersion
             commandJob = viewModelScope.launch {
                 try {
-                    handleCommandEvent(event)
+                    handleCommandEvent(event = event)
                 } finally {
-                    finishCommand(version)
+                    finishCommand(version = version)
                 }
             }
             return
         }
 
         viewModelScope.launch {
-            events.emit(event)
+            events.emit(value = event)
         }
     }
 
     private fun collectEvents() {
         viewModelScope.launch {
             events.collect { event ->
-                handleEvent(event)
+                handleEvent(event = event)
             }
         }
     }
@@ -171,64 +189,65 @@ class CurrentTrackViewModel(
             is CurrentTrackEvent.LoadCurrentTrack -> {
                 if (currentGuildId != event.guildId) {
                     clearCommandExecution()
-                    searchController.resetForGuildChange(event.guildId, currentGuildId)
+                    musicSearchController.resetForGuildChange(newGuildId = event.guildId, currentGuildId = currentGuildId)
                     currentGuildId = event.guildId
                     currentUserId = null
                     _uiState.value = CurrentTrackUiState(isLoading = true)
                 }
-                commandCoordinator.start(event.guildId)
-                startCurrentPlaybackMonitorUseCase(event.guildId)
-                playbackNotificationController.start(event.guildId)
-                updatePlayback(observeCurrentPlaybackMonitorUseCase().value)
+
+                botCommandCoordinator.start(guildId = event.guildId)
+                startCurrentPlaybackMonitorUseCase(guildId = event.guildId)
+                playbackNotificationController.start(guildId = event.guildId)
+                updatePlayback(playbackState = observeCurrentPlaybackMonitorUseCase().value)
                 loadCurrentUser()
             }
 
             CurrentTrackEvent.SyncCurrentTrack -> refreshCurrentPlaybackMonitorUseCase()
-            is CurrentTrackEvent.AddToQueueDraftChanged -> updateAddToQueueDraft(event.value)
+            is CurrentTrackEvent.AddToQueueDraftChanged -> updateAddToQueueDraft(value = event.value)
             CurrentTrackEvent.RefreshClicked -> {
-                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+                _uiState.update { currentUiState -> currentUiState.copy(isLoading = true, errorMessage = null) }
                 refreshCurrentPlaybackMonitorUseCase()
             }
 
-            CurrentTrackEvent.GuildClicked -> _effect.emit(CurrentTrackEffect.NavigateToGuildSelector)
-            CurrentTrackEvent.ProfileClicked -> _effect.emit(CurrentTrackEffect.NavigateToProfile)
+            CurrentTrackEvent.GuildClicked -> _effect.emit(value = CurrentTrackEffect.NavigateToGuildSelector)
+            CurrentTrackEvent.ProfileClicked -> _effect.emit(value = CurrentTrackEffect.NavigateToProfile)
             CurrentTrackEvent.AddToQueueClicked -> {
-                openDialog(CurrentTrackDialog.AddToQueue)
-                searchController.loadCapabilities()
+                openDialog(dialog = CurrentTrackDialog.AddToQueue)
+                musicSearchController.loadCapabilities()
             }
 
-            CurrentTrackEvent.AddToQueueConfirmed -> runCommandIfIdle { handleCommandEvent(event) }
+            CurrentTrackEvent.AddToQueueConfirmed -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.DialogDismissed -> closeDialog()
             is CurrentTrackEvent.RemoveFromQueueClicked -> runCommandIfIdle {
-                handleCommandEvent(event)
+                handleCommandEvent(event = event)
             }
 
-            CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            CurrentTrackEvent.MoreClicked -> openDialog(CurrentTrackDialog.MoreActions)
-            CurrentTrackEvent.NextClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            CurrentTrackEvent.PreviousClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            CurrentTrackEvent.RepeatClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            CurrentTrackEvent.ShuffleClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            CurrentTrackEvent.PlayPauseClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            is CurrentTrackEvent.MoveToIndexClicked -> runCommandIfIdle { handleCommandEvent(event) }
-            is CurrentTrackEvent.SearchQueryChanged -> searchController.onQueryChanged(event.query)
-            is CurrentTrackEvent.SearchProviderChanged -> searchController.onProviderChanged(event.providerId)
-            is CurrentTrackEvent.SearchKindChanged -> searchController.onKindChanged(event.kind)
-            CurrentTrackEvent.SearchSubmitted -> searchController.submit()
-            CurrentTrackEvent.SearchRetryClicked -> searchController.retry()
-            CurrentTrackEvent.SearchNextPageRequested -> searchController.loadNextPage()
-            is CurrentTrackEvent.SearchResultClicked -> searchController.selectResult(event.resultId)
+            CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            CurrentTrackEvent.MoreClicked -> openDialog(dialog = CurrentTrackDialog.MoreActions)
+            CurrentTrackEvent.NextClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            CurrentTrackEvent.PreviousClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            CurrentTrackEvent.RepeatClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            CurrentTrackEvent.ShuffleClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            CurrentTrackEvent.PlayPauseClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            is CurrentTrackEvent.MoveToIndexClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
+            is CurrentTrackEvent.SearchQueryChanged -> musicSearchController.onQueryChanged(query = event.query)
+            is CurrentTrackEvent.SearchProviderChanged -> musicSearchController.onProviderChanged(providerId = event.providerId)
+            is CurrentTrackEvent.SearchKindChanged -> musicSearchController.onKindChanged(kind = event.kind)
+            CurrentTrackEvent.SearchSubmitted -> musicSearchController.submit()
+            CurrentTrackEvent.SearchRetryClicked -> musicSearchController.retry()
+            CurrentTrackEvent.SearchNextPageRequested -> musicSearchController.loadNextPage()
+            is CurrentTrackEvent.SearchResultClicked -> musicSearchController.selectResult(resultId = event.resultId)
             CurrentTrackEvent.SelectedSearchResultAddClicked -> runCommandIfIdle {
-                handleCommandEvent(event)
+                handleCommandEvent(event = event)
             }
 
-            CurrentTrackEvent.SearchCapabilitiesRetryClicked -> searchController.loadCapabilities()
-            is CurrentTrackEvent.AddMusicModeChanged -> searchController.updateMode(event.mode)
+            CurrentTrackEvent.SearchCapabilitiesRetryClicked -> musicSearchController.loadCapabilities()
+            is CurrentTrackEvent.AddMusicModeChanged -> musicSearchController.updateMode(mode = event.mode)
         }
     }
 
     private suspend fun handleCommandEvent(event: CurrentTrackEvent) {
-        commandHandler.handle(event)
+        currentTrackCommandHandler.handle(event)
     }
 
     private suspend fun runCommandIfIdle(action: suspend () -> Unit) {
@@ -240,7 +259,7 @@ class CurrentTrackViewModel(
         try {
             action()
         } finally {
-            finishCommand(version)
+            finishCommand(version = version)
         }
     }
 
@@ -248,6 +267,7 @@ class CurrentTrackViewModel(
         if (currentGuildId == null || _uiState.value.isLoading) {
             return false
         }
+
         if (!commandLock.startIfIdle()) {
             return false
         }
@@ -264,11 +284,12 @@ class CurrentTrackViewModel(
 
     private suspend fun loadCurrentUser() {
         getCurrentUserUseCase().collect { result ->
+
             if (result is Resource.Success) {
                 currentUserId = result.data.id
-                _uiState.update {
-                    it.copy(
-                        header = it.header.copy(
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(
+                        header = currentUiState.header.copy(
                             profileName = result.data.displayName,
                             profileAvatarUrl = result.data.avatarUrl
                         )
@@ -279,9 +300,9 @@ class CurrentTrackViewModel(
     }
 
     private fun updateAddToQueueDraft(value: String) {
-        _uiState.update {
-            it.copy(
-                addMusic = it.addMusic.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
+                addMusic = currentUiState.addMusic.copy(
                     manualDraft = value,
                     canSubmitManual = value.canSubmitMusicInput()
                 )
@@ -290,19 +311,19 @@ class CurrentTrackViewModel(
     }
 
     private fun openDialog(dialog: CurrentTrackDialog) {
-        _uiState.update { it.copy(dialog = dialog) }
+        _uiState.update { currentUiState -> currentUiState.copy(dialog = dialog) }
     }
 
     private fun closeDialog() {
-        searchController.clear()
-        _uiState.update {
-            it.copy(
+        musicSearchController.clear()
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 dialog = CurrentTrackDialog.None,
-                addMusic = it.addMusic.copy(
+                addMusic = currentUiState.addMusic.copy(
                     manualDraft = "",
                     canSubmitManual = false,
                     isManualLoading = false
-                ),
+                )
             )
         }
     }
@@ -314,28 +335,31 @@ class CurrentTrackViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared() {
-        commandCoordinator.clear()
+    override fun onCleared(): Unit {
+        botCommandCoordinator.clear()
         playbackMonitorObserver.stop()
         clearCommandExecution()
-        searchController.cancel()
+        musicSearchController.cancel()
         super.onCleared()
     }
 
     private fun updatePlayback(playbackState: CurrentPlaybackMonitorState) {
         val guildId = currentGuildId ?: return
+
         if (playbackState.guildId != guildId) {
             return
         }
-        val track = playbackState.currentTrack?.takeIf { it.guildId == guildId }
+
+        val track = playbackState.currentTrack?.takeIf { currentTrack -> currentTrack.guildId == guildId }
         _uiState.update { value ->
+
             if (track == null) {
                 value.copy(
                     isLoading = playbackState.isRefreshing,
                     errorMessage = playbackState.errorMessage,
                     header = value.header.copy(guildName = "", guildIconUrl = null),
                     playback = CurrentTrackPlaybackUiState(),
-                    queue = value.queue.copy(tracks = emptyList()),
+                    queue = value.queue.copy(tracks = emptyList())
                 )
             } else {
                 value.copy(
@@ -344,16 +368,16 @@ class CurrentTrackViewModel(
                     header = value.header.copy(
                         guildName = track.guildName,
                         guildIconUrl = track.guildIconUrl,
-                        guildBotStatus = track.guildBotStatus,
+                        guildBotStatus = track.guildBotStatus
                     ),
                     playback = value.playback.copy(
                         currentTrack = track,
                         isPlaying = track.isPlaying,
-                        repeatMode = track.repeatMode,
+                        repeatMode = track.repeatMode
                     ),
                     queue = value.queue.copy(
                         tracks = track.queuedTracks
-                    ),
+                    )
                 )
             }
         }

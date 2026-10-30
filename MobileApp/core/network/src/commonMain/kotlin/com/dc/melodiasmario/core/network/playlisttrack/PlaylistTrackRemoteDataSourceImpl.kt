@@ -4,6 +4,9 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.playlist.PlaylistDetail
 import org.koin.core.annotation.Single
 
+/**
+ * Adapts remote playlist track responses to domain-facing data.
+ */
 @Single(binds = [PlaylistTrackRemoteDataSource::class])
 class PlaylistTrackRemoteDataSourceImpl(
     private val playlistTrackApiService: PlaylistTrackApiService
@@ -12,10 +15,11 @@ class PlaylistTrackRemoteDataSourceImpl(
         return playlistTrackApiService.getPlaylist(
             accessToken = accessToken,
             playlistId = playlistId
-        ).toDomain()
+        )
+            .toDomain()
     }
 
-    override suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int) {
+    override suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int): Unit {
         return playlistTrackApiService.removeTrack(
             accessToken = accessToken,
             playlistId = playlistId,
@@ -27,6 +31,7 @@ class PlaylistTrackRemoteDataSourceImpl(
         return playlistTrackApiService.loadPlaylist(
             accessToken = accessToken,
             playlistId = playlistId
-        ).toDomain()
+        )
+            .toDomain()
     }
 }

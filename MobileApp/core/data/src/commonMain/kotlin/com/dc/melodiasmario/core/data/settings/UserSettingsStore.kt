@@ -6,16 +6,29 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.annotation.Single
 
+/**
+ * Provides user settings store for the settings layer.
+ */
 @Single
 class UserSettingsStore {
-    private val _settings = MutableStateFlow(UserSettings.Default)
+    private val _settings = MutableStateFlow(value = UserSettings.Default)
+
+    /**
+     * Settings exposed by user settings store.
+     */
     val settings: StateFlow<UserSettings> = _settings.asStateFlow()
 
-    fun setSettings(userSettings: UserSettings) {
+    /**
+     * Updates the current in-memory settings.
+     */
+    fun setSettings(userSettings: UserSettings): Unit {
         _settings.value = userSettings
     }
 
-    fun clear() {
+    /**
+     * Clears the state and resources owned by UserSettingsStore.
+     */
+    fun clear(): Unit {
         _settings.value = UserSettings.Default
     }
 }

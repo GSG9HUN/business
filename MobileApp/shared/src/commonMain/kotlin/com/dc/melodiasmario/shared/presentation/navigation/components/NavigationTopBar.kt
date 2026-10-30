@@ -15,8 +15,11 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
 import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
 import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 
+/**
+ * Renders navigation top bar from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
-fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
+fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig): Unit {
     MTopBar(
         modifier = modifier,
         title = config.title,
@@ -40,7 +43,7 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                         size = 44.dp,
                         backgroundColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        avatarOnClick = icon.onClick,
+                        avatarOnClick = icon.onClick
                     )
                 }
             }
@@ -50,12 +53,12 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                 when (action) {
                     is TopBarAction.Search -> MSearchButton(
                         onClick = action.onClick,
-                        contentDescription = action.contentDescription,
+                        contentDescription = action.contentDescription
                     )
 
                     is TopBarAction.Refresh -> MRefreshButton(
                         onClick = action.onClick,
-                        contentDescription = action.contentDescription,
+                        contentDescription = action.contentDescription
                     )
 
                     is TopBarAction.More -> {
@@ -73,10 +76,10 @@ fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
                         backgroundColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         contentDescription = action.contentDescription,
-                        avatarOnClick = action.onClick,
+                        avatarOnClick = action.onClick
                     )
                 }
             }
-        },
+        }
     )
 }

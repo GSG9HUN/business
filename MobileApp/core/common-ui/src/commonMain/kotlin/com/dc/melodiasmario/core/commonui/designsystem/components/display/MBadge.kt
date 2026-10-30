@@ -10,23 +10,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+/**
+ * Renders badge from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MBadge(
     text: String,
     modifier: Modifier = Modifier,
     backgroundColor: Color,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
-) {
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
+): Unit {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(999.dp),
-        color = backgroundColor,
+        shape = RoundedCornerShape(size = 999.dp),
+        color = backgroundColor
     ) {
         MText(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             text = text,
             color = contentColor,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
     }
 }

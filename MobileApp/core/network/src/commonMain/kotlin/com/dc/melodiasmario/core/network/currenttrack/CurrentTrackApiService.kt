@@ -16,47 +16,74 @@ import io.ktor.http.HttpHeaders
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends current track API requests through the configured HTTP client.
+ */
 @Single
 class CurrentTrackApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Retrieves the guild playback status and current track.
+     */
     suspend fun getPlaybackStatus(accessToken: String, guildId: String): PlaybackStatusDto {
-        return client.get("$baseUrl/guilds/$guildId/player") {
-            header("Authorization", "Bearer $accessToken")
-        }.body<PlaybackStatusDto>()
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId/player") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body<PlaybackStatusDto>()
     }
 
+    /**
+     * Requests advancing to the next queued track.
+     */
     suspend fun nextTrack(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/playback/skip") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/skip") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests playing the previous track.
+     */
     suspend fun previousTrack(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/playback/previous") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/previous") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests resuming guild playback.
+     */
     suspend fun play(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/playback/resume") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/resume") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Requests pausing guild playback.
+     */
     suspend fun pause(accessToken: String, guildId: String): BotControlCommandDto {
-        return client.post("$baseUrl/guilds/$guildId/playback/pause") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/pause") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
-    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String) {
-        return client.patch("$baseUrl/guilds/$guildId/playback/repeat-mode") {
-            header("Authorization", "Bearer $accessToken")
-            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            setBody(SetRepeatModeRequestDto(mode = mode))
-        }.body()
+    /**
+     * Requests updating the playback repeat mode.
+     */
+    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String): Unit {
+        return httpClient.patch(urlString = "$baseUrl/guilds/$guildId/playback/repeat-mode") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(body = SetRepeatModeRequestDto(mode = mode))
+        }
+            .body()
     }
 }

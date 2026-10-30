@@ -1,17 +1,18 @@
 package com.dc.melodiasmario.playback
 
 import android.app.Service
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.content.Intent
 import android.os.IBinder
-import com.dc.melodiasmario.core.presentation.runBackgroundBotCommand
 import com.dc.melodiasmario.core.commonui.playbacknotification.PlaybackNotificationAction
 import com.dc.melodiasmario.core.domain.playbackcommand.usecase.NextPlaybackUseCase
 import com.dc.melodiasmario.core.domain.playbackcommand.usecase.PlayPausePlaybackUseCase
 import com.dc.melodiasmario.core.domain.playbackcommand.usecase.PreviousPlaybackUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.StartCurrentPlaybackMonitorUseCase
+import com.dc.melodiasmario.core.presentation.runBackgroundBotCommand
+import java.net.URL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,24 +21,26 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
-import java.net.URL
 
+/**
+ * Provides playback foreground service for the playback layer.
+ */
 class PlaybackForegroundService : Service() {
-    private val observeMonitor: ObserveCurrentPlaybackMonitorUseCase by inject()
-    private val startMonitor: StartCurrentPlaybackMonitorUseCase by inject()
-    private val previousPlayback: PreviousPlaybackUseCase by inject()
-    private val nextPlayback: NextPlaybackUseCase by inject()
-    private val playPausePlayback: PlayPausePlaybackUseCase by inject()
+    private val observeCurrentPlaybackMonitorUseCase: ObserveCurrentPlaybackMonitorUseCase by inject()
+    private val startCurrentPlaybackMonitorUseCase: StartCurrentPlaybackMonitorUseCase by inject()
+    private val previousPlaybackUseCase: PreviousPlaybackUseCase by inject()
+    private val nextPlaybackUseCase: NextPlaybackUseCase by inject()
+    private val playPausePlaybackUseCase: PlayPausePlaybackUseCase by inject()
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private lateinit var mediaSessionController: PlaybackMediaSessionController
+    private val coroutineScope = CoroutineScope(context = SupervisorJob() + Dispatchers.Main.immediate)
+    private lateinit var playbackMediaSessionController: PlaybackMediaSessionController
 
     private var guildId: String? = null
     private var latestIsPlaying: Boolean = false
 
-    override fun onCreate() {
+    override fun onCreate(): Unit {
         super.onCreate()
-        mediaSessionController = PlaybackMediaSessionController(
+        playbackMediaSessionController = PlaybackMediaSessionController(
             context = this,
             callback = object : PlaybackMediaSessionController.Callback {
                 override fun onPrevious() {
@@ -57,7 +60,7 @@ class PlaybackForegroundService : Service() {
             NOTIFICATION_ID,
             PlaybackNotificationMapper.create(
                 context = this,
-                mediaSessionToken = mediaSessionController.sessionToken,
+                mediaSessionToken = playbackMediaSessionController.sessionToken,
                 guildId = guildId.orEmpty(),
                 title = "Melodias Mario",
                 artist = "Loading playback",
@@ -66,8 +69,8 @@ class PlaybackForegroundService : Service() {
             )
         )
 
-        scope.launch {
-            observeMonitor().collectLatest { state ->
+        coroutineScope.launch {
+            observeCurrentPlaybackMonitorUseCase().collectLatest { state ->
                 val currentTrack = state.currentTrack ?: return@collectLatest
                 val track = currentTrack.currentTrack ?: return@collectLatest
                 val safeGuildId = state.guildId ?: return@collectLatest
@@ -78,7 +81,7 @@ class PlaybackForegroundService : Service() {
 
                 val notification = PlaybackNotificationMapper.create(
                     context = this@PlaybackForegroundService,
-                    mediaSessionToken = mediaSessionController.sessionToken,
+                    mediaSessionToken = playbackMediaSessionController.sessionToken,
                     guildId = safeGuildId,
                     title = track.title,
                     artist = track.artist,
@@ -86,23 +89,24 @@ class PlaybackForegroundService : Service() {
                     isPlaying = currentTrack.isPlaying
                 )
 
-                mediaSessionController.update(currentTrack = currentTrack, artwork = artwork)
+                playbackMediaSessionController.update(currentTrack = currentTrack, artwork = artwork)
                 startForeground(NOTIFICATION_ID, notification)
             }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.getStringExtra(PlaybackNotificationAction.EXTRA_GUILD_ID)?.let {
-            guildId = it
-        }
+        intent?.getStringExtra(PlaybackNotificationAction.EXTRA_GUILD_ID)
+            ?.let { requestedGuildId ->
+                guildId = requestedGuildId
+            }
         when (intent?.action) {
             PlaybackNotificationAction.START -> {
                 val nextGuildId = intent.getStringExtra(PlaybackNotificationAction.EXTRA_GUILD_ID)
                     ?: return START_NOT_STICKY
 
                 guildId = nextGuildId
-                startMonitor(guildId = nextGuildId)
+                startCurrentPlaybackMonitorUseCase(guildId = nextGuildId)
             }
 
             PlaybackNotificationAction.STOP -> {
@@ -122,50 +126,53 @@ class PlaybackForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onDestroy() {
-        scope.cancel()
-        mediaSessionController.release()
+    override fun onDestroy(): Unit {
+        coroutineScope.cancel()
+        playbackMediaSessionController.release()
         super.onDestroy()
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) {
+    override fun onTaskRemoved(rootIntent: Intent?): Unit {
         super.onTaskRemoved(rootIntent)
         stopPlaybackService()
     }
 
     private fun runCommand(block: suspend () -> Unit) {
-        scope.launch { block() }
+        coroutineScope.launch { block() }
     }
 
     private fun runPrevious() = runCommand {
-        previousPlayback(guildId = requireGuildId()).runBackgroundBotCommand()
+        previousPlaybackUseCase(guildId = requireGuildId()).runBackgroundBotCommand()
     }
 
     private fun runPlayPause() = runCommand {
-        playPausePlayback(
+        playPausePlaybackUseCase(
             guildId = requireGuildId(),
             isPlaying = latestIsPlaying
         ).runBackgroundBotCommand()
     }
 
     private fun runNext() = runCommand {
-        nextPlayback(guildId = requireGuildId()).runBackgroundBotCommand()
+        nextPlaybackUseCase(guildId = requireGuildId()).runBackgroundBotCommand()
     }
 
     private suspend fun loadArtwork(url: String?): Bitmap? {
-        if (url.isNullOrBlank()) return null
+        if (url.isNullOrBlank()) {
+            return null
+        }
 
-        return withContext(Dispatchers.IO) {
+        return withContext(context = Dispatchers.IO) {
             runCatching {
-                URL(url).openStream().use(BitmapFactory::decodeStream)
+                URL(url).openStream()
+                    .use(block = BitmapFactory::decodeStream)
             }.getOrNull()
         }
     }
 
-    private fun requireGuildId(): String = requireNotNull(guildId)
+    private fun requireGuildId(): String = requireNotNull(value = guildId)
 
     private fun stopPlaybackService() {
-        scope.cancel()
+        coroutineScope.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }

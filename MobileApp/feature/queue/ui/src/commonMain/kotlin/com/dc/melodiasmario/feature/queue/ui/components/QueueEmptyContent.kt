@@ -13,15 +13,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
+/**
+ * Renders queue empty content from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun QueueEmptyContent(
     modifier: Modifier = Modifier,
     title: String,
-    message: String,
-) {
+    message: String
+): Unit {
     Column(
-        modifier = modifier.padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = modifier.padding(all = 24.dp),
+        verticalArrangement = Arrangement.Center
     ) {
         MText(
             modifier = Modifier.fillMaxWidth(),
@@ -29,13 +32,14 @@ fun QueueEmptyContent(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
         MText(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(top = 8.dp),
             text = message,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
     }
 }

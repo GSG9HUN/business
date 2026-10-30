@@ -6,6 +6,9 @@ import com.dc.melodiasmario.core.model.search.MusicSearchPage
 import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import org.koin.core.annotation.Single
 
+/**
+ * Adapts remote music search responses to domain-facing data.
+ */
 @Single(binds = [MusicSearchRemoteDataSource::class])
 class MusicSearchRemoteDataSourceImpl(
     private val musicSearchApiService: MusicSearchApiService
@@ -15,7 +18,7 @@ class MusicSearchRemoteDataSourceImpl(
         guildId: String
     ): List<MusicSearchCapability> {
         return musicSearchApiService.getCapabilities(accessToken = accessToken, guildId = guildId)
-            .map { it.toDomain() }
+            .map { searchCapability -> searchCapability.toDomain() }
     }
 
     override suspend fun search(
@@ -33,6 +36,7 @@ class MusicSearchRemoteDataSourceImpl(
             kind = kind.toApiKind(),
             query = query,
             pageToken = pageToken
-        ).toDomain()
+        )
+            .toDomain()
     }
 }

@@ -27,11 +27,14 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastData
 import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
 
+/**
+ * Renders toast from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MToast(
     modifier: Modifier = Modifier,
-    data: MToastData,
-) {
+    data: MToastData
+): Unit {
     val statusStyle = data.type.statusStyle()
 
     Surface(
@@ -45,29 +48,29 @@ fun MToast(
             .padding(horizontal = 16.dp)
             .widthIn(max = 560.dp)
             .fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(size = 16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, statusStyle.borderColor),
-        shadowElevation = 10.dp,
+        border = BorderStroke(width = 1.dp, color = statusStyle.borderColor),
+        shadowElevation = 10.dp
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             ToastStatusMark(
                 label = statusStyle.markLabel,
                 backgroundColor = statusStyle.markBackgroundColor,
-                contentColor = statusStyle.contentColor,
+                contentColor = statusStyle.contentColor
             )
 
             MText(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 text = data.message,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.SemiBold,
-                lineHeight = 18.sp,
+                lineHeight = 18.sp
             )
         }
     }
@@ -77,19 +80,19 @@ fun MToast(
 private fun ToastStatusMark(
     label: String,
     backgroundColor: Color,
-    contentColor: Color,
+    contentColor: Color
 ) {
     Surface(
-        modifier = Modifier.size(28.dp),
+        modifier = Modifier.size(size = 28.dp),
         shape = CircleShape,
-        color = backgroundColor,
+        color = backgroundColor
     ) {
         Box(contentAlignment = Alignment.Center) {
             MText(
                 text = label,
                 color = contentColor,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 14.sp,
+                lineHeight = 14.sp
             )
         }
     }
@@ -99,7 +102,7 @@ private data class ToastColors(
     val markLabel: String,
     val markBackgroundColor: Color,
     val contentColor: Color,
-    val borderColor: Color,
+    val borderColor: Color
 )
 
 @Composable
@@ -110,28 +113,28 @@ private fun MToastType.statusStyle(): ToastColors {
             markLabel = "OK",
             markBackgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            borderColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.35f),
+            borderColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.35f)
         )
 
         MToastType.Error -> ToastColors(
             markLabel = "!",
             markBackgroundColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            borderColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.35f),
+            borderColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.35f)
         )
 
         MToastType.Warning -> ToastColors(
             markLabel = "!",
-            markBackgroundColor = Color(0x26F6C343),
-            contentColor = Color(0xFF996A00),
-            borderColor = Color(0x66F6C343),
+            markBackgroundColor = Color(color = 0x26F6C343),
+            contentColor = Color(color = 0xFF996A00),
+            borderColor = Color(color = 0x66F6C343)
         )
 
         MToastType.Info -> ToastColors(
             markLabel = "i",
             markBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
             contentColor = MaterialTheme.colorScheme.secondary,
-            borderColor = MaterialTheme.colorScheme.outline,
+            borderColor = MaterialTheme.colorScheme.outline
         )
     }
 }

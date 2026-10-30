@@ -15,16 +15,19 @@ import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Single
 
 private val Context.authSessionDataStore by preferencesDataStore(
-    name = "secure_auth_session",
+    name = "secure_auth_session"
 )
 
 private val authSessionJson = Json {
     ignoreUnknownKeys = true
 }
 
+/**
+ * Provides secure auth session storage impl for the auth layer.
+ */
 @Single(binds = [SecureAuthSessionStorage::class])
 class SecureAuthSessionStorageImpl(
-    private val context: Context,
+    private val context: Context
 ) : SecureAuthSessionStorage {
     private var cipher: AuthSessionCipher = AuthSessionCipher()
     private var dataStore: DataStore<Preferences> = context.authSessionDataStore
@@ -32,44 +35,45 @@ class SecureAuthSessionStorageImpl(
     internal constructor(
         context: Context,
         cipher: AuthSessionCipher,
-        dataStore: DataStore<Preferences>,
+        dataStore: DataStore<Preferences>
     ) : this(context) {
         this.cipher = cipher
         this.dataStore = dataStore
     }
 
-    override suspend fun saveSession(session: AuthSession): Unit = withContext(Dispatchers.IO) {
-        val encryptedSession = cipher.encrypt(session.toJson())
+    override suspend fun saveSession(session: AuthSession): Unit = withContext(context = Dispatchers.IO) {
+        val encryptedSession = cipher.encrypt(plainText = session.toJson())
 
         dataStore.edit { preferences ->
             preferences[KEY_SESSION] = encryptedSession
         }
     }
 
-    override suspend fun getSession(): AuthSession? = withContext(Dispatchers.IO) {
+    override suspend fun getSession(): AuthSession? = withContext(context = Dispatchers.IO) {
         val encryptedSession = dataStore.data.first()[KEY_SESSION]
             ?: return@withContext null
 
         runCatching {
-            cipher.decrypt(encryptedSession).toAuthSession()
+            cipher.decrypt(encryptedPayload = encryptedSession)
+                .toAuthSession()
         }.getOrNull()
     }
 
-    override suspend fun clearSession(): Unit = withContext(Dispatchers.IO) {
+    override suspend fun clearSession(): Unit = withContext(context = Dispatchers.IO) {
         dataStore.edit { preferences ->
             preferences.clear()
         }
     }
 
     private fun AuthSession.toJson(): String {
-        return authSessionJson.encodeToString(this)
+        return authSessionJson.encodeToString(value = this)
     }
 
     private fun String.toAuthSession(): AuthSession {
-        return authSessionJson.decodeFromString<AuthSession>(this)
+        return authSessionJson.decodeFromString<AuthSession>(string = this)
     }
 
     private companion object {
-        val KEY_SESSION = stringPreferencesKey("session")
+        val KEY_SESSION = stringPreferencesKey(name = "session")
     }
 }

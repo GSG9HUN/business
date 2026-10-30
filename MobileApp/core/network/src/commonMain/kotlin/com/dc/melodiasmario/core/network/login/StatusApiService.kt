@@ -6,13 +6,19 @@ import io.ktor.client.request.get
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 
+/**
+ * Sends status API requests through the configured HTTP client.
+ */
 @Single
 class StatusApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Checks whether the API is available.
+     */
     suspend fun isApiOnline(): Boolean {
-        return client.get("$baseUrl/status").status.value in 200..299
+        return httpClient.get(urlString = "$baseUrl/status").status.value in 200..299
     }
 }

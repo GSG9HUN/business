@@ -19,6 +19,7 @@ import com.dc.melodiasmario.core.presentation.runBotCommand
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
+/**
+ * Coordinates playlist track events, observable UI state, and one-time effects.
+ */
 @KoinViewModel
 class PlaylistTrackViewModel(
     private val getPlaylistDetailUseCase: GetPlaylistDetailUseCase,
@@ -35,42 +39,53 @@ class PlaylistTrackViewModel(
     private val loadPlaylistUseCase: LoadPlaylistUseCase,
     private val getMusicSearchCapabilitiesUseCase: GetMusicSearchCapabilitiesUseCase,
     private val searchMusicUseCase: SearchMusicUseCase,
-    private val observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase,
+    private val observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(PlaylistTrackUiState())
+    private val _uiState = MutableStateFlow(value = PlaylistTrackUiState())
+
+    /**
+     * Read-only presentation state observed by UI consumers.
+     */
     val uiState: StateFlow<PlaylistTrackUiState> = _uiState.asStateFlow()
 
     private val events = MutableSharedFlow<PlaylistTrackEvent>(extraBufferCapacity = 64)
     private val _effect = MutableSharedFlow<PlaylistTrackEffect>()
-    val effect = _effect.asSharedFlow()
+
+    /**
+     * One-time presentation outcomes observed by UI consumers.
+     */
+    val effect: SharedFlow<PlaylistTrackEffect> = _effect.asSharedFlow()
 
     private var currentGuildId: String? = null
     private var currentPlaylistId: String? = null
     private var loadJob: Job? = null
     private var commandJob: Job? = null
     private var commandVersion = 0L
-    private val commandLock = CommandLock(_uiState)
+    private val commandLock = CommandLock(uiState = _uiState)
 
-    private val commandCoordinator = BotCommandCoordinator(
-        scope = viewModelScope,
-        observeGuildRealtime = observeGuildRealtimeUseCase::invoke,
+    private val botCommandCoordinator = BotCommandCoordinator(
+        coroutineScope = viewModelScope,
+        observeGuildRealtime = observeGuildRealtimeUseCase::invoke
     )
 
-    private val searchController = MusicSearchController(
+    private val musicSearchController = MusicSearchController(
         getCapabilities = getMusicSearchCapabilitiesUseCase::invoke,
         searchMusic = searchMusicUseCase::invoke,
-        state = _uiState,
+        uiState = _uiState,
         effects = _effect,
         failureEffect = PlaylistTrackEffect.SearchFailed,
-        scope = viewModelScope,
-        currentGuildIdProvider = { currentGuildId },
+        coroutineScope = viewModelScope,
+        currentGuildIdProvider = { currentGuildId }
     )
 
     init {
         collectEvents()
     }
 
-    fun onEvent(event: PlaylistTrackEvent) {
+    /**
+     * Submits a user or lifecycle event to the feature event-processing flow.
+     */
+    fun onEvent(event: PlaylistTrackEvent): Unit {
         if (event.isCommandEvent()) {
             if (!startCommandIfIdle()) {
                 return
@@ -79,23 +94,23 @@ class PlaylistTrackViewModel(
             val version = commandVersion
             commandJob = viewModelScope.launch {
                 try {
-                    handleCommandEvent(event)
+                    handleCommandEvent(event = event)
                 } finally {
-                    finishCommand(version)
+                    finishCommand(version = version)
                 }
             }
             return
         }
 
         viewModelScope.launch {
-            events.emit(event)
+            events.emit(value = event)
         }
     }
 
     private fun collectEvents() {
         viewModelScope.launch {
             events.collect { event ->
-                handleEvent(event)
+                handleEvent(event = event)
             }
         }
     }
@@ -109,24 +124,24 @@ class PlaylistTrackViewModel(
         }
 
         when (event) {
-            is PlaylistTrackEvent.Load -> loadPlaylist(event.guildId, event.playlistId)
-            PlaylistTrackEvent.BackClicked -> _effect.emit(PlaylistTrackEffect.NavigateBack)
+            is PlaylistTrackEvent.Load -> loadPlaylist(guildId = event.guildId, playlistId = event.playlistId)
+            PlaylistTrackEvent.BackClicked -> _effect.emit(value = PlaylistTrackEffect.NavigateBack)
             PlaylistTrackEvent.Refresh -> refreshClicked()
             PlaylistTrackEvent.MoreClicked -> moreClicked()
             PlaylistTrackEvent.DismissDialog -> closeDialog()
             PlaylistTrackEvent.AddMusicClicked -> addMusicClicked()
-            is PlaylistTrackEvent.TrackMoreClicked -> trackMoreClicked(event.orderNumber)
-            is PlaylistTrackEvent.RemoveClicked -> removeClicked(event.orderNumber)
-            is PlaylistTrackEvent.ModeChanged -> searchController.updateMode(event.mode)
-            is PlaylistTrackEvent.ManualDraftChanged -> updateManualDraft(event.value)
-            is PlaylistTrackEvent.SearchQueryChanged -> searchController.onQueryChanged(event.value)
-            is PlaylistTrackEvent.ProviderChanged -> searchController.onProviderChanged(event.id)
-            is PlaylistTrackEvent.KindChanged -> searchController.onKindChanged(event.kind)
-            is PlaylistTrackEvent.ResultClicked -> searchController.selectResult(event.id)
-            PlaylistTrackEvent.SearchSubmitted -> searchController.submit()
-            PlaylistTrackEvent.NextPage -> searchController.loadNextPage()
-            PlaylistTrackEvent.RetrySearch -> searchController.retry()
-            PlaylistTrackEvent.RetryCapabilities -> searchController.loadCapabilities()
+            is PlaylistTrackEvent.TrackMoreClicked -> trackMoreClicked(orderNumber = event.orderNumber)
+            is PlaylistTrackEvent.RemoveClicked -> removeClicked(orderNumber = event.orderNumber)
+            is PlaylistTrackEvent.ModeChanged -> musicSearchController.updateMode(mode = event.mode)
+            is PlaylistTrackEvent.ManualDraftChanged -> updateManualDraft(value = event.value)
+            is PlaylistTrackEvent.SearchQueryChanged -> musicSearchController.onQueryChanged(query = event.value)
+            is PlaylistTrackEvent.ProviderChanged -> musicSearchController.onProviderChanged(providerId = event.id)
+            is PlaylistTrackEvent.KindChanged -> musicSearchController.onKindChanged(kind = event.kind)
+            is PlaylistTrackEvent.ResultClicked -> musicSearchController.selectResult(resultId = event.id)
+            PlaylistTrackEvent.SearchSubmitted -> musicSearchController.submit()
+            PlaylistTrackEvent.NextPage -> musicSearchController.loadNextPage()
+            PlaylistTrackEvent.RetrySearch -> musicSearchController.retry()
+            PlaylistTrackEvent.RetryCapabilities -> musicSearchController.loadCapabilities()
             // Ordering actions stay disabled until the backend supports them.
             is PlaylistTrackEvent.Move, PlaylistTrackEvent.Shuffle -> Unit
             is PlaylistTrackEvent.RemoveConfirmed,
@@ -146,10 +161,10 @@ class PlaylistTrackViewModel(
 
         loadJob?.cancel()
         clearCommandExecution()
-        searchController.clear()
+        musicSearchController.clear()
         currentGuildId = guildId
         currentPlaylistId = playlistId
-        commandCoordinator.start(guildId)
+        botCommandCoordinator.start(guildId = guildId)
         _uiState.value = PlaylistTrackUiState()
         refreshPlaylist()
     }
@@ -164,40 +179,42 @@ class PlaylistTrackViewModel(
         val playlistId = currentPlaylistId ?: return
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            fetchPlaylist(playlistId)
+            fetchPlaylist(playlistId = playlistId)
         }
     }
 
     private suspend fun fetchPlaylist(playlistId: String) {
-        getPlaylistDetailUseCase(playlistId).map { result ->
+        getPlaylistDetailUseCase(playlistId = playlistId).map { result ->
+
             if (result is Resource.Success && result.data.guildId != currentGuildId) {
-                Resource.Error(IllegalStateException("Playlist belongs to a different guild"))
+                Resource.Error(error = IllegalStateException("Playlist belongs to a different guild"))
             } else {
                 result
             }
-        }.runAction(
-            state = _uiState,
-            effects = _effect,
-            failureEffect = PlaylistTrackEffect.OperationFailed,
-            onLoading = {
-                it.copy(
-                    isLoading = it.playlist == null,
-                    isRefreshing = it.playlist != null,
-                    hasLoadError = false,
-                )
-            },
-            onSuccessWithData = { state, playlist ->
-                state.copy(playlist = playlist, isLoading = false, isRefreshing = false, hasLoadError = false)
-            },
-            onError = { state, _ ->
-                state.copy(isLoading = false, isRefreshing = false, hasLoadError = true)
-            },
-        )
+        }
+            .runAction(
+                uiState = _uiState,
+                effects = _effect,
+                failureEffect = PlaylistTrackEffect.OperationFailed,
+                onLoading = { currentUiState ->
+                    currentUiState.copy(
+                        isLoading = currentUiState.playlist == null,
+                        isRefreshing = currentUiState.playlist != null,
+                        hasLoadError = false
+                    )
+                },
+                onSuccessWithData = { state, playlist ->
+                    state.copy(playlist = playlist, isLoading = false, isRefreshing = false, hasLoadError = false)
+                },
+                onError = { state, _ ->
+                    state.copy(isLoading = false, isRefreshing = false, hasLoadError = true)
+                }
+            )
     }
 
     private fun moreClicked() {
         if (_uiState.value.playlist != null) {
-            openDialog(PlaylistTrackDialog.More)
+            openDialog(dialog = PlaylistTrackDialog.More)
         }
     }
 
@@ -206,52 +223,54 @@ class PlaylistTrackViewModel(
             return
         }
 
-        openDialog(PlaylistTrackDialog.AddMusic)
-        searchController.loadCapabilities()
+        openDialog(dialog = PlaylistTrackDialog.AddMusic)
+        musicSearchController.loadCapabilities()
     }
 
     private fun trackMoreClicked(orderNumber: Int) {
         if (_uiState.value.canModify) {
-            openDialog(PlaylistTrackDialog.TrackActions(orderNumber))
+            openDialog(dialog = PlaylistTrackDialog.TrackActions(orderNumber = orderNumber))
         }
     }
 
     private fun removeClicked(orderNumber: Int) {
         if (_uiState.value.canModify) {
-            openDialog(PlaylistTrackDialog.ConfirmRemove(orderNumber))
+            openDialog(dialog = PlaylistTrackDialog.ConfirmRemove(orderNumber = orderNumber))
         }
     }
 
     private fun updateManualDraft(value: String) {
-        _uiState.update {
-            it.copy(addMusic = it.addMusic.copy(
-                manualDraft = value,
-                canSubmitManual = value.canSubmitMusicInput(),
-            ))
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
+                addMusic = currentUiState.addMusic.copy(
+                    manualDraft = value,
+                    canSubmitManual = value.canSubmitMusicInput()
+                )
+            )
         }
     }
 
     private suspend fun handleCommandEvent(event: PlaylistTrackEvent) {
         val playlistId = currentPlaylistId ?: return
         when (event) {
-            is PlaylistTrackEvent.RemoveConfirmed -> removeTrack(playlistId, event.orderNumber)
-            PlaylistTrackEvent.LoadPlaylist -> loadIntoQueue(playlistId)
-            PlaylistTrackEvent.ManualAdd -> addManualTrack(playlistId)
-            PlaylistTrackEvent.AddSelectedResult -> addSelectedTrack(playlistId)
+            is PlaylistTrackEvent.RemoveConfirmed -> removeTrack(playlistId = playlistId, orderNumber = event.orderNumber)
+            PlaylistTrackEvent.LoadPlaylist -> loadIntoQueue(playlistId = playlistId)
+            PlaylistTrackEvent.ManualAdd -> addManualTrack(playlistId = playlistId)
+            PlaylistTrackEvent.AddSelectedResult -> addSelectedTrack(playlistId = playlistId)
             else -> Unit
         }
     }
 
     private suspend fun removeTrack(playlistId: String, orderNumber: Int) {
-        val track = _uiState.value.tracks.firstOrNull { it.orderNumber == orderNumber } ?: return
-        removePlaylistTrackUseCase(playlistId, track.orderNumber).runAction(
-            state = _uiState,
+        val track = _uiState.value.tracks.firstOrNull { track -> track.orderNumber == orderNumber } ?: return
+        removePlaylistTrackUseCase(playlistId = playlistId, trackNumber = track.orderNumber).runAction(
+            uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistTrackEffect.TrackRemoved,
             failureEffect = PlaylistTrackEffect.OperationFailed,
-            afterSuccess = { closeDialog() },
+            afterSuccess = { closeDialog() }
         )
-        fetchPlaylist(playlistId)
+        fetchPlaylist(playlistId = playlistId)
     }
 
     private suspend fun loadIntoQueue(playlistId: String) {
@@ -259,99 +278,102 @@ class PlaylistTrackViewModel(
             return
         }
 
-        loadPlaylistUseCase(playlistId).runBotCommand(
-            state = _uiState,
+        loadPlaylistUseCase(playlistId = playlistId).runBotCommand(
+            uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
             failureEffect = PlaylistTrackEffect.OperationFailed,
             afterAccepted = { command ->
-                commandCoordinator.handleCompletion(
+                botCommandCoordinator.handleCompletion(
                     command = command,
                     onSucceeded = {
                         closeDialog()
-                        _effect.emit(PlaylistTrackEffect.PlaylistLoaded)
+                        _effect.emit(value = PlaylistTrackEffect.PlaylistLoaded)
                     },
-                    onFailed = { _effect.emit(PlaylistTrackEffect.OperationFailed) },
-                    onTimedOut = { _effect.emit(PlaylistTrackEffect.CommandTimedOut) },
+                    onFailed = { _effect.emit(value = PlaylistTrackEffect.OperationFailed) },
+                    onTimedOut = { _effect.emit(value = PlaylistTrackEffect.CommandTimedOut) }
                 )
-            },
+            }
         )
-        fetchPlaylist(playlistId)
+        fetchPlaylist(playlistId = playlistId)
     }
 
     private suspend fun addManualTrack(playlistId: String) {
         val query = _uiState.value.addMusic.manualDraft.trim()
+
         if (!query.canSubmitMusicInput()) {
             return
         }
 
-        addPlaylistTrackUseCase(playlistId, query).runBotCommand(
-            state = _uiState,
+        addPlaylistTrackUseCase(playlistId = playlistId, query = query).runBotCommand(
+            uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
             failureEffect = PlaylistTrackEffect.OperationFailed,
             afterAccepted = { command ->
-                commandCoordinator.handleCompletion(
+                botCommandCoordinator.handleCompletion(
                     command = command,
                     onSucceeded = {
                         closeDialog()
-                        _effect.emit(PlaylistTrackEffect.TrackAdded)
+                        _effect.emit(value = PlaylistTrackEffect.TrackAdded)
                     },
-                    onFailed = { _effect.emit(PlaylistTrackEffect.OperationFailed) },
-                    onTimedOut = { _effect.emit(PlaylistTrackEffect.CommandTimedOut) },
+                    onFailed = { _effect.emit(value = PlaylistTrackEffect.OperationFailed) },
+                    onTimedOut = { _effect.emit(value = PlaylistTrackEffect.CommandTimedOut) }
                 )
-            },
+            }
         )
-        fetchPlaylist(playlistId)
+        fetchPlaylist(playlistId = playlistId)
     }
 
     private suspend fun addSelectedTrack(playlistId: String) {
         val music = _uiState.value.addMusic
 
         val result = music.results
-            .firstOrNull { it.id == music.selectedResultId }
+            .firstOrNull { searchResult -> searchResult.id == music.selectedResultId }
             ?: return
 
         val url = result.canonicalUrl
-            ?.takeIf { result.canEnqueue && it.isNotBlank() }
+            ?.takeIf { textValue -> result.canEnqueue && textValue.isNotBlank() }
             ?: return
 
-        addPlaylistTrackUseCase(playlistId, url).runBotCommand(
-            state = _uiState,
+        addPlaylistTrackUseCase(playlistId = playlistId, query = url).runBotCommand(
+            uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
             failureEffect = PlaylistTrackEffect.OperationFailed,
             afterAccepted = { command ->
-                commandCoordinator.handleCompletion(
+                botCommandCoordinator.handleCompletion(
                     command = command,
                     onSucceeded = {
                         closeDialog()
-                        _effect.emit(PlaylistTrackEffect.TrackAdded)
+                        _effect.emit(value = PlaylistTrackEffect.TrackAdded)
                     },
-                    onFailed = { _effect.emit(PlaylistTrackEffect.OperationFailed) },
-                    onTimedOut = { _effect.emit(PlaylistTrackEffect.CommandTimedOut) },
+                    onFailed = { _effect.emit(value = PlaylistTrackEffect.OperationFailed) },
+                    onTimedOut = { _effect.emit(value = PlaylistTrackEffect.CommandTimedOut) }
                 )
-            },
+            }
         )
-        fetchPlaylist(playlistId)
+        fetchPlaylist(playlistId = playlistId)
     }
 
     private fun openDialog(dialog: PlaylistTrackDialog) {
-        _uiState.update { it.copy(dialog = dialog) }
+        _uiState.update { currentUiState -> currentUiState.copy(dialog = dialog) }
     }
 
     private fun closeDialog() {
-        searchController.clear()
-        _uiState.update { it.copy(dialog = PlaylistTrackDialog.None) }
+        musicSearchController.clear()
+        _uiState.update { currentUiState -> currentUiState.copy(dialog = PlaylistTrackDialog.None) }
     }
 
     private fun startCommandIfIdle(): Boolean {
-        if (currentPlaylistId == null || !_uiState.value.canModify || !commandLock.startIfIdle()) {
+        if (currentPlaylistId == null
+            || !_uiState.value.canModify
+            || !commandLock.startIfIdle()) {
             return false
         }
 
         loadJob?.cancel()
-        searchController.cancel()
+        musicSearchController.cancel()
         commandVersion++
         return true
     }
@@ -369,11 +391,11 @@ class PlaylistTrackViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared() {
-        commandCoordinator.clear()
+    override fun onCleared(): Unit {
+        botCommandCoordinator.clear()
         loadJob?.cancel()
         clearCommandExecution()
-        searchController.cancel()
+        musicSearchController.cancel()
         super.onCleared()
     }
 }

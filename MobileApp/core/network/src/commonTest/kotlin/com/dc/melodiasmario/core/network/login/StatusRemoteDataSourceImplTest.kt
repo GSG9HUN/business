@@ -6,12 +6,12 @@ import kotlin.test.Test
 class StatusRemoteDataSourceImplTest {
 
     @Test
-    fun isApiOnlineReturnsApiServiceResult() {
-        // TODO: Given StatusApiService returns a status, when isApiOnline is called, then same result is returned.
+    fun isApiOnlineReturnsApiServiceResult(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun isApiOnlinePropagatesApiServiceFailure() {
-        // TODO: Given StatusApiService throws, when isApiOnline is called, then the error is propagated.
+    fun isApiOnlinePropagatesApiServiceFailure(): Unit {
+        throw NotImplementedError()
     }
 }

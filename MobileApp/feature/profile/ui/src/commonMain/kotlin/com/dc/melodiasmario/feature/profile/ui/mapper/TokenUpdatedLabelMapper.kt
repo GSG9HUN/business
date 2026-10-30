@@ -6,11 +6,14 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_re
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_token_updated
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Maps this value to token updated label.
+ */
 @Composable
 fun String.toTokenUpdatedLabel(): String {
     return if (isBlank()) {
-        stringResource(Res.string.profile_token_refreshing)
+        stringResource(resource = Res.string.profile_token_refreshing)
     } else {
-        stringResource(Res.string.profile_token_updated)
+        stringResource(resource = Res.string.profile_token_updated)
     }
 }

@@ -1,22 +1,28 @@
 package com.dc.melodiasmario.core.commonui.biometric
 
 import com.dc.melodiasmario.core.presentation.biometric.BiometricResult
+import kotlin.coroutines.resume
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
-import kotlin.coroutines.resume
 
+/**
+ * Provides biometric authenticator for the biometric layer.
+ */
 @OptIn(ExperimentalForeignApi::class)
 actual class BiometricAuthenticator {
 
+    /**
+     * Runs the platform biometric authentication flow and returns its outcome.
+     */
     actual suspend fun authenticate(
         title: String,
-        reason: String,
+        reason: String
     ): BiometricResult {
-        val context = LAContext()
+        val lAContext = LAContext()
 
-        val available = context.canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, null)
+        val available = lAContext.canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, null)
 
         if (!available) {
             return BiometricResult.Unavailable
@@ -24,14 +30,17 @@ actual class BiometricAuthenticator {
 
         return suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation {
-                context.invalidate()
+                lAContext.invalidate()
             }
 
-            context.evaluatePolicy(LAPolicyDeviceOwnerAuthentication, reason
+            lAContext.evaluatePolicy(
+                LAPolicyDeviceOwnerAuthentication,
+                reason
             ) { success, _ ->
+
                 if (continuation.isActive) {
                     continuation.resume(
-                        if (success) {
+                        value = if (success) {
                             BiometricResult.Success
                         } else {
                             BiometricResult.NotAuthenticated

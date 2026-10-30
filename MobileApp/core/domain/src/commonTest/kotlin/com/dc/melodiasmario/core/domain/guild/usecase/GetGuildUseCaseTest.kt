@@ -6,12 +6,12 @@ import kotlin.test.Test
 class GetGuildUseCaseTest {
 
     @Test
-    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsGuilds() {
-        // TODO: Given repository returns guilds, when invoked, then emits Loading followed by Success.
+    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsGuilds(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows() {
-        // TODO: Given repository throws, when invoked, then emits Loading followed by Error.
+    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows(): Unit {
+        throw NotImplementedError()
     }
 }

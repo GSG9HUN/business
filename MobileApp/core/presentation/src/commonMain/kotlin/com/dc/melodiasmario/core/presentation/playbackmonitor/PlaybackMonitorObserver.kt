@@ -6,26 +6,35 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
+/**
+ * Provides playback monitor observer for the playbackmonitor layer.
+ */
 class PlaybackMonitorObserver(
-    private val scope: CoroutineScope,
+    private val coroutineScope: CoroutineScope,
     private val observePlayback: () -> Flow<CurrentPlaybackMonitorState>,
-    private val onPlayback: (CurrentPlaybackMonitorState) -> Unit
+    private val onPlayback: (playbackMonitorState: CurrentPlaybackMonitorState) -> Unit
 ) {
     private var observationJob: Job? = null
 
-    fun start() {
+    /**
+     * Starts playback monitor observer for the supplied configuration.
+     */
+    fun start(): Unit {
         if (observationJob?.isActive == true) {
             return
         }
 
-        observationJob = scope.launch {
+        observationJob = coroutineScope.launch {
             observePlayback().collect { playback ->
                 onPlayback(playback)
             }
         }
     }
 
-    fun stop() {
+    /**
+     * Stops the active playback monitor observer.
+     */
+    fun stop(): Unit {
         observationJob?.cancel()
         observationJob = null
     }

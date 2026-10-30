@@ -2,8 +2,10 @@ package com.dc.melodiasmario.core.data.realtime
 
 import com.dc.melodiasmario.core.data.auth.AuthorizedSessionProvider
 import com.dc.melodiasmario.core.domain.realtime.RealtimeRepository
+import com.dc.melodiasmario.core.model.realtime.RealtimeConnectionState
 import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
 import com.dc.melodiasmario.core.network.realtime.MobileRealtimeClient
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,49 +14,53 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.isActive
 import org.koin.core.annotation.Single
-import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Implements realtime data access using the injected data sources.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Single(binds = [RealtimeRepository::class])
 class RealtimeRepositoryImpl(
     private val authorizedSessionProvider: AuthorizedSessionProvider,
     private val mobileRealtimeClient: MobileRealtimeClient
 ) : RealtimeRepository {
-    override val connectionState = mobileRealtimeClient.connectionState
+    override val connectionState: StateFlow<RealtimeConnectionState> = mobileRealtimeClient.connectionState
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val selectedGuildId = MutableStateFlow<String?>(null)
+    private val coroutineScope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
+    private val selectedGuildId = MutableStateFlow<String?>(value = null)
 
     private val sharedEvents = selectedGuildId.flatMapLatest { guildId ->
+
         if (guildId == null) {
             emptyFlow()
         } else {
             observeWithReconnect(guildId = guildId)
         }
-    }.shareIn(
-        scope = scope,
-        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 0),
-        replay = 0,
-    )
-
+    }
+        .shareIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 0),
+            replay = 0
+        )
 
     override fun observeGuildRealtime(guildId: String): Flow<RealtimeEvent> = flow {
         selectedGuildId.value = guildId
-        emitAll(sharedEvents.filter { it.guildId == guildId })
+        emitAll(sharedEvents.filter { sharedEvent -> sharedEvent.guildId == guildId })
     }
 
-    override suspend fun disconnect() {
+    override suspend fun disconnect(): Unit {
         selectedGuildId.value = null
         mobileRealtimeClient.disconnect()
     }
@@ -77,13 +83,13 @@ class RealtimeRepositoryImpl(
                 currentCoroutineContext().ensureActive()
             }
 
-            delay(reconnectDelayMillis(retryAttempt = retryAttempt).milliseconds)
+            delay(duration = reconnectDelayMillis(retryAttempt = retryAttempt).milliseconds)
             retryAttempt++
         }
     }
 
     private fun reconnectDelayMillis(retryAttempt: Int): Long {
-        val multiplier = 1 shl retryAttempt.coerceAtMost(MAX_RECONNECT_BACKOFF_STEP)
+        val multiplier = 1 shl retryAttempt.coerceAtMost(maximumValue = MAX_RECONNECT_BACKOFF_STEP)
         return INITIAL_RECONNECT_DELAY_MILLIS * multiplier
     }
 

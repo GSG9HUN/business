@@ -6,12 +6,12 @@ import kotlin.test.Test
 class CheckApiStatusUseCaseTest {
 
     @Test
-    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsStatus() {
-        // TODO: Given repository returns Online/Offline, when invoked, then emits Loading followed by Success.
+    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsStatus(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows() {
-        // TODO: Given repository throws, when invoked, then emits Loading followed by Error.
+    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows(): Unit {
+        throw NotImplementedError()
     }
 }

@@ -26,6 +26,9 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ * Renders setting row from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSettingRow(
     icon: DrawableResource,
@@ -33,8 +36,8 @@ fun MSettingRow(
     subtitle: String,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    trailingContent: (@Composable () -> Unit)? = null,
-) {
+    trailingContent: (@Composable () -> Unit)? = null
+): Unit {
     val rowModifier = if (onClick != null) {
         modifier
             .fillMaxWidth()
@@ -49,25 +52,25 @@ fun MSettingRow(
     Row(
         modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 14.dp)
     ) {
         MSettingsIconBox(
-            painter = painterResource(icon),
+            painter = painterResource(resource = icon)
         )
 
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(weight = 1f)
         ) {
             MText(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Start
             )
             MText(
                 text = subtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Start
             )
         }
 
@@ -75,17 +78,17 @@ fun MSettingRow(
             trailingContent()
         } else {
             Icon(
-                painter = painterResource(Res.drawable.ic_profile_chevron_right),
+                painter = painterResource(resource = Res.drawable.ic_profile_chevron_right),
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(size = 18.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
 
     HorizontalDivider(
         thickness = 1.dp,
-        color = MaterialTheme.colorScheme.outlineVariant,
+        color = MaterialTheme.colorScheme.outlineVariant
     )
 }
 
@@ -98,7 +101,7 @@ private fun MSettingRowPreview() {
             icon = Res.drawable.ic_profile_language,
             title = "Language",
             subtitle = "English",
-            onClick = {},
+            onClick = {}
         )
     }
 }

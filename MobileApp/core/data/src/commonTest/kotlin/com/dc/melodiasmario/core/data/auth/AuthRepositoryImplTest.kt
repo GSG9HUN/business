@@ -4,99 +4,107 @@ import com.dc.melodiasmario.core.domain.auth.SecureAuthSessionStorage
 import com.dc.melodiasmario.core.model.auth.AuthSession
 import com.dc.melodiasmario.core.model.auth.DiscordLoginUrl
 import com.dc.melodiasmario.core.network.auth.AuthRemoteDataSource
-import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
-import kotlin.test.Test
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 
 class AuthRepositoryImplTest {
 
     @Test
     fun startDiscordLoginReturnsRemoteAuthorizeUrl(): TestResult = runTest {
-        val remote = FakeAuthRemoteDataSource(
+        val fakeAuthRemoteDataSource = FakeAuthRemoteDataSource(
             loginUrl = DiscordLoginUrl(authorizeUrl = "https://discord.test/login")
         )
-        val repository = AuthRepositoryImpl(remote, FakeSessionStorage(), AuthSessionMemoryCache())
+        val authRepositoryImpl = AuthRepositoryImpl(
+            authRemoteDataSource = fakeAuthRemoteDataSource,
+            secureAuthSessionStorage = FakeSessionStorage(),
+            authSessionMemoryCache = AuthSessionMemoryCache()
+        )
 
-        val result = repository.startDiscordLogin()
+        val result = authRepositoryImpl.startDiscordLogin()
 
-        assertEquals(DiscordLoginUrl("https://discord.test/login"), result)
+        assertEquals(expected = DiscordLoginUrl(authorizeUrl = "https://discord.test/login"), actual = result)
     }
 
     @Test
     fun exchangeTicketSavesReturnedSession(): TestResult = runTest {
         val session =
             authSession(accessToken = "access-from-ticket", refreshToken = "refresh-from-ticket")
-        val storage = FakeSessionStorage()
-        val repository = AuthRepositoryImpl(
+        val fakeSessionStorage = FakeSessionStorage()
+        val authRepositoryImpl = AuthRepositoryImpl(
             authRemoteDataSource = FakeAuthRemoteDataSource(exchangeSession = session),
-            secureAuthSessionStorage = storage,
+            secureAuthSessionStorage = fakeSessionStorage,
             authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
-        val result = repository.exchangeTicket(ticket = "ticket")
+        val result = authRepositoryImpl.exchangeTicket(ticket = "ticket")
 
-        assertEquals(session, result)
-        assertEquals(session, storage.getSession())
+        assertEquals(expected = session, actual = result)
+        assertEquals(expected = session, actual = fakeSessionStorage.getSession())
     }
 
     @Test
     fun refreshSessionSavesReturnedSession(): TestResult = runTest {
         val session =
             authSession(accessToken = "refreshed-access", refreshToken = "refreshed-refresh")
-        val storage = FakeSessionStorage()
-        val repository = AuthRepositoryImpl(
+        val fakeSessionStorage = FakeSessionStorage()
+        val authRepositoryImpl = AuthRepositoryImpl(
             authRemoteDataSource = FakeAuthRemoteDataSource(refreshSession = session),
-            secureAuthSessionStorage = storage,
+            secureAuthSessionStorage = fakeSessionStorage,
             authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
-        val result = repository.refreshSession(refreshToken = "old-refresh")
+        val result = authRepositoryImpl.refreshSession(refreshToken = "old-refresh")
 
-        assertEquals(session, result)
-        assertEquals(session, storage.getSession())
+        assertEquals(expected = session, actual = result)
+        assertEquals(expected = session, actual = fakeSessionStorage.getSession())
     }
 
     @Test
     fun logoutCallsRemoteLogoutAndClearsStoredSession(): TestResult = runTest {
-        val remote = FakeAuthRemoteDataSource()
-        val storage = FakeSessionStorage(session = authSession())
-        val repository = AuthRepositoryImpl(remote, storage, AuthSessionMemoryCache())
+        val fakeAuthRemoteDataSource = FakeAuthRemoteDataSource()
+        val fakeSessionStorage = FakeSessionStorage(session = authSession())
+        val authRepositoryImpl = AuthRepositoryImpl(
+            authRemoteDataSource = fakeAuthRemoteDataSource,
+            secureAuthSessionStorage = fakeSessionStorage,
+            authSessionMemoryCache = AuthSessionMemoryCache()
+        )
 
-        repository.logout(refreshToken = "refresh")
+        authRepositoryImpl.logout(refreshToken = "refresh")
 
-        assertEquals("refresh", remote.lastLogoutRefreshToken)
-        assertNull(storage.getSession())
-        assertEquals(1, storage.clearCalls)
+        assertEquals(expected = "refresh", actual = fakeAuthRemoteDataSource.lastLogoutRefreshToken)
+        assertNull(actual = fakeSessionStorage.getSession())
+        assertEquals(expected = 1, actual = fakeSessionStorage.clearCalls)
     }
 
     @Test
     fun logoutDoesNotClearSessionWhenRemoteLogoutFails(): TestResult = runTest {
         val storedSession = authSession()
-        val storage = FakeSessionStorage(session = storedSession)
-        val repository = AuthRepositoryImpl(
+        val fakeSessionStorage = FakeSessionStorage(session = storedSession)
+        val authRepositoryImpl = AuthRepositoryImpl(
             authRemoteDataSource = FakeAuthRemoteDataSource(
                 logoutException = IllegalStateException(
                     "logout failed"
                 )
             ),
-            secureAuthSessionStorage = storage,
+            secureAuthSessionStorage = fakeSessionStorage,
             authSessionMemoryCache = AuthSessionMemoryCache()
         )
 
         val exception = assertFailsWith<IllegalStateException> {
-            repository.logout(refreshToken = "refresh")
+            authRepositoryImpl.logout(refreshToken = "refresh")
         }
 
-        assertEquals("logout failed", exception.message)
-        assertEquals(storedSession, storage.getSession())
-        assertEquals(0, storage.clearCalls)
+        assertEquals(expected = "logout failed", actual = exception.message)
+        assertEquals(expected = storedSession, actual = fakeSessionStorage.getSession())
+        assertEquals(expected = 0, actual = fakeSessionStorage.clearCalls)
     }
 
     private class FakeAuthRemoteDataSource(
-        private val loginUrl: DiscordLoginUrl = DiscordLoginUrl("https://discord.test/default"),
+        private val loginUrl: DiscordLoginUrl = DiscordLoginUrl(authorizeUrl = "https://discord.test/default"),
         private val exchangeSession: AuthSession = authSession(
             accessToken = "exchange-access",
             refreshToken = "exchange-refresh"
@@ -118,7 +126,7 @@ class AuthRepositoryImplTest {
 
         override suspend fun logout(refreshToken: String) {
             lastLogoutRefreshToken = refreshToken
-            logoutException?.let { throw it }
+            logoutException?.let { logoutException -> throw logoutException }
         }
     }
 

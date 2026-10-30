@@ -9,7 +9,9 @@ import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import com.dc.melodiasmario.core.network.search.MusicSearchRemoteDataSource
 import org.koin.core.annotation.Single
 
-
+/**
+ * Implements music search data access using the injected data sources.
+ */
 @Single(binds = [MusicSearchRepository::class])
 class MusicSearchRepositoryImpl(
     private val musicSearchRemoteDataSource: MusicSearchRemoteDataSource,
@@ -41,4 +43,3 @@ class MusicSearchRepositoryImpl(
         )
     }
 }
-

@@ -11,25 +11,28 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dc.melodiasmario.core.presentation.biometric.AppLockController
 
+/**
+ * Renders bind app lock lifecycle from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 actual fun BindAppLockLifecycle(
-    controller: AppLockController
-) {
+    appLockController: AppLockController
+): Unit {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
-    DisposableEffect(lifecycleOwner, context, controller) {
+    DisposableEffect(key1 = lifecycleOwner, key2 = context, key3 = appLockController) {
         val activity = context.findActivity()
 
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
-                    controller.onForeground()
+                    appLockController.onForeground()
                 }
 
                 Lifecycle.Event.ON_STOP -> {
                     if (activity?.isChangingConfigurations != true) {
-                        controller.onBackground()
+                        appLockController.onBackground()
                     }
                 }
 

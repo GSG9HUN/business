@@ -1,11 +1,23 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation.state
 
-import com.dc.melodiasmario.core.presentation.queue.TrackQueueUiState
+import com.dc.melodiasmario.core.model.currenttrack.Track
 import com.dc.melodiasmario.core.presentation.music.search.MusicSearchUiState
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
-import com.dc.melodiasmario.core.model.currenttrack.Track
+import com.dc.melodiasmario.core.presentation.queue.TrackQueueUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.dialog.CurrentTrackDialog
 
+/**
+ * Defines current track presentation state shared with UI consumers.
+ *
+ * @property isLoading Is loading.
+ * @property errorMessage Error message.
+ * @property header Header.
+ * @property playback Playback.
+ * @property queue Queue.
+ * @property actions Actions.
+ * @property addMusic Add music.
+ * @property dialog Dialog.
+ */
 data class CurrentTrackUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -38,8 +50,3 @@ data class CurrentTrackUiState(
         return copy(addMusic = addMusic)
     }
 }
-
-
-
-
-

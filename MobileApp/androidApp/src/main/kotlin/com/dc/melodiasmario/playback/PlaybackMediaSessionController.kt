@@ -7,6 +7,9 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 
+/**
+ * Owns playback media session coordination and its lifecycle-bound operations.
+ */
 class PlaybackMediaSessionController(
     context: Context,
     private val callback: Callback
@@ -26,13 +29,19 @@ class PlaybackMediaSessionController(
         isActive = true
     }
 
+    /**
+     * Session token exposed by playback media session controller.
+     */
     val sessionToken: MediaSessionCompat.Token
         get() = mediaSession.sessionToken
 
+    /**
+     * Updates the media-session state from the supplied playback snapshot.
+     */
     fun update(
         currentTrack: CurrentTrack,
         artwork: Bitmap?
-    ) {
+    ): Unit {
         val track = currentTrack.currentTrack ?: return
 
         val metadata = MediaMetadataCompat.Builder()
@@ -65,13 +74,30 @@ class PlaybackMediaSessionController(
         )
     }
 
-    fun release() {
+    /**
+     * Releases the playback media-session resources.
+     */
+    fun release(): Unit {
         mediaSession.release()
     }
 
+    /**
+     * Provides callback for the playback layer.
+     */
     interface Callback {
-        fun onPrevious()
-        fun onPlayPause()
-        fun onNext()
+        /**
+         * Provides the on previous operation for callback.
+         */
+        fun onPrevious(): Unit
+
+        /**
+         * Provides the on play pause operation for callback.
+         */
+        fun onPlayPause(): Unit
+
+        /**
+         * Provides the on next operation for callback.
+         */
+        fun onNext(): Unit
     }
 }

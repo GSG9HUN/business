@@ -1,39 +1,51 @@
 package com.dc.melodiasmario.core.presentation.biometric
 
+import kotlin.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Clock
 
+/**
+ * Owns app lock coordination and its lifecycle-bound operations.
+ */
 class AppLockController(
     private val hasStoredSession: suspend () -> Boolean,
     private val loadEnabled: suspend () -> Boolean,
-    private val saveEnabled: suspend (Boolean) -> Unit,
+    private val saveEnabled: suspend (enabled: Boolean) -> Unit,
     private val clearLocalSession: suspend () -> Unit,
     private val backgroundTimeoutMillis: Long = 30_000L,
-    private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
+    private val nowMillis: () -> Long = { Clock.System.now()
+        .toEpochMilliseconds() }
 ) {
-    private val _uiState = MutableStateFlow(AppLockUiState())
-    val uiState = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(value = AppLockUiState())
+
+    /**
+     * Read-only presentation state observed by UI consumers.
+     */
+    val uiState: StateFlow<AppLockUiState> = _uiState.asStateFlow()
 
     private val initializationMutex = Mutex()
 
     private var backgroundStartedAt: Long? = null
     private var lastAuthenticationAt: Long? = null
 
-    suspend fun initialize() {
+    /**
+     * Restores the application-lock settings and initializes its presentation state.
+     */
+    suspend fun initialize(): Unit {
         initializationMutex.withLock {
             if (_uiState.value.isInitialized) {
                 return@withLock
             }
 
-            _uiState.update {
-                it.copy(
+            _uiState.update { currentUiState ->
+                currentUiState.copy(
                     isBusy = true,
-                    error = null,
+                    error = null
                 )
             }
 
@@ -45,8 +57,8 @@ class AppLockController(
                     false
                 }
 
-                _uiState.update {
-                    it.copy(
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(
                         isInitialized = true,
                         isEnabled = enabled,
                         isLocked = enabled
@@ -55,34 +67,40 @@ class AppLockController(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(
                         isInitialized = false,
                         isLocked = true,
                         error = AppLockError.StorageFailure
                     )
                 }
             } finally {
-                _uiState.update {
-                    it.copy(isBusy = false)
+                _uiState.update { currentUiState ->
+                    currentUiState.copy(isBusy = false)
                 }
             }
         }
     }
 
-    fun onBackground() {
+    /**
+     * Records when the application leaves the foreground for lock-timeout handling.
+     */
+    fun onBackground(): Unit {
         if (!_uiState.value.isForeground) {
             return
         }
 
         backgroundStartedAt = nowMillis()
 
-        _uiState.update {
-            it.copy(isForeground = false)
+        _uiState.update { currentUiState ->
+            currentUiState.copy(isForeground = false)
         }
     }
 
-    fun onForeground() {
+    /**
+     * Reevaluates the application lock when the application returns to the foreground.
+     */
+    fun onForeground(): Unit {
         if (_uiState.value.isForeground) {
             return
         }
@@ -90,56 +108,62 @@ class AppLockController(
         val now = nowMillis()
         val backgroundStart = backgroundStartedAt
 
-        val timeoutExpired = backgroundStart?.let {
-            val elapsed = now - it
+        val timeoutExpired = backgroundStart?.let { backgroundStart ->
+            val elapsed = now - backgroundStart
             elapsed !in 0L..<backgroundTimeoutMillis
         } ?: false
 
-        val authenticatedRecently = lastAuthenticationAt?.let {
-            val elapsed = now - it
+        val authenticatedRecently = lastAuthenticationAt?.let { lastAuthenticationAt ->
+            val elapsed = now - lastAuthenticationAt
 
-            backgroundStart != null && it >= backgroundStart && elapsed in 0L..<backgroundTimeoutMillis
+            backgroundStart != null && lastAuthenticationAt >= backgroundStart && elapsed in 0L..<backgroundTimeoutMillis
         } ?: false
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 isForeground = true,
-                isLocked = it.isLocked || (it.isEnabled && timeoutExpired && !authenticatedRecently)
+                isLocked = currentUiState.isLocked || (currentUiState.isEnabled && timeoutExpired && !authenticatedRecently)
             )
         }
 
         backgroundStartedAt = null
     }
 
-    suspend fun unlock(authenticate: suspend () -> BiometricResult) {
-        val state = _uiState.value
+    /**
+     * Authenticates the user before releasing the application lock.
+     */
+    suspend fun unlock(authenticate: suspend () -> BiometricResult): Unit {
+        val currentUiState = _uiState.value
 
-        if (!state.isEnabled || !state.isLocked) {
+        if (!currentUiState.isEnabled || !currentUiState.isLocked) {
             return
         }
 
-        authenticateAndRun(authenticate) {
-            _uiState.update {
-                it.copy(isLocked = false)
+        authenticateAndRun(authenticate = authenticate) {
+            _uiState.update { currentUiState ->
+                currentUiState.copy(isLocked = false)
             }
         }
     }
 
+    /**
+     * Authenticates and persists a change to application-lock enablement.
+     */
     suspend fun changeEnabled(
         enabled: Boolean,
         authenticate: suspend () -> BiometricResult
-    ) {
-        val state = _uiState.value
+    ): Unit {
+        val currentUiState = _uiState.value
 
-        if (state.isLocked || state.isEnabled == enabled) {
+        if (currentUiState.isLocked || currentUiState.isEnabled == enabled) {
             return
         }
 
-        authenticateAndRun(authenticate) {
+        authenticateAndRun(authenticate = authenticate) {
             saveEnabled(enabled)
 
-            _uiState.update {
-                it.copy(
+            _uiState.update { currentUiState ->
+                currentUiState.copy(
                     isEnabled = enabled,
                     isLocked = false
                 )
@@ -147,13 +171,16 @@ class AppLockController(
         }
     }
 
+    /**
+     * Clears the active authentication session and application-lock state.
+     */
     suspend fun signOut(): Boolean {
         if (_uiState.value.isBusy) {
             return false
         }
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 isBusy = true,
                 error = null
             )
@@ -165,8 +192,8 @@ class AppLockController(
 
             lastAuthenticationAt = null
 
-            _uiState.update {
-                it.copy(
+            _uiState.update { currentUiState ->
+                currentUiState.copy(
                     isInitialized = true,
                     isEnabled = false,
                     isLocked = false,
@@ -178,14 +205,14 @@ class AppLockController(
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {
-            _uiState.update {
-                it.copy(error = AppLockError.StorageFailure)
+            _uiState.update { currentUiState ->
+                currentUiState.copy(error = AppLockError.StorageFailure)
             }
 
             false
         } finally {
-            _uiState.update {
-                it.copy(isBusy = false)
+            _uiState.update { currentUiState ->
+                currentUiState.copy(isBusy = false)
             }
         }
     }
@@ -194,14 +221,16 @@ class AppLockController(
         authenticate: suspend () -> BiometricResult,
         onSuccess: suspend () -> Unit
     ) {
-        val state = _uiState.value
+        val currentUiState = _uiState.value
 
-        if (!state.isInitialized || !state.isForeground || state.isBusy) {
+        if (!currentUiState.isInitialized
+            || !currentUiState.isForeground
+            || currentUiState.isBusy) {
             return
         }
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { currentUiState ->
+            currentUiState.copy(
                 isBusy = true,
                 error = null
             )
@@ -215,17 +244,17 @@ class AppLockController(
                 }
 
                 BiometricResult.NotAuthenticated -> {
-                    _uiState.update {
-                        it.copy(
-                            error = AppLockError.NotAuthenticated,
+                    _uiState.update { currentUiState ->
+                        currentUiState.copy(
+                            error = AppLockError.NotAuthenticated
                         )
                     }
                 }
 
                 BiometricResult.Unavailable -> {
-                    _uiState.update {
-                        it.copy(
-                            error = AppLockError.AuthenticationUnavailable,
+                    _uiState.update { currentUiState ->
+                        currentUiState.copy(
+                            error = AppLockError.AuthenticationUnavailable
                         )
                     }
                 }
@@ -233,12 +262,12 @@ class AppLockController(
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {
-            _uiState.update {
-                it.copy(error = AppLockError.StorageFailure)
+            _uiState.update { currentUiState ->
+                currentUiState.copy(error = AppLockError.StorageFailure)
             }
         } finally {
-            _uiState.update {
-                it.copy(isBusy = false)
+            _uiState.update { currentUiState ->
+                currentUiState.copy(isBusy = false)
             }
         }
     }

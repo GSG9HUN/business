@@ -62,7 +62,7 @@ AppLockHost supplies the controller and authenticator to routes. ProfileRoute pa
 controller state through the screen to BiometricLockSetting. Visual components have
 theme-wrapped previews that do not open native prompts or require DI.
 
-See [the implementation walkthrough](../../docs/biometric-app-lock.md).
+See [the shared lock controller](../presentation/src/commonMain/kotlin/com/dc/melodiasmario/core/presentation/biometric/AppLockController.kt).
 
 ## Playback and reorder lifecycle
 
@@ -75,3 +75,7 @@ MTrackItemRow in components/ is shared by QueueScreen, CurrentTrackScreen, and P
 ## Playlist Fallback Artwork
 
 `components/MPlaylistArtwork.kt` prefers the API image URL and uses bundled vector covers selected by `PlaylistArtworkTheme.fromName` when the image is missing, loading, or failed. Night Drive uses a neon city/road image, Chill uses a sunset/waves image, and Workout uses a lightning image. Other names retain the gradient/music icon. Both playlist cards and detail headers use this component. `MArtwork.fallbackImage` accepts an optional full-size local fallback without changing queue artwork defaults.
+
+## Source conventions
+
+UI callbacks declare descriptive input parameter names. Components use named arguments, explicit imports, and KDoc for their contracts. `MMoreAction`, `MelodiasMarioThemeMode`, and `FloatingActionButtonIcon` each have a separate file. IDE previews remain private helpers.

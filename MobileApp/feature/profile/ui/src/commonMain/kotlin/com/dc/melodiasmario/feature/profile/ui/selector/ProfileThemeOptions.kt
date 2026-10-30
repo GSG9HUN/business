@@ -8,9 +8,12 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_li
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_system
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Provides profile theme options for the current composition.
+ */
 @Composable
 fun profileThemeOptions(): List<MSelectorOption<String>> = listOf(
-    MSelectorOption("dark", stringResource(Res.string.profile_theme_dark)),
-    MSelectorOption("light", stringResource(Res.string.profile_theme_light)),
-    MSelectorOption("system", stringResource(Res.string.profile_theme_system)),
+    MSelectorOption(value = "dark", title = stringResource(resource = Res.string.profile_theme_dark)),
+    MSelectorOption(value = "light", title = stringResource(resource = Res.string.profile_theme_light)),
+    MSelectorOption(value = "system", title = stringResource(resource = Res.string.profile_theme_system))
 )

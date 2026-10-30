@@ -4,16 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dc.melodiasmario.core.common.AppConstants.PollingIntervalMs
 import com.dc.melodiasmario.core.common.Resource
+import com.dc.melodiasmario.core.domain.auth.usecase.AuthDeepLinkDispatcher
 import com.dc.melodiasmario.core.domain.auth.usecase.ExchangeAuthTicketUseCase
 import com.dc.melodiasmario.core.domain.auth.usecase.StartDiscordLoginUseCase
-import com.dc.melodiasmario.core.domain.auth.usecase.AuthDeepLinkDispatcher
-import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
 import com.dc.melodiasmario.core.domain.login.usecase.CheckApiStatusUseCase
-import com.dc.melodiasmario.feature.login.presentation.LoginEffect.*
+import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
+import com.dc.melodiasmario.feature.login.presentation.LoginEffect.NavigateToGuildSelector
+import com.dc.melodiasmario.feature.login.presentation.LoginEffect.OpenExternalUrl
+import com.dc.melodiasmario.feature.login.presentation.LoginEffect.ShowError
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -23,25 +27,36 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
-import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Coordinates login events, observable UI state, and one-time effects.
+ */
 @KoinViewModel
 class LoginViewModel(
     private val checkApiStatusUseCase: CheckApiStatusUseCase,
     private val startDiscordLoginUseCase: StartDiscordLoginUseCase,
     private val exchangeAuthTicketUseCase: ExchangeAuthTicketUseCase,
-    private val authDeepLinkDispatcher: AuthDeepLinkDispatcher,
+    private val authDeepLinkDispatcher: AuthDeepLinkDispatcher
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(value = LoginUiState())
+
+    /**
+     * Read-only presentation state observed by UI consumers.
+     */
     val uiState: StateFlow<LoginUiState> = _uiState.onStart {
         observeAuthTickets()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = LoginUiState()
-    )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
+            initialValue = LoginUiState()
+        )
     private val _effect = MutableSharedFlow<LoginEffect>()
-    val effect = _effect.asSharedFlow()
+
+    /**
+     * One-time presentation outcomes observed by UI consumers.
+     */
+    val effect: SharedFlow<LoginEffect> = _effect.asSharedFlow()
     private val events = MutableSharedFlow<LoginEvent>(extraBufferCapacity = 64)
     private var pollingJob: Job? = null
 
@@ -49,21 +64,24 @@ class LoginViewModel(
         collectEvents()
     }
 
-    override fun onCleared() {
+    override fun onCleared(): Unit {
         stopStatusPolling()
         super.onCleared()
     }
 
-    fun onEvent(event: LoginEvent) {
+    /**
+     * Submits a user or lifecycle event to the feature event-processing flow.
+     */
+    fun onEvent(event: LoginEvent): Unit {
         viewModelScope.launch {
-            events.emit(event)
+            events.emit(value = event)
         }
     }
 
     private fun collectEvents() {
         viewModelScope.launch {
             events.collect { event ->
-                handleEvent(event)
+                handleEvent(event = event)
             }
         }
     }
@@ -73,14 +91,14 @@ class LoginViewModel(
             LoginEvent.StartStatusPolling -> startStatusPolling()
             LoginEvent.StopStatusPolling -> stopStatusPolling()
             LoginEvent.DiscordLoginClicked -> onDiscordLoginClicked()
-            is LoginEvent.AuthTicketReceived -> onAuthTicketReceived(event.ticket)
+            is LoginEvent.AuthTicketReceived -> onAuthTicketReceived(ticket = event.ticket)
         }
     }
 
     private fun observeAuthTickets() {
         viewModelScope.launch {
             authDeepLinkDispatcher.tickets.collect { ticket ->
-                onEvent(LoginEvent.AuthTicketReceived(ticket))
+                onEvent(event = LoginEvent.AuthTicketReceived(ticket = ticket))
             }
         }
     }
@@ -90,9 +108,9 @@ class LoginViewModel(
             when (result) {
                 is Resource.Loading -> setLoading()
 
-                is Resource.Success -> onDiscordLoginClickedSuccess(result.data.authorizeUrl)
+                is Resource.Success -> onDiscordLoginClickedSuccess(authorizeUrl = result.data.authorizeUrl)
 
-                is Resource.Error -> setError(result.error)
+                is Resource.Error -> setError(error = result.error)
             }
         }
     }
@@ -105,7 +123,7 @@ class LoginViewModel(
         pollingJob = viewModelScope.launch {
             while (isActive) {
                 checkApiStatus()
-                delay(PollingIntervalMs.milliseconds)
+                delay(duration = PollingIntervalMs.milliseconds)
             }
         }
     }
@@ -147,12 +165,12 @@ class LoginViewModel(
     }
 
     private suspend fun onAuthTicketReceived(ticket: String) {
-        exchangeAuthTicketUseCase(ticket).collect { result ->
+        exchangeAuthTicketUseCase(ticket = ticket).collect { result ->
             when (result) {
                 is Resource.Loading -> setLoading()
                 is Resource.Success -> authTicketReceivedSuccess()
 
-                is Resource.Error -> setError(result.error)
+                is Resource.Error -> setError(error = result.error)
             }
         }
     }
@@ -161,7 +179,7 @@ class LoginViewModel(
         _uiState.update { currentState ->
             currentState.copy(isLoading = false)
         }
-        _effect.emit(OpenExternalUrl(authorizeUrl))
+        _effect.emit(value = OpenExternalUrl(url = authorizeUrl))
     }
 
     private suspend fun authTicketReceivedSuccess() {
@@ -169,7 +187,7 @@ class LoginViewModel(
             currentState.copy(isLoading = false)
         }
         stopStatusPolling()
-        _effect.emit(NavigateToGuildSelector)
+        _effect.emit(value = NavigateToGuildSelector)
     }
 
     private suspend fun setError(error: Throwable) {
@@ -179,7 +197,7 @@ class LoginViewModel(
                 errorMessage = error.message
             )
         }
-        _effect.emit(ShowError(error.message ?: "Login failed"))
+        _effect.emit(value = ShowError(error = error.message ?: "Login failed"))
     }
 
     private fun setLoading() {

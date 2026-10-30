@@ -4,12 +4,16 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.queue.Queue
 import org.koin.core.annotation.Single
 
+/**
+ * Adapts remote queue responses to domain-facing data.
+ */
 @Single(binds = [QueueRemoteDataSource::class])
 class QueueRemoteDataSourceImpl(
     private val queueApiService: QueueApiService
 ) : QueueRemoteDataSource {
     override suspend fun getQueue(accessToken: String, guildId: String): Queue {
-        return queueApiService.getQueue(accessToken = accessToken, guildId = guildId).toDomain()
+        return queueApiService.getQueue(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun addToQueue(
@@ -20,8 +24,9 @@ class QueueRemoteDataSourceImpl(
         return queueApiService.addToQueue(
             accessToken = accessToken,
             guildId = guildId,
-            query = query,
-        ).toDomain()
+            query = query
+        )
+            .toDomain()
     }
 
     override suspend fun removeFromQueue(
@@ -32,16 +37,19 @@ class QueueRemoteDataSourceImpl(
         return queueApiService.removeFromQueue(
             accessToken = accessToken,
             guildId = guildId,
-            trackNumber = trackNumber,
-        ).toDomain()
+            trackNumber = trackNumber
+        )
+            .toDomain()
     }
 
     override suspend fun clearQueue(accessToken: String, guildId: String): BotControlCommand {
-        return queueApiService.clearQueue(accessToken = accessToken, guildId = guildId).toDomain()
+        return queueApiService.clearQueue(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun shuffleQueue(accessToken: String, guildId: String): BotControlCommand {
-        return queueApiService.shuffleQueue(accessToken = accessToken, guildId = guildId).toDomain()
+        return queueApiService.shuffleQueue(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun moveTrackToIndex(
@@ -55,6 +63,7 @@ class QueueRemoteDataSourceImpl(
             guildId = guildId,
             trackIndex = trackIndex,
             targetIndex = targetIndex
-        ).toDomain()
+        )
+            .toDomain()
     }
 }

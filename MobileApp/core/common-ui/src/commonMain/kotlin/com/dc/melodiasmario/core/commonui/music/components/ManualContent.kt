@@ -1,8 +1,12 @@
 package com.dc.melodiasmario.core.commonui.music.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -11,14 +15,17 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
+/**
+ * Renders manual content from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MManualContent(
-    state: MAddMusicSheetState,
-    labels: MAddMusicLabels,
-    onDraftChanged: (String) -> Unit,
+    mAddMusicSheetState: MAddMusicSheetState,
+    mAddMusicLabels: MAddMusicLabels,
+    onDraftChanged: (manualDraft: String) -> Unit,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+    onDismiss: () -> Unit
+): Unit {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     fun confirm() {
@@ -29,30 +36,30 @@ fun MManualContent(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 12.dp)
     ) {
         MManualInput(
-            value = state.manualDraft,
-            placeholder = labels.manualPlaceholder,
+            value = mAddMusicSheetState.manualDraft,
+            placeholder = mAddMusicLabels.manualPlaceholder,
             onValueChange = onDraftChanged,
-            enabled = !state.commandInFlight && !state.isManualLoading,
+            enabled = !mAddMusicSheetState.commandInFlight && !mAddMusicSheetState.isManualLoading
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
             OutlinedButton(
-                modifier = Modifier.weight(1f),
-                onClick = onDismiss,
+                modifier = Modifier.weight(weight = 1f),
+                onClick = onDismiss
             ) {
-                MText(text = labels.manualCancel)
+                MText(text = mAddMusicLabels.manualCancel)
             }
             Button(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 onClick = ::confirm,
-                enabled = !state.commandInFlight && !state.isManualLoading && state.canSubmitManual,
+                enabled = !mAddMusicSheetState.commandInFlight && !mAddMusicSheetState.isManualLoading && mAddMusicSheetState.canSubmitManual
             ) {
-                MText(text = labels.manualAdd)
+                MText(text = mAddMusicLabels.manualAdd)
             }
         }
     }

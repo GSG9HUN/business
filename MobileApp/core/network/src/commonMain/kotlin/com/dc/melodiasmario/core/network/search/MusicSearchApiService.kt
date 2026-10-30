@@ -8,24 +8,34 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import org.koin.core.annotation.Single
 import org.koin.core.annotation.Property
+import org.koin.core.annotation.Single
 
+/**
+ * Sends music search API requests through the configured HTTP client.
+ */
 @Single
 class MusicSearchApiService(
-    @Property(AppConstants.Properties.ApiBaseUrl)
+    @Property(value = AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient
+    private val httpClient: HttpClient
 ) {
+    /**
+     * Retrieves the music-search capabilities available for the selected guild.
+     */
     suspend fun getCapabilities(
         accessToken: String,
         guildId: String
     ): List<MusicSearchCapabilityDto> {
-        return client.get("$baseUrl/guilds/$guildId/music-search/capabilities") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId/music-search/capabilities") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+        }
+            .body()
     }
 
+    /**
+     * Searches for music using the selected provider, result kind, query, and continuation token.
+     */
     suspend fun search(
         accessToken: String,
         guildId: String,
@@ -34,13 +44,14 @@ class MusicSearchApiService(
         query: String,
         pageToken: String?
     ): MusicSearchResponseDto {
-        return client.get("$baseUrl/guilds/$guildId/music-search") {
-            header("Authorization", "Bearer $accessToken")
-            parameter("provider", provider)
-            parameter("kind", kind)
-            parameter("query", query)
-            pageToken?.let { parameter("pageToken", it) }
-        }.body()
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId/music-search") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            parameter(key = "provider", value = provider)
+            parameter(key = "kind", value = kind)
+            parameter(key = "query", value = query)
+            pageToken?.let { pageToken -> parameter(key = "pageToken", value = pageToken) }
+        }
+            .body()
     }
 
 }

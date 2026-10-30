@@ -6,37 +6,40 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Applies command acceptance and failure updates before forwarding accepted commands for completion tracking.
+ */
 suspend fun <State, Effect : MviEffect, Command> Flow<Resource<Command>>.runBotCommand(
-    state: MutableStateFlow<State>,
+    uiState: MutableStateFlow<State>,
     effects: MutableSharedFlow<Effect>,
     acceptedEffect: Effect? = null,
     failureEffect: Effect,
-    onLoading: ((State) -> State)? = null,
-    onAccepted: ((State) -> State)? = null,
-    onError: ((State, Throwable) -> State)? = null,
-    afterAccepted: (suspend (Command) -> Unit)? = null
-) {
+    onLoading: ((uiState: State) -> State)? = null,
+    onAccepted: ((uiState: State) -> State)? = null,
+    onError: ((uiState: State, error: Throwable) -> State)? = null,
+    afterAccepted: (suspend (command: Command) -> Unit)? = null
+): Unit {
     collect { result ->
         when (result) {
             Resource.Loading -> {
                 onLoading?.let { reducer ->
-                    state.update(reducer)
+                    uiState.update(function = reducer)
                 }
             }
 
             is Resource.Success -> {
                 onAccepted?.let { reducer ->
-                    state.update(reducer)
+                    uiState.update(function = reducer)
                 }
-                acceptedEffect?.let { effects.emit(it) }
+                acceptedEffect?.let { acceptedEffect -> effects.emit(value = acceptedEffect) }
                 afterAccepted?.invoke(result.data)
             }
 
             is Resource.Error -> {
                 onError?.let { reducer ->
-                    state.update { reducer(it, result.error) }
+                    uiState.update { currentUiState -> reducer(currentUiState, result.error) }
                 }
-                effects.emit(failureEffect)
+                effects.emit(value = failureEffect)
             }
         }
     }

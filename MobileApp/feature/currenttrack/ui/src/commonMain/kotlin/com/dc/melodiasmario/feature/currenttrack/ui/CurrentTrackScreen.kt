@@ -37,27 +37,27 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioThemeM
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonConfig
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonIcon
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.SetFloatingActionButtonConfig
-import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
-import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
-import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
-import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.commonui.guild.botStatusText
 import com.dc.melodiasmario.core.commonui.music.components.MAddMusicSheet
 import com.dc.melodiasmario.core.commonui.music.components.rememberMAddMusicLabels
 import com.dc.melodiasmario.core.commonui.reorder.ReorderDragContainer
-import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
+import com.dc.melodiasmario.core.commonui.topbar.SetTopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
+import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
+import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.model.currenttrack.Track
+import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_add_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_clear_queue_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_message
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_empty_title
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_more_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_more_message
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_more_title
-import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_more_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_next_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_next_section_title
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_pause_content_description
@@ -71,82 +71,85 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_repeat_content_description
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_action
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_topbar_title
+import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.dialog.CurrentTrackDialog
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackHeaderUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackPlaybackUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackQueueUiState
-import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import com.dc.melodiasmario.feature.currenttrack.ui.components.CurrentTrackPlaceholder
 import com.dc.melodiasmario.feature.currenttrack.ui.components.NowPlayingCard
 import com.dc.melodiasmario.feature.currenttrack.ui.components.QueueEmptyCard
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders current track screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun CurrentTrackScreen(
     modifier: Modifier,
     uiState: CurrentTrackUiState,
-    onEvent: (CurrentTrackEvent) -> Unit,
-) {
-    val topBarTitleFallback = stringResource(Res.string.currenttrack_topbar_title)
+    onEvent: (currentTrackEvent: CurrentTrackEvent) -> Unit
+): Unit {
+    val topBarTitleFallback = stringResource(resource = Res.string.currenttrack_topbar_title)
     val topBarTitle = uiState.header.guildName.ifBlank { topBarTitleFallback }
     val topBarSubtitle = botStatusText(
         isOnline = uiState.header.guildBotStatus?.isOnline,
         connectedVoiceChannelName = uiState.header.guildBotStatus?.connectedVoiceChannelName,
         connectedVoiceUserCount = uiState.header.guildBotStatus?.connectedVoiceUserCount ?: 0,
-        isOnlineText = stringResource(CommonUiRes.string.guild_status_online),
-        isOfflineText = stringResource(CommonUiRes.string.guild_status_offline),
-        unknownText = stringResource(CommonUiRes.string.guild_status_unknown),
-        connectedInVoiceSuffix = stringResource(CommonUiRes.string.guild_status_in_voice_channel),
+        isOnlineText = stringResource(resource = CommonUiRes.string.guild_status_online),
+        isOfflineText = stringResource(resource = CommonUiRes.string.guild_status_offline),
+        unknownText = stringResource(resource = CommonUiRes.string.guild_status_unknown),
+        connectedInVoiceSuffix = stringResource(resource = CommonUiRes.string.guild_status_in_voice_channel)
     )
-    val addContentDescription = stringResource(Res.string.currenttrack_add_content_description)
-    val emptyTitle = stringResource(Res.string.currenttrack_empty_title)
-    val emptyMessage = stringResource(Res.string.currenttrack_empty_message)
-    val nextSectionTitle = stringResource(Res.string.currenttrack_next_section_title)
+    val addContentDescription = stringResource(resource = Res.string.currenttrack_add_content_description)
+    val emptyTitle = stringResource(resource = Res.string.currenttrack_empty_title)
+    val emptyMessage = stringResource(resource = Res.string.currenttrack_empty_message)
+    val nextSectionTitle = stringResource(resource = Res.string.currenttrack_next_section_title)
     val profileContentDescription =
-        stringResource(Res.string.currenttrack_profile_content_description)
+        stringResource(resource = Res.string.currenttrack_profile_content_description)
     val playPauseContentDescription = stringResource(
-        if (uiState.playback.isPlaying) {
+        resource = if (uiState.playback.isPlaying) {
             Res.string.currenttrack_pause_content_description
         } else {
             Res.string.currenttrack_play_content_description
         }
     )
     val removeContentDescription =
-        stringResource(CommonUiRes.string.queue_action_remove_content_description)
+        stringResource(resource = CommonUiRes.string.queue_action_remove_content_description)
     val dragHandleContentDescription =
-        stringResource(Res.string.currenttrack_queue_drag_handle_content_description)
-    val moveUpContentDescription = stringResource(Res.string.currenttrack_queue_move_up_action)
-    val moveDownContentDescription = stringResource(Res.string.currenttrack_queue_move_down_action)
+        stringResource(resource = Res.string.currenttrack_queue_drag_handle_content_description)
+    val moveUpContentDescription = stringResource(resource = Res.string.currenttrack_queue_move_up_action)
+    val moveDownContentDescription = stringResource(resource = Res.string.currenttrack_queue_move_down_action)
     val queueItemSpacing = ReorderableListDefaults.ItemSpacing
     val listState = rememberLazyListState()
 
     SetTopBarConfig(
-        TopBarConfig(
+        config = TopBarConfig(
             title = topBarTitle,
             subTitle = topBarSubtitle,
             navigationIcon = TopBarNavigationIcon.Avatar(
                 name = uiState.header.guildName,
                 imageUrl = uiState.header.guildIconUrl,
-                onClick = { onEvent(CurrentTrackEvent.GuildClicked) },
+                onClick = { onEvent(CurrentTrackEvent.GuildClicked) }
             ),
             actions = listOf(
                 TopBarAction.Profile(
                     name = uiState.header.profileName.ifBlank { topBarTitleFallback },
                     imageUrl = uiState.header.profileAvatarUrl,
                     onClick = { onEvent(CurrentTrackEvent.ProfileClicked) },
-                    contentDescription = profileContentDescription,
+                    contentDescription = profileContentDescription
                 )
-            ),
+            )
         )
     )
 
     SetFloatingActionButtonConfig(
-        if (!uiState.isLoading && uiState.errorMessage == null) {
+        config = if (!uiState.isLoading && uiState.errorMessage == null) {
             FloatingActionButtonConfig(
                 icon = FloatingActionButtonIcon.Add,
                 contentDescription = addContentDescription,
-                onClick = { onEvent(CurrentTrackEvent.AddToQueueClicked) },
+                onClick = { onEvent(CurrentTrackEvent.AddToQueueClicked) }
             )
         } else {
             null
@@ -154,30 +157,32 @@ fun CurrentTrackScreen(
     )
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize()
     ) {
         HorizontalDivider()
 
         when {
             uiState.isLoading -> MLoadingScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f)
             )
 
             uiState.errorMessage != null -> MErrorScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                errorMessage = requireNotNull(uiState.errorMessage),
-                onClick = { onEvent(CurrentTrackEvent.RefreshClicked) },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                errorMessage = requireNotNull(value = uiState.errorMessage),
+                onClick = { onEvent(CurrentTrackEvent.RefreshClicked) }
             )
 
             uiState.playback.currentTrack?.currentTrack == null -> CurrentTrackPlaceholder(
                 title = emptyTitle,
-                contentText = emptyMessage,
+                contentText = emptyMessage
             )
 
             else -> ReorderDragContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(weight = 1f),
                 listState = listState,
                 itemKeys = uiState.queue.tracks.mapIndexed { index, track ->
                     "${track.id}:$index"
@@ -190,7 +195,7 @@ fun CurrentTrackScreen(
                         CurrentTrackEvent.MoveToIndexClicked(
                             trackId = track.id,
                             fromIndex = fromIndex,
-                            toIndex = toIndex,
+                            toIndex = toIndex
                         )
                     )
                 },
@@ -199,7 +204,7 @@ fun CurrentTrackScreen(
 
                     MTrackItemRow(
                         modifier = Modifier
-                            .alpha(0.85f)
+                            .alpha(alpha = 0.85f)
                             .graphicsLayer {
                                 shadowElevation = 16.dp.toPx()
                             },
@@ -215,37 +220,38 @@ fun CurrentTrackScreen(
                         isFirst = index == 0,
                         isLast = index == uiState.queue.tracks.lastIndex,
                         enabled = false,
-                        dragEnabled = false,
+                        dragEnabled = false
                     )
-                },
+                }
             ) { draggedIndex ->
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth()
+                        .weight(weight = 1f),
                     contentPadding = PaddingValues(
                         start = 12.dp,
                         top = 12.dp,
                         end = 12.dp,
-                        bottom = 96.dp,
+                        bottom = 96.dp
                     ),
-                    verticalArrangement = Arrangement.spacedBy(queueItemSpacing),
+                    verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
                 ) {
                     item {
                         NowPlayingCard(
-                            currentTrack = requireNotNull(uiState.playback.currentTrack),
+                            currentTrack = requireNotNull(value = uiState.playback.currentTrack),
                             isPlaying = uiState.playback.isPlaying,
                             repeatMode = uiState.playback.repeatMode,
                             isPlayPauseLoading = uiState.actions.isPlayPauseLoading,
-                            repeatContentDescription = stringResource(Res.string.currenttrack_repeat_content_description),
-                            previousContentDescription = stringResource(Res.string.currenttrack_previous_content_description),
+                            repeatContentDescription = stringResource(resource = Res.string.currenttrack_repeat_content_description),
+                            previousContentDescription = stringResource(resource = Res.string.currenttrack_previous_content_description),
                             playPauseContentDescription = playPauseContentDescription,
-                            nextContentDescription = stringResource(Res.string.currenttrack_next_content_description),
-                            moreContentDescription = stringResource(Res.string.currenttrack_more_content_description),
+                            nextContentDescription = stringResource(resource = Res.string.currenttrack_next_content_description),
+                            moreContentDescription = stringResource(resource = Res.string.currenttrack_more_content_description),
                             onRepeatClick = { onEvent(CurrentTrackEvent.RepeatClicked) },
                             onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
                             onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
                             onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
-                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
+                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) }
                         )
                     }
 
@@ -256,7 +262,7 @@ fun CurrentTrackScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Start,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
@@ -273,7 +279,7 @@ fun CurrentTrackScreen(
                                 modifier = Modifier
                                     .animateItem()
                                     .alpha(
-                                        if (index == draggedIndex) 0f else 1f
+                                        alpha = if (index == draggedIndex) 0f else 1f
                                     ),
                                 trackNumber = index + 1,
                                 title = track.title,
@@ -293,7 +299,7 @@ fun CurrentTrackScreen(
                                     onEvent(
                                         CurrentTrackEvent.RemoveFromQueueClicked(
                                             trackId = track.id,
-                                            index = index,
+                                            index = index
                                         )
                                     )
                                 },
@@ -302,7 +308,7 @@ fun CurrentTrackScreen(
                                         CurrentTrackEvent.MoveToIndexClicked(
                                             trackId = track.id,
                                             fromIndex = index,
-                                            toIndex = index - 1,
+                                            toIndex = index - 1
                                         )
                                     )
                                 },
@@ -311,7 +317,7 @@ fun CurrentTrackScreen(
                                         CurrentTrackEvent.MoveToIndexClicked(
                                             trackId = track.id,
                                             fromIndex = index,
-                                            toIndex = index + 1,
+                                            toIndex = index + 1
                                         )
                                     )
                                 }
@@ -325,49 +331,49 @@ fun CurrentTrackScreen(
 
     if (uiState.dialog is CurrentTrackDialog.AddToQueue) {
         MAddMusicSheet(
-            state = uiState.addMusic,
-            labels = rememberMAddMusicLabels(),
+            mAddMusicSheetState = uiState.addMusic,
+            mAddMusicLabels = rememberMAddMusicLabels(),
             onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
-            onModeChanged = { onEvent(CurrentTrackEvent.AddMusicModeChanged(it)) },
-            onManualDraftChanged = { onEvent(CurrentTrackEvent.AddToQueueDraftChanged(it)) },
+            onModeChanged = { addMusicMode -> onEvent(CurrentTrackEvent.AddMusicModeChanged(mode = addMusicMode)) },
+            onManualDraftChanged = { manualDraft -> onEvent(CurrentTrackEvent.AddToQueueDraftChanged(value = manualDraft)) },
             onManualConfirm = { onEvent(CurrentTrackEvent.AddToQueueConfirmed) },
-            onSearchQueryChanged = { onEvent(CurrentTrackEvent.SearchQueryChanged(it)) },
+            onSearchQueryChanged = { searchQuery -> onEvent(CurrentTrackEvent.SearchQueryChanged(query = searchQuery)) },
             onSearchSubmitted = { onEvent(CurrentTrackEvent.SearchSubmitted) },
-            onProviderChanged = { onEvent(CurrentTrackEvent.SearchProviderChanged(it)) },
-            onKindChanged = { onEvent(CurrentTrackEvent.SearchKindChanged(it)) },
-            onResultClicked = { onEvent(CurrentTrackEvent.SearchResultClicked(it)) },
+            onProviderChanged = { providerId -> onEvent(CurrentTrackEvent.SearchProviderChanged(providerId = providerId)) },
+            onKindChanged = { musicSearchKind -> onEvent(CurrentTrackEvent.SearchKindChanged(kind = musicSearchKind)) },
+            onResultClicked = { searchResultId -> onEvent(CurrentTrackEvent.SearchResultClicked(resultId = searchResultId)) },
             onSelectedResultAddClicked = { onEvent(CurrentTrackEvent.SelectedSearchResultAddClicked) },
             onNextPageRequested = { onEvent(CurrentTrackEvent.SearchNextPageRequested) },
             onSearchRetryClicked = { onEvent(CurrentTrackEvent.SearchRetryClicked) },
-            onCapabilitiesRetryClicked = { onEvent(CurrentTrackEvent.SearchCapabilitiesRetryClicked) },
+            onCapabilitiesRetryClicked = { onEvent(CurrentTrackEvent.SearchCapabilitiesRetryClicked) }
         )
     }
 
     if (uiState.dialog is CurrentTrackDialog.MoreActions) {
         MMoreActionsDialog(
-            title = stringResource(Res.string.currenttrack_more_title),
-            message = stringResource(Res.string.currenttrack_more_message),
+            title = stringResource(resource = Res.string.currenttrack_more_title),
+            message = stringResource(resource = Res.string.currenttrack_more_message),
             actions = listOf(
                 MMoreAction(
-                    text = stringResource(Res.string.currenttrack_shuffle_action),
+                    text = stringResource(resource = Res.string.currenttrack_shuffle_action),
                     onClick = { onEvent(CurrentTrackEvent.ShuffleClicked) },
-                    enabled = !uiState.actions.isShuffleQueueLoading,
+                    enabled = !uiState.actions.isShuffleQueueLoading
                 ),
                 MMoreAction(
-                    text = stringResource(Res.string.currenttrack_clear_queue_action),
+                    text = stringResource(resource = Res.string.currenttrack_clear_queue_action),
                     onClick = { onEvent(CurrentTrackEvent.ClearQueueClicked) },
                     isDestructive = true,
-                    enabled = !uiState.actions.isClearQueueLoading,
-                ),
+                    enabled = !uiState.actions.isClearQueueLoading
+                )
             ),
-            onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) },
+            onDismiss = { onEvent(CurrentTrackEvent.DialogDismissed) }
         )
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenPreview() {
+private fun CurrentTrackScreenPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -377,11 +383,11 @@ fun CurrentTrackScreenPreview() {
                 playback = CurrentTrackPlaybackUiState(
                     currentTrack = previewCurrentTrack,
                     isPlaying = true,
-                    repeatMode = RepeatMode.ALL,
+                    repeatMode = RepeatMode.ALL
                 ),
                 queue = CurrentTrackQueueUiState(
-                    tracks = previewNextTracks,
-                ),
+                    tracks = previewNextTracks
+                )
             ),
             onEvent = {}
         )
@@ -390,7 +396,7 @@ fun CurrentTrackScreenPreview() {
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenErrorPreview() {
+private fun CurrentTrackScreenErrorPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -398,7 +404,7 @@ fun CurrentTrackScreenErrorPreview() {
             modifier = Modifier,
             uiState = CurrentTrackUiState(
                 isLoading = false,
-                errorMessage = stringResource(Res.string.currenttrack_preview_error),
+                errorMessage = stringResource(resource = Res.string.currenttrack_preview_error)
             ),
             onEvent = {}
         )
@@ -407,7 +413,7 @@ fun CurrentTrackScreenErrorPreview() {
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenEmptyPreview() {
+private fun CurrentTrackScreenEmptyPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -415,8 +421,8 @@ fun CurrentTrackScreenEmptyPreview() {
             modifier = Modifier,
             uiState = CurrentTrackUiState(
                 header = CurrentTrackHeaderUiState(
-                    guildName = "Business business",
-                ),
+                    guildName = "Business business"
+                )
             ),
             onEvent = {}
         )
@@ -425,7 +431,7 @@ fun CurrentTrackScreenEmptyPreview() {
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenAddToQueueDialogPreview() {
+private fun CurrentTrackScreenAddToQueueDialogPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -434,16 +440,16 @@ fun CurrentTrackScreenAddToQueueDialogPreview() {
             uiState = CurrentTrackUiState(
                 playback = CurrentTrackPlaybackUiState(
                     currentTrack = previewCurrentTrack,
-                    isPlaying = true,
+                    isPlaying = true
                 ),
                 queue = CurrentTrackQueueUiState(
-                    tracks = previewNextTracks,
+                    tracks = previewNextTracks
                 ),
                 addMusic = MAddMusicSheetState(
                     manualDraft = "https://open.spotify.com/track/sample",
-                    canSubmitManual = true,
+                    canSubmitManual = true
                 ),
-                dialog = CurrentTrackDialog.AddToQueue,
+                dialog = CurrentTrackDialog.AddToQueue
             ),
             onEvent = {}
         )
@@ -452,7 +458,7 @@ fun CurrentTrackScreenAddToQueueDialogPreview() {
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenMoreActionsDialogPreview() {
+private fun CurrentTrackScreenMoreActionsDialogPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -461,12 +467,12 @@ fun CurrentTrackScreenMoreActionsDialogPreview() {
             uiState = CurrentTrackUiState(
                 playback = CurrentTrackPlaybackUiState(
                     currentTrack = previewCurrentTrack,
-                    isPlaying = true,
+                    isPlaying = true
                 ),
                 queue = CurrentTrackQueueUiState(
-                    tracks = previewNextTracks,
+                    tracks = previewNextTracks
                 ),
-                dialog = CurrentTrackDialog.MoreActions,
+                dialog = CurrentTrackDialog.MoreActions
             ),
             onEvent = {}
         )
@@ -475,7 +481,7 @@ fun CurrentTrackScreenMoreActionsDialogPreview() {
 
 @Composable
 @Preview(showBackground = true)
-fun CurrentTrackScreenLoadingPreview() {
+private fun CurrentTrackScreenLoadingPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -494,20 +500,20 @@ private val previewNextTracks = listOf(
         id = "2",
         title = "Blinding Lights",
         artist = "The Weeknd",
-        durationSeconds = 200,
+        durationSeconds = 200
     ),
     Track(
         id = "3",
         title = "Sweet Disposition",
         artist = "The Temper Trap",
-        durationSeconds = 232,
+        durationSeconds = 232
     ),
     Track(
         id = "4",
         title = "Instant Crush",
         artist = "Daft Punk",
-        durationSeconds = 337,
-    ),
+        durationSeconds = 337
+    )
 )
 
 private val previewCurrentTrack = CurrentTrack(
@@ -516,11 +522,10 @@ private val previewCurrentTrack = CurrentTrack(
         title = "Midnight City",
         artist = "M83",
         durationSeconds = 243,
-        requestedBy = "GSG9HUN",
+        requestedBy = "GSG9HUN"
     ),
     queuedTracks = previewNextTracks,
     isPlaying = true,
     positionSeconds = 103,
-    repeatMode = RepeatMode.ALL,
+    repeatMode = RepeatMode.ALL
 )
-

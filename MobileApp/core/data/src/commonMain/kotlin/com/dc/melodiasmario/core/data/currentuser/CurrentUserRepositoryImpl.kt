@@ -6,6 +6,9 @@ import com.dc.melodiasmario.core.model.currentuser.CurrentUser
 import com.dc.melodiasmario.core.network.currentuser.CurrentUserRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements current user data access using the injected data sources.
+ */
 @Single(binds = [CurrentUserRepository::class])
 class CurrentUserRepositoryImpl(
     private val currentUserRemoteDataSource: CurrentUserRemoteDataSource,

@@ -2,14 +2,26 @@ package com.dc.melodiasmario.core.datastore.settings
 
 import com.dc.melodiasmario.core.model.settings.UserSettings
 
+/**
+ * Provides user settings storage for the settings layer.
+ */
 actual class UserSettingsStorage {
+    /**
+     * Reads the current user settings.
+     */
     actual suspend fun getSettings(): UserSettings? {
-        TODO("Not yet implemented")
+        TODO(reason = "Not yet implemented")
     }
 
-    actual suspend fun saveSettings(settings: UserSettings) {
+    /**
+     * Persists the supplied user settings.
+     */
+    actual suspend fun saveSettings(settings: UserSettings): Unit {
     }
 
-    actual suspend fun clear() {
+    /**
+     * Clears the state and resources owned by UserSettingsStorage.
+     */
+    actual suspend fun clear(): Unit {
     }
 }

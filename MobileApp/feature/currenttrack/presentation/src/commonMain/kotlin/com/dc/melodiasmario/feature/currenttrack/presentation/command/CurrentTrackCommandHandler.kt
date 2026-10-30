@@ -1,8 +1,5 @@
 package com.dc.melodiasmario.feature.currenttrack.presentation.command
 
-import com.dc.melodiasmario.core.presentation.runAction
-import com.dc.melodiasmario.core.presentation.runBotCommand
-import com.dc.melodiasmario.core.presentation.TrackQueueCommandHandler
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.NextTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PauseUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
@@ -15,12 +12,18 @@ import com.dc.melodiasmario.core.domain.queue.usecase.RemoveFromQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
+import com.dc.melodiasmario.core.presentation.TrackQueueCommandHandler
+import com.dc.melodiasmario.core.presentation.runAction
+import com.dc.melodiasmario.core.presentation.runBotCommand
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEffect
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
+/**
+ * Coordinates current track command operations and their presentation callbacks.
+ */
 internal class CurrentTrackCommandHandler(
     private val addToQueueUseCase: AddToQueueUseCase,
     private val clearQueueUseCase: ClearQueueUseCase,
@@ -32,20 +35,20 @@ internal class CurrentTrackCommandHandler(
     private val removeFromQueueUseCase: RemoveFromQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
-    private val state: MutableStateFlow<CurrentTrackUiState>,
+    private val uiState: MutableStateFlow<CurrentTrackUiState>,
     private val effects: MutableSharedFlow<CurrentTrackEffect>,
     private val currentGuildIdProvider: () -> String?,
-    private val onTrackPendingCommand: suspend (BotControlCommand) -> Unit,
+    private val onTrackPendingCommand: suspend (command: BotControlCommand) -> Unit,
     private val onCloseDialog: () -> Unit,
-    onMoveFailed: () -> Unit,
+    onMoveFailed: () -> Unit
 ) {
-    private val queueCommands = TrackQueueCommandHandler(
+    private val trackQueueCommandHandler = TrackQueueCommandHandler(
         addToQueue = addToQueueUseCase::invoke,
         removeFromQueue = removeFromQueueUseCase::invoke,
         clearQueue = clearQueueUseCase::invoke,
         shuffleQueue = shuffleQueueUseCase::invoke,
         moveTrackToIndex = moveTrackToIndexUseCase::invoke,
-        state = state,
+        uiState = uiState,
         effects = effects,
         acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
         addFailedEffect = CurrentTrackEffect.AddToQueueFailed,
@@ -58,84 +61,90 @@ internal class CurrentTrackCommandHandler(
         onCloseDialog = onCloseDialog,
         onMoveFailed = onMoveFailed,
         clearQueueLoading = ::clearQueueLoading,
-        shuffleQueueLoading = ::shuffleQueueLoading,
+        shuffleQueueLoading = ::shuffleQueueLoading
     )
 
-    suspend fun handle(event: CurrentTrackEvent) {
+    /**
+     * Dispatches the supplied event to the appropriate command operation.
+     */
+    suspend fun handle(event: CurrentTrackEvent): Unit {
         when (event) {
-            CurrentTrackEvent.AddToQueueConfirmed -> queueCommands.addManualInput()
-            is CurrentTrackEvent.RemoveFromQueueClicked -> queueCommands.removeFromQueue(event.index, event.trackId)
-            CurrentTrackEvent.ClearQueueClicked -> queueCommands.clearQueue()
+            CurrentTrackEvent.AddToQueueConfirmed -> trackQueueCommandHandler.addManualInput()
+            is CurrentTrackEvent.RemoveFromQueueClicked -> trackQueueCommandHandler.removeFromQueue(
+                index = event.index,
+                trackId = event.trackId
+            )
+            CurrentTrackEvent.ClearQueueClicked -> trackQueueCommandHandler.clearQueue()
             CurrentTrackEvent.NextClicked -> nextTrack()
             CurrentTrackEvent.PreviousClicked -> previousTrack()
             CurrentTrackEvent.RepeatClicked -> repeat()
-            CurrentTrackEvent.ShuffleClicked -> queueCommands.shuffleQueue()
+            CurrentTrackEvent.ShuffleClicked -> trackQueueCommandHandler.shuffleQueue()
             CurrentTrackEvent.PlayPauseClicked -> playPause()
-            is CurrentTrackEvent.MoveToIndexClicked -> queueCommands.moveTrackToIndex(
+            is CurrentTrackEvent.MoveToIndexClicked -> trackQueueCommandHandler.moveTrackToIndex(
                 fromIndex = event.fromIndex,
                 toIndex = event.toIndex,
                 trackId = event.trackId
             )
-            CurrentTrackEvent.SelectedSearchResultAddClicked -> queueCommands.addSelectedSearchResultToQueue()
+            CurrentTrackEvent.SelectedSearchResultAddClicked -> trackQueueCommandHandler.addSelectedSearchResultToQueue()
             else -> Unit
         }
     }
 
     private suspend fun nextTrack() {
         val guildId = currentGuildIdProvider() ?: return
-        nextTrackUseCase(guildId).runBotCommand(
-            state = state,
+        nextTrackUseCase(guildId = guildId).runBotCommand(
+            uiState = uiState,
             effects = effects,
             acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.NextTrackFailed,
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
     private suspend fun previousTrack() {
         val guildId = currentGuildIdProvider() ?: return
-        previousTrackUseCase(guildId).runBotCommand(
-            state = state,
+        previousTrackUseCase(guildId = guildId).runBotCommand(
+            uiState = uiState,
             effects = effects,
             acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.PreviousTrackFailed,
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
     private suspend fun repeat() {
         val guildId = currentGuildIdProvider() ?: return
-        val nextRepeatMode = nextRepeatMode(state.value.playback.repeatMode)
-        setRepeatModeUseCase(guildId, nextRepeatMode).runAction(
-            state = state,
+        val nextRepeatMode = nextRepeatMode(repeatMode = uiState.value.playback.repeatMode)
+        setRepeatModeUseCase(guildId = guildId, repeatMode = nextRepeatMode).runAction(
+            uiState = uiState,
             effects = effects,
             successEffect = CurrentTrackEffect.RepeatModeChanged,
-            failureEffect = CurrentTrackEffect.RepeatModeChangeFailed,
+            failureEffect = CurrentTrackEffect.RepeatModeChangeFailed
         )
     }
 
     private suspend fun playPause() {
         val guildId = currentGuildIdProvider() ?: return
-        val action = if (state.value.playback.isPlaying) {
-            pauseUseCase(guildId)
+        val action = if (uiState.value.playback.isPlaying) {
+            pauseUseCase(guildId = guildId)
         } else {
-            playUseCase(guildId)
+            playUseCase(guildId = guildId)
         }
         action.runBotCommand(
-            state = state,
+            uiState = uiState,
             effects = effects,
             acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
             failureEffect = CurrentTrackEffect.PlayPauseToggleFailed,
-            onLoading = { currentState -> playPauseLoading(currentState, true) },
-            onAccepted = { currentState -> playPauseLoading(currentState, false) },
-            onError = { currentState, _ -> playPauseLoading(currentState, false) },
-            afterAccepted = onTrackPendingCommand,
+            onLoading = { currentState -> playPauseLoading(currentState = currentState, isLoading = true) },
+            onAccepted = { currentState -> playPauseLoading(currentState = currentState, isLoading = false) },
+            onError = { currentState, _ -> playPauseLoading(currentState = currentState, isLoading = false) },
+            afterAccepted = onTrackPendingCommand
         )
     }
 
     private fun clearQueueLoading(
         currentState: CurrentTrackUiState,
-        isLoading: Boolean,
+        isLoading: Boolean
     ): CurrentTrackUiState {
         return currentState.copy(
             actions = currentState.actions.copy(isClearQueueLoading = isLoading)
@@ -144,7 +153,7 @@ internal class CurrentTrackCommandHandler(
 
     private fun shuffleQueueLoading(
         currentState: CurrentTrackUiState,
-        isLoading: Boolean,
+        isLoading: Boolean
     ): CurrentTrackUiState {
         return currentState.copy(
             actions = currentState.actions.copy(isShuffleQueueLoading = isLoading)
@@ -153,7 +162,7 @@ internal class CurrentTrackCommandHandler(
 
     private fun playPauseLoading(
         currentState: CurrentTrackUiState,
-        isLoading: Boolean,
+        isLoading: Boolean
     ): CurrentTrackUiState {
         return currentState.copy(
             actions = currentState.actions.copy(isPlayPauseLoading = isLoading)

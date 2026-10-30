@@ -7,22 +7,31 @@ import org.koin.core.annotation.Factory
 /** Submits the displayed queue snapshot as one ordered track list. */
 @Factory
 class CreatePlaylistFromQueueUseCase(
-    private val playlistsRepository: PlaylistsRepository,
+    private val playlistsRepository: PlaylistsRepository
 ) {
+    /**
+     * Executes the create playlist from queue domain operation.
+     */
     suspend operator fun invoke(
         guildId: String,
         name: String,
-        trackUrls: List<String>,
+        trackUrls: List<String>
     ): Playlist {
-        require(name.isNotBlank() && trackUrls.isNotEmpty())
-        require(trackUrls.all { it.startsWith("https://") || it.startsWith("http://") }) {
+        require(value = name.isNotBlank() && trackUrls.isNotEmpty())
+        require(
+            value = trackUrls.all { trackUrl -> trackUrl.startsWith(
+                prefix = "https://"
+            ) || trackUrl.startsWith(
+                prefix = "http://"
+            ) }
+        ) {
             "Some queue tracks have no usable URL."
         }
 
         return playlistsRepository.createPlaylistFromTracks(
             guildId = guildId,
             playlistName = name.trim(),
-            trackUrls = trackUrls,
+            trackUrls = trackUrls
         )
     }
 }

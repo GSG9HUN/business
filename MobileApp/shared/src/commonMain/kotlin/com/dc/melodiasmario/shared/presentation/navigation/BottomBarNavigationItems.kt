@@ -10,9 +10,12 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.botto
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.bottom_bar_queue
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.bottom_bar_settings
 
+/**
+ * Provides the bottom bar items operation for bottom bar navigation items.
+ */
 fun bottomBarItems(
     currentRoute: AppRoute,
-    onNavigate: (AppRoute) -> Unit,
+    onNavigate: (route: AppRoute) -> Unit
 ): List<BottomBarItem> {
     val guildId = currentRoute.guildIdOrNull() ?: return emptyList()
 
@@ -22,28 +25,28 @@ fun bottomBarItems(
             label = Res.string.bottom_bar_now_playing,
             icon = BottomBarIcon.NowPlaying,
             selected = currentRoute is AppRoute.CurrentTrack,
-            onClick = { onNavigate(AppRoute.CurrentTrack(guildId = guildId)) },
+            onClick = { onNavigate(AppRoute.CurrentTrack(guildId = guildId)) }
         ),
         BottomBarItem(
             id = "queue",
             label = Res.string.bottom_bar_queue,
             icon = BottomBarIcon.Queue,
             selected = currentRoute is AppRoute.Queue,
-            onClick = { onNavigate(AppRoute.Queue(guildId = guildId)) },
+            onClick = { onNavigate(AppRoute.Queue(guildId = guildId)) }
         ),
         BottomBarItem(
             id = "playlists",
             label = Res.string.bottom_bar_playlists,
             icon = BottomBarIcon.Playlists,
             selected = currentRoute is AppRoute.Playlists,
-            onClick = { onNavigate(AppRoute.Playlists(guildId = guildId)) },
+            onClick = { onNavigate(AppRoute.Playlists(guildId = guildId)) }
         ),
         BottomBarItem(
             id = "settings",
             label = Res.string.bottom_bar_settings,
             icon = BottomBarIcon.Settings,
             selected = currentRoute is AppRoute.Settings,
-            onClick = { onNavigate(AppRoute.Settings(guildId = guildId)) },
-        ),
+            onClick = { onNavigate(AppRoute.Settings(guildId = guildId)) }
+        )
     )
 }

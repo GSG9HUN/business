@@ -4,6 +4,9 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.currenttrack.PlaybackStatus
 import org.koin.core.annotation.Single
 
+/**
+ * Adapts remote current track responses to domain-facing data.
+ */
 @Single(binds = [CurrentTrackRemoteDataSource::class])
 class CurrentTrackRemoteDataSourceImpl(
     private val currentTrackApiService: CurrentTrackApiService
@@ -15,26 +18,31 @@ class CurrentTrackRemoteDataSourceImpl(
         return currentTrackApiService.getPlaybackStatus(
             accessToken = accessToken,
             guildId = guildId
-        ).toDomain()
+        )
+            .toDomain()
     }
 
     override suspend fun nextTrack(accessToken: String, guildId: String): BotControlCommand {
-        return currentTrackApiService.nextTrack(accessToken = accessToken, guildId = guildId).toDomain()
+        return currentTrackApiService.nextTrack(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun previousTrack(accessToken: String, guildId: String): BotControlCommand {
-        return currentTrackApiService.previousTrack(accessToken = accessToken, guildId = guildId).toDomain()
+        return currentTrackApiService.previousTrack(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun play(accessToken: String, guildId: String): BotControlCommand {
-        return currentTrackApiService.play(accessToken = accessToken, guildId = guildId).toDomain()
+        return currentTrackApiService.play(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
     override suspend fun pause(accessToken: String, guildId: String): BotControlCommand {
-        return currentTrackApiService.pause(accessToken = accessToken, guildId = guildId).toDomain()
+        return currentTrackApiService.pause(accessToken = accessToken, guildId = guildId)
+            .toDomain()
     }
 
-    override suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String) {
+    override suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String): Unit {
         return currentTrackApiService.setRepeatMode(
             accessToken = accessToken,
             guildId = guildId,

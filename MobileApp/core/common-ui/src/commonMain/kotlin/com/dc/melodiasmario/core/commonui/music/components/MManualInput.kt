@@ -18,19 +18,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
-
+/**
+ * Renders manual input from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MManualInput(
     value: String,
     placeholder: String,
-    onValueChange: (String) -> Unit,
-    enabled: Boolean,
-) {
+    onValueChange: (inputValue: String) -> Unit,
+    enabled: Boolean
+): Unit {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         BasicTextField(
             value = value,
@@ -39,22 +41,24 @@ fun MManualInput(
             singleLine = true,
             textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
             interactionSource = remember { MutableInteractionSource() },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 13.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 13.dp),
             decorationBox = { innerTextField ->
                 Box(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterStart,
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     if (value.isBlank()) {
                         MText(
                             text = placeholder,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Start,
+                            textAlign = TextAlign.Start
                         )
                     }
+
                     innerTextField()
                 }
-            },
+            }
         )
     }
 }

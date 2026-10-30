@@ -3,6 +3,16 @@ package com.dc.melodiasmario.core.network.playlisttrack.dto
 import com.dc.melodiasmario.core.model.playlist.PlaylistTrack
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents playlist track dto in the API transport contract.
+ *
+ * @property orderNumber Stored order number of the playlist track.
+ * @property title Title.
+ * @property author Author.
+ * @property duration Duration.
+ * @property trackUri Track uri.
+ * @property artworkUri Optional artwork URI returned by the API.
+ */
 @Serializable
 data class PlaylistTrackDto(
     val orderNumber: Int,
@@ -12,7 +22,10 @@ data class PlaylistTrackDto(
     val trackUri: String,
     val artworkUri: String? = null
 ) {
-    fun toDomain() = PlaylistTrack(
+    /**
+     * Maps this value to domain.
+     */
+    fun toDomain(): PlaylistTrack = PlaylistTrack(
         orderNumber = orderNumber,
         title = title,
         author = author,

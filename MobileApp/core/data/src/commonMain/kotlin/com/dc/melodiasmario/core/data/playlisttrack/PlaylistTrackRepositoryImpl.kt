@@ -8,22 +8,25 @@ import com.dc.melodiasmario.core.network.playlist.PlaylistsRemoteDataSource
 import com.dc.melodiasmario.core.network.playlisttrack.PlaylistTrackRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements playlist track data access using the injected data sources.
+ */
 @Single(binds = [PlaylistTrackRepository::class])
 class PlaylistTrackRepositoryImpl(
     private val playlistTrackRemoteDataSource: PlaylistTrackRemoteDataSource,
     private val playlistsRemoteDataSource: PlaylistsRemoteDataSource,
-    private val sessionProvider: AuthorizedSessionProvider,
+    private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : PlaylistTrackRepository {
     override suspend fun getPlaylist(playlistId: String): PlaylistDetail {
-        val accessToken = sessionProvider.getValidSession()
+        val accessToken = authorizedSessionProvider.getValidSession()
         return playlistTrackRemoteDataSource.getPlaylist(
             accessToken = accessToken,
             playlistId = playlistId
         )
     }
 
-    override suspend fun removeTrack(playlistId: String, trackNumber: Int) {
-        val accessToken = sessionProvider.getValidSession()
+    override suspend fun removeTrack(playlistId: String, trackNumber: Int): Unit {
+        val accessToken = authorizedSessionProvider.getValidSession()
         playlistTrackRemoteDataSource.removeTrack(
             accessToken = accessToken,
             playlistId = playlistId,
@@ -32,7 +35,7 @@ class PlaylistTrackRepositoryImpl(
     }
 
     override suspend fun addTrack(playlistId: String, query: String): BotControlCommand {
-        val accessToken = sessionProvider.getValidSession()
+        val accessToken = authorizedSessionProvider.getValidSession()
         return playlistsRemoteDataSource.addTrack(
             accessToken = accessToken,
             playlistId = playlistId,
@@ -41,7 +44,7 @@ class PlaylistTrackRepositoryImpl(
     }
 
     override suspend fun loadPlaylist(playlistId: String): BotControlCommand {
-        val accessToken = sessionProvider.getValidSession()
+        val accessToken = authorizedSessionProvider.getValidSession()
         return playlistTrackRemoteDataSource.loadPlaylist(
             accessToken = accessToken,
             playlistId = playlistId

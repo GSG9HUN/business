@@ -35,9 +35,12 @@ import androidx.compose.ui.zIndex
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MQueueDragHandle
 import com.dc.melodiasmario.core.commonui.designsystem.components.button.MQueueRemoveButton
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.core.commonui.reorder.ReorderableListDefaults
+import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 
+/**
+ * Renders track item row from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MTrackItemRow(
     modifier: Modifier = Modifier,
@@ -58,12 +61,12 @@ fun MTrackItemRow(
     onRemove: () -> Unit = {},
     onMoveUp: () -> Unit = {},
     onMoveDown: () -> Unit = {},
-    onMoveDrop: (dragOffsetPx: Float, itemHeightPx: Float) -> Unit = { _, _ -> },
-) {
-    val dragOffset = remember { mutableFloatStateOf(0f) }
-    val isDragging = remember { mutableStateOf(false) }
+    onMoveDrop: (dragOffsetPx: Float, itemHeightPx: Float) -> Unit = { _, _ -> }
+): Unit {
+    val dragOffset = remember { mutableFloatStateOf(value = 0f) }
+    val isDragging = remember { mutableStateOf(value = false) }
     val itemHeightPx = remember {
-        mutableFloatStateOf(ReorderableListDefaults.EstimatedItemHeightPx)
+        mutableFloatStateOf(value = ReorderableListDefaults.EstimatedItemHeightPx)
     }
     val durationText = durationSeconds.toDurationLabel()
     val metaText = if (artist.isBlank()) {
@@ -79,7 +82,7 @@ fun MTrackItemRow(
                     action = {
                         onMoveUp()
                         true
-                    },
+                    }
                 )
             )
         }
@@ -91,7 +94,7 @@ fun MTrackItemRow(
                     action = {
                         onMoveDown()
                         true
-                    },
+                    }
                 )
             )
         }
@@ -103,17 +106,17 @@ fun MTrackItemRow(
             .semantics {
                 customActions = reorderAccessibilityActions
             }
-            .zIndex(if (isDragging.value) 1f else 0f)
+            .zIndex(zIndex = if (isDragging.value) 1f else 0f)
             .graphicsLayer {
                 translationY = dragOffset.floatValue
                 shadowElevation = if (isDragging.value) 16.dp.toPx() else 0f
                 scaleX = if (isDragging.value) 1.02f else 1f
                 scaleY = if (isDragging.value) 1.02f else 1f
             }
-            .alpha(if (isDragging.value) 0.72f else 1f)
+            .alpha(alpha = if (isDragging.value) 0.72f else 1f)
             .onGloballyPositioned { coordinates ->
                 itemHeightPx.floatValue = coordinates.size.height.toFloat()
-                    .coerceAtLeast(ReorderableListDefaults.EstimatedItemHeightPx)
+                    .coerceAtLeast(minimumValue = ReorderableListDefaults.EstimatedItemHeightPx)
             }
             .pointerInput(
                 enabled,
@@ -124,7 +127,10 @@ fun MTrackItemRow(
                 isFirst,
                 isLast
             ) {
-                if (!enabled || !dragEnabled || !reorderEnabled) return@pointerInput
+                if (!enabled || !dragEnabled || !reorderEnabled) {
+                    return@pointerInput
+                }
+
                 detectDragGesturesAfterLongPress(
                     onDragStart = {
                         dragOffset.floatValue = 0f
@@ -142,35 +148,36 @@ fun MTrackItemRow(
                     onDrag = { change, dragAmount ->
                         change.consume()
                         dragOffset.floatValue += dragAmount.y
-                    },
+                    }
                 )
             },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             MText(
-                modifier = Modifier.width(28.dp),
+                modifier = Modifier.width(width = 28.dp),
                 text = trackNumber.toString(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
 
             MArtwork(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(size = 48.dp),
                 iconSize = 24.dp,
-                imageUrl = thumbnailUrl,
+                imageUrl = thumbnailUrl
             )
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f)
             ) {
                 MText(
                     modifier = Modifier.fillMaxWidth(),
@@ -179,7 +186,7 @@ fun MTrackItemRow(
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 MText(
                     modifier = Modifier.fillMaxWidth(),
@@ -188,23 +195,23 @@ fun MTrackItemRow(
                     textAlign = TextAlign.Start,
                     fontSize = 12.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(space = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 MQueueRemoveButton(
                     modifier = Modifier.zIndex(2f),
                     contentDescription = removeContentDescription,
                     onClick = onRemove,
-                    enabled = enabled,
+                    enabled = enabled
                 )
                 MQueueDragHandle(
-                    modifier = Modifier.alpha(if (enabled && reorderEnabled) 1f else 0.38f),
-                    contentDescription = dragHandleContentDescription,
+                    modifier = Modifier.alpha(alpha = if (enabled && reorderEnabled) 1f else 0.38f),
+                    contentDescription = dragHandleContentDescription
                 )
             }
         }
@@ -213,7 +220,7 @@ fun MTrackItemRow(
 
 @Preview
 @Composable
-fun MTrackItemRowPreview() {
+private fun MTrackItemRowPreview() {
     MTrackItemRow(
         trackNumber = 1,
         title = "Track 1",
@@ -223,6 +230,6 @@ fun MTrackItemRowPreview() {
         removeContentDescription = "Remove",
         dragHandleContentDescription = "Drag to reorder",
         moveUpContentDescription = "Move up",
-        moveDownContentDescription = "Move down",
+        moveDownContentDescription = "Move down"
     )
 }

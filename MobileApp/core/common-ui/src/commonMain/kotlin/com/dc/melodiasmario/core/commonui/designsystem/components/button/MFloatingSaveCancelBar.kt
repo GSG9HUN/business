@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
+/**
+ * Renders floating save cancel bar from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MFloatingSaveCancelBar(
     saveText: String,
@@ -25,58 +28,58 @@ fun MFloatingSaveCancelBar(
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+    enabled: Boolean = true
+): Unit {
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(size = 18.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        shadowElevation = 8.dp,
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
+        shadowElevation = 8.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(all = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedButton(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 onClick = onCancelClick,
                 enabled = enabled,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                shape = RoundedCornerShape(size = 12.dp),
+                border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     contentColor = MaterialTheme.colorScheme.onSurface,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                )
             ) {
                 MText(
                     text = cancelText,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
             Button(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 onClick = onSaveClick,
                 enabled = enabled,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(size = 12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                ),
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
             ) {
                 MText(
                     text = saveText,
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

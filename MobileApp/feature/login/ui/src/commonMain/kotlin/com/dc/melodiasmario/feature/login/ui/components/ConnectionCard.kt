@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
@@ -31,80 +30,84 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.conne
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.offline_badge
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.online_badge
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
+import com.dc.melodiasmario.core.model.login.ApiConnectionStatus
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders connection card from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun ConnectionCard(
     apiConnectionStatus: ApiConnectionStatus,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     val isOnline = apiConnectionStatus == ApiConnectionStatus.Online
     val statusBackground = if (isOnline) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer
     val statusTextColor = if (isOnline) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(size = 14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(all = 14.dp)
         ) {
             MText(
-                text = stringResource(Res.string.connection_section_title),
+                text = stringResource(resource = Res.string.connection_section_title),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.ExtraBold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(height = 10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
             ) {
                 StatusIcon(
                     text = if (isOnline) "\u2713" else "\u00d7",
                     backgroundColor = statusBackground,
-                    textColor = statusTextColor,
+                    textColor = statusTextColor
                 )
 
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f)
                 ) {
                     MText(
                         text = stringResource(
-                            if (isOnline) {
+                            resource = if (isOnline) {
                                 Res.string.api_available_title
                             } else {
                                 Res.string.api_unavailable_title
-                            },
+                            }
                         ),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                     MText(
                         text = stringResource(
-                            if (isOnline) {
+                            resource = if (isOnline) {
                                 Res.string.api_available_detail
                             } else {
                                 Res.string.api_unavailable_detail
-                            },
+                            }
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp,
+                        fontSize = 11.sp
                     )
                 }
 
                 MBadge(
                     text = stringResource(
-                        if (isOnline) Res.string.online_badge else Res.string.offline_badge,
+                        resource = if (isOnline) Res.string.online_badge else Res.string.offline_badge
                     ),
                     backgroundColor = statusBackground,
-                    contentColor = statusTextColor,
+                    contentColor = statusTextColor
                 )
             }
         }

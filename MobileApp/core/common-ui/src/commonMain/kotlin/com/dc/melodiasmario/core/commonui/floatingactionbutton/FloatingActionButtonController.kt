@@ -6,22 +6,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
-
+/**
+ * Owns floating action button coordination and its lifecycle-bound operations.
+ */
 class FloatingActionButtonController {
-    var config by mutableStateOf<FloatingActionButtonConfig?>(null)
+    /**
+     * Config exposed by floating action button controller.
+     */
+    var config: FloatingActionButtonConfig? by mutableStateOf<FloatingActionButtonConfig?>(value = null)
         private set
 
     private var owner: FloatingActionButtonOwner? = null
 
+    /**
+     * Updates the value held by floating action button controller.
+     */
     internal fun set(
         owner: FloatingActionButtonOwner,
-        config: FloatingActionButtonConfig?,
-    ) {
+        config: FloatingActionButtonConfig?
+    ): Unit {
         this.owner = owner
         this.config = config
     }
 
-    internal fun clear(owner: FloatingActionButtonOwner) {
+    /**
+     * Clears the state and resources owned by FloatingActionButtonController.
+     */
+    internal fun clear(owner: FloatingActionButtonOwner): Unit {
         if (this.owner === owner) {
             this.owner = null
             config = null
@@ -29,6 +40,9 @@ class FloatingActionButtonController {
     }
 }
 
+/**
+ * Remembers floating action button controller for the current composition.
+ */
 @Composable
 fun rememberFloatingActionButtonController(): FloatingActionButtonController {
     return remember { FloatingActionButtonController() }

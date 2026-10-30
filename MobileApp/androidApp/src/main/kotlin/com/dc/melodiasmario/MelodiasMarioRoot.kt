@@ -11,22 +11,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
-import com.dc.melodiasmario.core.data.settings.UserSettingsStore
-import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
 import com.dc.melodiasmario.core.common.navigation.AppRoute
+import com.dc.melodiasmario.core.commonui.biometric.AppLockHost
+import com.dc.melodiasmario.core.commonui.biometric.BiometricAuthenticator
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.toThemeMode
 import com.dc.melodiasmario.core.commonui.feedback.FeedbackVibrator
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
+import com.dc.melodiasmario.core.data.settings.UserSettingsStore
+import com.dc.melodiasmario.core.datastore.locale.AppLocaleController
+import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
 import com.dc.melodiasmario.core.domain.auth.usecase.RefreshSessionUseCase
-import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
-import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
-import com.dc.melodiasmario.core.commonui.biometric.AppLockHost
-import com.dc.melodiasmario.core.commonui.biometric.BiometricAuthenticator
 import com.dc.melodiasmario.core.presentation.biometric.AppLockController
+import com.dc.melodiasmario.shared.presentation.navigation.AppRouteBackStackSaver
+import com.dc.melodiasmario.shared.ui.MelodiasMarioApp
 
+/**
+ * Renders melodias mario root from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MelodiasMarioRoot(
     userSettingsStore: UserSettingsStore,
@@ -38,19 +41,20 @@ fun MelodiasMarioRoot(
     feedbackVibrator: FeedbackVibrator,
     appLockController: AppLockController,
     biometricAuthenticator: BiometricAuthenticator
-) {
+): Unit {
     val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
         mutableStateListOf(AppRoute.Login)
     }
     val settings by userSettingsStore.settings.collectAsStateWithLifecycle()
-    var appliedLanguageCode by remember { mutableStateOf(settings.languageCode) }
-    var isAuthBootstrapComplete by remember { mutableStateOf(false) }
+    var appliedLanguageCode by remember { mutableStateOf(value = settings.languageCode) }
+    var isAuthBootstrapComplete by remember { mutableStateOf(value = false) }
 
-    LaunchedEffect(Unit) {
-        userSettingsStorage.getSettings()?.let(userSettingsStore::setSettings)
+    LaunchedEffect(key1 = Unit) {
+        userSettingsStorage.getSettings()
+            ?.let(block = userSettingsStore::setSettings)
     }
 
-    LaunchedEffect(settings.languageCode) {
+    LaunchedEffect(key1 = settings.languageCode) {
         appLocaleController.applyLocale(languageCode = settings.languageCode)
         appliedLanguageCode = settings.languageCode
     }
@@ -60,27 +64,27 @@ fun MelodiasMarioRoot(
             themeMode = settings.theme.toThemeMode()
         ) {
             AppLockHost(
-                controller = appLockController,
-                authenticator = biometricAuthenticator,
+                appLockController = appLockController,
+                biometricAuthenticator = biometricAuthenticator,
                 onSignedOut = {
                     backStack.clear()
-                    backStack.add(AppRoute.Login)
+                    backStack.add(element = AppRoute.Login)
                     isAuthBootstrapComplete = true
-                },
+                }
             ) {
-                LaunchedEffect(Unit) {
+                LaunchedEffect(key1 = Unit) {
                     if (!isAuthBootstrapComplete) {
                         refreshSessionUseCase().collect { result ->
                             when (result) {
                                 is Resource.Success -> {
                                     backStack.clear()
-                                    backStack.add(AppRoute.GuildSelector)
+                                    backStack.add(element = AppRoute.GuildSelector)
                                     isAuthBootstrapComplete = true
                                 }
 
                                 is Resource.Error -> {
                                     backStack.clear()
-                                    backStack.add(AppRoute.Login)
+                                    backStack.add(element = AppRoute.Login)
                                     isAuthBootstrapComplete = true
                                 }
 

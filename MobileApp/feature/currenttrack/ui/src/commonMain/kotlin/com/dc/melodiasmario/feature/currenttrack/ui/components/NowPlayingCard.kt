@@ -4,7 +4,16 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,9 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.components.MArtwork
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
+import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.Res
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_artist_requested_by
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_more
@@ -41,11 +50,14 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_p
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_previous
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_repeat
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_repeat_one
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Renders now playing card from the supplied parameters and forwards interaction callbacks.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingCard(
@@ -62,38 +74,38 @@ fun NowPlayingCard(
     onPreviousClick: () -> Unit = {},
     onPlayPauseClick: () -> Unit = {},
     onNextClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {},
-) {
+    onMoreClick: () -> Unit = {}
+): Unit {
     val track = currentTrack.currentTrack ?: return
     val artistText = track.requestedBy
-        ?.takeIf { it.isNotBlank() }
+        ?.takeIf { textValue -> textValue.isNotBlank() }
         ?.let { requestedBy ->
             stringResource(
-                Res.string.currenttrack_artist_requested_by,
-                track.artist,
-                requestedBy,
+                resource = Res.string.currenttrack_artist_requested_by,
+                formatArgs = arrayOf<Any>(track.artist, requestedBy)
             )
         }
         ?: track.artist
     var displayedPositionSeconds by remember(
-        track.id,
-        currentTrack.positionSeconds,
-        currentTrack.updatedAtUtc,
+        key1 = track.id,
+        key2 = currentTrack.positionSeconds,
+        key3 = currentTrack.updatedAtUtc
     ) {
-        mutableStateOf(currentTrack.positionSeconds)
+        mutableStateOf(value = currentTrack.positionSeconds)
     }
 
     LaunchedEffect(
         isPlaying,
         track.id,
         currentTrack.positionSeconds,
-        currentTrack.updatedAtUtc,
+        currentTrack.updatedAtUtc
     ) {
         displayedPositionSeconds = currentTrack.positionSeconds
+
         while (isPlaying && displayedPositionSeconds < track.durationSeconds) {
-            delay(1_000.milliseconds)
+            delay(duration = 1_000.milliseconds)
             displayedPositionSeconds = (displayedPositionSeconds + 1)
-                .coerceAtMost(track.durationSeconds)
+                .coerceAtMost(maximumValue = track.durationSeconds)
         }
     }
 
@@ -105,19 +117,20 @@ fun NowPlayingCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(size = 18.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(all = 12.dp)
         ) {
             MArtwork(
-                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-                imageUrl = track.thumbnailUrl,
+                modifier = Modifier.fillMaxWidth()
+                    .aspectRatio(ratio = 1f),
+                imageUrl = track.thumbnailUrl
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(height = 14.dp))
 
             MText(
                 modifier = Modifier
@@ -126,7 +139,7 @@ fun NowPlayingCard(
                         iterations = Int.MAX_VALUE,
                         initialDelayMillis = TrackTitleMarqueeInitialDelayMillis,
                         repeatDelayMillis = TrackTitleMarqueeRepeatDelayMillis,
-                        velocity = TrackTitleMarqueeVelocity,
+                        velocity = TrackTitleMarqueeVelocity
                     ),
                 text = track.title,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -135,7 +148,7 @@ fun NowPlayingCard(
                 lineHeight = 26.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Clip,
+                overflow = TextOverflow.Clip
             )
 
             MText(
@@ -145,86 +158,89 @@ fun NowPlayingCard(
                 textAlign = TextAlign.Start,
                 fontSize = 13.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(height = 12.dp))
 
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(3.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .height(height = 3.dp),
                 color = MaterialTheme.colorScheme.onSurface,
-                trackColor = MaterialTheme.colorScheme.outline,
+                trackColor = MaterialTheme.colorScheme.outline
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 MText(
                     text = displayedPositionSeconds.toDurationLabel(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
+                    fontSize = 10.sp
                 )
                 MText(
                     text = track.durationSeconds.toDurationLabel(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
+                    fontSize = 10.sp
                 )
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 PlayerIconButton(
                     icon = repeatMode.toRepeatIcon(),
                     selected = repeatMode != RepeatMode.NONE,
                     contentDescription = repeatContentDescription,
-                    onClick = onRepeatClick,
+                    onClick = onRepeatClick
                 )
                 PlayerIconButton(
                     icon = Res.drawable.ic_player_previous,
                     contentDescription = previousContentDescription,
-                    onClick = onPreviousClick,
+                    onClick = onPreviousClick
                 )
                 Surface(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(size = 48.dp)
                         .semantics {
-                            playPauseContentDescription?.let {
-                                contentDescription = it
+                            playPauseContentDescription?.let { playPauseContentDescription ->
+                                contentDescription = playPauseContentDescription
                             }
                         },
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.onSurface,
-                    onClick = if (isPlayPauseLoading) ({}) else onPlayPauseClick,
+                    onClick = if (isPlayPauseLoading) ({}) else onPlayPauseClick
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Image(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(size = 24.dp),
                             painter = painterResource(
-                                if (isPlaying) {
+                                resource = if (isPlaying) {
                                     Res.drawable.ic_player_pause
                                 } else {
                                     Res.drawable.ic_player_play
-                                },
+                                }
                             ),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background),
+                            colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.background)
                         )
                     }
                 }
                 PlayerIconButton(
                     icon = Res.drawable.ic_player_next,
                     contentDescription = nextContentDescription,
-                    onClick = onNextClick,
+                    onClick = onNextClick
                 )
                 PlayerIconButton(
                     icon = Res.drawable.ic_player_more,
                     contentDescription = moreContentDescription,
-                    onClick = onMoreClick,
+                    onClick = onMoreClick
                 )
             }
         }
@@ -241,24 +257,22 @@ private const val TrackTitleMarqueeInitialDelayMillis = 1_000
 private const val TrackTitleMarqueeRepeatDelayMillis = 1_500
 private val TrackTitleMarqueeVelocity = 32.dp
 
-
 @Preview
 @Composable
-fun NowPlayingCardPreview() {
+private fun NowPlayingCardPreview() {
     val currentTrack = CurrentTrack(
         currentTrack = com.dc.melodiasmario.core.model.currenttrack.Track(
             id = "1",
             title = "Sample Track With A Very Long Title That Needs To Scroll Smoothly",
             artist = "Sample Artist",
             durationSeconds = 24000,
-            requestedBy = "GSG9HUN",
+            requestedBy = "GSG9HUN"
         ),
-        positionSeconds = 3720,
+        positionSeconds = 3720
     )
     NowPlayingCard(
         currentTrack = currentTrack,
         isPlaying = true,
-        repeatMode = RepeatMode.ALL,
+        repeatMode = RepeatMode.ALL
     )
 }
-

@@ -7,12 +7,20 @@ enum class PlaylistArtworkTheme {
     Chill,
     Workout;
 
+    /**
+     * Shared values and operations for the enclosing type.
+     */
     companion object {
+        /**
+         * Provides the from name operation for companion.
+         */
         fun fromName(name: String): PlaylistArtworkTheme {
-            val words = Regex("\\p{L}+").findAll(name.lowercase()).map { it.value }.toSet()
+            val words = Regex("\\p{L}+").findAll(name.lowercase())
+                .map { wordMatch -> wordMatch.value }
+                .toSet()
             return when {
-                words.any {
-                    it in setOf(
+                words.any { word ->
+                    word in setOf(
                         "workout",
                         "gym",
                         "fitness",
@@ -22,8 +30,8 @@ enum class PlaylistArtworkTheme {
                     )
                 } -> Workout
 
-                words.any {
-                    it in setOf(
+                words.any { word ->
+                    word in setOf(
                         "chill",
                         "relax",
                         "lofi",
@@ -33,8 +41,8 @@ enum class PlaylistArtworkTheme {
                     )
                 } -> Chill
 
-                words.any {
-                    it in setOf(
+                words.any { word ->
+                    word in setOf(
                         "night",
                         "drive",
                         "synthwave",

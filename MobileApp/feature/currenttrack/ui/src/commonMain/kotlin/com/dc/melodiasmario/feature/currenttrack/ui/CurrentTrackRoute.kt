@@ -11,28 +11,32 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Connects current track presentation state and effects to its screen callbacks.
+ */
 @Composable
 fun CurrentTrackRoute(
     modifier: Modifier = Modifier,
-    viewModel: CurrentTrackViewModel = koinViewModel(),
+    currentTrackViewModel: CurrentTrackViewModel = koinViewModel(),
     guildId: String,
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
-    toastHostState: MToastHostState,
-) {
-    val uiState by viewModel.uiState.collectAsState()
+    toastHostState: MToastHostState
+): Unit {
+    val uiState by currentTrackViewModel.uiState.collectAsState()
     val effectMessages = currentTrackEffectMessages()
 
-    LaunchedEffect(guildId) {
-        viewModel.onEvent(CurrentTrackEvent.LoadCurrentTrack(guildId))
+    LaunchedEffect(key1 = guildId) {
+        currentTrackViewModel.onEvent(event = CurrentTrackEvent.LoadCurrentTrack(guildId = guildId))
     }
 
-    LaunchedEffect(viewModel) {
-        viewModel.effect.collect { effect ->
+    LaunchedEffect(key1 = currentTrackViewModel) {
+        currentTrackViewModel.effect.collect { effect ->
             when (effect) {
                 CurrentTrackEffect.NavigateToGuildSelector -> onGuildClicked()
                 CurrentTrackEffect.NavigateToProfile -> onProfileClicked()
-                else -> effectMessages.toastDataFor(effect)?.let { toastHostState.showToast(it) }
+                else -> effectMessages.toastDataFor(effect = effect)
+                    ?.let { toastData -> toastHostState.showToast(toast = toastData) }
             }
         }
     }
@@ -40,6 +44,6 @@ fun CurrentTrackRoute(
     CurrentTrackScreen(
         modifier = modifier,
         uiState = uiState,
-        onEvent = viewModel::onEvent
+        onEvent = currentTrackViewModel::onEvent
     )
 }

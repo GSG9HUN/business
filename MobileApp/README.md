@@ -58,7 +58,7 @@ If incremental compilation fails with the TrackSearchPrefix / DirtyData.dirtyLoo
 .\gradlew.bat :androidApp:assembleDebug '-Pkotlin.incremental=false'
 ```
 
-Presentation tests are currently ignored scaffolds that throw `NotImplementedError`; they do not verify command completion or search behavior. A successful build does not establish behavior coverage.
+Presentation tests include implemented behavior checks and explicit `NotImplementedError` scaffolds. New test cases remain scaffolds unless implementation is explicitly requested. Scaffolds and successful application builds do not establish behavior coverage.
 
 * [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
@@ -98,8 +98,7 @@ the existing event/effect path and is persisted separately from server profile s
 Previewable controls receive immutable state rather than platform services.
 This is a UI lock, not biometric key-bound token storage.
 
-See [the implementation walkthrough](docs/biometric-app-lock.md) for architecture,
-previews, validation steps, and outstanding iOS integration.
+See [the shared lock controller](core/presentation/src/commonMain/kotlin/com/dc/melodiasmario/core/presentation/biometric/AppLockController.kt) for lock-state coordination and [the biometric UI adapters](core/common-ui/src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/biometric) for platform integration and previews.
 ## Playlist track feature
 
 The playlisttrack feature displays saved playlist details and supports search/manual track addition, confirmed removal, loading into the playback queue, refresh, and back navigation. Queue and playlist details both use the shared MTrackItemRow component for track display, removal, and reorder accessibility actions. Playlist removal retains its confirmation dialog. The row has a separate reorderEnabled flag so unsupported ordering stays disabled without disabling removal. The screen uses shared search, artwork, and reorder components. Shuffle and movement remain disabled until backend playlist-ordering endpoints are available.
@@ -125,3 +124,11 @@ The playlist card menu offers **Playlist cover**. Enter an absolute HTTP/HTTPS i
 ### Cover Name Matching
 
 `PlaylistArtworkTheme.fromName` matches complete words, ignoring case and punctuation. Workout/Gym/Fitness/Training and Edzés choose Workout; Chill/Relax/Lofi and Nyugi choose Chill; Night/Drive/Synthwave and Éjszaka choose Night Drive. Ambiguous names use Workout, then Chill, then Night Drive priority. Matching is a display heuristic, not a claim about track genres. The images are bundled with the app and need no image-generation service.
+
+## Source conventions
+
+Kotlin sources use named arguments wherever supported, named function-type parameters, explicit imports, and descriptive dependency names. Public contracts use KDoc and explicit types. Shared UI models are kept in their own named files; preview helpers are private. Domain use cases propagate coroutine cancellation instead of converting it into a resource error. Existing implemented tests are preserved, while empty test cases explicitly throw `NotImplementedError()`.
+
+The project `.editorconfig` enforces Kotlin indentation, final newlines, whitespace cleanup, and disabled trailing commas in IntelliJ-compatible editors.
+
+Playlist cover updates and playlist-track deletion validate HTTP response status, so forbidden responses are surfaced as failures instead of successful mutations.

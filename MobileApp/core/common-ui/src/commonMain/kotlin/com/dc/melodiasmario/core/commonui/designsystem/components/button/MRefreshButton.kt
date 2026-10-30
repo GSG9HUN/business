@@ -21,28 +21,31 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders refresh button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MRefreshButton(
     onClick: () -> Unit,
     contentDescription: String,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Surface(
         onClick = onClick,
-        modifier = modifier.size(36.dp),
-        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.size(size = 36.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(Res.drawable.refresh_button),
+                painter = painterResource(resource = Res.drawable.refresh_button),
                 contentDescription = contentDescription,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(size = 18.dp)
             )
         }
     }
@@ -53,6 +56,6 @@ fun MRefreshButton(
 private fun RefreshButtonPreview() {
     MRefreshButton(
         onClick = {},
-        contentDescription = stringResource(Res.string.top_bar_refresh_content_description),
+        contentDescription = stringResource(resource = Res.string.top_bar_refresh_content_description)
     )
 }

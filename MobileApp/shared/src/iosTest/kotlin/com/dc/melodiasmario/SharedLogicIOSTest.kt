@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 class SharedLogicIOSTest {
 
     @Test
-    fun example() {
-        assertEquals(3, 1 + 2)
+    fun example(): Unit {
+        assertEquals(expected = 3, actual = 1 + 2)
     }
 }

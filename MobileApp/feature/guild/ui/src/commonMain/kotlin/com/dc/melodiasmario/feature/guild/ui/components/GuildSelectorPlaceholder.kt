@@ -18,48 +18,53 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
+/**
+ * Renders guild selector placeholder from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun GuildSelectorPlaceholder(
     title: String,
-    contentText: String,
-) {
+    contentText: String
+): Unit {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(paddingValues = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp)),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(size = 10.dp),
+                color = MaterialTheme.colorScheme.primary
             ) {
                 MText(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                     text = "DC",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.weight(weight = 1f),
+                verticalArrangement = Arrangement.spacedBy(space = 4.dp)
             ) {
                 MText(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
                 MText(
                     text = contentText,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
             }
         }

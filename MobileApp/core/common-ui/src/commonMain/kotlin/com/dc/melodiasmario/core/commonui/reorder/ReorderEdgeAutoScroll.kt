@@ -11,21 +11,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.isActive
 
+/**
+ * Renders reorder edge auto scroll from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun ReorderEdgeAutoScroll(
     listState: LazyListState,
     dragPositionY: Float?,
     viewportHeightPx: Float,
     edgeSize: Dp = 64.dp,
-    speedDpPerSecond: Float = 500f,
-) {
+    speedDpPerSecond: Float = 500f
+): Unit {
     val density = LocalDensity.current
-    val edgeSizePx = with(density) { edgeSize.toPx() }
-    val speedPxPerSecond = with(density) {
+    val edgeSizePx = with(receiver = density) { edgeSize.toPx() }
+    val speedPxPerSecond = with(receiver = density) {
         speedDpPerSecond.dp.toPx()
     }
 
-    val currentDragPositionY = rememberUpdatedState(dragPositionY)
+    val currentDragPositionY = rememberUpdatedState(newValue = dragPositionY)
     val isDragging = dragPositionY != null
 
     LaunchedEffect(
@@ -33,7 +36,7 @@ fun ReorderEdgeAutoScroll(
         isDragging,
         viewportHeightPx,
         edgeSizePx,
-        speedPxPerSecond,
+        speedPxPerSecond
     ) {
         if (!isDragging || viewportHeightPx <= 0f) {
             return@LaunchedEffect
@@ -41,15 +44,15 @@ fun ReorderEdgeAutoScroll(
 
         val edgePx = edgeSizePx.coerceIn(
             minimumValue = 0f,
-            maximumValue = viewportHeightPx / 2f,
+            maximumValue = viewportHeightPx / 2f
         )
 
-        var previousFrame = withFrameNanos { it }
+        var previousFrame = withFrameNanos { frameTimeNanos -> frameTimeNanos }
 
         while (isActive) {
-            val currentFrame = withFrameNanos { it }
+            val currentFrame = withFrameNanos { frameTimeNanos -> frameTimeNanos }
             val elapsedSeconds =
-                ((currentFrame - previousFrame) / 1_000_000_000f).coerceAtMost(0.05f)
+                ((currentFrame - previousFrame) / 1_000_000_000f).coerceAtMost(maximumValue = 0.05f)
 
             previousFrame = currentFrame
 
@@ -63,7 +66,7 @@ fun ReorderEdgeAutoScroll(
 
             if (direction != 0f) {
                 listState.scrollBy(
-                    direction * speedPxPerSecond * elapsedSeconds
+                    value = direction * speedPxPerSecond * elapsedSeconds
                 )
             }
         }

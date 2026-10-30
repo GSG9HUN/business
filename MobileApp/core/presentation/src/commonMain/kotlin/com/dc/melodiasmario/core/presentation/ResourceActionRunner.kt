@@ -6,41 +6,44 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Applies resource loading, success, and failure updates to presentation state and effects.
+ */
 suspend fun <State, Effect : MviEffect, Data> Flow<Resource<Data>>.runAction(
-    state: MutableStateFlow<State>,
+    uiState: MutableStateFlow<State>,
     effects: MutableSharedFlow<Effect>,
     successEffect: Effect? = null,
     failureEffect: Effect,
-    onLoading: ((State) -> State)? = null,
-    onSuccess: ((State) -> State)? = null,
-    onSuccessWithData: ((State, Data) -> State)? = null,
-    onError: ((State, Throwable) -> State)? = null,
+    onLoading: ((uiState: State) -> State)? = null,
+    onSuccess: ((uiState: State) -> State)? = null,
+    onSuccessWithData: ((uiState: State, data: Data) -> State)? = null,
+    onError: ((uiState: State, error: Throwable) -> State)? = null,
     afterSuccess: (suspend () -> Unit)? = null
-) {
+): Unit {
     collect { result ->
         when (result) {
             Resource.Loading -> {
                 onLoading?.let { reducer ->
-                    state.update(reducer)
+                    uiState.update(function = reducer)
                 }
             }
 
             is Resource.Success -> {
                 onSuccess?.let { reducer ->
-                    state.update(reducer)
+                    uiState.update(function = reducer)
                 }
                 onSuccessWithData?.let { reducer ->
-                    state.update { reducer(it, result.data) }
+                    uiState.update { currentUiState -> reducer(currentUiState, result.data) }
                 }
-                successEffect?.let { effects.emit(it) }
+                successEffect?.let { successEffect -> effects.emit(value = successEffect) }
                 afterSuccess?.invoke()
             }
 
             is Resource.Error -> {
                 onError?.let { reducer ->
-                    state.update { reducer(it, result.error) }
+                    uiState.update { currentUiState -> reducer(currentUiState, result.error) }
                 }
-                effects.emit(failureEffect)
+                effects.emit(value = failureEffect)
             }
         }
     }

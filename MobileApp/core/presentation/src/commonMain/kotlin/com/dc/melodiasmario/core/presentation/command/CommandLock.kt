@@ -3,21 +3,31 @@ package com.dc.melodiasmario.core.presentation.command
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Provides command lock for the command layer.
+ */
 class CommandLock<State>(
-    private val state: MutableStateFlow<State>,
+    private val uiState: MutableStateFlow<State>
 ) where State : CommandUiState<State> {
 
+    /**
+     * Acquires the command lock only when no command is currently running.
+     */
     fun startIfIdle(): Boolean {
-        if (state.value.isCommandInFlight) {
+        if (uiState.value.isCommandInFlight) {
             return false
         }
-        state.update { it.withCommandInFlight(true) }
+
+        uiState.update { currentUiState -> currentUiState.withCommandInFlight(isCommandInFlight = true) }
         return true
     }
 
-    fun finish() {
-        state.update {
-            it.withCommandInFlight(false)
+    /**
+     * Releases the command lock associated with the supplied execution version.
+     */
+    fun finish(): Unit {
+        uiState.update { currentUiState ->
+            currentUiState.withCommandInFlight(isCommandInFlight = false)
         }
     }
 }

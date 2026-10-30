@@ -9,20 +9,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * Renders floating button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MFloatingButton(
     modifier: Modifier = Modifier,
     size: Dp = 72.dp,
-    shape: RoundedCornerShape = RoundedCornerShape(22.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(size = 22.dp),
     icon: @Composable () -> Unit,
-    onClick: () -> Unit = {},
-) {
+    onClick: () -> Unit = {}
+): Unit {
     FloatingActionButton(
-        modifier = modifier.size(size),
+        modifier = modifier.size(size = size),
         onClick = onClick,
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
-        shape = shape,
+        shape = shape
     ) {
         icon()
     }

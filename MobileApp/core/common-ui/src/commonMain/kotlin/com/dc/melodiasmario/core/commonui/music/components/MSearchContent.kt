@@ -17,31 +17,36 @@ import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 
+/**
+ * Renders search content from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSearchContent(
-    state: MAddMusicSheetState,
-    labels: MAddMusicLabels,
-    onQueryChanged: (String) -> Unit,
+    mAddMusicSheetState: MAddMusicSheetState,
+    mAddMusicLabels: MAddMusicLabels,
+    onQueryChanged: (query: String) -> Unit,
     onSearchSubmitted: () -> Unit,
-    onProviderChanged: (String) -> Unit,
-    onKindChanged: (MMusicSearchKind) -> Unit,
-    onResultClicked: (String) -> Unit,
+    onProviderChanged: (providerId: String) -> Unit,
+    onKindChanged: (musicSearchKind: MMusicSearchKind) -> Unit,
+    onResultClicked: (resultId: String) -> Unit,
     onSelectedResultAddClicked: () -> Unit,
     onNextPageRequested: () -> Unit,
     onSearchRetryClicked: () -> Unit,
-    onCapabilitiesRetryClicked: () -> Unit,
-) {
+    onCapabilitiesRetryClicked: () -> Unit
+): Unit {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val selectedProvider = state.providers.firstOrNull { it.id == state.selectedProviderId }
-    val providerUnavailable = state.providers.isNotEmpty() &&
+    val selectedProvider =
+        mAddMusicSheetState.providers.firstOrNull { provider -> provider.id == mAddMusicSheetState.selectedProviderId }
+    val providerUnavailable = mAddMusicSheetState.providers.isNotEmpty() &&
             (selectedProvider == null || !selectedProvider.canEnqueue)
-    val kindUnavailable = selectedProvider != null && when (state.selectedKind) {
+    val kindUnavailable = selectedProvider != null && when (mAddMusicSheetState.selectedKind) {
         MMusicSearchKind.Track -> !selectedProvider.supportsTrackSearch
         MMusicSearchKind.Playlist -> !selectedProvider.supportsPlaylistSearch
     }
-    val canSearch = !state.isCapabilitiesLoading && !providerUnavailable && !kindUnavailable
-    val selectedResult = state.results.firstOrNull { it.id == state.selectedResultId }
+    val canSearch = !mAddMusicSheetState.isCapabilitiesLoading && !providerUnavailable && !kindUnavailable
+    val selectedResult =
+        mAddMusicSheetState.results.firstOrNull { searchResult -> searchResult.id == mAddMusicSheetState.selectedResultId }
     fun submitSearch() {
         keyboardController?.hide()
         focusManager.clearFocus()
@@ -50,66 +55,66 @@ fun MSearchContent(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 12.dp)
     ) {
         MProviderSelector(
-            label = labels.providerLabel,
+            label = mAddMusicLabels.providerLabel,
             selectedProvider = selectedProvider,
-            providers = state.providers,
-            onProviderChanged = onProviderChanged,
+            providers = mAddMusicSheetState.providers,
+            onProviderChanged = onProviderChanged
         )
 
         MKindSelector(
-            labels = labels,
-            selectedKind = state.selectedKind,
-            onKindChanged = onKindChanged,
+            mAddMusicLabels = mAddMusicLabels,
+            selectedKind = mAddMusicSheetState.selectedKind,
+            onKindChanged = onKindChanged
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
             MSearchBar(
-                modifier = Modifier.weight(1f),
-                query = state.query,
+                modifier = Modifier.weight(weight = 1f),
+                query = mAddMusicSheetState.query,
                 onQueryChange = onQueryChanged,
-                placeholder = labels.searchPlaceholder,
+                placeholder = mAddMusicLabels.searchPlaceholder,
                 enabled = canSearch,
-                onSearch = ::submitSearch,
+                onSearch = ::submitSearch
             )
             Button(
                 onClick = ::submitSearch,
-                enabled = canSearch && state.query.trim().length >= 2,
+                enabled = canSearch && mAddMusicSheetState.query.trim().length >= 2
             ) {
-                MText(text = labels.searchAction)
+                MText(text = mAddMusicLabels.searchAction)
             }
         }
 
         MSearchStatus(
-            state = state,
-            labels = labels,
+            mAddMusicSheetState = mAddMusicSheetState,
+            mAddMusicLabels = mAddMusicLabels,
             providerUnavailable = providerUnavailable,
             kindUnavailable = kindUnavailable,
             selectedProvider = selectedProvider,
             onCapabilitiesRetryClicked = onCapabilitiesRetryClicked,
-            onSearchRetryClicked = onSearchRetryClicked,
+            onSearchRetryClicked = onSearchRetryClicked
         )
 
         selectedResult?.let { result ->
             MSelectedResultCard(
                 result = result,
-                labels = labels,
-                commandInFlight = state.commandInFlight,
-                onAddClicked = onSelectedResultAddClicked,
+                mAddMusicLabels = mAddMusicLabels,
+                commandInFlight = mAddMusicSheetState.commandInFlight,
+                onAddClicked = onSelectedResultAddClicked
             )
         }
 
         MResultList(
-            state = state,
-            labels = labels,
+            mAddMusicSheetState = mAddMusicSheetState,
+            mAddMusicLabels = mAddMusicLabels,
             onResultClicked = onResultClicked,
-            onNextPageRequested = onNextPageRequested,
+            onNextPageRequested = onNextPageRequested
         )
     }
 }

@@ -20,39 +20,42 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.retry_button
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders error screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MErrorScreen(
     modifier: Modifier = Modifier,
     errorMessage: String,
-    onClick: () -> Unit,
-) {
+    onClick: () -> Unit
+): Unit {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(all = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         MText(
             text = errorMessage,
             color = MaterialTheme.colorScheme.onErrorContainer,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
 
         Button(
             modifier = Modifier.padding(top = 16.dp),
             onClick = onClick,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            shape = RoundedCornerShape(size = 12.dp),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
         ) {
             MText(
-                text = stringResource(Res.string.retry_button),
+                text = stringResource(resource = Res.string.retry_button),
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -63,6 +66,6 @@ fun MErrorScreen(
 private fun MErrorScreenPreview() {
     MErrorScreen(
         errorMessage = "Nem sikerult betolteni az adatokat.",
-        onClick = {},
+        onClick = {}
     )
 }

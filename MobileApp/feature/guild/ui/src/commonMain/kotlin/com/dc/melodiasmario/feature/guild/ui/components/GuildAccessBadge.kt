@@ -6,11 +6,14 @@ import androidx.compose.ui.Modifier
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
 import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 
+/**
+ * Renders guild access badge from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun GuildAccessBadge(
     accessLevel: GuildAccessLevel,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     val text = when (accessLevel) {
         GuildAccessLevel.Admin -> "Admin"
         GuildAccessLevel.DJ -> "DJ"
@@ -26,6 +29,6 @@ fun GuildAccessBadge(
     MBadge(
         modifier = modifier,
         text = text,
-        backgroundColor = backgroundColor,
+        backgroundColor = backgroundColor
     )
 }

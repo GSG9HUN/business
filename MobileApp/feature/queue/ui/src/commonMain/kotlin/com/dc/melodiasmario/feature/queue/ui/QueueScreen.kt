@@ -30,13 +30,6 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreAc
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreActionsDialog
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.input.MTextInputDialog
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_shuffle_action
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_playlist_name
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_save
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_cancel
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_processing
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_processing_message
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_refresh_action
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CommonUiRes
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.queue_action_remove_content_description
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
@@ -55,18 +48,25 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.model.currenttrack.Track
 import com.dc.melodiasmario.feature.queue.generated.resources.Res
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_add_content_description
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_cancel
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_clear_action
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_drag_handle_content_description
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_edit_mode_message
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_edit_mode_label
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_edit_mode_message
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_empty_message
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_empty_title
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_make_playlist_action
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_more_content_description
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_more_message
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_more_title
-import com.dc.melodiasmario.feature.queue.generated.resources.queue_more_content_description
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_move_down_action
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_move_up_action
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_playlist_name
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_processing
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_processing_message
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_refresh_action
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_save
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_shuffle_action
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_summary
 import com.dc.melodiasmario.feature.queue.generated.resources.queue_title
 import com.dc.melodiasmario.feature.queue.presentation.QueueDialog
@@ -76,26 +76,29 @@ import com.dc.melodiasmario.feature.queue.ui.components.QueueEditModeCard
 import com.dc.melodiasmario.feature.queue.ui.components.QueueEmptyContent
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders queue screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun QueueScreen(
     modifier: Modifier = Modifier,
     uiState: QueueUiState,
-    onEvent: (QueueEvent) -> Unit,
-) {
-    val title = stringResource(Res.string.queue_title)
+    onEvent: (queueEvent: QueueEvent) -> Unit
+): Unit {
+    val title = stringResource(resource = Res.string.queue_title)
 
     val queueReady = !uiState.isLoading && uiState.errorMessage == null
     val canModifyQueue = queueReady && !uiState.isCommandInFlight
 
-    val totalMinutes = uiState.tracks.sumOf {
-        it.durationSeconds.coerceAtLeast(0).toLong()
+    val totalMinutes = uiState.tracks.sumOf { track ->
+        track.durationSeconds.coerceAtLeast(minimumValue = 0)
+            .toLong()
     } / 60L
 
     val subtitle = if (queueReady) {
         stringResource(
-            Res.string.queue_summary,
-            uiState.tracks.size,
-            totalMinutes,
+            resource = Res.string.queue_summary,
+            formatArgs = arrayOf<Any>(uiState.tracks.size, totalMinutes)
         )
     } else {
         null
@@ -103,39 +106,39 @@ fun QueueScreen(
 
     val queueItemSpacing = ReorderableListDefaults.ItemSpacing
     val removeContentDescription =
-        stringResource(CommonUiRes.string.queue_action_remove_content_description)
+        stringResource(resource = CommonUiRes.string.queue_action_remove_content_description)
     val dragHandleContentDescription =
-        stringResource(Res.string.queue_drag_handle_content_description)
-    val moveUpContentDescription = stringResource(Res.string.queue_move_up_action)
-    val moveDownContentDescription = stringResource(Res.string.queue_move_down_action)
+        stringResource(resource = Res.string.queue_drag_handle_content_description)
+    val moveUpContentDescription = stringResource(resource = Res.string.queue_move_up_action)
+    val moveDownContentDescription = stringResource(resource = Res.string.queue_move_down_action)
 
     val listState = rememberLazyListState()
 
     SetTopBarConfig(
-        TopBarConfig(
+        config = TopBarConfig(
             title = title,
             subTitle = subtitle,
             navigationIcon = TopBarNavigationIcon.Avatar(
                 name = uiState.guildName,
                 onClick = { onEvent(QueueEvent.GuildClicked) },
-                imageUrl = uiState.guildIconUrl,
+                imageUrl = uiState.guildIconUrl
             ),
             actions = listOf(
                 TopBarAction.More(
                     onClick = { onEvent(QueueEvent.MoreClicked) },
-                    contentDescription = stringResource(Res.string.queue_more_content_description),
-                ),
-            ),
+                    contentDescription = stringResource(resource = Res.string.queue_more_content_description)
+                )
+            )
         )
     )
 
     SetFloatingActionButtonConfig(
-        if (!uiState.isLoading && uiState.errorMessage == null) {
+        config = if (!uiState.isLoading && uiState.errorMessage == null) {
             FloatingActionButtonConfig(
                 icon = FloatingActionButtonIcon.Add,
-                contentDescription = stringResource(Res.string.queue_add_content_description),
+                contentDescription = stringResource(resource = Res.string.queue_add_content_description),
                 onClick = { onEvent(QueueEvent.AddMusicClicked) },
-                enabled = !uiState.isCommandInFlight,
+                enabled = !uiState.isCommandInFlight
             )
         } else {
             null
@@ -143,40 +146,37 @@ fun QueueScreen(
     )
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize()
     ) {
         HorizontalDivider()
-
-
-
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
                     horizontal = 12.dp,
-                    vertical = 8.dp,
+                    vertical = 8.dp
                 ),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
             OutlinedButton(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 onClick = { onEvent(QueueEvent.ShuffleQueueClicked) },
                 enabled = canModifyQueue && uiState.tracks.size > 1,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(size = 12.dp),
                 border = BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline,
+                    color = MaterialTheme.colorScheme.outline
                 ),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 MText(
-                    text = stringResource(Res.string.queue_shuffle_action),
+                    text = stringResource(resource = Res.string.queue_shuffle_action),
                     color = if (
                         canModifyQueue && uiState.tracks.size > 1
                     ) {
@@ -184,28 +184,28 @@ fun QueueScreen(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
             OutlinedButton(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(weight = 1f),
                 onClick = { onEvent(QueueEvent.ClearQueueClicked) },
                 enabled = canModifyQueue && uiState.tracks.isNotEmpty(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(size = 12.dp),
                 border = BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline,
+                    color = MaterialTheme.colorScheme.outline
                 ),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     contentColor = MaterialTheme.colorScheme.error,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             ) {
                 MText(
-                    text = stringResource(Res.string.queue_clear_action),
+                    text = stringResource(resource = Res.string.queue_clear_action),
                     color = if (
                         canModifyQueue && uiState.tracks.isNotEmpty()
                     ) {
@@ -213,34 +213,35 @@ fun QueueScreen(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
-
-
         when {
             uiState.isLoading -> MLoadingScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f)
             )
 
             uiState.errorMessage != null -> MErrorScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                errorMessage = requireNotNull(uiState.errorMessage),
-                onClick = { onEvent(QueueEvent.RefreshClicked) },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                errorMessage = requireNotNull(value = uiState.errorMessage),
+                onClick = { onEvent(QueueEvent.RefreshClicked) }
             )
 
             uiState.tracks.isEmpty() -> QueueEmptyContent(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                title = stringResource(Res.string.queue_empty_title),
-                message = stringResource(Res.string.queue_empty_message),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                title = stringResource(resource = Res.string.queue_empty_title),
+                message = stringResource(resource = Res.string.queue_empty_message)
             )
 
             else -> ReorderDragContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(weight = 1f),
                 listState = listState,
                 itemKeys = uiState.tracks.mapIndexed { index, track ->
                     "${track.id}:$index"
@@ -253,7 +254,7 @@ fun QueueScreen(
                         QueueEvent.MoveTrackClicked(
                             trackId = track.id,
                             fromIndex = fromIndex,
-                            toIndex = toIndex,
+                            toIndex = toIndex
                         )
                     )
                 },
@@ -262,7 +263,7 @@ fun QueueScreen(
 
                     MTrackItemRow(
                         modifier = Modifier
-                            .alpha(0.85f)
+                            .alpha(alpha = 0.85f)
                             .graphicsLayer {
                                 shadowElevation = 16.dp.toPx()
                             },
@@ -278,9 +279,9 @@ fun QueueScreen(
                         isFirst = index == 0,
                         isLast = index == uiState.tracks.lastIndex,
                         enabled = false,
-                        dragEnabled = false,
+                        dragEnabled = false
                     )
-                },
+                }
             ) { draggedIndex ->
                 LazyColumn(
                     state = listState,
@@ -290,19 +291,19 @@ fun QueueScreen(
                         start = 12.dp,
                         top = 12.dp,
                         end = 12.dp,
-                        bottom = 96.dp,
+                        bottom = 96.dp
                     ),
-                    verticalArrangement = Arrangement.spacedBy(queueItemSpacing),
+                    verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
                 ) {
                     itemsIndexed(
                         items = uiState.tracks,
-                        key = { index, track -> "${track.id}:$index" },
+                        key = { index, track -> "${track.id}:$index" }
                     ) { index, track ->
                         MTrackItemRow(
                             modifier = Modifier
                                 .animateItem()
                                 .alpha(
-                                    if (index == draggedIndex) 0f else 1f
+                                    alpha = if (index == draggedIndex) 0f else 1f
                                 ),
                             trackNumber = index + 1,
                             title = track.title,
@@ -322,7 +323,7 @@ fun QueueScreen(
                                 onEvent(
                                     QueueEvent.RemoveTrackClicked(
                                         trackId = track.id,
-                                        index = index,
+                                        index = index
                                     )
                                 )
                             },
@@ -331,7 +332,7 @@ fun QueueScreen(
                                     QueueEvent.MoveTrackClicked(
                                         trackId = track.id,
                                         fromIndex = index,
-                                        toIndex = index - 1,
+                                        toIndex = index - 1
                                     )
                                 )
                             },
@@ -340,10 +341,10 @@ fun QueueScreen(
                                     QueueEvent.MoveTrackClicked(
                                         trackId = track.id,
                                         fromIndex = index,
-                                        toIndex = index + 1,
+                                        toIndex = index + 1
                                     )
                                 )
-                            },
+                            }
                         )
                     }
                 }
@@ -355,81 +356,85 @@ fun QueueScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 14.dp),
-                title = stringResource(if (uiState.isCommandInFlight) Res.string.queue_processing else Res.string.queue_edit_mode_label),
-                message = stringResource(if (uiState.isCommandInFlight) Res.string.queue_processing_message else Res.string.queue_edit_mode_message),
+                title = stringResource(
+                    resource = if (uiState.isCommandInFlight) Res.string.queue_processing else Res.string.queue_edit_mode_label
+                ),
+                message = stringResource(
+                    resource = if (uiState.isCommandInFlight) Res.string.queue_processing_message else Res.string.queue_edit_mode_message
+                )
             )
         }
     }
 
     if (uiState.dialog is QueueDialog.AddMusic) {
         MAddMusicSheet(
-            state = uiState.addMusic,
-            labels = rememberMAddMusicLabels(),
+            mAddMusicSheetState = uiState.addMusic,
+            mAddMusicLabels = rememberMAddMusicLabels(),
             onDismiss = { onEvent(QueueEvent.DialogDismissed) },
-            onModeChanged = { onEvent(QueueEvent.AddMusicModeChanged(it)) },
-            onManualDraftChanged = { onEvent(QueueEvent.ManualDraftChanged(it)) },
+            onModeChanged = { addMusicMode -> onEvent(QueueEvent.AddMusicModeChanged(mode = addMusicMode)) },
+            onManualDraftChanged = { manualDraft -> onEvent(QueueEvent.ManualDraftChanged(value = manualDraft)) },
             onManualConfirm = { onEvent(QueueEvent.ManualAddClicked) },
-            onSearchQueryChanged = { onEvent(QueueEvent.SearchQueryChanged(it)) },
+            onSearchQueryChanged = { searchQuery -> onEvent(QueueEvent.SearchQueryChanged(query = searchQuery)) },
             onSearchSubmitted = { onEvent(QueueEvent.SearchSubmitted) },
-            onProviderChanged = { onEvent(QueueEvent.SearchProviderChanged(it)) },
-            onKindChanged = { onEvent(QueueEvent.SearchKindChanged(it)) },
-            onResultClicked = { onEvent(QueueEvent.SearchResultClicked(it)) },
+            onProviderChanged = { providerId -> onEvent(QueueEvent.SearchProviderChanged(providerId = providerId)) },
+            onKindChanged = { musicSearchKind -> onEvent(QueueEvent.SearchKindChanged(kind = musicSearchKind)) },
+            onResultClicked = { searchResultId -> onEvent(QueueEvent.SearchResultClicked(resultId = searchResultId)) },
             onSelectedResultAddClicked = { onEvent(QueueEvent.SelectedSearchResultAddClicked) },
             onNextPageRequested = { onEvent(QueueEvent.SearchNextPageRequested) },
             onSearchRetryClicked = { onEvent(QueueEvent.SearchRetryClicked) },
-            onCapabilitiesRetryClicked = { onEvent(QueueEvent.SearchCapabilitiesRetryClicked) },
+            onCapabilitiesRetryClicked = { onEvent(QueueEvent.SearchCapabilitiesRetryClicked) }
         )
     }
 
     if (uiState.dialog is QueueDialog.MoreActions) {
         MMoreActionsDialog(
-            title = stringResource(Res.string.queue_more_title),
-            message = stringResource(Res.string.queue_more_message),
+            title = stringResource(resource = Res.string.queue_more_title),
+            message = stringResource(resource = Res.string.queue_more_message),
             actions = listOf(
                 MMoreAction(
-                    text = stringResource(Res.string.queue_refresh_action),
+                    text = stringResource(resource = Res.string.queue_refresh_action),
                     onClick = { onEvent(QueueEvent.RefreshClicked) },
-                    enabled = !uiState.isCommandInFlight && !uiState.isLoading,
+                    enabled = !uiState.isCommandInFlight && !uiState.isLoading
                 ),
                 MMoreAction(
-                    text = stringResource(Res.string.queue_make_playlist_action),
+                    text = stringResource(resource = Res.string.queue_make_playlist_action),
                     onClick = {
                         onEvent(QueueEvent.MakePlaylistFromQueueClicked)
                     },
-                    enabled = canModifyQueue && uiState.tracks.isNotEmpty(),
-                ),
+                    enabled = canModifyQueue && uiState.tracks.isNotEmpty()
+                )
             ),
-            onDismiss = { onEvent(QueueEvent.DialogDismissed) },
+            onDismiss = { onEvent(QueueEvent.DialogDismissed) }
         )
     }
 
     if (uiState.dialog is QueueDialog.CreatePlaylist) {
         MTextInputDialog(
-            title = stringResource(Res.string.queue_make_playlist_action),
+            title = stringResource(resource = Res.string.queue_make_playlist_action),
             value = uiState.playlistNameDraft,
-            onValueChange = { onEvent(QueueEvent.PlaylistNameChanged(it)) },
+            onValueChange = { inputValue -> onEvent(QueueEvent.PlaylistNameChanged(value = inputValue)) },
             onDismiss = { onEvent(QueueEvent.DialogDismissed) },
             onConfirm = { onEvent(QueueEvent.CreatePlaylistConfirmed) },
-            placeholder = stringResource(Res.string.queue_playlist_name),
-            confirmText = stringResource(Res.string.queue_save),
-            dismissText = stringResource(Res.string.queue_cancel),
+            placeholder = stringResource(resource = Res.string.queue_playlist_name),
+            confirmText = stringResource(resource = Res.string.queue_save),
+            dismissText = stringResource(resource = Res.string.queue_cancel),
             enabled = !uiState.isCommandInFlight,
-            canConfirm = uiState.playlistNameDraft.isNotBlank() && uiState.tracks.isNotEmpty(),
+            canConfirm = uiState.playlistNameDraft.isNotBlank() && uiState.tracks.isNotEmpty()
         )
     }
 }
 
 @Preview
 @Composable
-fun QueueScreenPreview() {
+private fun QueueScreenPreview() {
     MelodiasMarioTheme(themeMode = MelodiasMarioThemeMode.Dark) {
         QueueScreen(
             uiState = QueueUiState(
                 isLoading = false,
                 guildName = "Business business",
-                tracks = previewTracks,
+                tracks = previewTracks
             ),
-            onEvent = {},
+            onEvent = {}
         )
     }
 }
@@ -439,18 +444,18 @@ private val previewTracks = listOf(
         id = "1",
         title = "Midnight City",
         artist = "M83",
-        durationSeconds = 243,
+        durationSeconds = 243
     ),
     Track(
         id = "2",
         title = "Blinding Lights",
         artist = "The Weeknd",
-        durationSeconds = 200,
+        durationSeconds = 200
     ),
     Track(
         id = "3",
         title = "Sweet Disposition",
         artist = "The Temper Trap",
-        durationSeconds = 232,
-    ),
+        durationSeconds = 232
+    )
 )

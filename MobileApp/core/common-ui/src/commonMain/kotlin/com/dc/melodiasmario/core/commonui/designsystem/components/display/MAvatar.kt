@@ -19,6 +19,9 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.avata
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders avatar from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MAvatar(
     name: String,
@@ -28,14 +31,14 @@ fun MAvatar(
     size: Dp = 44.dp,
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
-    contentDescription: String = stringResource(Res.string.avatar_content_description),
-    avatarOnClick: () -> Unit = {},
-) {
+    contentDescription: String = stringResource(resource = Res.string.avatar_content_description),
+    avatarOnClick: () -> Unit = {}
+): Unit {
     Surface(
-        modifier = modifier.size(size),
+        modifier = modifier.size(size = size),
         shape = shape,
         color = backgroundColor,
-        onClick = avatarOnClick,
+        onClick = avatarOnClick
     ) {
         if (!imageUrl.isNullOrBlank()) {
             SubcomposeAsyncImage(
@@ -48,7 +51,7 @@ fun MAvatar(
                 },
                 error = {
                     AvatarFallback(name = name, contentColor = contentColor)
-                },
+                }
             )
         } else {
             AvatarFallback(name = name, contentColor = contentColor)
@@ -58,26 +61,26 @@ fun MAvatar(
 
 @Preview(
     showBackground = true,
-    backgroundColor = MmBackgroundPreviewColor,
+    backgroundColor = MmBackgroundPreviewColor
 )
 @Composable
 private fun AvatarPreviewWithImage() {
     MAvatar(
         name = "name",
         imageUrl = "https://cdn.discordapp.com/icons/1309813939563003966/6efd05e8cd412d4defb7d59941a3a512.webp?size=128",
-        modifier = Modifier.size(44.dp),
+        modifier = Modifier.size(size = 44.dp)
     )
 }
 
 @Preview(
     showBackground = true,
-    backgroundColor = MmBackgroundPreviewColor,
+    backgroundColor = MmBackgroundPreviewColor
 )
 @Composable
 private fun AvatarPreviewWithNoImage() {
     MAvatar(
         name = "name",
         imageUrl = null,
-        modifier = Modifier.size(44.dp),
+        modifier = Modifier.size(size = 44.dp)
     )
 }

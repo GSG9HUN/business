@@ -6,80 +6,102 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreAction
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.feature.playlisttrack.generated.resources.*
-import com.dc.melodiasmario.feature.playlisttrack.presentation.*
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.Res
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_cancel
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_more
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_more_message
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_move_down
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_move_up
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_refresh
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_remove
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_remove_confirm
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_shuffle
+import com.dc.melodiasmario.feature.playlisttrack.generated.resources.playlisttrack_track_actions
+import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackDialog
+import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackEvent
+import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackUiState
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders playlist track dialogs from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
-internal fun PlaylistTrackDialogs(state: PlaylistTrackUiState, onEvent: (PlaylistTrackEvent) -> Unit) {
+internal fun PlaylistTrackDialogs(
+    uiState: PlaylistTrackUiState,
+    onEvent: (
+        playlistTrackEvent: PlaylistTrackEvent
+    ) -> Unit
+): Unit {
     val dismiss = { onEvent(PlaylistTrackEvent.DismissDialog) }
-    when (val dialog = state.dialog) {
+    when (val dialog = uiState.dialog) {
         PlaylistTrackDialog.None -> Unit
-        PlaylistTrackDialog.AddMusic -> PlaylistTrackAddMusicSheet(state.addMusic, onEvent)
+        PlaylistTrackDialog.AddMusic -> PlaylistTrackAddMusicSheet(mAddMusicSheetState = uiState.addMusic, onEvent = onEvent)
         PlaylistTrackDialog.More -> PlaylistTrackActionsSheet(
-            title = stringResource(Res.string.playlisttrack_more),
-            message = stringResource(Res.string.playlisttrack_more_message),
+            title = stringResource(resource = Res.string.playlisttrack_more),
+            message = stringResource(resource = Res.string.playlisttrack_more_message),
             actions = listOf(
                 MMoreAction(
-                    text = stringResource(Res.string.playlisttrack_shuffle),
-                    enabled = state.canModify && state.canReorder && state.tracks.size > 1,
-                    onClick = { onEvent(PlaylistTrackEvent.Shuffle) },
+                    text = stringResource(resource = Res.string.playlisttrack_shuffle),
+                    enabled = uiState.canModify && uiState.canReorder && uiState.tracks.size > 1,
+                    onClick = { onEvent(PlaylistTrackEvent.Shuffle) }
                 ),
                 MMoreAction(
-                    text = stringResource(Res.string.playlisttrack_refresh),
-                    enabled = !state.isCommandInFlight && !state.isRefreshing,
-                    onClick = { onEvent(PlaylistTrackEvent.Refresh); dismiss() },
-                ),
+                    text = stringResource(resource = Res.string.playlisttrack_refresh),
+                    enabled = !uiState.isCommandInFlight && !uiState.isRefreshing,
+                    onClick = { onEvent(PlaylistTrackEvent.Refresh); dismiss() }
+                )
             ),
             onDismiss = dismiss,
-            dismissText = stringResource(Res.string.playlisttrack_cancel),
+            dismissText = stringResource(resource = Res.string.playlisttrack_cancel)
         )
         is PlaylistTrackDialog.TrackActions -> {
-            val index = state.tracks.indexOfFirst { it.orderNumber == dialog.orderNumber }
-            val track = state.tracks.getOrNull(index) ?: return
+            val index = uiState.tracks.indexOfFirst { playlistTrack -> playlistTrack.orderNumber == dialog.orderNumber }
+            val track = uiState.tracks.getOrNull(index = index) ?: return
             PlaylistTrackActionsSheet(
                 title = track.title,
-                message = stringResource(Res.string.playlisttrack_track_actions),
+                message = stringResource(resource = Res.string.playlisttrack_track_actions),
                 actions = listOf(
                     MMoreAction(
-                        text = stringResource(Res.string.playlisttrack_move_up),
-                        enabled = state.canModify && state.canReorder && index > 0,
-                        onClick = { onEvent(PlaylistTrackEvent.Move(index, index - 1)) },
+                        text = stringResource(resource = Res.string.playlisttrack_move_up),
+                        enabled = uiState.canModify && uiState.canReorder && index > 0,
+                        onClick = { onEvent(PlaylistTrackEvent.Move(fromIndex = index, toIndex = index - 1)) }
                     ),
                     MMoreAction(
-                        text = stringResource(Res.string.playlisttrack_move_down),
-                        enabled = state.canModify && state.canReorder && index < state.tracks.lastIndex,
-                        onClick = { onEvent(PlaylistTrackEvent.Move(index, index + 1)) },
+                        text = stringResource(resource = Res.string.playlisttrack_move_down),
+                        enabled = uiState.canModify && uiState.canReorder && index < uiState.tracks.lastIndex,
+                        onClick = { onEvent(PlaylistTrackEvent.Move(fromIndex = index, toIndex = index + 1)) }
                     ),
                     MMoreAction(
-                        text = stringResource(Res.string.playlisttrack_remove),
-                        enabled = state.canModify,
+                        text = stringResource(resource = Res.string.playlisttrack_remove),
+                        enabled = uiState.canModify,
                         isDestructive = true,
-                        onClick = { onEvent(PlaylistTrackEvent.RemoveClicked(track.orderNumber)) },
-                    ),
+                        onClick = { onEvent(PlaylistTrackEvent.RemoveClicked(orderNumber = track.orderNumber)) }
+                    )
                 ),
                 onDismiss = dismiss,
-                dismissText = stringResource(Res.string.playlisttrack_cancel),
+                dismissText = stringResource(resource = Res.string.playlisttrack_cancel)
             )
         }
         is PlaylistTrackDialog.ConfirmRemove -> AlertDialog(
-            onDismissRequest = { if (!state.isCommandInFlight) dismiss() },
+            onDismissRequest = { if (!uiState.isCommandInFlight) {
+                dismiss()
+            } },
             title = { MText(
-                text = stringResource(Res.string.playlisttrack_remove),
-                color = MaterialTheme.colorScheme.onSurface,
+                text = stringResource(resource = Res.string.playlisttrack_remove),
+                color = MaterialTheme.colorScheme.onSurface
             ) },
-            text = { MText(text = stringResource(Res.string.playlisttrack_remove_confirm)) },
+            text = { MText(text = stringResource(resource = Res.string.playlisttrack_remove_confirm)) },
             confirmButton = {
                 TextButton(
-                    enabled = state.canModify,
-                    onClick = { onEvent(PlaylistTrackEvent.RemoveConfirmed(dialog.orderNumber)) },
-                ) { MText(text = stringResource(Res.string.playlisttrack_remove), color = MaterialTheme.colorScheme.error) }
+                    enabled = uiState.canModify,
+                    onClick = { onEvent(PlaylistTrackEvent.RemoveConfirmed(orderNumber = dialog.orderNumber)) }
+                ) { MText(text = stringResource(resource = Res.string.playlisttrack_remove), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(enabled = !state.isCommandInFlight, onClick = dismiss) {
-                    MText(text = stringResource(Res.string.playlisttrack_cancel))
+                TextButton(enabled = !uiState.isCommandInFlight, onClick = dismiss) {
+                    MText(text = stringResource(resource = Res.string.playlisttrack_cancel))
                 }
-            },
+            }
         )
     }
 }

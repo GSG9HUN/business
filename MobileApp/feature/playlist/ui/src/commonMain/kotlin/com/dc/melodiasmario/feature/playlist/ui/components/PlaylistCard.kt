@@ -1,41 +1,40 @@
 package com.dc.melodiasmario.feature.playlist.ui.components
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dc.melodiasmario.core.commonui.components.MPlaylistArtwork
+import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.model.playlist.Playlist
-import com.dc.melodiasmario.core.commonui.components.MPlaylistArtwork
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
-import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_menu_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_subtitle
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_duration_hours
@@ -43,10 +42,14 @@ import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_durati
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_duration_minutes
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_duration_minutes_seconds
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_duration_seconds
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_delete_action
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_rename_action
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders playlist card from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun PlaylistCard(
     modifier: Modifier,
@@ -54,14 +57,14 @@ fun PlaylistCard(
     onClick: () -> Unit,
     onRenameClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
-    onArtworkClick: () -> Unit = {},
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    val menuContentDescription =  stringResource(Res.string.playlist_card_menu_content_description)
+    onArtworkClick: () -> Unit = {}
+): Unit {
+    var menuExpanded by remember { mutableStateOf(value = false) }
+    val menuContentDescription =  stringResource(resource = Res.string.playlist_card_menu_content_description)
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(size = 18.dp),
         onClick = onClick,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
@@ -71,47 +74,46 @@ fun PlaylistCard(
     ) {
         Box {
             Column(
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(all = 12.dp)
             ) {
                 MPlaylistArtwork(
                     playlistName = playlist.name,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1f)
+                        .aspectRatio(ratio = 1f)
                         .background(
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(size = 12.dp)
                         ),
-                    imageUrl = playlist.artworkUri,
+                    imageUrl = playlist.artworkUri
                 )
 
-                Spacer(modifier = Modifier.size(12.dp))
+                Spacer(modifier = Modifier.size(size = 12.dp))
 
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = playlist.name,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
 
                 MText(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(
-                        Res.string.playlist_card_subtitle,
-                        playlist.songCount,
-                        playlist.duration.toDurationString(),
+                        resource = Res.string.playlist_card_subtitle,
+                        formatArgs = arrayOf<Any>(playlist.songCount, playlist.duration.toDurationString())
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(6.dp),
-                contentAlignment = Alignment.TopEnd,
+                    .padding(all = 6.dp),
+                contentAlignment = Alignment.TopEnd
             ) {
                 IconButton(
                     modifier = Modifier.semantics {
@@ -122,45 +124,45 @@ fun PlaylistCard(
                     MText(
                         text = "...",
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
                 DropdownMenu(
                     expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
+                    onDismissRequest = { menuExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { MText(text = stringResource(Res.string.playlists_artwork_title)) },
+                        text = { MText(text = stringResource(resource = Res.string.playlists_artwork_title)) },
                         onClick = {
                             menuExpanded = false
                             onArtworkClick()
-                        },
+                        }
                     )
                     DropdownMenuItem(
                         text = {
                             MText(
-                                text = stringResource(Res.string.playlists_rename_action),
-                                textAlign = TextAlign.Start,
+                                text = stringResource(resource = Res.string.playlists_rename_action),
+                                textAlign = TextAlign.Start
                             )
                         },
                         onClick = {
                             menuExpanded = false
                             onRenameClick()
-                        },
+                        }
                     )
                     DropdownMenuItem(
                         text = {
                             MText(
-                                text = stringResource(Res.string.playlists_delete_action),
+                                text = stringResource(resource = Res.string.playlists_delete_action),
                                 color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Start,
+                                textAlign = TextAlign.Start
                             )
                         },
                         onClick = {
                             menuExpanded = false
                             onDeleteClick()
-                        },
+                        }
                     )
                 }
             }
@@ -175,13 +177,19 @@ private fun Int.toDurationString(): String {
     val seconds = this % 60
 
     return if (hours > 0) {
-        if (minutes == 0) return stringResource(Res.string.playlist_duration_hours, hours)
-        stringResource(Res.string.playlist_duration_hours_minutes, hours, minutes)
+        if (minutes == 0) {
+            return stringResource(resource = Res.string.playlist_duration_hours, formatArgs = arrayOf<Any>(hours))
+        }
+
+        stringResource(resource = Res.string.playlist_duration_hours_minutes, formatArgs = arrayOf<Any>(hours, minutes))
     } else if (minutes > 0) {
-        if (seconds == 0) return stringResource(Res.string.playlist_duration_minutes, minutes)
-        stringResource(Res.string.playlist_duration_minutes_seconds, minutes, seconds)
+        if (seconds == 0) {
+            return stringResource(resource = Res.string.playlist_duration_minutes, formatArgs = arrayOf<Any>(minutes))
+        }
+
+        stringResource(resource = Res.string.playlist_duration_minutes_seconds, formatArgs = arrayOf<Any>(minutes, seconds))
     } else {
-        stringResource(Res.string.playlist_duration_seconds, seconds)
+        stringResource(resource = Res.string.playlist_duration_seconds, formatArgs = arrayOf<Any>(seconds))
     }
 }
 
@@ -190,14 +198,14 @@ private fun Int.toDurationString(): String {
 private fun PlaylistCardPreview() {
     MelodiasMarioTheme {
         PlaylistCard(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(all = 16.dp),
             playlist = Playlist(
                 id = "favorites",
                 name = "Late night queue",
                 songCount = 42,
-                duration = 12_840,
+                duration = 12_840
             ),
-            onClick = {},
+            onClick = {}
         )
     }
 }

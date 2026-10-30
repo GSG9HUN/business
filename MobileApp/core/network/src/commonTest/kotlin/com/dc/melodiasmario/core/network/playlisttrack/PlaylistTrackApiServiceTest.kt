@@ -5,60 +5,93 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.http.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodedPath
+import io.ktor.http.headers
+import io.ktor.http.headersOf
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
 
 class PlaylistTrackApiServiceTest {
     @Test
     fun detailUsesAuthorizedEndpointAndMapsBackendTrackOrder() = runTest {
         val engine = MockEngine { request ->
-            assertEquals("/api/playlists/17", request.url.encodedPath)
-            assertEquals("Bearer token", request.headers[HttpHeaders.Authorization])
+            assertEquals(expected = "/api/playlists/17", actual = request.url.encodedPath)
+            assertEquals(expected = "Bearer token", actual = request.headers[HttpHeaders.Authorization])
             respond(
-                """{"id":"17","guildId":"guild","name":"Late Night","songCount":2,"duration":20,
+                content = """{"id":"17","guildId":"guild","name":"Late Night","songCount":2,"duration":20,
                   "tracks":[
                     {"orderNumber":2,"title":"Second","author":"Artist","duration":10,"trackUri":"https://example.com/2"},
                     {"orderNumber":1,"title":"First","author":"Artist","duration":10,"trackUri":"https://example.com/1"}]}""",
-                HttpStatusCode.OK,
-                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             )
         }
-        val client = HttpClient(engine) { configureMelodiasHttpClient() }
+        val httpClient = HttpClient(engine = engine) { configureMelodiasHttpClient() }
         try {
-            val detail = PlaylistTrackApiService("https://example.com/api", client).getPlaylist("token", "17").toDomain()
-            assertEquals(listOf("First", "Second"), detail.tracks.map { it.title })
-            assertEquals("https://example.com/1", detail.tracks.first().trackUri)
+            val playlistTrackApiService = PlaylistTrackApiService(
+                baseUrl = "https://example.com/api",
+                httpClient = httpClient
+            ).getPlaylist(
+                accessToken = "token",
+                playlistId = "17"
+            )
+                .toDomain()
+            assertEquals(expected = listOf("First", "Second"), actual = playlistTrackApiService.tracks.map { track -> track.title })
+            assertEquals(expected = "https://example.com/1", actual = playlistTrackApiService.tracks.first().trackUri)
         } finally {
-            client.close()
+            httpClient.close()
         }
     }
 
     @Test
     fun deleteUsesBackendOneBasedTrackNumber() = runTest {
-        val client = HttpClient(MockEngine { request ->
-            assertEquals(HttpMethod.Delete, request.method)
-            assertEquals("/api/playlists/17/tracks/3", request.url.encodedPath)
-            respond("", HttpStatusCode.NoContent)
-        }) { configureMelodiasHttpClient() }
+        val httpClient = HttpClient(
+            engine = MockEngine { request ->
+                assertEquals(expected = HttpMethod.Delete, actual = request.method)
+                assertEquals(expected = "/api/playlists/17/tracks/3", actual = request.url.encodedPath)
+                respond(content = "", status = HttpStatusCode.NoContent)
+            }
+        ) { configureMelodiasHttpClient() }
         try {
-            PlaylistTrackApiService("https://example.com/api", client).removeTrack("token", "17", 3)
+            PlaylistTrackApiService(
+                baseUrl = "https://example.com/api",
+                httpClient = httpClient
+            ).removeTrack(
+                accessToken = "token",
+                playlistId = "17",
+                trackNumber = 3
+            )
         } finally {
-            client.close()
+            httpClient.close()
         }
     }
 
     @Test
     fun forbiddenDeletionIsNotTreatedAsSuccess() = runTest {
-        val client = HttpClient(MockEngine {
-            respond("Forbidden", HttpStatusCode.Forbidden)
-        }) { configureMelodiasHttpClient() }
+        val httpClient = HttpClient(
+            engine = MockEngine {
+                respond(content = "Forbidden", status = HttpStatusCode.Forbidden)
+            }
+        ) { configureMelodiasHttpClient() }
         try {
             assertFailsWith<ClientRequestException> {
-                PlaylistTrackApiService("https://example.com/api", client).removeTrack("token", "17", 1)
+                PlaylistTrackApiService(
+                    baseUrl = "https://example.com/api",
+                    httpClient = httpClient
+                ).removeTrack(
+                    accessToken = "token",
+                    playlistId = "17",
+                    trackNumber = 1
+                )
             }
         } finally {
-            client.close()
+            httpClient.close()
         }
     }
 }

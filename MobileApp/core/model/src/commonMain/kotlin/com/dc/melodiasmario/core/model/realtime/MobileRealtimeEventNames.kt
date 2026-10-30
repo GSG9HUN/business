@@ -1,38 +1,161 @@
 package com.dc.melodiasmario.core.model.realtime
 
+/**
+ * Represents mobile realtime event names shared between application layers.
+ */
 object MobileRealtimeEventNames {
-    const val BotControlCommandCreated = "BotControlCommandCreated"
-    const val BotControlCommandStarted = "BotControlCommandStarted"
-    const val BotControlCommandSucceeded = "BotControlCommandSucceeded"
-    const val BotControlCommandFailed = "BotControlCommandFailed"
-    const val BotControlCommandInterrupted = "BotControlCommandInterrupted"
-    const val BotControlCommandUpdated = "BotControlCommandUpdated"
+    /**
+     * Bot control command created exposed by mobile realtime event names.
+     */
+    const val BotControlCommandCreated: String = "BotControlCommandCreated"
 
-    const val PlaybackSnapshotChanged = "PlaybackSnapshotChanged"
-    const val CurrentTrackChanged = "CurrentTrackChanged"
-    const val PlaybackStarted = "PlaybackStarted"
-    const val PlaybackPaused = "PlaybackPaused"
-    const val PlaybackResumed = "PlaybackResumed"
-    const val PlaybackStopped = "PlaybackStopped"
-    const val PlaybackSkipped = "PlaybackSkipped"
-    const val PlaybackPreviousStarted = "PlaybackPreviousStarted"
-    const val RepeatModeChanged = "RepeatModeChanged"
-    const val PlaybackPositionChanged = "PlaybackPositionChanged"
-    const val PlaybackLoadFailed = "PlaybackLoadFailed"
+    /**
+     * Bot control command started exposed by mobile realtime event names.
+     */
+    const val BotControlCommandStarted: String = "BotControlCommandStarted"
 
-    const val QueueSnapshotChanged = "QueueSnapshotChanged"
-    const val QueueItemAdded = "QueueItemAdded"
-    const val QueueItemsAdded = "QueueItemsAdded"
-    const val QueueItemRemoved = "QueueItemRemoved"
-    const val QueueCleared = "QueueCleared"
-    const val QueueShuffled = "QueueShuffled"
-    const val QueueItemMoved = "QueueItemMoved"
-    const val QueueItemClaimed = "QueueItemClaimed"
-    const val QueueCompacted = "QueueCompacted"
-    const val RepeatListSnapshotChanged = "RepeatListSnapshotChanged"
+    /**
+     * Bot control command succeeded exposed by mobile realtime event names.
+     */
+    const val BotControlCommandSucceeded: String = "BotControlCommandSucceeded"
 
-    const val GuildBotStatusChanged = "GuildBotStatusChanged"
-    const val BotJoinedVoiceChannel = "BotJoinedVoiceChannel"
-    const val BotLeftVoiceChannel = "BotLeftVoiceChannel"
-    const val BotVoiceUserCountChanged = "BotVoiceUserCountChanged"
+    /**
+     * Bot control command failed exposed by mobile realtime event names.
+     */
+    const val BotControlCommandFailed: String = "BotControlCommandFailed"
+
+    /**
+     * Bot control command interrupted exposed by mobile realtime event names.
+     */
+    const val BotControlCommandInterrupted: String = "BotControlCommandInterrupted"
+
+    /**
+     * Bot control command updated exposed by mobile realtime event names.
+     */
+    const val BotControlCommandUpdated: String = "BotControlCommandUpdated"
+
+    /**
+     * Playback snapshot changed exposed by mobile realtime event names.
+     */
+    const val PlaybackSnapshotChanged: String = "PlaybackSnapshotChanged"
+
+    /**
+     * Current track changed exposed by mobile realtime event names.
+     */
+    const val CurrentTrackChanged: String = "CurrentTrackChanged"
+
+    /**
+     * Playback started exposed by mobile realtime event names.
+     */
+    const val PlaybackStarted: String = "PlaybackStarted"
+
+    /**
+     * Playback paused exposed by mobile realtime event names.
+     */
+    const val PlaybackPaused: String = "PlaybackPaused"
+
+    /**
+     * Playback resumed exposed by mobile realtime event names.
+     */
+    const val PlaybackResumed: String = "PlaybackResumed"
+
+    /**
+     * Playback stopped exposed by mobile realtime event names.
+     */
+    const val PlaybackStopped: String = "PlaybackStopped"
+
+    /**
+     * Playback skipped exposed by mobile realtime event names.
+     */
+    const val PlaybackSkipped: String = "PlaybackSkipped"
+
+    /**
+     * Playback previous started exposed by mobile realtime event names.
+     */
+    const val PlaybackPreviousStarted: String = "PlaybackPreviousStarted"
+
+    /**
+     * Repeat mode changed exposed by mobile realtime event names.
+     */
+    const val RepeatModeChanged: String = "RepeatModeChanged"
+
+    /**
+     * Playback position changed exposed by mobile realtime event names.
+     */
+    const val PlaybackPositionChanged: String = "PlaybackPositionChanged"
+
+    /**
+     * Playback load failed exposed by mobile realtime event names.
+     */
+    const val PlaybackLoadFailed: String = "PlaybackLoadFailed"
+
+    /**
+     * Queue snapshot changed exposed by mobile realtime event names.
+     */
+    const val QueueSnapshotChanged: String = "QueueSnapshotChanged"
+
+    /**
+     * Queue item added exposed by mobile realtime event names.
+     */
+    const val QueueItemAdded: String = "QueueItemAdded"
+
+    /**
+     * Queue items added exposed by mobile realtime event names.
+     */
+    const val QueueItemsAdded: String = "QueueItemsAdded"
+
+    /**
+     * Queue item removed exposed by mobile realtime event names.
+     */
+    const val QueueItemRemoved: String = "QueueItemRemoved"
+
+    /**
+     * Queue cleared exposed by mobile realtime event names.
+     */
+    const val QueueCleared: String = "QueueCleared"
+
+    /**
+     * Queue shuffled exposed by mobile realtime event names.
+     */
+    const val QueueShuffled: String = "QueueShuffled"
+
+    /**
+     * Queue item moved exposed by mobile realtime event names.
+     */
+    const val QueueItemMoved: String = "QueueItemMoved"
+
+    /**
+     * Queue item claimed exposed by mobile realtime event names.
+     */
+    const val QueueItemClaimed: String = "QueueItemClaimed"
+
+    /**
+     * Queue compacted exposed by mobile realtime event names.
+     */
+    const val QueueCompacted: String = "QueueCompacted"
+
+    /**
+     * Repeat list snapshot changed exposed by mobile realtime event names.
+     */
+    const val RepeatListSnapshotChanged: String = "RepeatListSnapshotChanged"
+
+    /**
+     * Guild bot status changed exposed by mobile realtime event names.
+     */
+    const val GuildBotStatusChanged: String = "GuildBotStatusChanged"
+
+    /**
+     * Bot joined voice channel exposed by mobile realtime event names.
+     */
+    const val BotJoinedVoiceChannel: String = "BotJoinedVoiceChannel"
+
+    /**
+     * Bot left voice channel exposed by mobile realtime event names.
+     */
+    const val BotLeftVoiceChannel: String = "BotLeftVoiceChannel"
+
+    /**
+     * Bot voice user count changed exposed by mobile realtime event names.
+     */
+    const val BotVoiceUserCountChanged: String = "BotVoiceUserCountChanged"
 }

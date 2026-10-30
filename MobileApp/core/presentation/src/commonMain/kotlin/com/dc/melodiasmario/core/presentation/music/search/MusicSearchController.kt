@@ -2,13 +2,17 @@ package com.dc.melodiasmario.core.presentation.music.search
 
 import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.common.TrackSearchPrefix
+import com.dc.melodiasmario.core.model.search.MusicSearchCapability
+import com.dc.melodiasmario.core.model.search.MusicSearchPage
+import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import com.dc.melodiasmario.core.presentation.MviEffect
-import com.dc.melodiasmario.core.presentation.runAction
 import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 import com.dc.melodiasmario.core.presentation.music.toDomainKind
 import com.dc.melodiasmario.core.presentation.music.toTrackSearchPrefixOrDefault
+import com.dc.melodiasmario.core.presentation.runAction
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,18 +22,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
-import com.dc.melodiasmario.core.model.search.MusicSearchCapability
-import com.dc.melodiasmario.core.model.search.MusicSearchPage
-import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 
+/**
+ * Owns music search coordination and its lifecycle-bound operations.
+ */
 class MusicSearchController<State, Effect>(
-    private val getCapabilities: (String) -> Flow<Resource<List<MusicSearchCapability>>>,
-    private val searchMusic: (String, TrackSearchPrefix, MusicSearchResultKind, String, String?) -> Flow<Resource<MusicSearchPage>>,
-    private val state: MutableStateFlow<State>,
+    private val getCapabilities: (guildId: String) -> Flow<Resource<List<MusicSearchCapability>>>,
+    private val searchMusic: (
+        guildId: String,
+        provider: TrackSearchPrefix,
+        kind: MusicSearchResultKind,
+        query: String,
+        continuationToken: String?
+    ) -> Flow<Resource<MusicSearchPage>>,
+    private val uiState: MutableStateFlow<State>,
     private val effects: MutableSharedFlow<Effect>,
     private val failureEffect: Effect,
-    private val scope: CoroutineScope,
+    private val coroutineScope: CoroutineScope,
     private val currentGuildIdProvider: () -> String?
 ) where State : MusicSearchUiState<State>, Effect : MviEffect {
 
@@ -37,7 +46,10 @@ class MusicSearchController<State, Effect>(
     private val musicSearchReducer = MusicSearchReducer()
     private var searchRequestKey = 0L
 
-    fun resetForGuildChange(newGuildId: String, currentGuildId: String?) {
+    /**
+     * Clears search state when the selected guild changes.
+     */
+    fun resetForGuildChange(newGuildId: String, currentGuildId: String?): Unit {
         if (newGuildId == currentGuildId) {
             return
         }
@@ -45,45 +57,52 @@ class MusicSearchController<State, Effect>(
         clear()
     }
 
-    suspend fun loadCapabilities() {
+    /**
+     * Loads music-search capabilities for the current guild.
+     */
+    suspend fun loadCapabilities(): Unit {
         val guildId = currentGuildIdProvider() ?: return
 
         getCapabilities(guildId).filter {
             currentGuildIdProvider() == guildId
-        }.runAction(
-            state = state,
-            effects = effects,
-            failureEffect = failureEffect,
-            onLoading = {
-                it.withAddMusic(
-                    musicSearchReducer.capabilitiesLoading(state = it.addMusic)
-                )
-            },
-            onSuccessWithData = { currentState, capabilities ->
-                currentState.withAddMusic(
-                    musicSearchReducer.capabilitiesLoaded(
-                        state = currentState.addMusic,
-                        capabilities = capabilities
+        }
+            .runAction(
+                uiState = uiState,
+                effects = effects,
+                failureEffect = failureEffect,
+                onLoading = { currentUiState ->
+                    currentUiState.withAddMusic(
+                        addMusic = musicSearchReducer.capabilitiesLoading(mAddMusicSheetState = currentUiState.addMusic)
                     )
-                )
-            },
-            onError = { currentState, error ->
-                currentState.withAddMusic(
-                    musicSearchReducer.capabilitiesFailed(
-                        state = currentState.addMusic,
-                        error = error
+                },
+                onSuccessWithData = { currentState, capabilities ->
+                    currentState.withAddMusic(
+                        addMusic = musicSearchReducer.capabilitiesLoaded(
+                            mAddMusicSheetState = currentState.addMusic,
+                            capabilities = capabilities
+                        )
                     )
-                )
-            },
-        )
+                },
+                onError = { currentState, error ->
+                    currentState.withAddMusic(
+                        addMusic = musicSearchReducer.capabilitiesFailed(
+                            mAddMusicSheetState = currentState.addMusic,
+                            error = error
+                        )
+                    )
+                }
+            )
     }
 
-    fun onQueryChanged(query: String) {
+    /**
+     * Updates the search query and invalidates obsolete results.
+     */
+    fun onQueryChanged(query: String): Unit {
         cancelInFlightSearch()
 
-        state.update {
-            it.withAddMusic(
-                musicSearchReducer.queryChanged(state = it.addMusic, query = query)
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.queryChanged(mAddMusicSheetState = currentUiState.addMusic, query = query)
             )
         }
 
@@ -94,81 +113,110 @@ class MusicSearchController<State, Effect>(
         startSearch(append = false, debounce = true)
     }
 
-    fun onProviderChanged(providerId: String) {
+    /**
+     * Updates the selected search provider.
+     */
+    fun onProviderChanged(providerId: String): Unit {
         cancelInFlightSearch()
 
-        state.update {
-            it.withAddMusic(
-                musicSearchReducer.providerChanged(state = it.addMusic, providerId = providerId)
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.providerChanged(mAddMusicSheetState = currentUiState.addMusic, providerId = providerId)
             )
         }
 
         submit()
     }
 
-    fun onKindChanged(kind: MMusicSearchKind) {
+    /**
+     * Updates the selected music-search result kind.
+     */
+    fun onKindChanged(kind: MMusicSearchKind): Unit {
         cancelInFlightSearch()
 
-        state.update {
-            it.withAddMusic(musicSearchReducer.kindChanged(state = it.addMusic, kind = kind))
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(addMusic = musicSearchReducer.kindChanged(mAddMusicSheetState = currentUiState.addMusic, kind = kind))
         }
 
         submit()
     }
 
-    fun submit() {
+    /**
+     * Submits the current search query through the configured search operation.
+     */
+    fun submit(): Unit {
         startSearch(append = false, debounce = false)
     }
 
-    fun retry() {
+    /**
+     * Retries the current music search.
+     */
+    fun retry(): Unit {
         submit()
     }
 
-    fun loadNextPage() {
-        val search = state.value.addMusic
+    /**
+     * Loads the next page of search results when available.
+     */
+    fun loadNextPage(): Unit {
+        val search = uiState.value.addMusic
 
-        if (search.nextPageToken == null || search.isSearching || search.isLoadingNextPage) {
+        if (search.nextPageToken == null
+            || search.isSearching
+            || search.isLoadingNextPage) {
             return
         }
 
         startSearch(append = true, debounce = false)
     }
 
-    fun selectResult(resultId: String) {
-        state.update {
-            it.withAddMusic(
-                musicSearchReducer.resultSelected(state = it.addMusic, resultId = resultId)
+    /**
+     * Updates the selected search-result identifier.
+     */
+    fun selectResult(resultId: String): Unit {
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.resultSelected(mAddMusicSheetState = currentUiState.addMusic, resultId = resultId)
             )
         }
     }
 
-    fun updateMode(mode: MAddMusicMode) {
-        state.update {
-            it.withAddMusic(
-                musicSearchReducer.modeChanged(state = it.addMusic, mode = mode)
+    /**
+     * Updates the music-input mode.
+     */
+    fun updateMode(mode: MAddMusicMode): Unit {
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.modeChanged(mAddMusicSheetState = currentUiState.addMusic, mode = mode)
             )
         }
     }
 
-    fun clear() {
+    /**
+     * Clears the state and resources owned by MusicSearchController.
+     */
+    fun clear(): Unit {
         cancel()
 
-        state.update {
-            it.withAddMusic(
-                musicSearchReducer.reset(commandInFlight = it.isCommandInFlight)
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.reset(commandInFlight = currentUiState.isCommandInFlight)
             )
         }
     }
 
-    fun cancel() {
+    /**
+     * Cancels the active music search controller.
+     */
+    fun cancel(): Unit {
         cancelInFlightSearch()
     }
 
     private fun startSearch(append: Boolean, debounce: Boolean) {
         val guildId = currentGuildIdProvider() ?: return
-        val search = state.value.addMusic
+        val search = uiState.value.addMusic
 
-        if (!canSearch(search)) {
+        if (!canSearch(search = search)) {
             return
         }
 
@@ -179,13 +227,18 @@ class MusicSearchController<State, Effect>(
         cancelInFlightSearch()
         val requestKey = searchRequestKey
 
-        state.update {
-            it.withAddMusic(musicSearchReducer.searchLoading(state = it.addMusic, append = append))
+        uiState.update { currentUiState ->
+            currentUiState.withAddMusic(
+                addMusic = musicSearchReducer.searchLoading(
+                    mAddMusicSheetState = currentUiState.addMusic,
+                    append = append
+                )
+            )
         }
 
-        searchJob = scope.launch {
+        searchJob = coroutineScope.launch {
             if (debounce) {
-                delay(SEARCH_DEBOUNCE_MILLIS.milliseconds)
+                delay(duration = SEARCH_DEBOUNCE_MILLIS.milliseconds)
             }
 
             performSearch(
@@ -198,12 +251,13 @@ class MusicSearchController<State, Effect>(
     }
 
     private fun canSearch(search: MAddMusicSheetState): Boolean {
-        if (search.isCapabilitiesLoading || search.query.trim().length < MIN_SEARCH_QUERY_LENGTH) {
+        if (search.isCapabilitiesLoading
+            || search.query.trim().length < MIN_SEARCH_QUERY_LENGTH) {
             return false
         }
 
-        val provider = search.providers.firstOrNull {
-            it.id == search.selectedProviderId
+        val provider = search.providers.firstOrNull { provider ->
+            provider.id == search.selectedProviderId
         } ?: return false
 
         if (!provider.canEnqueue) {
@@ -231,39 +285,40 @@ class MusicSearchController<State, Effect>(
                 search.nextPageToken
             } else {
                 null
-            },
+            }
         ).filter {
             requestKey == searchRequestKey && currentGuildIdProvider() == guildId
-        }.runAction(
-            state = state,
-            effects = effects,
-            failureEffect = failureEffect,
-            onLoading = {
-                it.withAddMusic(
-                    musicSearchReducer.searchLoading(
-                        state = it.addMusic,
-                        append = append
+        }
+            .runAction(
+                uiState = uiState,
+                effects = effects,
+                failureEffect = failureEffect,
+                onLoading = { currentUiState ->
+                    currentUiState.withAddMusic(
+                        addMusic = musicSearchReducer.searchLoading(
+                            mAddMusicSheetState = currentUiState.addMusic,
+                            append = append
+                        )
                     )
-                )
-            },
-            onSuccessWithData = { currentState, page ->
-                currentState.withAddMusic(
-                    musicSearchReducer.searchLoaded(
-                        state = currentState.addMusic,
-                        page = page,
-                        append = append
+                },
+                onSuccessWithData = { currentState, page ->
+                    currentState.withAddMusic(
+                        addMusic = musicSearchReducer.searchLoaded(
+                            mAddMusicSheetState = currentState.addMusic,
+                            page = page,
+                            append = append
+                        )
                     )
-                )
-            },
-            onError = { currentState, error ->
-                currentState.withAddMusic(
-                    musicSearchReducer.searchFailed(
-                        state = currentState.addMusic,
-                        error = error
+                },
+                onError = { currentState, error ->
+                    currentState.withAddMusic(
+                        addMusic = musicSearchReducer.searchFailed(
+                            mAddMusicSheetState = currentState.addMusic,
+                            error = error
+                        )
                     )
-                )
-            },
-        )
+                }
+            )
     }
 
     private fun cancelInFlightSearch() {

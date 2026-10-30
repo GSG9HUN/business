@@ -30,10 +30,10 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 import com.dc.melodiasmario.core.model.playlist.GuildData
 import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
-import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_add_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_placeholder
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_save
-import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_add_content_description
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_cancel
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_count
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_create_action
@@ -45,9 +45,9 @@ import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_empty
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_name_placeholder
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_no_search_results_message
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_placeholder_title
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_refresh_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_rename_action
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_rename_title
-import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_refresh_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_action
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_search_placeholder
@@ -59,45 +59,48 @@ import com.dc.melodiasmario.feature.playlist.ui.components.PlaylistCard
 import com.dc.melodiasmario.feature.playlist.ui.components.PlaylistsPlaceholder
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders playlists screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun PlaylistsScreen(
     modifier: Modifier = Modifier,
     uiState: PlaylistsUiState,
-    onEvent: (PlaylistsEvent) -> Unit,
-) {
+    onEvent: (playlistsEvent: PlaylistsEvent) -> Unit
+): Unit {
     SetTopBarConfig(
-        TopBarConfig(
-            title = stringResource(Res.string.playlists_title),
+        config = TopBarConfig(
+            title = stringResource(resource = Res.string.playlists_title),
             subTitle = stringResource(
-                Res.string.playlists_count,
-                uiState.filteredPlaylists.size,
+                resource = Res.string.playlists_count,
+                formatArgs = arrayOf<Any>(uiState.filteredPlaylists.size)
             ),
             navigationIcon = TopBarNavigationIcon.Avatar(
                 name = uiState.guildData.name,
                 imageUrl = uiState.guildData.avatarUrl,
-                onClick = { onEvent(PlaylistsEvent.AvatarClicked) },
+                onClick = { onEvent(PlaylistsEvent.AvatarClicked) }
             ),
             actions = listOf(
                 TopBarAction.Refresh(
                     onClick = { onEvent(PlaylistsEvent.RefreshClicked) },
-                    contentDescription = stringResource(Res.string.playlists_refresh_content_description),
+                    contentDescription = stringResource(resource = Res.string.playlists_refresh_content_description)
                 ),
                 TopBarAction.Search(
                     onClick = { onEvent(PlaylistsEvent.SearchClicked) },
                     contentDescription = stringResource(
-                        Res.string.playlists_search_content_description,
-                    ),
-                ),
-            ),
+                        resource = Res.string.playlists_search_content_description
+                    )
+                )
+            )
         )
     )
 
     SetFloatingActionButtonConfig(
-        if (!uiState.isLoading && uiState.errorMessage == null) {
+        config = if (!uiState.isLoading && uiState.errorMessage == null) {
             FloatingActionButtonConfig(
                 icon = FloatingActionButtonIcon.Add,
-                contentDescription = stringResource(Res.string.playlists_add_content_description),
-                onClick = { onEvent(PlaylistsEvent.AddPlaylistClicked) },
+                contentDescription = stringResource(resource = Res.string.playlists_add_content_description),
+                onClick = { onEvent(PlaylistsEvent.AddPlaylistClicked) }
             )
         } else {
             null
@@ -106,44 +109,46 @@ fun PlaylistsScreen(
 
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = Alignment.Start
     ) {
         when {
             uiState.isLoading -> MLoadingScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f)
             )
 
             uiState.errorMessage != null -> MErrorScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                errorMessage = requireNotNull(uiState.errorMessage),
-                onClick = { onEvent(PlaylistsEvent.RefreshClicked) },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                errorMessage = requireNotNull(value = uiState.errorMessage),
+                onClick = { onEvent(PlaylistsEvent.RefreshClicked) }
             )
 
             uiState.filteredPlaylists.isEmpty() -> PlaylistsPlaceholder(
                 modifier = Modifier.padding(horizontal = 0.dp, vertical = 16.dp),
-                title = stringResource(Res.string.playlists_placeholder_title),
+                title = stringResource(resource = Res.string.playlists_placeholder_title),
                 contentText = if (uiState.searchQuery.isBlank()) {
-                    stringResource(Res.string.playlists_empty_message)
+                    stringResource(resource = Res.string.playlists_empty_message)
                 } else {
-                    stringResource(Res.string.playlists_no_search_results_message)
-                },
+                    stringResource(resource = Res.string.playlists_no_search_results_message)
+                }
             )
 
             else -> LazyVerticalGrid(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                columns = GridCells.Fixed(2),
+                    .weight(weight = 1f),
+                columns = GridCells.Fixed(count = 2),
                 contentPadding = PaddingValues(
                     start = 12.dp,
                     top = 16.dp,
                     end = 12.dp,
-                    bottom = 96.dp,
+                    bottom = 96.dp
                 ),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 14.dp)
             ) {
-                items(uiState.filteredPlaylists) { playlist ->
+                items(items = uiState.filteredPlaylists) { playlist ->
                     PlaylistCard(
                         modifier = Modifier,
                         playlist = playlist,
@@ -154,7 +159,7 @@ fun PlaylistsScreen(
                             onEvent(
                                 PlaylistsEvent.RenamePlaylistClicked(
                                     playlistId = playlist.id,
-                                    playlistName = playlist.name,
+                                    playlistName = playlist.name
                                 )
                             )
                         },
@@ -162,11 +167,11 @@ fun PlaylistsScreen(
                             onEvent(
                                 PlaylistsEvent.DeletePlaylistClicked(
                                     playlistId = playlist.id,
-                                    playlistName = playlist.name,
+                                    playlistName = playlist.name
                                 )
                             )
                         },
-                        onArtworkClick = { onEvent(PlaylistsEvent.ArtworkClicked(playlist.id)) },
+                        onArtworkClick = { onEvent(PlaylistsEvent.ArtworkClicked(playlistId = playlist.id)) }
                     )
                 }
             }
@@ -175,80 +180,82 @@ fun PlaylistsScreen(
 
     if (uiState.dialog is PlaylistsDialog.Artwork) {
         MTextInputDialog(
-            title = stringResource(Res.string.playlists_artwork_title),
+            title = stringResource(resource = Res.string.playlists_artwork_title),
             value = uiState.artworkDraft,
-            onValueChange = { onEvent(PlaylistsEvent.ArtworkDraftChanged(it)) },
+            onValueChange = { inputValue -> onEvent(PlaylistsEvent.ArtworkDraftChanged(artworkUri = inputValue)) },
             onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
             onConfirm = { onEvent(PlaylistsEvent.ArtworkConfirmed) },
-            placeholder = stringResource(Res.string.playlists_artwork_placeholder),
-            confirmText = stringResource(Res.string.playlists_artwork_save),
-            dismissText = stringResource(Res.string.playlists_cancel),
+            placeholder = stringResource(resource = Res.string.playlists_artwork_placeholder),
+            confirmText = stringResource(resource = Res.string.playlists_artwork_save),
+            dismissText = stringResource(resource = Res.string.playlists_cancel),
             enabled = !uiState.isLoading,
-            canConfirm = uiState.artworkDraft.length <= 2048,
+            canConfirm = uiState.artworkDraft.length <= 2048
         )
     }
 
     if (uiState.dialog is PlaylistsDialog.Create) {
         MTextInputDialog(
-            title = stringResource(Res.string.playlists_create_title),
+            title = stringResource(resource = Res.string.playlists_create_title),
             value = uiState.playlistNameDraft,
-            onValueChange = { onEvent(PlaylistsEvent.PlaylistNameDraftChanged(it)) },
+            onValueChange = { inputValue -> onEvent(PlaylistsEvent.PlaylistNameDraftChanged(playlistName = inputValue)) },
             onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
             onConfirm = { onEvent(PlaylistsEvent.CreatePlaylistConfirmed) },
-            placeholder = stringResource(Res.string.playlists_name_placeholder),
-            confirmText = stringResource(Res.string.playlists_create_action),
-            dismissText = stringResource(Res.string.playlists_cancel),
+            placeholder = stringResource(resource = Res.string.playlists_name_placeholder),
+            confirmText = stringResource(resource = Res.string.playlists_create_action),
+            dismissText = stringResource(resource = Res.string.playlists_cancel),
             enabled = !uiState.isLoading,
-            canConfirm = uiState.playlistNameDraft.trim().isNotEmpty(),
+            canConfirm = uiState.playlistNameDraft.trim()
+                .isNotEmpty()
         )
     }
 
     if (uiState.dialog is PlaylistsDialog.Search) {
         MTextInputDialog(
-            title = stringResource(Res.string.playlists_search_content_description),
+            title = stringResource(resource = Res.string.playlists_search_content_description),
             value = uiState.searchDraft,
-            onValueChange = { onEvent(PlaylistsEvent.SearchDraftChanged(it)) },
+            onValueChange = { inputValue -> onEvent(PlaylistsEvent.SearchDraftChanged(query = inputValue)) },
             onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
             onConfirm = { onEvent(PlaylistsEvent.SearchConfirmed) },
-            placeholder = stringResource(Res.string.playlists_search_placeholder),
-            confirmText = stringResource(Res.string.playlists_search_action),
-            dismissText = stringResource(Res.string.playlists_cancel),
-            enabled = !uiState.isLoading,
+            placeholder = stringResource(resource = Res.string.playlists_search_placeholder),
+            confirmText = stringResource(resource = Res.string.playlists_search_action),
+            dismissText = stringResource(resource = Res.string.playlists_cancel),
+            enabled = !uiState.isLoading
         )
     }
 
     if (uiState.dialog is PlaylistsDialog.Rename) {
         MTextInputDialog(
-            title = stringResource(Res.string.playlists_rename_title),
+            title = stringResource(resource = Res.string.playlists_rename_title),
             value = uiState.playlistNameDraft,
-            onValueChange = { onEvent(PlaylistsEvent.PlaylistNameDraftChanged(it)) },
+            onValueChange = { inputValue -> onEvent(PlaylistsEvent.PlaylistNameDraftChanged(playlistName = inputValue)) },
             onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
             onConfirm = { onEvent(PlaylistsEvent.RenamePlaylistConfirmed) },
-            placeholder = stringResource(Res.string.playlists_name_placeholder),
-            confirmText = stringResource(Res.string.playlists_rename_action),
-            dismissText = stringResource(Res.string.playlists_cancel),
+            placeholder = stringResource(resource = Res.string.playlists_name_placeholder),
+            confirmText = stringResource(resource = Res.string.playlists_rename_action),
+            dismissText = stringResource(resource = Res.string.playlists_cancel),
             enabled = !uiState.isLoading,
-            canConfirm = uiState.playlistNameDraft.trim().isNotEmpty(),
+            canConfirm = uiState.playlistNameDraft.trim()
+                .isNotEmpty()
         )
     }
 
     (uiState.dialog as? PlaylistsDialog.Delete)?.let { dialog ->
         MConfirmDialog(
-            title = stringResource(Res.string.playlists_delete_title),
-            message = stringResource(Res.string.playlists_delete_message, dialog.playlistName),
-            confirmText = stringResource(Res.string.playlists_delete_action),
-            dismissText = stringResource(Res.string.playlists_cancel),
+            title = stringResource(resource = Res.string.playlists_delete_title),
+            message = stringResource(resource = Res.string.playlists_delete_message, formatArgs = arrayOf<Any>(dialog.playlistName)),
+            confirmText = stringResource(resource = Res.string.playlists_delete_action),
+            dismissText = stringResource(resource = Res.string.playlists_cancel),
             enabled = !uiState.isLoading,
             isDestructive = true,
             onDismiss = { onEvent(PlaylistsEvent.DialogDismissed) },
-            onConfirm = { onEvent(PlaylistsEvent.DeletePlaylistConfirmed) },
+            onConfirm = { onEvent(PlaylistsEvent.DeletePlaylistConfirmed) }
         )
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun PlaylistsScreenPreview() {
+private fun PlaylistsScreenPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
@@ -258,64 +265,64 @@ fun PlaylistsScreenPreview() {
                     Playlist(name = "Playlist 1", songCount = 10, duration = 300),
                     Playlist(name = "Playlist 2", songCount = 8, duration = 240),
                     Playlist(name = "Playlist 3", songCount = 15, duration = 30015),
-                    Playlist(name = "Playlist 4", songCount = 25, duration = 240015),
+                    Playlist(name = "Playlist 4", songCount = 25, duration = 240015)
                 ),
                 filteredPlaylists = listOf(
                     Playlist(name = "Playlist 1", songCount = 10, duration = 300),
                     Playlist(name = "Playlist 2", songCount = 8, duration = 240),
                     Playlist(name = "Playlist 3", songCount = 15, duration = 30015),
-                    Playlist(name = "Playlist 4", songCount = 25, duration = 240015),
+                    Playlist(name = "Playlist 4", songCount = 25, duration = 240015)
                 ),
-                guildData = GuildData(name = "Guild Name", avatarUrl = null),
+                guildData = GuildData(name = "Guild Name", avatarUrl = null)
             ),
-            onEvent = {},
+            onEvent = {}
         )
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun PlaylistsScreenEmptyListPreview() {
+private fun PlaylistsScreenEmptyListPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
         PlaylistsScreen(
             uiState = PlaylistsUiState(
-                guildData = GuildData(name = "Guild Name", avatarUrl = null),
+                guildData = GuildData(name = "Guild Name", avatarUrl = null)
             ),
-            onEvent = {},
+            onEvent = {}
         )
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun PlaylistsScreenErrorPreview() {
+private fun PlaylistsScreenErrorPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
         PlaylistsScreen(
             uiState = PlaylistsUiState(
                 errorMessage = "An error occurred",
-                guildData = GuildData(name = "Guild Name", avatarUrl = null),
+                guildData = GuildData(name = "Guild Name", avatarUrl = null)
             ),
-            onEvent = {},
+            onEvent = {}
         )
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-fun PlaylistsScreenIsLoadingPreview() {
+private fun PlaylistsScreenIsLoadingPreview() {
     MelodiasMarioTheme(
         themeMode = MelodiasMarioThemeMode.Dark
     ) {
         PlaylistsScreen(
             uiState = PlaylistsUiState(
                 isLoading = true,
-                guildData = GuildData(name = "Guild Name", avatarUrl = null),
+                guildData = GuildData(name = "Guild Name", avatarUrl = null)
             ),
-            onEvent = {},
+            onEvent = {}
         )
     }
 }

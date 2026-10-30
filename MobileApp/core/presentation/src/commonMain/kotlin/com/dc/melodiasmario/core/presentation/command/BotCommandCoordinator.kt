@@ -4,11 +4,11 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
 import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
 import com.dc.melodiasmario.core.presentation.BotCommandRealtimeObserver
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Matches accepted commands to terminal realtime events within the selected guild.
@@ -18,8 +18,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * Call its methods on the supplied scope's serialized dispatcher (the UI dispatcher in ViewModels).
  */
 class BotCommandCoordinator(
-    scope: CoroutineScope,
-    observeGuildRealtime: (String) -> Flow<RealtimeEvent>,
+    coroutineScope: CoroutineScope,
+    observeGuildRealtime: (guildId: String) -> Flow<RealtimeEvent>,
     private val currentUserIdProvider: () -> String? = { null },
     private val timeoutMillis: Long = 30_000L
 ) {
@@ -27,20 +27,28 @@ class BotCommandCoordinator(
     private var generation = 0L
     private val completed = linkedMapOf<String, TerminalEvent>()
     private val pending = mutableMapOf<String, CompletableDeferred<BotCommandResult>>()
-    private val observer = BotCommandRealtimeObserver(
-        scope = scope,
+    private val botCommandRealtimeObserver = BotCommandRealtimeObserver(
+        coroutineScope = coroutineScope,
         observeGuildRealtime = observeGuildRealtime,
-        onSucceeded = { onTerminal(it, BotCommandResult.Succeeded) },
-        onFailed = { onTerminal(it, BotCommandResult.Failed(it.errorKey)) }
+        onSucceeded = { commandEvent -> onTerminal(event = commandEvent, result = BotCommandResult.Succeeded) },
+        onFailed = { commandEvent -> onTerminal(
+            event = commandEvent,
+            result = BotCommandResult.Failed(
+                errorKey = commandEvent.errorKey
+            )
+        ) }
     )
 
     init {
-        require(timeoutMillis > 0) {
+        require(value = timeoutMillis > 0) {
             "Command timeout must be positive"
         }
     }
 
-    fun start(guildId: String) {
+    /**
+     * Starts bot command coordinator for the supplied configuration.
+     */
+    fun start(guildId: String): Unit {
         if (this.guildId == guildId) {
             return
         }
@@ -48,11 +56,14 @@ class BotCommandCoordinator(
         clear()
 
         this.guildId = guildId
-        observer.start(guildId = guildId)
+        botCommandRealtimeObserver.start(guildId = guildId)
     }
 
+    /**
+     * Awaits the matching terminal command event, retaining early events and returning a timeout when necessary.
+     */
     suspend fun awaitCompletion(command: BotControlCommand): BotCommandResult {
-        check(guildId != null) {
+        check(value = guildId != null) {
             "Start guild observation before awaiting a command"
         }
 
@@ -60,11 +71,11 @@ class BotCommandCoordinator(
             "done", "succeeded" -> return BotCommandResult.Succeeded
             "failed", "interrupted" -> return BotCommandResult.Failed()
         }
-        completed.remove(command.commandId)
-            ?.takeIf { matchesUser(event = it.event) }
-            ?.let { return it.result }
+        completed.remove(key = command.commandId)
+            ?.takeIf { terminalEvent -> matchesUser(event = terminalEvent.event) }
+            ?.let { terminalEvent -> return terminalEvent.result }
 
-        check(command.commandId !in pending) {
+        check(value = command.commandId !in pending) {
             "This command already has an active waiter"
         }
 
@@ -78,9 +89,10 @@ class BotCommandCoordinator(
                 waiter.await()
             } ?: BotCommandResult.TimedOut
         } finally {
-            if (commandGeneration == generation && pending[command.commandId] === waiter) {
-                pending.remove(command.commandId)
-                completed.remove(command.commandId)
+            if (commandGeneration == generation
+                && pending[command.commandId] === waiter) {
+                pending.remove(key = command.commandId)
+                completed.remove(key = command.commandId)
             }
 
             waiter.cancel()
@@ -94,11 +106,11 @@ class BotCommandCoordinator(
     suspend fun handleCompletion(
         command: BotControlCommand,
         onSucceeded: suspend () -> Unit,
-        onFailed: suspend (String?) -> Unit,
+        onFailed: suspend (errorKey: String?) -> Unit,
         onTimedOut: suspend () -> Unit,
         onCompleted: suspend () -> Unit = {}
-    ) {
-        val result = awaitCompletion(command)
+    ): Unit {
+        val result = awaitCompletion(command = command)
         onCompleted()
         when (result) {
             BotCommandResult.Succeeded -> onSucceeded()
@@ -108,7 +120,7 @@ class BotCommandCoordinator(
     }
 
     private fun onTerminal(event: BotControlCommandRealtimeEvent, result: BotCommandResult) {
-        if (event.guildId != guildId || !matchesUser(event)) {
+        if (event.guildId != guildId || !matchesUser(event = event)) {
             return
         }
 
@@ -118,8 +130,9 @@ class BotCommandCoordinator(
             waiter.complete(result)
         } else {
             completed[event.commandId] = TerminalEvent(event = event, result = result)
+
             while (completed.size > MAX_EARLY_EVENTS) {
-                completed.remove(completed.keys.first())
+                completed.remove(key = completed.keys.first())
             }
         }
     }
@@ -129,18 +142,21 @@ class BotCommandCoordinator(
         return userId == null || event.userId == userId
     }
 
-    fun clear() {
+    /**
+     * Clears the state and resources owned by BotCommandCoordinator.
+     */
+    fun clear(): Unit {
         generation++
-        observer.clear()
+        botCommandRealtimeObserver.clear()
         guildId = null
-        pending.values.forEach { it.cancel() }
+        pending.values.forEach { pendingCompletion -> pendingCompletion.cancel() }
         pending.clear()
         completed.clear()
     }
 
     private data class TerminalEvent(
         val event: BotControlCommandRealtimeEvent,
-        val result: BotCommandResult,
+        val result: BotCommandResult
     )
 
     private companion object {

@@ -12,29 +12,35 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
+/**
+ * Provides queue playlist save manager for the playlist layer.
+ */
 @Single
 class QueuePlaylistSaveManager(
     private val createPlaylistFromQueueUseCase: CreatePlaylistFromQueueUseCase,
-    private val feedback: QueuePlaylistSaveFeedback,
+    private val feedback: QueuePlaylistSaveFeedback
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
     private val mutex = Mutex()
     private val savingGuildIds = mutableSetOf<String>()
 
+    /**
+     * Stores the supplied value in queue playlist save manager.
+     */
     suspend fun save(
         guildId: String,
         name: String,
-        trackUrls: List<String>,
+        trackUrls: List<String>
     ): QueuePlaylistSaveResult {
         val snapshot = trackUrls.toList()
         val playlistName = name.trim()
 
         val operation = mutex.withLock {
-            check(savingGuildIds.add(guildId)) {
+            check(value = savingGuildIds.add(element = guildId)) {
                 "A playlist save is already in progress for this guild."
             }
 
-            scope.async {
+            coroutineScope.async {
                 try {
                     val result = try {
                         val playlist = createPlaylistFromQueueUseCase(
@@ -57,12 +63,12 @@ class QueuePlaylistSaveManager(
                         )
                     }
 
-                    feedback.show(result)
+                    feedback.show(result = result)
                     result
                 } finally {
-                    withContext(NonCancellable) {
+                    withContext(context = NonCancellable) {
                         mutex.withLock {
-                            savingGuildIds.remove(guildId)
+                            savingGuildIds.remove(element = guildId)
                         }
                     }
                 }

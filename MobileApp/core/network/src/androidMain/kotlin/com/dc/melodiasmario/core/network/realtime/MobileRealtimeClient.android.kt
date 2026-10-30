@@ -10,19 +10,28 @@ import com.dc.melodiasmario.core.network.realtime.dto.PlaybackRealtimeEventDto
 import com.dc.melodiasmario.core.network.realtime.dto.QueueRealtimeEventDto
 import com.microsoft.signalr.HubConnection
 import com.microsoft.signalr.HubConnectionBuilder
+import java.net.URLEncoder
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import java.net.URLEncoder
 
+/**
+ * Provides mobile realtime client for the realtime layer.
+ */
 actual class MobileRealtimeClient {
     private var hubConnection: HubConnection? = null
-    private val _connectionState = MutableStateFlow(RealtimeConnectionState.Disconnected)
+    private val _connectionState = MutableStateFlow(value = RealtimeConnectionState.Disconnected)
 
+    /**
+     * Connection state exposed by mobile realtime client.
+     */
     actual val connectionState: StateFlow<RealtimeConnectionState> = _connectionState
 
+    /**
+     * Observes realtime events for the requested guild.
+     */
     actual fun observeGuild(
         accessToken: String,
         guildId: String
@@ -34,13 +43,14 @@ actual class MobileRealtimeClient {
             guildId = guildId,
             onEvent = { event -> trySend(event) },
             onClosed = { error ->
+
                 if (isExpectedClose) {
                     _connectionState.value = RealtimeConnectionState.Disconnected
                 } else {
                     _connectionState.value = RealtimeConnectionState.Reconnecting
                     close(error)
                 }
-            },
+            }
         )
 
         awaitClose {
@@ -54,24 +64,26 @@ actual class MobileRealtimeClient {
     private fun connect(
         accessToken: String,
         guildId: String,
-        onEvent: (RealtimeEvent) -> Unit,
-        onClosed: (Throwable?) -> Unit,
+        onEvent: (realtimeEvent: RealtimeEvent) -> Unit,
+        onClosed: (error: Throwable?) -> Unit
     ) {
         _connectionState.value = RealtimeConnectionState.Connecting
 
         val connection = HubConnectionBuilder
-            .create(buildHubUrl(accessToken))
+            .create(buildHubUrl(accessToken = accessToken))
             .build()
 
         hubConnection = connection
-        registerHandlers(connection, onEvent)
+        registerHandlers(hubConnection = connection, onEvent = onEvent)
 
         connection.onClosed { error -> onClosed(error) }
 
         try {
-            connection.start().blockingAwait()
+            connection.start()
+                .blockingAwait()
             _connectionState.value = RealtimeConnectionState.Connected
-            connection.invoke("JoinGuildAsync", guildId).blockingAwait()
+            connection.invoke("JoinGuildAsync", guildId)
+                .blockingAwait()
         } catch (error: Throwable) {
             hubConnection = null
             _connectionState.value = RealtimeConnectionState.Reconnecting
@@ -79,45 +91,48 @@ actual class MobileRealtimeClient {
         }
     }
 
-    actual suspend fun disconnect() {
+    /**
+     * Disconnects the realtime transport and releases its active subscription.
+     */
+    actual suspend fun disconnect(): Unit {
         hubConnection?.stop()
         hubConnection = null
         _connectionState.value = RealtimeConnectionState.Disconnected
     }
 
     private fun registerHandlers(
-        connection: HubConnection,
-        onEvent: (RealtimeEvent) -> Unit,
+        hubConnection: HubConnection,
+        onEvent: (realtimeEvent: RealtimeEvent) -> Unit
     ) {
         PlaybackEventNames.forEach { eventName ->
-            connection.on(
+            hubConnection.on(
                 eventName,
                 { payload: PlaybackRealtimeEventDto -> onEvent(payload.toDomain()) },
-                PlaybackRealtimeEventDto::class.java,
+                PlaybackRealtimeEventDto::class.java
             )
         }
 
         QueueEventNames.forEach { eventName ->
-            connection.on(
+            hubConnection.on(
                 eventName,
                 { payload: QueueRealtimeEventDto -> onEvent(payload.toDomain()) },
-                QueueRealtimeEventDto::class.java,
+                QueueRealtimeEventDto::class.java
             )
         }
 
         GuildBotStatusEventNames.forEach { eventName ->
-            connection.on(
+            hubConnection.on(
                 eventName,
                 { payload: GuildBotStatusRealtimeEventDto -> onEvent(payload.toDomain()) },
-                GuildBotStatusRealtimeEventDto::class.java,
+                GuildBotStatusRealtimeEventDto::class.java
             )
         }
 
         BotControlCommandEventNames.forEach { eventName ->
-            connection.on(
+            hubConnection.on(
                 eventName,
-                { payload: BotControlCommandRealtimeEventDto -> onEvent(payload.toDomain(eventName)) },
-                BotControlCommandRealtimeEventDto::class.java,
+                { payload: BotControlCommandRealtimeEventDto -> onEvent(payload.toDomain(eventNameOverride = eventName)) },
+                BotControlCommandRealtimeEventDto::class.java
             )
         }
     }
@@ -141,7 +156,7 @@ actual class MobileRealtimeClient {
             MobileRealtimeEventNames.PlaybackSkipped,
             MobileRealtimeEventNames.PlaybackPreviousStarted,
             MobileRealtimeEventNames.RepeatModeChanged,
-            MobileRealtimeEventNames.PlaybackLoadFailed,
+            MobileRealtimeEventNames.PlaybackLoadFailed
         )
 
         val QueueEventNames = listOf(
@@ -154,14 +169,14 @@ actual class MobileRealtimeClient {
             MobileRealtimeEventNames.QueueItemMoved,
             MobileRealtimeEventNames.QueueItemClaimed,
             MobileRealtimeEventNames.QueueCompacted,
-            MobileRealtimeEventNames.RepeatListSnapshotChanged,
+            MobileRealtimeEventNames.RepeatListSnapshotChanged
         )
 
         val GuildBotStatusEventNames = listOf(
             MobileRealtimeEventNames.GuildBotStatusChanged,
             MobileRealtimeEventNames.BotJoinedVoiceChannel,
             MobileRealtimeEventNames.BotLeftVoiceChannel,
-            MobileRealtimeEventNames.BotVoiceUserCountChanged,
+            MobileRealtimeEventNames.BotVoiceUserCountChanged
         )
 
         val BotControlCommandEventNames = listOf(
@@ -170,7 +185,7 @@ actual class MobileRealtimeClient {
             MobileRealtimeEventNames.BotControlCommandSucceeded,
             MobileRealtimeEventNames.BotControlCommandFailed,
             MobileRealtimeEventNames.BotControlCommandInterrupted,
-            MobileRealtimeEventNames.BotControlCommandUpdated,
+            MobileRealtimeEventNames.BotControlCommandUpdated
         )
     }
 }

@@ -1,27 +1,33 @@
 package com.dc.melodiasmario.core.commonui.biometric
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.biometric_not_authenticated
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.biometric_storage_failure
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.biometric_unavailable
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
-import androidx.compose.runtime.Composable
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.*
 import com.dc.melodiasmario.core.presentation.biometric.AppLockError
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Provides app lock error text for the current composition.
+ */
 @Composable
 fun appLockErrorText(
     error: AppLockError?
 ): String? = when (error) {
     AppLockError.NotAuthenticated -> {
-        stringResource(Res.string.biometric_not_authenticated)
+        stringResource(resource = Res.string.biometric_not_authenticated)
     }
 
     AppLockError.AuthenticationUnavailable -> {
-        stringResource(Res.string.biometric_unavailable)
+        stringResource(resource = Res.string.biometric_unavailable)
     }
 
     AppLockError.StorageFailure -> {
-        stringResource(Res.string.biometric_storage_failure)
+        stringResource(resource = Res.string.biometric_storage_failure)
     }
 
     null -> null
@@ -30,8 +36,8 @@ fun appLockErrorText(
 @Composable
 private fun AppLockErrorTextPreview() {
     MelodiasMarioTheme {
-        appLockErrorText(AppLockError.AuthenticationUnavailable)?.let {
-            MText(text = it)
+        appLockErrorText(error = AppLockError.AuthenticationUnavailable)?.let { errorText ->
+            MText(text = errorText)
         }
     }
 }

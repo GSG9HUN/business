@@ -19,23 +19,26 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.melod
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders melodias logo from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
-fun MelodiasLogo(modifier: Modifier = Modifier) {
+fun MelodiasLogo(modifier: Modifier = Modifier): Unit {
     Box(
         modifier = modifier
-            .size(86.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .size(size = 86.dp)
+            .clip(shape = RoundedCornerShape(size = 24.dp))
             .background(
                 Brush.linearGradient(
-                    colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary),
-                ),
+                    colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+                )
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(Res.drawable.melodias_mario_note),
-            contentDescription = stringResource(Res.string.app_name),
-            modifier = Modifier.size(200.dp),
+            painter = painterResource(resource = Res.drawable.melodias_mario_note),
+            contentDescription = stringResource(resource = Res.string.app_name),
+            modifier = Modifier.size(size = 200.dp)
         )
     }
 }

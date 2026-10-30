@@ -6,33 +6,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MToggleRow
-import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.*
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.biometric_setting_subtitle
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.biometric_setting_title
+import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_lock
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders biometric lock setting from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun BiometricLockSetting(
-    state: AppLockUiState,
-    onCheckedChange: (Boolean) -> Unit,
-) {
+    uiState: AppLockUiState,
+    onCheckedChange: (checked: Boolean) -> Unit
+): Unit {
     Column {
         MToggleRow(
             icon = Res.drawable.ic_profile_lock,
-            title = stringResource(Res.string.biometric_setting_title),
-            subtitle = stringResource(Res.string.biometric_setting_subtitle),
-            checked = state.isEnabled,
+            title = stringResource(resource = Res.string.biometric_setting_title),
+            subtitle = stringResource(resource = Res.string.biometric_setting_subtitle),
+            checked = uiState.isEnabled,
             onCheckedChange = { enabled ->
-                if (state.isInitialized && !state.isBusy && !state.isLocked) {
+
+                if (uiState.isInitialized && !uiState.isBusy && !uiState.isLocked) {
                     onCheckedChange(enabled)
                 }
-            },
+            }
         )
 
-        appLockErrorText(state.error)?.let { message ->
+        appLockErrorText(error = uiState.error)?.let { message ->
             MText(
                 text = message,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -43,12 +50,12 @@ fun BiometricLockSetting(
 private fun BiometricLockSettingPreview() {
     MelodiasMarioTheme {
         BiometricLockSetting(
-            state = AppLockUiState(
+            uiState = AppLockUiState(
                 isInitialized = true,
                 isEnabled = true,
-                isLocked = false,
+                isLocked = false
             ),
-            onCheckedChange = {},
+            onCheckedChange = {}
         )
     }
 }

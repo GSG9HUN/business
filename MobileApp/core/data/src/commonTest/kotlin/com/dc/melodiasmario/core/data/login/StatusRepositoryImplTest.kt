@@ -6,12 +6,12 @@ import kotlin.test.Test
 class StatusRepositoryImplTest {
 
     @Test
-    fun getApiStatusReturnsOnlineWhenRemoteDataSourceIsOnline() {
-        // TODO: Given remote data source returns true, when getApiStatus is called, then returns Online.
+    fun getApiStatusReturnsOnlineWhenRemoteDataSourceIsOnline(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun getApiStatusReturnsOfflineWhenRemoteDataSourceIsOffline() {
-        // TODO: Given remote data source returns false, when getApiStatus is called, then returns Offline.
+    fun getApiStatusReturnsOfflineWhenRemoteDataSourceIsOffline(): Unit {
+        throw NotImplementedError()
     }
 }

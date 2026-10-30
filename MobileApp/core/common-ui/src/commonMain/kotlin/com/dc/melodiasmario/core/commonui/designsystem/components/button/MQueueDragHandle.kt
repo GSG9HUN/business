@@ -15,30 +15,36 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
+/**
+ * Renders queue drag handle from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MQueueDragHandle(
     contentDescription: String,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = modifier
-            .size(36.dp)
+            .size(size = 36.dp)
             .semantics { this.contentDescription = contentDescription },
-        shape = RoundedCornerShape(9.dp),
+        shape = RoundedCornerShape(size = 9.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
-        Canvas(modifier = Modifier.size(36.dp).padding(horizontal = 9.dp, vertical = 10.dp)) {
+        Canvas(
+            modifier = Modifier.size(size = 36.dp)
+                .padding(horizontal = 9.dp, vertical = 10.dp)
+        ) {
             val strokeWidth = 2.dp.toPx()
             listOf(2f, size.height / 2f, size.height - 2f).forEach { y ->
                 drawLine(
                     color = lineColor,
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
+                    start = Offset(x = 0f, y = y),
+                    end = Offset(x = size.width, y = y),
                     strokeWidth = strokeWidth,
-                    cap = StrokeCap.Round,
+                    cap = StrokeCap.Round
                 )
             }
         }

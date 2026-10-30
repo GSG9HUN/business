@@ -11,8 +11,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import com.dc.melodiasmario.core.commonui.biometric.BiometricLockSetting
-import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,22 +19,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dc.melodiasmario.core.commonui.biometric.BiometricLockSetting
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MBadge
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MSettingRow
 import com.dc.melodiasmario.core.commonui.designsystem.components.settings.MToggleRow
-import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.Res as CoreUiRes
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_haptics
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_language
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_sound_effects
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_telemetry
 import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_profile_token_status
-import com.dc.melodiasmario.core.commonui.layout.MScrollableScreenContent
+import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
+import com.dc.melodiasmario.core.commonui.layout.MScrollableScreenContent
 import com.dc.melodiasmario.core.model.profile.ProfileUser
 import com.dc.melodiasmario.core.model.settings.UserSettings
+import com.dc.melodiasmario.core.presentation.biometric.AppLockUiState
 import com.dc.melodiasmario.feature.profile.generated.resources.Res as ProfileRes
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_appearance_title
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_application_section
@@ -63,13 +63,16 @@ import com.dc.melodiasmario.feature.profile.ui.mapper.toThemeLabel
 import com.dc.melodiasmario.feature.profile.ui.mapper.toTokenUpdatedLabel
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders profile loaded content from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun ProfileLoadedContent(
     modifier: Modifier = Modifier,
     uiState: ProfileUiState,
-    onEvent: (ProfileEvent) -> Unit,
-    appLockState: AppLockUiState = AppLockUiState(),
-) {
+    onEvent: (profileEvent: ProfileEvent) -> Unit,
+    appLockState: AppLockUiState = AppLockUiState()
+): Unit {
     val user = uiState.user
     val userSettings = uiState.draftUserSettings
     val displayName = user.displayName
@@ -79,149 +82,150 @@ fun ProfileLoadedContent(
     val provider = user.provider
     val settingsUpdatedAtUtc = uiState.settingsUpdatedAtUtc
     val connectedProviderText = if (user.isDiscordConnected) {
-        stringResource(ProfileRes.string.profile_connected_provider, provider)
+        stringResource(resource = ProfileRes.string.profile_connected_provider, formatArgs = arrayOf<Any>(provider))
     } else {
-        stringResource(ProfileRes.string.profile_disconnected_provider, provider)
+        stringResource(resource = ProfileRes.string.profile_disconnected_provider, formatArgs = arrayOf<Any>(provider))
     }
     val statusText = if (isActive) {
-        stringResource(ProfileRes.string.profile_status_active)
+        stringResource(resource = ProfileRes.string.profile_status_active)
     } else {
-        stringResource(ProfileRes.string.profile_status_inactive)
+        stringResource(resource = ProfileRes.string.profile_status_inactive)
     }
 
-
     MScrollableScreenContent(
-        modifier = modifier,
+        modifier = modifier
     ) {
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(size = 12.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(all = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
             ) {
                 MAvatar(
                     name = displayName,
                     imageUrl = avatarUrl,
-                    size = 50.dp,
+                    size = 50.dp
                 )
 
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(weight = 1f)
                 ) {
                     MText(
                         text = displayName,
                         textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                     MText(
                         text = "@$username â€˘ $connectedProviderText",
-                        textAlign = TextAlign.Start,
+                        textAlign = TextAlign.Start
                     )
                 }
 
                 MBadge(
                     text = statusText,
                     backgroundColor = if (isActive) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer,
-                    contentColor = if (isActive) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                    contentColor = if (isActive) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }
 
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column {
                 MText(
                     modifier = Modifier.padding(top = 10.dp),
-                    text = stringResource(ProfileRes.string.profile_application_section),
+                    text = stringResource(resource = ProfileRes.string.profile_application_section),
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
                 MSettingRow(
                     icon = CoreUiRes.drawable.ic_profile_language,
-                    title = stringResource(ProfileRes.string.profile_language_title),
+                    title = stringResource(resource = ProfileRes.string.profile_language_title),
                     subtitle = userSettings.languageCode.toLanguageLabel(),
-                    onClick = { onEvent(ProfileEvent.LanguageClicked) },
+                    onClick = { onEvent(ProfileEvent.LanguageClicked) }
                 )
 
                 MSettingRow(
                     icon = userSettings.theme.toThemeIcon(),
-                    title = stringResource(ProfileRes.string.profile_appearance_title),
+                    title = stringResource(resource = ProfileRes.string.profile_appearance_title),
                     subtitle = userSettings.theme.toThemeLabel(),
-                    onClick = { onEvent(ProfileEvent.AppearanceClicked) },
+                    onClick = { onEvent(ProfileEvent.AppearanceClicked) }
                 )
 
                 MToggleRow(
                     icon = CoreUiRes.drawable.ic_profile_haptics,
-                    title = stringResource(ProfileRes.string.profile_haptics_title),
-                    subtitle = stringResource(ProfileRes.string.profile_haptics_subtitle),
+                    title = stringResource(resource = ProfileRes.string.profile_haptics_title),
+                    subtitle = stringResource(resource = ProfileRes.string.profile_haptics_subtitle),
                     checked = userSettings.hapticFeedbackEnabled,
-                    onCheckedChange = { onEvent(ProfileEvent.HapticsChanged(it)) },
+                    onCheckedChange = { enabled -> onEvent(ProfileEvent.HapticsChanged(enabled = enabled)) }
                 )
 
                 MToggleRow(
                     icon = CoreUiRes.drawable.ic_profile_sound_effects,
-                    title = stringResource(ProfileRes.string.profile_sound_effects_title),
-                    subtitle = stringResource(ProfileRes.string.profile_sound_effects_subtitle),
+                    title = stringResource(resource = ProfileRes.string.profile_sound_effects_title),
+                    subtitle = stringResource(resource = ProfileRes.string.profile_sound_effects_subtitle),
                     checked = userSettings.soundEffectsEnabled,
-                    onCheckedChange = { onEvent(ProfileEvent.SoundEffectsChanged(it)) },
+                    onCheckedChange = { enabled -> onEvent(ProfileEvent.SoundEffectsChanged(enabled = enabled)) }
                 )
 
                 MToggleRow(
                     icon = CoreUiRes.drawable.ic_profile_telemetry,
-                    title = stringResource(ProfileRes.string.profile_telemetry_title),
-                    subtitle = stringResource(ProfileRes.string.profile_telemetry_subtitle),
+                    title = stringResource(resource = ProfileRes.string.profile_telemetry_title),
+                    subtitle = stringResource(resource = ProfileRes.string.profile_telemetry_subtitle),
                     checked = userSettings.telemetryEnabled,
-                    onCheckedChange = { onEvent(ProfileEvent.TelemetryChanged(it)) },
+                    onCheckedChange = { enabled -> onEvent(ProfileEvent.TelemetryChanged(enabled = enabled)) }
                 )
 
                 BiometricLockSetting(
-                    state = appLockState,
+                    uiState = appLockState,
                     onCheckedChange = { enabled ->
-                        onEvent(ProfileEvent.BiometricLockChanged(enabled))
-                    },
+                        onEvent(ProfileEvent.BiometricLockChanged(enabled = enabled))
+                    }
                 )
 
                 MText(
                     modifier = Modifier.padding(top = 26.dp),
-                    text = stringResource(ProfileRes.string.profile_session_section),
+                    text = stringResource(resource = ProfileRes.string.profile_session_section),
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
 
                 MSettingRow(
                     icon = CoreUiRes.drawable.ic_profile_token_status,
-                    title = stringResource(ProfileRes.string.profile_token_status_title),
+                    title = stringResource(resource = ProfileRes.string.profile_token_status_title),
                     subtitle = settingsUpdatedAtUtc.toTokenUpdatedLabel(),
                     trailingContent = {
                         MBadge(
-                            text = stringResource(ProfileRes.string.profile_token_status_ok),
+                            text = stringResource(resource = ProfileRes.string.profile_token_status_ok),
                             backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                         )
-                    },
+                    }
                 )
 
                 Button(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(vertical = 16.dp),
                     onClick = { onEvent(ProfileEvent.LogoutClicked) },
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    shape = RoundedCornerShape(size = 12.dp),
+                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     MText(
-                        text = stringResource(ProfileRes.string.profile_logout_button),
+                        text = stringResource(resource = ProfileRes.string.profile_logout_button),
                         color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -242,21 +246,21 @@ private fun ProfileLoadedContentPreview() {
                     provider = "Discord",
                     avatarUrl = null,
                     isActive = true,
-                    isDiscordConnected = true,
+                    isDiscordConnected = true
                 ),
                 userSettings = UserSettings.Default,
                 draftUserSettings = UserSettings.Default.copy(
                     hapticFeedbackEnabled = true,
-                    telemetryEnabled = true,
+                    telemetryEnabled = true
                 ),
-                settingsUpdatedAtUtc = "2026-10-09T12:00:00Z",
+                settingsUpdatedAtUtc = "2026-10-09T12:00:00Z"
             ),
             onEvent = {},
             appLockState = AppLockUiState(
                 isInitialized = true,
                 isEnabled = true,
-                isLocked = false,
-            ),
+                isLocked = false
+            )
         )
     }
 }

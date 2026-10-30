@@ -7,6 +7,9 @@ import com.dc.melodiasmario.core.commonui.feedback.FeedbackVibrator
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
 import com.dc.melodiasmario.shared.presentation.navigation.Navigation
 
+/**
+ * Renders melodias mario app from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MelodiasMarioApp(
     backStack: SnapshotStateList<AppRoute>,
@@ -14,7 +17,7 @@ fun MelodiasMarioApp(
     hapticsEnabled: Boolean,
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator
-) {
+): Unit {
     Navigation(
         backStack = backStack,
         toastHostState = toastHostState,

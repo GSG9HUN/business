@@ -1,5 +1,11 @@
 package com.dc.melodiasmario.core.commonui.playbacknotification
 
+/**
+ * Owns playback notification coordination and its lifecycle-bound operations.
+ */
 expect class PlaybackNotificationController {
-    fun start(guildId: String)
+    /**
+     * Starts playback notification controller for the supplied configuration.
+     */
+    fun start(guildId: String): Unit
 }

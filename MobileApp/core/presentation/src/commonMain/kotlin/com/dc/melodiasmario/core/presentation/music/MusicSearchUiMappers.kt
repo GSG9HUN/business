@@ -1,14 +1,17 @@
 package com.dc.melodiasmario.core.presentation.music
 
 import com.dc.melodiasmario.core.common.TrackSearchPrefix
+import com.dc.melodiasmario.core.model.search.MusicSearchCapability
+import com.dc.melodiasmario.core.model.search.MusicSearchResult
+import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 import com.dc.melodiasmario.core.presentation.formatter.toDurationLabel
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchProviderUi
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchResultUi
-import com.dc.melodiasmario.core.model.search.MusicSearchCapability
-import com.dc.melodiasmario.core.model.search.MusicSearchResult
-import com.dc.melodiasmario.core.model.search.MusicSearchResultKind
 
+/**
+ * Maps this value to provider ui.
+ */
 fun MusicSearchCapability.toProviderUi(): MMusicSearchProviderUi? {
     val provider = provider ?: return null
     return MMusicSearchProviderUi(
@@ -21,6 +24,9 @@ fun MusicSearchCapability.toProviderUi(): MMusicSearchProviderUi? {
     )
 }
 
+/**
+ * Maps this value to result ui.
+ */
 fun MusicSearchResult.toResultUi(): MMusicSearchResultUi {
     return MMusicSearchResultUi(
         id = id,
@@ -37,11 +43,17 @@ fun MusicSearchResult.toResultUi(): MMusicSearchResultUi {
     )
 }
 
+/**
+ * Maps this value to track search prefix or default.
+ */
 fun String.toTrackSearchPrefixOrDefault(): TrackSearchPrefix {
-    return TrackSearchPrefix.entries.firstOrNull { it.toMusicSearchProviderId() == this }
+    return TrackSearchPrefix.entries.firstOrNull { track -> track.toMusicSearchProviderId() == this }
         ?: TrackSearchPrefix.YOUTUBE
 }
 
+/**
+ * Maps this value to domain kind.
+ */
 fun MMusicSearchKind.toDomainKind(): MusicSearchResultKind {
     return when (this) {
         MMusicSearchKind.Track -> MusicSearchResultKind.TRACK

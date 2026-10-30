@@ -1,39 +1,49 @@
 package com.dc.melodiasmario.core.presentation
 
+import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
+import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
+import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
-import com.dc.melodiasmario.core.model.realtime.MobileRealtimeEventNames
-import com.dc.melodiasmario.core.model.realtime.RealtimeEvent
 
+/**
+ * Provides bot command realtime observer for the presentation layer.
+ */
 class BotCommandRealtimeObserver(
-    private val scope: CoroutineScope,
-    private val observeGuildRealtime: (String) -> Flow<RealtimeEvent>,
-    private val onSucceeded: suspend (BotControlCommandRealtimeEvent) -> Unit,
-    private val onFailed: suspend (BotControlCommandRealtimeEvent) -> Unit
+    private val coroutineScope: CoroutineScope,
+    private val observeGuildRealtime: (guildId: String) -> Flow<RealtimeEvent>,
+    private val onSucceeded: suspend (botControlCommandRealtimeEvent: BotControlCommandRealtimeEvent) -> Unit,
+    private val onFailed: suspend (botControlCommandRealtimeEvent: BotControlCommandRealtimeEvent) -> Unit
 ) {
     private var job: Job? = null
     private var currentGuildId: String? = null
 
-
-    fun start(guildId: String) {
+    /**
+     * Starts bot command realtime observer for the supplied configuration.
+     */
+    fun start(guildId: String): Unit {
         if (currentGuildId == guildId && job?.isActive == true) {
             return
         }
+
         currentGuildId = guildId
         job?.cancel()
-        job = scope.launch {
+        job = coroutineScope.launch {
             observeGuildRealtime(guildId).collect { event ->
+
                 if (event.guildId == guildId) {
-                    handle(event)
+                    handle(event = event)
                 }
             }
         }
     }
 
-    fun clear() {
+    /**
+     * Clears the state and resources owned by BotCommandRealtimeObserver.
+     */
+    fun clear(): Unit {
         job?.cancel()
         job = null
         currentGuildId = null

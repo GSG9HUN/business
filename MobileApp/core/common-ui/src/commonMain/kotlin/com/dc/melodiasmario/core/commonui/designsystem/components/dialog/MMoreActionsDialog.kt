@@ -15,21 +15,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
-data class MMoreAction(
-    val text: String,
-    val onClick: () -> Unit,
-    val isDestructive: Boolean = false,
-    val enabled: Boolean = true,
-)
-
+/**
+ * Renders more actions dialog from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MMoreActionsDialog(
     title: String,
     message: String,
     actions: List<MMoreAction>,
     onDismiss: () -> Unit,
-    dismissText: String? = null,
-) {
+    dismissText: String? = null
+): Unit {
     val primaryAction = actions.firstOrNull()
     val secondaryActions = actions.drop(1)
 
@@ -43,39 +39,39 @@ fun MMoreActionsDialog(
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
             MText(
                 text = message,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Start
             )
         },
         confirmButton = {
             primaryAction?.let { action ->
                 Button(
                     onClick = action.onClick,
-                    enabled = action.enabled,
+                    enabled = action.enabled
                 ) {
                     MText(
                         text = action.text,
-                        color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
         },
         dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(space = 8.dp)) {
                 secondaryActions.forEach { action ->
                     OutlinedButton(
                         onClick = action.onClick,
-                        enabled = action.enabled,
+                        enabled = action.enabled
                     ) {
                         MText(
                             text = action.text,
-                            color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (action.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -85,6 +81,6 @@ fun MMoreActionsDialog(
                     }
                 }
             }
-        },
+        }
     )
 }

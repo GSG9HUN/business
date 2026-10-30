@@ -13,38 +13,42 @@ import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackView
 import com.dc.melodiasmario.feature.playlisttrack.ui.components.playlistTrackEffectMessages
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Connects playlist track presentation state and effects to its screen callbacks.
+ */
 @Composable
 fun PlaylistTrackRoute(
     modifier: Modifier = Modifier,
-    viewModel: PlaylistTrackViewModel = koinViewModel(),
+    playlistTrackViewModel: PlaylistTrackViewModel = koinViewModel(),
     guildId: String,
     playlistId: String,
     onBack: () -> Unit,
-    toastHostState: MToastHostState,
-) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    toastHostState: MToastHostState
+): Unit {
+    val uiState = playlistTrackViewModel.uiState.collectAsStateWithLifecycle()
     val effectMessages = playlistTrackEffectMessages()
 
-    val currentMessages by rememberUpdatedState(effectMessages)
-    val currentOnBack by rememberUpdatedState(onBack)
+    val currentMessages by rememberUpdatedState(newValue = effectMessages)
+    val currentOnBack by rememberUpdatedState(newValue = onBack)
 
-    LaunchedEffect(guildId, playlistId) {
-        viewModel.onEvent(
-            PlaylistTrackEvent.Load(guildId, playlistId)
+    LaunchedEffect(key1 = guildId, key2 = playlistId) {
+        playlistTrackViewModel.onEvent(
+            event = PlaylistTrackEvent.Load(guildId = guildId, playlistId = playlistId)
         )
     }
 
-    LaunchedEffect(viewModel, toastHostState) {
-        viewModel.effect.collect { effect ->
+    LaunchedEffect(key1 = playlistTrackViewModel, key2 = toastHostState) {
+        playlistTrackViewModel.effect.collect { effect ->
             when (effect) {
                 PlaylistTrackEffect.NavigateBack -> {
                     currentOnBack()
                 }
 
                 else -> {
-                    currentMessages.toastDataFor(effect)?.let {
-                        toastHostState.showToast(it)
-                    }
+                    currentMessages.toastDataFor(effect = effect)
+                        ?.let { toastData ->
+                            toastHostState.showToast(toast = toastData)
+                        }
                 }
             }
         }
@@ -53,6 +57,6 @@ fun PlaylistTrackRoute(
     PlaylistTrackScreen(
         modifier = modifier,
         uiState = uiState.value,
-        onEvent = viewModel::onEvent,
+        onEvent = playlistTrackViewModel::onEvent
     )
 }
