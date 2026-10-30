@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DiscordLoginUrlDto(
-    val authorizeUrl: String,
+    val authorizeUrl: String
 ) {
-    fun toDomain() = DiscordLoginUrl(authorizeUrl)
+    fun toDomain() = DiscordLoginUrl(authorizeUrl = authorizeUrl)
 }

@@ -6,7 +6,7 @@ import com.dc.melodiasmario.core.common.Resource
 import com.dc.melodiasmario.core.presentation.command.CommandLock
 import com.dc.melodiasmario.core.presentation.music.search.MusicSearchController
 import com.dc.melodiasmario.core.commonui.music.validation.canSubmitMusicInput
-import com.dc.melodiasmario.core.presentation.BotCommandRealtimeObserver
+import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
@@ -19,11 +19,9 @@ import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
-import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.playbackmonitor.CurrentPlaybackMonitorState
-import com.dc.melodiasmario.core.model.realtime.BotControlCommandRealtimeEvent
+import com.dc.melodiasmario.core.presentation.playbackmonitor.PlaybackMonitorObserver
 import com.dc.melodiasmario.feature.queue.presentation.command.QueueCommandHandler
-import com.dc.melodiasmario.core.presentation.command.PendingBotCommandTracker
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistController
 import com.dc.melodiasmario.feature.queue.presentation.playlist.QueuePlaylistSaveManager
 import kotlinx.coroutines.Job
@@ -44,55 +42,47 @@ class QueueViewModel(
     private val observeCurrentPlaybackMonitorUseCase: ObserveCurrentPlaybackMonitorUseCase,
     private val startCurrentPlaybackMonitorUseCase: StartCurrentPlaybackMonitorUseCase,
     private val refreshCurrentPlaybackMonitorUseCase: RefreshCurrentPlaybackMonitorUseCase,
-    observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase,
-    addToQueueUseCase: AddToQueueUseCase,
-    removeFromQueueUseCase: RemoveFromQueueUseCase,
-    clearQueueUseCase: ClearQueueUseCase,
-    shuffleQueueUseCase: ShuffleQueueUseCase,
-    moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
-    playlistSaveManager: QueuePlaylistSaveManager,
-    getMusicSearchCapabilitiesUseCase: GetMusicSearchCapabilitiesUseCase,
-    searchMusicUseCase: SearchMusicUseCase,
+    private val observeGuildRealtimeUseCase: ObserveGuildRealtimeUseCase,
+    private val addToQueueUseCase: AddToQueueUseCase,
+    private val removeFromQueueUseCase: RemoveFromQueueUseCase,
+    private val clearQueueUseCase: ClearQueueUseCase,
+    private val shuffleQueueUseCase: ShuffleQueueUseCase,
+    private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
+    private val playlistSaveManager: QueuePlaylistSaveManager,
+    private val getMusicSearchCapabilitiesUseCase: GetMusicSearchCapabilitiesUseCase,
+    private val searchMusicUseCase: SearchMusicUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(QueueUiState())
 
     val uiState: StateFlow<QueueUiState> = _uiState
         .onStart {
-            collectPlaybackMonitor()
+            playbackMonitorObserver.start()
         }.stateIn(
             scope = viewModelScope,
             started = WhileSubscribed(5_000),
             initialValue = QueueUiState(),
         )
-    private val events =
-        MutableSharedFlow<QueueEvent>(extraBufferCapacity = 64)
+    private val events = MutableSharedFlow<QueueEvent>(extraBufferCapacity = 64)
+    private val playbackMonitorObserver = PlaybackMonitorObserver(
+        scope = viewModelScope,
+        observePlayback = observeCurrentPlaybackMonitorUseCase::invoke,
+        onPlayback = ::updatePlayback,
+    )
 
     private val _effect = MutableSharedFlow<QueueEffect>()
     val effect = _effect.asSharedFlow()
 
     private var currentGuildId: String? = null
     private var currentUserId: String? = null
-
-    private var playbackMonitorJob: Job? = null
     private var commandVersion = 0L
     private var commandJob: Job? = null
     private val commandLock = CommandLock(_uiState)
 
-    private val pendingCommandTracker = PendingBotCommandTracker(
-        scope = viewModelScope,
-        timeoutMillis = COMMAND_TERMINAL_EVENT_TIMEOUT,
-        onTimeout = {
-            refreshCurrentPlaybackMonitorUseCase()
-            _effect.emit(QueueEffect.BotCommandTimedOut)
-        },
-        onFinished = commandLock::finish,
-    )
 
-    private val commandRealtimeObserver = BotCommandRealtimeObserver(
+    private val commandCoordinator = BotCommandCoordinator(
         scope = viewModelScope,
         observeGuildRealtime = observeGuildRealtimeUseCase::invoke,
-        onSucceeded = ::handleBotControlCommandSucceeded,
-        onFailed = ::handleBotControlCommandFailed,
+        currentUserIdProvider = { currentUserId },
     )
 
     private val commandHandler = QueueCommandHandler(
@@ -104,7 +94,22 @@ class QueueViewModel(
         state = _uiState,
         effects = _effect,
         currentGuildIdProvider = { currentGuildId },
-        onTrackPendingCommand = ::trackPendingCommand,
+        onTrackPendingCommand = { command ->
+            commandCoordinator.handleCompletion(
+                command = command,
+                onSucceeded = { _effect.emit(QueueEffect.BotCommandSucceeded(command.type)) },
+                onFailed = { errorKey ->
+                    _effect.emit(
+                        QueueEffect.BotCommandFailed(
+                            command.type,
+                            errorKey
+                        )
+                    )
+                },
+                onTimedOut = { _effect.emit(QueueEffect.BotCommandTimedOut) },
+                onCompleted = { refreshCurrentPlaybackMonitorUseCase() },
+            )
+        },
         onCloseDialog = ::closeDialog,
         onMoveFailed = { refreshCurrentPlaybackMonitorUseCase() },
     )
@@ -143,7 +148,7 @@ class QueueViewModel(
                 try {
                     handleCommandEvent(event)
                 } finally {
-                    finishCommandIfNoPendingCommand(version)
+                    finishCommand(version)
                 }
             }
             return
@@ -245,7 +250,7 @@ class QueueViewModel(
             _uiState.value = QueueUiState(guildId = guildId)
         }
 
-        commandRealtimeObserver.start(guildId)
+        commandCoordinator.start(guildId)
         startCurrentPlaybackMonitorUseCase(guildId)
 
         updatePlayback(observeCurrentPlaybackMonitorUseCase().value)
@@ -270,18 +275,6 @@ class QueueViewModel(
                 guildIconUrl = track?.guildIconUrl,
                 tracks = track?.queuedTracks.orEmpty(),
             )
-        }
-    }
-
-    private fun collectPlaybackMonitor() {
-        if (playbackMonitorJob?.isActive == true) {
-            return
-        }
-
-        playbackMonitorJob = viewModelScope.launch {
-            observeCurrentPlaybackMonitorUseCase().collect {
-                updatePlayback(it)
-            }
         }
     }
 
@@ -346,7 +339,7 @@ class QueueViewModel(
         try {
             action()
         } finally {
-            finishCommandIfNoPendingCommand(version)
+            finishCommand(version)
         }
     }
 
@@ -362,54 +355,10 @@ class QueueViewModel(
         return true
     }
 
-    private fun finishCommandIfNoPendingCommand(version: Long) {
+    private fun finishCommand(version: Long) {
         if (version == commandVersion) {
-            pendingCommandTracker.finishIfNoPendingCommand()
+            commandLock.finish()
         }
-    }
-
-    private suspend fun trackPendingCommand(command: BotControlCommand) {
-        when (command.state.lowercase()) {
-            "done" -> {
-                pendingCommandTracker.finish()
-                refreshCurrentPlaybackMonitorUseCase()
-                _effect.emit(QueueEffect.BotCommandSucceeded(command.type))
-            }
-
-            "failed" -> {
-                pendingCommandTracker.finish()
-                refreshCurrentPlaybackMonitorUseCase()
-                _effect.emit(QueueEffect.BotCommandFailed(command.type, null))
-            }
-
-            else -> pendingCommandTracker.track(command.commandId)
-        }
-    }
-
-    private fun matchesPendingCommand(event: BotControlCommandRealtimeEvent): Boolean {
-        return event.guildId == currentGuildId && pendingCommandTracker.matches(
-            eventCommandId = event.commandId,
-            eventUserId = event.userId,
-            currentUserId = currentUserId,
-        )
-    }
-
-    private suspend fun handleBotControlCommandSucceeded(commandEvent: BotControlCommandRealtimeEvent) {
-        if (!matchesPendingCommand(commandEvent)) {
-            return
-        }
-        pendingCommandTracker.finish()
-        refreshCurrentPlaybackMonitorUseCase()
-        _effect.emit(QueueEffect.BotCommandSucceeded(commandEvent.type))
-    }
-
-    private suspend fun handleBotControlCommandFailed(commandEvent: BotControlCommandRealtimeEvent) {
-        if (!matchesPendingCommand(commandEvent)) {
-            return
-        }
-        pendingCommandTracker.finish()
-        refreshCurrentPlaybackMonitorUseCase()
-        _effect.emit(QueueEffect.BotCommandFailed(commandEvent.type, commandEvent.errorKey))
     }
 
     private fun updateManualDraft(value: String) {
@@ -443,13 +392,12 @@ class QueueViewModel(
         commandJob?.cancel()
         commandJob = null
 
-        pendingCommandTracker.clear()
         commandLock.finish()
     }
 
     override fun onCleared() {
-        commandRealtimeObserver.clear()
-        playbackMonitorJob?.cancel()
+        commandCoordinator.clear()
+        playbackMonitorObserver.stop()
 
         clearCommandExecution()
         searchController.cancel()
@@ -457,7 +405,4 @@ class QueueViewModel(
         super.onCleared()
     }
 
-    private companion object {
-        const val COMMAND_TERMINAL_EVENT_TIMEOUT = 30_000L
-    }
 }

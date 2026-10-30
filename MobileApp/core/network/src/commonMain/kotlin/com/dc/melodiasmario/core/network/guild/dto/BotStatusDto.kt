@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 data class BotStatusDto(
     val isOnline: Boolean,
     val connectedVoiceChannelName: String? = null,
-    val connectedVoiceUserCount: Int,
+    val connectedVoiceUserCount: Int
 ) {
     fun toDomain() = BotStatus(
         isOnline = isOnline,
         connectedVoiceChannelName = connectedVoiceChannelName,
-        connectedVoiceUserCount = connectedVoiceUserCount,
+        connectedVoiceUserCount = connectedVoiceUserCount
     )
 }

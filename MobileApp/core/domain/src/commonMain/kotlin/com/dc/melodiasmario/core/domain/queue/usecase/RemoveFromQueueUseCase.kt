@@ -17,13 +17,10 @@ class RemoveFromQueueUseCase(
             emit(Resource.Loading)
 
             try {
+                val removeFromQueueControlCommand =
+                    queueRepository.removeFromQueue(guildId = guildId, trackNumber = trackNumber)
                 emit(
-                    Resource.Success(
-                        queueRepository.removeFromQueue(
-                            guildId = guildId,
-                            trackNumber = trackNumber
-                        )
-                    )
+                    Resource.Success(removeFromQueueControlCommand)
                 )
             } catch (e: CancellationException) {
                 throw e

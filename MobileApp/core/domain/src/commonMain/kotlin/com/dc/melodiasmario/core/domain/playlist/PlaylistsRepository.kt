@@ -4,6 +4,7 @@ import com.dc.melodiasmario.core.model.playlist.Playlist
 import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 
 interface PlaylistsRepository {
+    suspend fun setArtwork(playlistId: String, artworkUri: String?)
     suspend fun getPlaylists(guildId: String): List<Playlist>
     suspend fun deletePlaylist(playlistId: String)
     suspend fun renamePlaylist(playlistId: String, newName: String)

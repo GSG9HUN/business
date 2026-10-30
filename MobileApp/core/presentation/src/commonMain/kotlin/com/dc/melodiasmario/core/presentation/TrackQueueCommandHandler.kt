@@ -1,10 +1,8 @@
 package com.dc.melodiasmario.core.presentation
 
 import com.dc.melodiasmario.core.common.Resource
-import com.dc.melodiasmario.core.presentation.MviEffect
 import com.dc.melodiasmario.core.presentation.queue.TrackQueueReducer
 import com.dc.melodiasmario.core.presentation.queue.TrackQueueUiState
-import com.dc.melodiasmario.core.presentation.runBotCommand
 import com.dc.melodiasmario.core.presentation.music.search.MusicSearchUiState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,7 +13,7 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.currenttrack.Track
 
 class TrackQueueCommandHandler<State, Effect>(
-    private val addToQueue: (String, String) -> Flow<Resource<BotControlCommand>>,
+    private val addToQueue: (guildId: String, query: String) -> Flow<Resource<BotControlCommand>>,
     private val removeFromQueue: (String, String) -> Flow<Resource<BotControlCommand>>,
     private val clearQueue: (String) -> Flow<Resource<BotControlCommand>>,
     private val shuffleQueue: (String) -> Flow<Resource<BotControlCommand>>,
@@ -33,7 +31,7 @@ class TrackQueueCommandHandler<State, Effect>(
     private val onCloseDialog: () -> Unit,
     private val onMoveFailed: () -> Unit,
     private val clearQueueLoading: (State, Boolean) -> State = { value, _ -> value },
-    private val shuffleQueueLoading: (State, Boolean) -> State = { value, _ -> value },
+    private val shuffleQueueLoading: (State, Boolean) -> State = { value, _ -> value }
 ) where State : MusicSearchUiState<State>,
         State : TrackQueueUiState<Track, State>,
         Effect : MviEffect {
@@ -44,7 +42,7 @@ class TrackQueueCommandHandler<State, Effect>(
         if (!sheet.canSubmitManual) {
             return
         }
-        enqueueQuery(sheet.manualDraft.trim())
+        enqueueQuery(query = sheet.manualDraft.trim())
     }
 
     suspend fun addSelectedSearchResultToQueue() {
@@ -54,7 +52,7 @@ class TrackQueueCommandHandler<State, Effect>(
         if (!result.canEnqueue) {
             return
         }
-        enqueueQuery(url)
+        enqueueQuery(query = url)
     }
 
     private suspend fun enqueueQuery(query: String) {
@@ -67,13 +65,13 @@ class TrackQueueCommandHandler<State, Effect>(
             effects = effects,
             acceptedEffect = acceptedEffect,
             failureEffect = addFailedEffect,
-            onLoading = { addLoading(it, true) },
-            onAccepted = { addLoading(it, false) },
-            onError = { value, _ -> addLoading(value, false) },
+            onLoading = { addLoading(value = it, loading = true) },
+            onAccepted = { addLoading(value = it, loading = false) },
+            onError = { value, _ -> addLoading(value = value, loading = false) },
             afterAccepted = { command ->
                 onCloseDialog()
                 onTrackPendingCommand(command)
-            },
+            }
         )
     }
 
@@ -88,7 +86,7 @@ class TrackQueueCommandHandler<State, Effect>(
             effects = effects,
             acceptedEffect = acceptedEffect,
             failureEffect = removeFailedEffect,
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
@@ -112,7 +110,7 @@ class TrackQueueCommandHandler<State, Effect>(
             effects = effects,
             acceptedEffect = acceptedEffect,
             failureEffect = moveFailedEffect,
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
@@ -130,7 +128,7 @@ class TrackQueueCommandHandler<State, Effect>(
             onLoading = { clearQueueLoading(it, true) },
             onAccepted = { clearQueueLoading(it, false) },
             onError = { value, _ -> clearQueueLoading(value, false) },
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
@@ -148,11 +146,12 @@ class TrackQueueCommandHandler<State, Effect>(
             onLoading = { shuffleQueueLoading(it, true) },
             onAccepted = { shuffleQueueLoading(it, false) },
             onError = { value, _ -> shuffleQueueLoading(value, false) },
-            afterAccepted = onTrackPendingCommand,
+            afterAccepted = onTrackPendingCommand
         )
     }
 
     private fun addLoading(value: State, loading: Boolean): State {
-        return value.withAddMusic(value.addMusic.copy(isManualLoading = loading))
+        val addMusic = value.addMusic.copy(isManualLoading = loading)
+        return value.withAddMusic(addMusic = addMusic)
     }
 }

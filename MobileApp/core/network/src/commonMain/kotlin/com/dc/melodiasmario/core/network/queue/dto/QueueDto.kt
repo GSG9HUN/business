@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 data class QueueDto(
     val guildId: String = "",
     val trackCount: Int = 0,
-    val tracks: List<QueueTrackDto> = emptyList(),
+    val tracks: List<QueueTrackDto> = emptyList()
 ) {
     fun toDomain() = Queue(
         guildId = guildId,
         trackCount = trackCount,
-        tracks = tracks.map { it.toDomain() },
+        tracks = tracks.map { it.toDomain() }
     )
 }

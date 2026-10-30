@@ -18,7 +18,7 @@ data class BotControlCommandRealtimeEventDto(
     val createdAtUtc: String,
     val claimedAtUtc: String?,
     val completedAtUtc: String?,
-    val eventName: String = "",
+    val eventName: String = ""
 ) {
     fun toDomain(eventNameOverride: String? = null) = BotControlCommandRealtimeEvent(
         commandId = commandId,

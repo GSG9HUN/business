@@ -2,6 +2,10 @@
 
 This is a Kotlin Multiplatform project targeting Android and iOS.
 
+## AI agent conventions
+
+[AGENTS.md](AGENTS.md) defines the instructions agents must read before modifying this project. It covers Kotlin formatting and naming, module boundaries, Koin dependency injection, coroutine and state handling, Compose UI, KDoc, testing, and README maintenance. Argument lists must have no trailing commas, calls must use named arguments wherever Kotlin supports them, and all existing and new function-type declarations throughout the project must name their input parameters descriptively, across every module and source set. New tests are created as test classes and named test-case scaffolds whose bodies contain only `throw NotImplementedError()`; test logic is implemented only when explicitly requested. Existing implemented tests are preserved. Variables, properties, and parameters must identify their specific type and role, such as `authRepository` rather than `repository`; only `uiState` and `effect`, including their backing properties, may retain these short generic names.
+
 ## UI theme colors
 
 Compose screens and shared components read semantic colors directly from
@@ -34,7 +38,7 @@ See [core/presentation/README.md](core/presentation/README.md) for module respon
 
 The queue screen loads the selected guild through the shared playback monitor. It supports manual music input, provider and track/playlist search, pagination and retry, removing tracks, moving tracks, clearing and shuffling the queue, and returning to guild selection.
 
-Queue mutations use command-id tracking and terminal realtime events. A matching terminal event or a terminal state returned in the HTTP response releases the command lock and refreshes the server snapshot. Pending commands have a 30-second timeout after acceptance. Terminal events missed before HTTP acceptance or during disconnection still require reconciliation. Remove uses one-based track numbers; move uses zero-based indexes. Moving a track updates the local list optimistically; an HTTP failure requests a fresh server snapshot.
+Queue mutations use command-id tracking and terminal realtime events. A matching terminal event or a terminal state returned in the HTTP response releases the command lock and refreshes the server snapshot. Pending commands have a 30-second timeout after acceptance. BotCommandCoordinator retains terminal events arriving before HTTP acceptance. Events missed during disconnection still require reconciliation. Remove uses one-based track numbers; move uses zero-based indexes. Moving a track updates the local list optimistically; an HTTP failure requests a fresh server snapshot.
 
 Creating a playlist asks for a name and forwards the displayed queue snapshot through the controller, use case, repository, and remote data source to a single bulk API method. The request carries the playlist name and ordered track URLs, including repeats. Invalid track URLs are rejected before submission. The mobile API method intentionally throws NullPointerException until the backend endpoint is implemented; it sends no HTTP request and creates no playlist. The existing UI reports the failure and releases the command lock. Track-by-track persistence belongs to the future backend implementation, not a mobile request loop.
 
@@ -96,3 +100,28 @@ This is a UI lock, not biometric key-bound token storage.
 
 See [the implementation walkthrough](docs/biometric-app-lock.md) for architecture,
 previews, validation steps, and outstanding iOS integration.
+## Playlist track feature
+
+The playlisttrack feature displays saved playlist details and supports search/manual track addition, confirmed removal, loading into the playback queue, refresh, and back navigation. Queue and playlist details both use the shared MTrackItemRow component for track display, removal, and reorder accessibility actions. Playlist removal retains its confirmation dialog. The row has a separate reorderEnabled flag so unsupported ordering stays disabled without disabling removal. The screen uses shared search, artwork, and reorder components. Shuffle and movement remain disabled until backend playlist-ordering endpoints are available.
+
+PlaylistTrackViewModel follows the Queue event/handler and naming conventions, calls core runAction/runBotCommand resource runners directly without a playlist-specific Flow wrapper and shared manual-input validation, and retains the shared command coordinator and search controller. Unsupported ordering actions remain disabled.
+
+PlaylistTrackRoute follows the QueueRoute convention: collect UI state, load data through events, and handle navigation/toast effects. PlaylistTrackEffectMessages owns localized toast mapping. PlaylistTrackScreen owns top-bar and floating-action-button configuration and forwards UI actions through onEvent.
+
+## Playback and realtime lifecycle
+
+Realtime subscriptions connect through MobileRealtimeClient.observeGuild. Playback notifications are started by the current-track screen and stopped by the service STOP action or task-removal callback. Artwork loading lives in PlaybackForegroundService. ReorderDragContainer owns its drop-target calculation. Queue commands use the existing realtime command tracking; no separate test-only polling use case is registered.
+
+## Shared bot command completion
+
+QueueViewModel, CurrentTrackViewModel, and PlaylistTrackViewModel use the same core:presentation BotCommandCoordinator. It matches command, guild, and optional user IDs; retains early terminal events; and returns success, failure, or timeout while preserving cancellation. The shared handleCompletion extension dispatches terminal outcomes; feature ViewModels supply refresh and feedback callbacks without duplicating trackPendingCommand methods. There is no playlist-specific coordinator or separate pending-command timer implementation.
+
+## Playlist Covers
+
+Playlist cards, detail headers, and track rows consume the API `artworkUri`. Covers prefer the server-configured custom URL, then the first available track artwork. `MPlaylistArtwork` uses bundled Night Drive, Chill, or Workout covers when a matching name has no usable remote image. Other names use the existing gradient/music fallback. This also covers empty playlists.
+
+The playlist card menu offers **Playlist cover**. Enter an absolute HTTP/HTTPS image URL, or save an empty field to restore automatic artwork. The authenticated request uses `PATCH /playlists/{playlistId}/artwork`; after saving, the playlist list reloads. English and Hungarian labels are included. This flow stores image URLs. Name matching selects local fallback themes; audio-genre inference, manual theme selection, image upload, and AI image generation are not implemented.
+
+### Cover Name Matching
+
+`PlaylistArtworkTheme.fromName` matches complete words, ignoring case and punctuation. Workout/Gym/Fitness/Training and Edzés choose Workout; Chill/Relax/Lofi and Nyugi choose Chill; Night/Drive/Synthwave and Éjszaka choose Night Drive. Ambiguous names use Workout, then Chill, then Night Drive priority. Matching is a display heuristic, not a claim about track genres. The images are bundled with the app and need no image-generation service.

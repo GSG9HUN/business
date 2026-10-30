@@ -21,14 +21,8 @@ import org.koin.core.annotation.Single
 class QueueApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
-
-    suspend fun getCommandStatus(accessToken: String, commandId: String): BotControlCommandDto {
-        return client.get("$baseUrl/commands/$commandId") {
-            header("Authorization", "Bearer $accessToken")
-        }.body()
-    }
 
     suspend fun getQueue(accessToken: String, guildId: String): QueueDto {
         return client.get("$baseUrl/guilds/$guildId/queue") {
@@ -36,7 +30,11 @@ class QueueApiService(
         }.body()
     }
 
-    suspend fun addToQueue(accessToken: String, guildId: String, query: String): BotControlCommandDto {
+    suspend fun addToQueue(
+        accessToken: String,
+        guildId: String,
+        query: String
+    ): BotControlCommandDto {
         return client.post("$baseUrl/guilds/$guildId/queue/enqueue") {
             header("Authorization", "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -44,7 +42,11 @@ class QueueApiService(
         }.body()
     }
 
-    suspend fun removeFromQueue(accessToken: String, guildId: String, trackNumber: String): BotControlCommandDto {
+    suspend fun removeFromQueue(
+        accessToken: String,
+        guildId: String,
+        trackNumber: String
+    ): BotControlCommandDto {
         return client.delete("$baseUrl/guilds/$guildId/queue/$trackNumber") {
             header("Authorization", "Bearer $accessToken")
         }.body()
@@ -66,7 +68,7 @@ class QueueApiService(
         accessToken: String,
         guildId: String,
         trackIndex: Int,
-        targetIndex: Int,
+        targetIndex: Int
     ): BotControlCommandDto {
         return client.patch("$baseUrl/guilds/$guildId/queue/$trackIndex/move-to/$targetIndex") {
             header("Authorization", "Bearer $accessToken")

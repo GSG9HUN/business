@@ -10,7 +10,7 @@ data class ProfileUserDto(
     val displayName: String,
     val avatarUrl: String?,
     val isDiscordConnected: Boolean,
-    val isActive: Boolean,
+    val isActive: Boolean
 ) {
     fun toDomain() = ProfileUser(
         id = discordUserId,
@@ -19,6 +19,6 @@ data class ProfileUserDto(
         provider = "Discord",
         avatarUrl = avatarUrl,
         isActive = isActive,
-        isDiscordConnected = isDiscordConnected,
+        isDiscordConnected = isDiscordConnected
     )
 }

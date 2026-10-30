@@ -7,6 +7,5 @@ interface CurrentPlaybackMonitorRepository {
     val state: StateFlow<CurrentPlaybackMonitorState>
 
     fun start(guildId: String)
-    fun stop()
     fun refresh()
 }

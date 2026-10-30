@@ -16,7 +16,8 @@ class ClearQueueUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(queueRepository.clearQueue(guildId = guildId)))
+            val clearQueueControlCommand = queueRepository.clearQueue(guildId = guildId)
+            emit(Resource.Success(clearQueueControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

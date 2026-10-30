@@ -9,6 +9,7 @@ data class PlaylistDto(
     val name: String,
     val songCount: Int,
     val duration: Int,
+    val artworkUri: String? = null
 ) {
     fun toDomain(): Playlist {
         return Playlist(
@@ -16,6 +17,7 @@ data class PlaylistDto(
             name = name,
             songCount = songCount,
             duration = duration,
+            artworkUri = artworkUri
         )
     }
 }

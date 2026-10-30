@@ -15,7 +15,8 @@ class GetProfileUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(profileRepository.getProfile()))
+            val profileData = profileRepository.getProfile()
+            emit(Resource.Success(profileData))
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

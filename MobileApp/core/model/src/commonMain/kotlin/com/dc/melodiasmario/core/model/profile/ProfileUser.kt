@@ -7,7 +7,7 @@ data class ProfileUser(
     val provider: String,
     val avatarUrl: String?,
     val isActive: Boolean,
-    val isDiscordConnected: Boolean,
+    val isDiscordConnected: Boolean
 ) {
     companion object {
         val Default = ProfileUser(
@@ -17,7 +17,7 @@ data class ProfileUser(
             provider = "",
             avatarUrl = null,
             isActive = false,
-            isDiscordConnected = false,
+            isDiscordConnected = false
         )
     }
 }

@@ -4,6 +4,7 @@ sealed interface PlaylistsDialog {
     data object None : PlaylistsDialog
     data object Create : PlaylistsDialog
     data object Search : PlaylistsDialog
+    data class Artwork(val playlistId: String) : PlaylistsDialog
     data class Rename(
         val playlistId: String,
         val playlistName: String,

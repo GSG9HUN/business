@@ -40,7 +40,7 @@ class RealtimeRepositoryImpl(
         if (guildId == null) {
             emptyFlow()
         } else {
-            observeWithReconnect(guildId)
+            observeWithReconnect(guildId = guildId)
         }
     }.shareIn(
         scope = scope,
@@ -66,17 +66,18 @@ class RealtimeRepositoryImpl(
             try {
                 val accessToken = authorizedSessionProvider.getValidSession()
 
-                mobileRealtimeClient.observeGuild(accessToken, guildId).collect { event ->
-                    retryAttempt = 0
-                    emit(event)
-                }
+                mobileRealtimeClient.observeGuild(accessToken = accessToken, guildId = guildId)
+                    .collect { event ->
+                        retryAttempt = 0
+                        emit(event)
+                    }
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
                 currentCoroutineContext().ensureActive()
             }
 
-            delay(reconnectDelayMillis(retryAttempt).milliseconds)
+            delay(reconnectDelayMillis(retryAttempt = retryAttempt).milliseconds)
             retryAttempt++
         }
     }

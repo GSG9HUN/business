@@ -11,5 +11,5 @@ data class MMusicSearchResultUi(
     val durationText: String? = null,
     val itemCount: Int? = null,
     val canonicalUrl: String? = null,
-    val canEnqueue: Boolean = canonicalUrl != null,
+    val canEnqueue: Boolean = canonicalUrl != null
 )

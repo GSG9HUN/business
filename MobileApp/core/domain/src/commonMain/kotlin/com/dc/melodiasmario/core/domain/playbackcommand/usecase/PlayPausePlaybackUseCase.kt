@@ -9,15 +9,17 @@ import org.koin.core.annotation.Factory
 
 @Factory
 class PlayPausePlaybackUseCase(
-    private val repository: PlaybackCommandRepository,
+    private val playBackCommandRepository: PlaybackCommandRepository
 ) {
     operator fun invoke(
         guildId: String,
-        isPlaying: Boolean,
+        isPlaying: Boolean
     ): Flow<Resource<BotControlCommand>> = flow {
         emit(Resource.Loading)
         try {
-            emit(Resource.Success(repository.playPause(guildId, isPlaying)))
+            val playPauseControlCommand =
+                playBackCommandRepository.playPause(guildId = guildId, isPlaying = isPlaying)
+            emit(Resource.Success(playPauseControlCommand))
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

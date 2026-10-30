@@ -6,7 +6,5 @@ import com.dc.melodiasmario.core.presentation.music.state.MAddMusicSheetState
 interface MusicSearchUiState<State> : CommandUiState<State> {
     val addMusic: MAddMusicSheetState
 
-    fun withAddMusic(
-        addMusic: MAddMusicSheetState,
-    ): State
+    fun withAddMusic(addMusic: MAddMusicSheetState): State
 }

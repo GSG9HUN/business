@@ -30,7 +30,7 @@ class AppVisibility(
 
     override fun onActivityCreated(
         activity: Activity,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ) = Unit
 
     override fun onActivityResumed(activity: Activity) = Unit
@@ -39,7 +39,7 @@ class AppVisibility(
 
     override fun onActivitySaveInstanceState(
         activity: Activity,
-        outState: Bundle,
+        outState: Bundle
     ) = Unit
 
     override fun onActivityDestroyed(activity: Activity) = Unit

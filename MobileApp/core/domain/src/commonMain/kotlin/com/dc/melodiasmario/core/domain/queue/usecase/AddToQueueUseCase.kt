@@ -16,7 +16,8 @@ class AddToQueueUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(queueRepository.addToQueue(guildId = guildId, query = query)))
+            val addToQueueControlCommand = queueRepository.addToQueue(guildId = guildId, query = query)
+            emit(Resource.Success(addToQueueControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -10,7 +10,7 @@ data class PlaybackTrackDto(
     val duration: Int = 0,
     val trackUri: String = "",
     val artworkUri: String? = null,
-    val requestedBy: String? = null,
+    val requestedBy: String? = null
 ) {
     fun toDomain() = Track(
         id = trackUri,
@@ -18,6 +18,6 @@ data class PlaybackTrackDto(
         artist = author,
         durationSeconds = duration,
         thumbnailUrl = artworkUri,
-        requestedBy = requestedBy,
+        requestedBy = requestedBy
     )
 }

@@ -20,7 +20,7 @@ object PlaybackNotificationMapper {
         title: String,
         artist: String,
         artwork: Bitmap?,
-        isPlaying: Boolean,
+        isPlaying: Boolean
     ): Notification {
         PlaybackNotificationChannel.ensureCreated(context)
 
@@ -49,7 +49,7 @@ object PlaybackNotificationMapper {
                     PlaybackNotificationAction.PLAY_PAUSE,
                     if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
                     if (isPlaying) "Pause" else "Play",
-                    guildId,
+                    guildId
                 )
             )
             .addAction(action(context, PlaybackNotificationAction.NEXT, R.drawable.ic_next, "Next", guildId))
@@ -61,7 +61,7 @@ object PlaybackNotificationMapper {
         action: String,
         icon: Int,
         title: String,
-        guildId: String,
+        guildId: String
     ): NotificationCompat.Action {
         return NotificationCompat.Action(icon, title, pendingIntent(context, action, guildId))
     }
@@ -75,7 +75,7 @@ object PlaybackNotificationMapper {
             context,
             action.hashCode(),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 

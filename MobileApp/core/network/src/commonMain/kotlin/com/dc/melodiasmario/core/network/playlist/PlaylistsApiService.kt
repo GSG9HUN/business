@@ -7,6 +7,7 @@ import com.dc.melodiasmario.core.network.playlist.dto.PlaylistDto
 import com.dc.melodiasmario.core.network.playlist.dto.AddPlaylistTrackRequestDto
 import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.playlist.dto.RenamePlaylistRequestDto
+import com.dc.melodiasmario.core.network.playlist.dto.SetPlaylistArtworkRequestDto
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
 import io.ktor.client.HttpClient
@@ -30,6 +31,14 @@ class PlaylistsApiService(
         return client.get("$baseUrl/guilds/${guildId}/playlists") {
             header("Authorization", "Bearer $accessToken")
         }.body()
+    }
+
+    suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?) {
+        client.patch("$baseUrl/playlists/$playlistId/artwork") {
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(SetPlaylistArtworkRequestDto(artworkUri))
+        }
     }
 
     suspend fun renamePlaylist(

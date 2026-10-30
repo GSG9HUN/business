@@ -16,7 +16,8 @@ class UpdateProfileSettingsUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(profileRepository.updateProfileSettings(userSettings = userSettings)))
+            val profileSettingsData = profileRepository.updateProfileSettings(userSettings = userSettings)
+            emit(Resource.Success(profileSettingsData))
         } catch (e: Exception) {
             emit(Resource.Error(e))
         }

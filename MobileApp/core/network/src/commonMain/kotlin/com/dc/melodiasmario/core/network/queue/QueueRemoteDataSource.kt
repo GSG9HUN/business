@@ -4,7 +4,6 @@ import com.dc.melodiasmario.core.model.botcontrol.BotControlCommand
 import com.dc.melodiasmario.core.model.queue.Queue
 
 interface QueueRemoteDataSource {
-    suspend fun getCommandStatus(accessToken: String, commandId: String): BotControlCommand
     suspend fun getQueue(accessToken: String, guildId: String): Queue
     suspend fun addToQueue(accessToken: String, guildId: String, query: String): BotControlCommand
     suspend fun removeFromQueue(accessToken: String, guildId: String, trackNumber: String): BotControlCommand

@@ -20,15 +20,12 @@ class MoveTrackToIndexUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(
-                Resource.Success(
-                    queueRepository.moveTrackToIndex(
-                        guildId = guildId,
-                        trackIndex = trackIndex,
-                        targetIndex = targetIndex,
-                    )
-                )
+            val moveTrackToIndexControlCommand = queueRepository.moveTrackToIndex(
+                guildId = guildId,
+                trackIndex = trackIndex,
+                targetIndex = targetIndex
             )
+            emit(Resource.Success(moveTrackToIndexControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

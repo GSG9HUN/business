@@ -32,7 +32,7 @@ fun PlaylistsRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 PlaylistsEffect.NavigateToGuildSelector -> onAvatarClicked()
-                is PlaylistsEffect.NavigateToPlaylistSongs -> onPlaylistClicked(effect.playlistId)
+                is PlaylistsEffect.NavigateToPlaylistTracks -> onPlaylistClicked(effect.playlistId)
                 else -> effectMessages.toastDataFor(effect)?.let { toastHostState.showToast(it) }
             }
         }

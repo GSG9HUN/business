@@ -18,7 +18,7 @@ import org.koin.core.annotation.Single
 class AuthApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun startDiscordLogin(): DiscordLoginUrlDto {
         return client.post("$baseUrl/auth/discord/start").body()

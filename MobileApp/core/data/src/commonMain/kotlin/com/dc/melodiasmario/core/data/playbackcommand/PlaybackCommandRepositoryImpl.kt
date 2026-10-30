@@ -10,11 +10,11 @@ class PlaybackCommandRepositoryImpl(
     private val currentTrackRepository: CurrentTrackRepository,
 ) : PlaybackCommandRepository {
     override suspend fun previous(guildId: String): BotControlCommand {
-        return currentTrackRepository.previousTrack(guildId)
+        return currentTrackRepository.previousTrack(guildId = guildId)
     }
 
     override suspend fun next(guildId: String): BotControlCommand {
-        return currentTrackRepository.nextTrack(guildId)
+        return currentTrackRepository.nextTrack(guildId = guildId)
     }
 
     override suspend fun playPause(
@@ -22,9 +22,9 @@ class PlaybackCommandRepositoryImpl(
         isPlaying: Boolean,
     ): BotControlCommand {
         return if (isPlaying) {
-            currentTrackRepository.pause(guildId)
+            currentTrackRepository.pause(guildId = guildId)
         } else {
-            currentTrackRepository.play(guildId)
+            currentTrackRepository.play(guildId = guildId)
         }
     }
 }

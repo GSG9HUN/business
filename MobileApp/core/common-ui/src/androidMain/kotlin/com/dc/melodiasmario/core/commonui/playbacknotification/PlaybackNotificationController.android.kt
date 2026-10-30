@@ -16,14 +16,6 @@ actual class PlaybackNotificationController(
         ContextCompat.startForegroundService(context, intent)
     }
 
-    actual fun stop() {
-        val intent = Intent()
-            .setClassName(context.packageName, PLAYBACK_SERVICE_CLASS)
-            .setAction(PlaybackNotificationAction.STOP)
-
-        context.startService(intent)
-    }
-
     private companion object {
         const val PLAYBACK_SERVICE_CLASS =
             "com.dc.melodiasmario.playback.PlaybackForegroundService"

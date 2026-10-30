@@ -9,7 +9,7 @@ import com.dc.melodiasmario.core.model.currenttrack.CurrentTrack
 
 class PlaybackMediaSessionController(
     context: Context,
-    private val callback: Callback,
+    private val callback: Callback
 ) {
     private val mediaSession = MediaSessionCompat(context, "MelodiasMarioPlayback").apply {
         setCallback(
@@ -31,7 +31,7 @@ class PlaybackMediaSessionController(
 
     fun update(
         currentTrack: CurrentTrack,
-        artwork: Bitmap?,
+        artwork: Bitmap?
     ) {
         val track = currentTrack.currentTrack ?: return
 
@@ -52,7 +52,7 @@ class PlaybackMediaSessionController(
                 .setState(
                     if (currentTrack.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
                     currentTrack.positionSeconds * 1000L,
-                    if (currentTrack.isPlaying) 1f else 0f,
+                    if (currentTrack.isPlaying) 1f else 0f
                 )
                 .setActions(
                     PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or

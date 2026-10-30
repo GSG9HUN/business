@@ -4,9 +4,7 @@ import com.dc.melodiasmario.core.data.settings.UserSettingsStore
 import com.dc.melodiasmario.core.datastore.settings.UserSettingsStorage
 import com.dc.melodiasmario.core.domain.profile.UserSettingsRepository
 import com.dc.melodiasmario.core.model.settings.UserSettings
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.annotation.Single
 
 
@@ -18,8 +16,8 @@ class UserSettingsRepositoryImpl(
     override val settings: StateFlow<UserSettings> = userSettingsStore.settings
 
     override suspend fun saveSettings(userSettings: UserSettings) {
-        userSettingsStorage.saveSettings(userSettings)
-        userSettingsStore.setSettings(userSettings)
+        userSettingsStorage.saveSettings(settings = userSettings)
+        userSettingsStore.setSettings(userSettings = userSettings)
     }
 
     override suspend fun clearSettings() {

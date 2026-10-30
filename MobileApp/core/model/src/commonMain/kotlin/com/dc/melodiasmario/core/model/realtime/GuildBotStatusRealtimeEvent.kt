@@ -6,5 +6,5 @@ data class GuildBotStatusRealtimeEvent(
     override val guildId: String,
     override val eventName: String,
     val updatedAtUtc: String,
-    val snapshot: BotStatus,
+    val snapshot: BotStatus
 ) : RealtimeEvent

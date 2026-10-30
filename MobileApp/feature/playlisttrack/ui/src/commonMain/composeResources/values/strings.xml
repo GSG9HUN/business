@@ -1,0 +1,31 @@
+<resources>
+    <string name="playlisttrack_title">Lejátszási lista</string>
+    <string name="playlisttrack_subtitle">%1$d szám · szerver lejátszási listája</string>
+    <string name="playlisttrack_summary">%1$d szám · %2$d perc</string>
+    <string name="playlisttrack_back">Vissza</string>
+    <string name="playlisttrack_more">Lejátszási lista műveletei</string>
+    <string name="playlisttrack_more_message">A lejátszási lista kezelése és a számok frissítése.</string>
+    <string name="playlisttrack_load">Betöltés</string>
+    <string name="playlisttrack_processing">Feldolgozás…</string>
+    <string name="playlisttrack_add">+ Track hozzáadása</string>
+    <string name="playlisttrack_shuffle">Keverés</string>
+    <string name="playlisttrack_refresh">Frissítés</string>
+    <string name="playlisttrack_cancel">Mégse</string>
+    <string name="playlisttrack_track_actions">Track műveletei</string>
+    <string name="playlisttrack_move_up">Mozgatás felfelé</string>
+    <string name="playlisttrack_move_down">Mozgatás lefelé</string>
+    <string name="playlisttrack_remove">Track törlése</string>
+    <string name="playlisttrack_remove_confirm">Törlöd ezt a számot a mentett lejátszási listából?</string>
+    <string name="playlisttrack_empty">A lejátszási lista üres</string>
+    <string name="playlisttrack_empty_message">Adj hozzá egy számot a lejátszási listához.</string>
+    <string name="playlisttrack_load_failed">Nem sikerült lekérni a lejátszási listát. Próbáld újra.</string>
+    <string name="playlisttrack_operation_failed">A művelet sikertelen. Frissítsd a listát, és próbáld újra.</string>
+    <string name="playlisttrack_search_failed">A keresés sikertelen. Próbáld újra.</string>
+    <string name="playlisttrack_accepted">Kérés elfogadva. Várakozás a befejezésre…</string>
+    <string name="playlisttrack_added">A számok hozzáadva a lejátszási listához.</string>
+    <string name="playlisttrack_loaded">A lejátszási lista betöltve a lejátszási sorba.</string>
+    <string name="playlisttrack_removed">A szám törölve a lejátszási listából.</string>
+    <string name="playlisttrack_order_updated">A lejátszási lista sorrendje frissítve.</string>
+    <string name="playlisttrack_timeout">A befejezés nem igazolható. Újrapróbálkozás előtt frissíts, hogy elkerüld az ismételt hozzáadást.</string>
+    <string name="playlisttrack_drag_handle_content_description">Számok rendezése</string>
+</resources>

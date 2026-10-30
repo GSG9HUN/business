@@ -13,10 +13,5 @@ expect class MobileRealtimeClient() {
         guildId: String
     ): Flow<RealtimeEvent>
 
-    suspend fun connect(
-        accessToken: String,
-        guildId: String
-    )
-
     suspend fun disconnect()
 }

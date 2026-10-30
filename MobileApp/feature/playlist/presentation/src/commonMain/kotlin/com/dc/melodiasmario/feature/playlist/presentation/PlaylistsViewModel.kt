@@ -9,6 +9,7 @@ import com.dc.melodiasmario.core.domain.playlist.usecase.CreatePlaylistUseCase
 import com.dc.melodiasmario.core.domain.playlist.usecase.DeletePlaylistUseCase
 import com.dc.melodiasmario.core.domain.playlist.usecase.GetPlaylistsUseCase
 import com.dc.melodiasmario.core.domain.playlist.usecase.RenamePlaylistUseCase
+import com.dc.melodiasmario.core.domain.playlist.usecase.SetPlaylistArtworkUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,7 @@ class PlaylistsViewModel(
     private val createPlaylistUseCase: CreatePlaylistUseCase,
     private val renamePlaylistUseCase: RenamePlaylistUseCase,
     private val deletePlaylistUseCase: DeletePlaylistUseCase,
+    private val setPlaylistArtworkUseCase: SetPlaylistArtworkUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PlaylistsUiState())
     val uiState: StateFlow<PlaylistsUiState> = _uiState.asStateFlow()
@@ -52,6 +54,11 @@ class PlaylistsViewModel(
 
     private suspend fun handleEvent(event: PlaylistsEvent) {
         when (event) {
+            is PlaylistsEvent.ArtworkClicked -> _uiState.update {
+                it.copy(dialog = PlaylistsDialog.Artwork(event.playlistId), artworkDraft = "")
+            }
+            is PlaylistsEvent.ArtworkDraftChanged -> _uiState.update { it.copy(artworkDraft = event.artworkUri) }
+            PlaylistsEvent.ArtworkConfirmed -> onArtworkConfirmed()
             PlaylistsEvent.AvatarClicked -> onAvatarClicked()
             PlaylistsEvent.AddPlaylistClicked -> onAddPlaylistClicked()
             PlaylistsEvent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed()
@@ -86,6 +93,22 @@ class PlaylistsViewModel(
                 is Resource.Error -> onError(result.error)
             }
         }
+    }
+
+    private suspend fun onArtworkConfirmed() {
+        val dialog = _uiState.value.dialog as? PlaylistsDialog.Artwork ?: return
+        val artworkUri = _uiState.value.artworkDraft.trim().ifEmpty { null }
+        closeDialog()
+        setPlaylistArtworkUseCase(dialog.playlistId, artworkUri).runAction(
+            state = _uiState,
+            effects = _effect,
+            successEffect = PlaylistsEffect.ArtworkSaved,
+            failureEffect = PlaylistsEffect.ArtworkSaveFailed,
+            onLoading = { it.copy(isLoading = true, errorMessage = null) },
+            onSuccess = { it.copy(isLoading = false) },
+            onError = { state, _ -> state.copy(isLoading = false) },
+            afterSuccess = { currentGuildId?.let { loadPlaylists(it) } },
+        )
     }
 
     private suspend fun createPlaylist(playlistName: String) {
@@ -328,7 +351,7 @@ class PlaylistsViewModel(
     }
 
     private suspend fun onPlaylistClicked(playlistId: String) {
-        _effect.emit(PlaylistsEffect.NavigateToPlaylistSongs(playlistId))
+        _effect.emit(PlaylistsEffect.NavigateToPlaylistTracks(playlistId))
     }
 
     private suspend fun onAvatarClicked() {

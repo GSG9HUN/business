@@ -13,7 +13,7 @@ import org.koin.core.annotation.Single
 class GuildApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun getGuilds(accessToken: String): List<GuildDto> {
         return client.get("$baseUrl/guilds/") {

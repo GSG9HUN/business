@@ -44,6 +44,7 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_r
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -90,7 +91,7 @@ fun NowPlayingCard(
     ) {
         displayedPositionSeconds = currentTrack.positionSeconds
         while (isPlaying && displayedPositionSeconds < track.durationSeconds) {
-            delay(1_000)
+            delay(1_000.milliseconds)
             displayedPositionSeconds = (displayedPositionSeconds + 1)
                 .coerceAtMost(track.durationSeconds)
         }

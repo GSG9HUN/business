@@ -4,5 +4,5 @@ import com.dc.melodiasmario.core.model.settings.UserSettings
 
 data class ProfileSettingsData(
     val userSettings: UserSettings,
-    val settingsUpdatedAtUtc: String,
+    val settingsUpdatedAtUtc: String
 )

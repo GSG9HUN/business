@@ -60,8 +60,8 @@ kotlin {
             implementation(project(":core:common-ui"))
             implementation(project(":core:di"))
 
-            implementation(project(":feature:playlistsong:presentation"))
-            implementation(project(":feature:playlistsong:ui"))
+            implementation(project(":feature:playlisttrack:presentation"))
+            implementation(project(":feature:playlisttrack:ui"))
             implementation(project(":feature:currenttrack:presentation"))
             implementation(project(":feature:currenttrack:ui"))
             implementation(project(":feature:guild:presentation"))

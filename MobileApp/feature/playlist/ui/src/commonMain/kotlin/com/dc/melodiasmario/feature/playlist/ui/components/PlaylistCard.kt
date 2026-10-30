@@ -33,7 +33,9 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 import com.dc.melodiasmario.core.model.playlist.Playlist
+import com.dc.melodiasmario.core.commonui.components.MPlaylistArtwork
 import com.dc.melodiasmario.feature.playlist.generated.resources.Res
+import com.dc.melodiasmario.feature.playlist.generated.resources.playlists_artwork_title
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_menu_content_description
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_card_subtitle
 import com.dc.melodiasmario.feature.playlist.generated.resources.playlist_duration_hours
@@ -52,6 +54,7 @@ fun PlaylistCard(
     onClick: () -> Unit,
     onRenameClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
+    onArtworkClick: () -> Unit = {},
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val menuContentDescription =  stringResource(Res.string.playlist_card_menu_content_description)
@@ -70,7 +73,8 @@ fun PlaylistCard(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                Box(
+                MPlaylistArtwork(
+                    playlistName = playlist.name,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
@@ -78,10 +82,8 @@ fun PlaylistCard(
                             color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(12.dp)
                         ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    //ZENE icon
-                }
+                    imageUrl = playlist.artworkUri,
+                )
 
                 Spacer(modifier = Modifier.size(12.dp))
 
@@ -128,6 +130,13 @@ fun PlaylistCard(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
                 ) {
+                    DropdownMenuItem(
+                        text = { MText(text = stringResource(Res.string.playlists_artwork_title)) },
+                        onClick = {
+                            menuExpanded = false
+                            onArtworkClick()
+                        },
+                    )
                     DropdownMenuItem(
                         text = {
                             MText(

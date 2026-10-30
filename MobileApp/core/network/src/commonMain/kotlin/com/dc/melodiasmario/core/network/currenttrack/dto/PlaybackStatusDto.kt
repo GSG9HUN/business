@@ -13,7 +13,7 @@ data class PlaybackStatusDto(
     val queueTrackCount: Int = 0,
     val isRepeating: Boolean = false,
     val isRepeatingList: Boolean = false,
-    val updatedAtUtc: String = "",
+    val updatedAtUtc: String = ""
 ) {
 
     fun toDomain() = PlaybackStatus(
@@ -25,6 +25,6 @@ data class PlaybackStatusDto(
         queueTrackCount = queueTrackCount,
         isRepeating = isRepeating,
         isRepeatingList = isRepeatingList,
-        updatedAtUtc = updatedAtUtc,
+        updatedAtUtc = updatedAtUtc
     )
 }

@@ -8,5 +8,5 @@ data class CurrentPlaybackMonitorState(
     val isConnected: Boolean = false,
     val isRefreshing: Boolean = false,
     val lastUpdatedAtMillis: Long = 0L,
-    val errorMessage: String? = null,
+    val errorMessage: String? = null
 )

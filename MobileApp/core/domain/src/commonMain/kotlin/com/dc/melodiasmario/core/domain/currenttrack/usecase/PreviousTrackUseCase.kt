@@ -16,7 +16,8 @@ class PreviousTrackUseCase(
         emit(Resource.Loading)
 
         try {
-            emit(Resource.Success(currentTrackRepository.previousTrack(guildId = guildId)))
+            val previousTrackControlCommand = currentTrackRepository.previousTrack(guildId = guildId)
+            emit(Resource.Success(previousTrackControlCommand))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

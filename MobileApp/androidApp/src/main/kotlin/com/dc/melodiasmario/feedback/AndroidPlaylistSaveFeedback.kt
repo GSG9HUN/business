@@ -25,7 +25,7 @@ import java.util.UUID
 class AndroidPlaylistSaveFeedback(
     private val context: Context,
     private val appVisibility: AppVisibility,
-    private val toastHostState: MToastHostState,
+    private val toastHostState: MToastHostState
 ) : QueuePlaylistSaveFeedback {
 
     override suspend fun show(result: QueuePlaylistSaveResult) {
@@ -56,7 +56,7 @@ class AndroidPlaylistSaveFeedback(
                             MToastType.Success
                         } else {
                             MToastType.Error
-                        },
+                        }
                     )
                 )
             } else {
@@ -68,13 +68,11 @@ class AndroidPlaylistSaveFeedback(
     @SuppressLint("MissingPermission")
     private fun showNotification(
         result: QueuePlaylistSaveResult,
-        message: String,
+        message: String
     ) {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
@@ -101,14 +99,11 @@ class AndroidPlaylistSaveFeedback(
                 0,
                 it,
                 PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE,
+                        PendingIntent.FLAG_IMMUTABLE
             )
         }
 
-        val notification = NotificationCompat.Builder(
-            context,
-            CHANNEL_ID,
-        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 context.getString(
@@ -135,7 +130,7 @@ class AndroidPlaylistSaveFeedback(
             notificationManager.notify(
                 "playlist-save-${UUID.randomUUID()}",
                 NOTIFICATION_ID,
-                notification,
+                notification
             )
         } catch (_: SecurityException) {
         }
@@ -153,7 +148,7 @@ class AndroidPlaylistSaveFeedback(
         val channel = NotificationChannel(
             CHANNEL_ID,
             context.getString(R.string.playlist_results_channel),
-            NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             enableVibration(true)
         }

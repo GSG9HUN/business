@@ -4,5 +4,5 @@ enum class RealtimeConnectionState {
     Disconnected,
     Connecting,
     Connected,
-    Reconnecting,
+    Reconnecting
 }

@@ -8,11 +8,15 @@ import org.koin.core.annotation.Single
 class AuthRemoteDataSourceImpl(
     private val authApiService: AuthApiService
 ) : AuthRemoteDataSource {
-    override suspend fun startDiscordLogin(): DiscordLoginUrl = authApiService.startDiscordLogin().toDomain()
+    override suspend fun startDiscordLogin(): DiscordLoginUrl =
+        authApiService.startDiscordLogin().toDomain()
 
-    override suspend fun exchangeTicket(ticket: String): AuthSession = authApiService.exchangeTicket(ticket = ticket).toDomain()
+    override suspend fun exchangeTicket(ticket: String): AuthSession =
+        authApiService.exchangeTicket(ticket = ticket).toDomain()
 
-    override suspend fun refreshSession(refreshToken: String): AuthSession = authApiService.refreshSession(refreshToken = refreshToken).toDomain()
+    override suspend fun refreshSession(refreshToken: String): AuthSession =
+        authApiService.refreshSession(refreshToken = refreshToken).toDomain()
 
-    override suspend fun logout(refreshToken: String) = authApiService.logout(refreshToken = refreshToken)
+    override suspend fun logout(refreshToken: String) =
+        authApiService.logout(refreshToken = refreshToken)
 }

@@ -10,7 +10,7 @@ import org.koin.core.annotation.Single
 class StatusApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun isApiOnline(): Boolean {
         return client.get("$baseUrl/status").status.value in 200..299

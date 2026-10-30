@@ -9,7 +9,7 @@ data class UpdateProfileSettingsDto(
     val theme: String,
     val hapticFeedbackEnabled: Boolean,
     val soundEffectsEnabled: Boolean,
-    val telemetryEnabled: Boolean,
+    val telemetryEnabled: Boolean
 )
 
 fun UserSettings.toUpdateProfileSettingsDto() = UpdateProfileSettingsDto(
@@ -17,5 +17,5 @@ fun UserSettings.toUpdateProfileSettingsDto() = UpdateProfileSettingsDto(
     theme = theme,
     hapticFeedbackEnabled = hapticFeedbackEnabled,
     soundEffectsEnabled = soundEffectsEnabled,
-    telemetryEnabled = telemetryEnabled,
+    telemetryEnabled = telemetryEnabled
 )

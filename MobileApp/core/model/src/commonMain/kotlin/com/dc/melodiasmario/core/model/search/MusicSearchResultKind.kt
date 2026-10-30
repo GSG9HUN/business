@@ -6,8 +6,8 @@ enum class MusicSearchResultKind {
 
     fun toApiKind(): String {
         return when (this) {
-            MusicSearchResultKind.TRACK -> "track"
-            MusicSearchResultKind.PLAYLIST -> "playlist"
+            TRACK -> "track"
+            PLAYLIST -> "playlist"
         }
     }
 }

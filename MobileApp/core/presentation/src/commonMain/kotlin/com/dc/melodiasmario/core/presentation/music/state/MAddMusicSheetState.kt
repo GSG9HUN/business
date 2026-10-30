@@ -26,5 +26,5 @@ data class MAddMusicSheetState(
     val canSubmitManual: Boolean = false,
     val isManualLoading: Boolean = false,
 
-    val commandInFlight: Boolean = false,
+    val commandInFlight: Boolean = false
 )

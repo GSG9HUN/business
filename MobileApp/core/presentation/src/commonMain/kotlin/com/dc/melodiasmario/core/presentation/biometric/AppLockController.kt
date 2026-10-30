@@ -14,7 +14,7 @@ class AppLockController(
     private val saveEnabled: suspend (Boolean) -> Unit,
     private val clearLocalSession: suspend () -> Unit,
     private val backgroundTimeoutMillis: Long = 30_000L,
-    private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() },
+    private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) {
     private val _uiState = MutableStateFlow(AppLockUiState())
     val uiState = _uiState.asStateFlow()
@@ -49,7 +49,7 @@ class AppLockController(
                     it.copy(
                         isInitialized = true,
                         isEnabled = enabled,
-                        isLocked = enabled,
+                        isLocked = enabled
                     )
                 }
             } catch (error: CancellationException) {
@@ -59,7 +59,7 @@ class AppLockController(
                     it.copy(
                         isInitialized = false,
                         isLocked = true,
-                        error = AppLockError.StorageFailure,
+                        error = AppLockError.StorageFailure
                     )
                 }
             } finally {
@@ -92,28 +92,26 @@ class AppLockController(
 
         val timeoutExpired = backgroundStart?.let {
             val elapsed = now - it
-            elapsed < 0L || elapsed >= backgroundTimeoutMillis
+            elapsed !in 0L..<backgroundTimeoutMillis
         } ?: false
 
         val authenticatedRecently = lastAuthenticationAt?.let {
             val elapsed = now - it
 
-            backgroundStart != null && it >= backgroundStart && elapsed >= 0L && elapsed < backgroundTimeoutMillis
+            backgroundStart != null && it >= backgroundStart && elapsed in 0L..<backgroundTimeoutMillis
         } ?: false
 
         _uiState.update {
             it.copy(
                 isForeground = true,
-                isLocked = it.isLocked || (it.isEnabled && timeoutExpired && !authenticatedRecently),
+                isLocked = it.isLocked || (it.isEnabled && timeoutExpired && !authenticatedRecently)
             )
         }
 
         backgroundStartedAt = null
     }
 
-    suspend fun unlock(
-        authenticate: suspend () -> BiometricResult,
-    ) {
+    suspend fun unlock(authenticate: suspend () -> BiometricResult) {
         val state = _uiState.value
 
         if (!state.isEnabled || !state.isLocked) {
@@ -129,7 +127,7 @@ class AppLockController(
 
     suspend fun changeEnabled(
         enabled: Boolean,
-        authenticate: suspend () -> BiometricResult,
+        authenticate: suspend () -> BiometricResult
     ) {
         val state = _uiState.value
 
@@ -143,7 +141,7 @@ class AppLockController(
             _uiState.update {
                 it.copy(
                     isEnabled = enabled,
-                    isLocked = false,
+                    isLocked = false
                 )
             }
         }
@@ -157,7 +155,7 @@ class AppLockController(
         _uiState.update {
             it.copy(
                 isBusy = true,
-                error = null,
+                error = null
             )
         }
 
@@ -172,7 +170,7 @@ class AppLockController(
                     isInitialized = true,
                     isEnabled = false,
                     isLocked = false,
-                    error = null,
+                    error = null
                 )
             }
 
@@ -194,7 +192,7 @@ class AppLockController(
 
     private suspend fun authenticateAndRun(
         authenticate: suspend () -> BiometricResult,
-        onSuccess: suspend () -> Unit,
+        onSuccess: suspend () -> Unit
     ) {
         val state = _uiState.value
 
@@ -205,7 +203,7 @@ class AppLockController(
         _uiState.update {
             it.copy(
                 isBusy = true,
-                error = null,
+                error = null
             )
         }
 

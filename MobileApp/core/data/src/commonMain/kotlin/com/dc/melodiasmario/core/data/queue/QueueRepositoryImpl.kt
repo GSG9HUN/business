@@ -13,10 +13,6 @@ class QueueRepositoryImpl(
     private val authorizedSessionProvider: AuthorizedSessionProvider
 ): QueueRepository {
 
-    override suspend fun getCommandStatus(commandId: String): BotControlCommand {
-        return queueRemoteDataSource.getCommandStatus(authorizedSessionProvider.getValidSession(), commandId)
-    }
-
     override suspend fun getQueue(guildId: String): Queue {
         val accessToken = authorizedSessionProvider.getValidSession()
         return queueRemoteDataSource.getQueue(

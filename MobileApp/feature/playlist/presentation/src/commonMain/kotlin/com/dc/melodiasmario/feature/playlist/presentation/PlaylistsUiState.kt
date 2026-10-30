@@ -13,4 +13,5 @@ data class PlaylistsUiState(
     val dialog: PlaylistsDialog = PlaylistsDialog.None,
     val playlistNameDraft: String = "",
     val searchDraft: String = "",
+    val artworkDraft: String = "",
 )

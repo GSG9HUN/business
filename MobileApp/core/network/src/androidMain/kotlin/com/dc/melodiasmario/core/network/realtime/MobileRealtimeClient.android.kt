@@ -51,10 +51,6 @@ actual class MobileRealtimeClient {
         }
     }
 
-    actual suspend fun connect(accessToken: String, guildId: String) {
-        connect(accessToken = accessToken, guildId = guildId, onEvent = {}, onClosed = {})
-    }
-
     private fun connect(
         accessToken: String,
         guildId: String,

@@ -7,5 +7,5 @@ data class MusicSearchCapability(
     val supportsTrackSearch: Boolean,
     val supportsPlaylistSearch: Boolean,
     val canEnqueue: Boolean,
-    val unavailableReason: String? = null,
+    val unavailableReason: String? = null
 )

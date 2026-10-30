@@ -13,7 +13,7 @@ import org.koin.core.annotation.Single
 class CurrentUserApiService(
     @Property(AppConstants.Properties.ApiBaseUrl)
     private val baseUrl: String,
-    private val client: HttpClient,
+    private val client: HttpClient
 ) {
     suspend fun getCurrentUser(accessToken: String): CurrentUserDto {
         return client.get("$baseUrl/profile/me") {
