@@ -60,7 +60,9 @@ public sealed class GuildPlaybackSessions
     /// <param name="state">The state supplied for this operation.</param>
     /// <param name="session">The captured player generation whose ownership must remain current.</param>
     /// <returns>Whether the requested check or operation succeeded.</returns>
-    private static bool Matches(State state, PlaybackSession session) => state is { Closing: false, Joining: false } && state.Generation == session.Generation && ReferenceEquals(state.Player, session.Player);
+    private static bool Matches(State state, PlaybackSession session) => state is { Closing: false, Joining: false }
+        && state.Generation == session.Generation
+        && ReferenceEquals(state.Player, session.Player);
 
     /// <summary>
     /// Captures the current player generation, or returns null for a joining, closing, or unregistered player.
@@ -73,7 +75,8 @@ public sealed class GuildPlaybackSessions
         var state = Get(guildId);
         lock (state.Sync)
         {
-            return state is { Closing: false, Joining: false } && ReferenceEquals(state.Player, player) ? new PlaybackSession(guildId, state.Generation, player) : null;
+            return state is { Closing: false, Joining: false }
+                && ReferenceEquals(state.Player, player) ? new PlaybackSession(guildId, state.Generation, player) : null;
         }
     }
 
@@ -635,6 +638,7 @@ public sealed class GuildPlaybackSessions
             await changed.WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
+
     }
 
     /// <summary>
@@ -672,6 +676,7 @@ public sealed class GuildPlaybackSessions
 
         // An unresolved start must not be treated as an idle player.
         // A ready attempt, however, is normal ongoing playback.
+
         if (state.PreparingAttempt.HasValue
             || state is { Attempt: not null, AttemptReady: false })
         {
@@ -756,7 +761,13 @@ public sealed class GuildPlaybackSessions
         var state = Get(session.GuildId);
         lock (state.Sync)
         {
-            return Matches(state, session) && reservation.GuildId == session.GuildId && reservation.Generation == session.Generation && state.ActiveControlOperationId == reservation.OperationId && state.Attempt == operationId && state.QueueItemId == queueItemId && state.EncodedTrack == encodedTrack;
+            return Matches(state, session)
+                && reservation.GuildId == session.GuildId
+                && reservation.Generation == session.Generation
+                && state.ActiveControlOperationId == reservation.OperationId
+                && state.Attempt == operationId
+                && state.QueueItemId == queueItemId
+                && state.EncodedTrack == encodedTrack;
         }
     }
 
@@ -896,7 +907,8 @@ public sealed class GuildPlaybackSessions
             return false;
         }
 
-        return string.Equals(expected.SourceName, received.SourceName, StringComparison.Ordinal) && string.Equals(expected.Identifier, received.Identifier, StringComparison.Ordinal);
+        return string.Equals(expected.SourceName, received.SourceName, StringComparison.Ordinal)
+            && string.Equals(expected.Identifier, received.Identifier, StringComparison.Ordinal);
     }
 
 

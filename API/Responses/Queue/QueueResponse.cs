@@ -6,4 +6,9 @@ namespace API.Responses.Queue;
 /// <param name="GuildId">The guild id value for this operation.</param>
 /// <param name="TrackCount">The track count value for this operation.</param>
 /// <param name="Tracks">The tracks value for this operation.</param>
-public sealed record QueueResponse(string GuildId, int TrackCount, IReadOnlyList<QueueTrackResponse> Tracks);
+public sealed record QueueResponse(string GuildId, int TrackCount, IReadOnlyList<QueueTrackResponse> Tracks)
+{
+
+/// <summary>Includes current and completed occurrences from active batches for display only.</summary>
+public IReadOnlyList<QueueTrackResponse> DisplayTracks { get; init; } = [];
+}

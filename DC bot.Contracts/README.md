@@ -10,7 +10,7 @@ This class library defines the shared language used by the Discord bot, mobile A
 - Share bot-command payloads, identifiers, and event names across processes.
 - Reuse provider URL rules and playlist-name validation without SDK or database dependencies.
 
-## Runtime Flow
+**Runtime Flow**
 
 ```text
 DC bot / API
@@ -22,6 +22,28 @@ Bot/persistence state -> shared event name -> API realtime publisher
 ```
 
 The project targets .NET 9 and has no project or package references. It does not depend on EF Core, Npgsql, ASP.NET Core, DSharpPlus, or Lavalink implementations. Its explicit namespace root is `DC_bot`, so shared types keep that prefix even though the folder and project file are named `DC bot.Contracts`.
+
+**Contract Semantics**
+
+Repository absence, ordering, conditional mutation, and cancellation behavior should be explicit. Queue start claims carry operation identity; a late completion must not commit against a newer claim. Canonical batch items preserve the playback list independently of waiting queue positions. Previous lookup is limited to the active batch, while history reads can list recent batches without changing playback.
+
+Records at this boundary are not tracked database entities and are not automatically HTTP response shapes. An API mapper chooses its own client contract, and a repository chooses how an entity is stored. The shared value must remain meaningful without either implementation detail.
+
+Command and event names form a cross-process protocol. Adding or changing a payload requires coordinated handling in the API producer and bot consumer, including input validation and compatibility during deployment.
+
+**Maintenance Boundaries**
+
+- Keep SQL, table mapping, migrations, and provider exceptions in Persistence; translate expected uniqueness conflicts into the shared exception.
+- Keep HTTP request and response DTOs in API.
+- Keep live player sessions, Discord wrappers, and command orchestration in the bot.
+- Pass cancellation through repository I/O; an implementation may retain an independent lifetime for required cleanup.
+- Provider definitions describe supported naming and URLs. Deployment switches and node capabilities decide actual search and enqueue availability.
+
+When a shared interface or record changes, update its implementation and consumers together, build the solution, and run the relevant behavior tests. Folder READMEs explain the feature boundary and link the current types rather than tracking a change log.
+
+**Source Convention Review**
+
+The November 2026 review aligns source formatting and XML documentation and separates top-level declarations where applicable. Existing contract namespaces and enum values are preserved. SDK-defined signatures and independently owned cleanup operations retain their cancellation contracts.
 
 ## Subfolders
 
@@ -74,24 +96,6 @@ Normalizes and validates playlist names consistently across bot and API entry po
 **Purpose:** PlaylistNameValidator checks the name before a caller reaches a repository or submits a playlist command.
 
 ---
-
-## Contract Semantics
-
-Repository absence, ordering, conditional mutation, and cancellation behavior should be explicit. Queue start claims carry operation identity; a late completion must not commit against a newer claim. Canonical batch items preserve the playback list independently of waiting queue positions. Previous lookup is limited to the active batch, while history reads can list recent batches without changing playback.
-
-Records at this boundary are not tracked database entities and are not automatically HTTP response shapes. An API mapper chooses its own client contract, and a repository chooses how an entity is stored. The shared value must remain meaningful without either implementation detail.
-
-Command and event names form a cross-process protocol. Adding or changing a payload requires coordinated handling in the API producer and bot consumer, including input validation and compatibility during deployment.
-
-## Maintenance Boundaries
-
-- Keep SQL, table mapping, migrations, and provider exceptions in Persistence; translate expected uniqueness conflicts into the shared exception.
-- Keep HTTP request and response DTOs in API.
-- Keep live player sessions, Discord wrappers, and command orchestration in the bot.
-- Pass cancellation through repository I/O; an implementation may retain an independent lifetime for required cleanup.
-- Provider definitions describe supported naming and URLs. Deployment switches and node capabilities decide actual search and enqueue availability.
-
-When a shared interface or record changes, update its implementation and consumers together, build the solution, and run the relevant behavior tests. Folder READMEs explain the feature boundary and link the current types rather than tracking a change log.
 
 ## Related Components
 

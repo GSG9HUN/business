@@ -22,6 +22,11 @@ public class PlaylistConfiguration : IEntityTypeConfiguration<PlaylistEntity>
             .HasColumnName("name")
             .IsRequired()
             .HasMaxLength(100);
+
+        builder.Property(entity => entity.ArtworkUri)
+            .HasColumnName("artwork_uri")
+            .HasMaxLength(2048);
+
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
             .HasGuildIdStorage()

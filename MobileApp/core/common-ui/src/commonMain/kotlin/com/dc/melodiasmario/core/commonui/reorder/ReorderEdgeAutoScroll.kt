@@ -38,6 +38,7 @@ fun ReorderEdgeAutoScroll(
         edgeSizePx,
         speedPxPerSecond
     ) {
+
         if (!isDragging || viewportHeightPx <= 0f) {
             return@LaunchedEffect
         }

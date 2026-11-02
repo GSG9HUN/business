@@ -30,8 +30,7 @@ fun MErrorScreen(
     onClick: () -> Unit
 ): Unit {
     Column(
-        modifier = modifier
-            .fillMaxSize()
+        modifier = modifier.fillMaxSize()
             .padding(all = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

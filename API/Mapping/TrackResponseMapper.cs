@@ -45,7 +45,32 @@ internal static class TrackResponseMapper
     internal static PlaylistTrackResponse? TryMapPlaylistTrack(PlaylistTrackRecord trackRecord)
     {
         var track = TryParse(trackRecord.TrackIdentifier);
-        return track is null ? null : new PlaylistTrackResponse(trackRecord.OrderNumber, track.Title, track.Author, ToDurationSeconds(track.Duration), trackRecord.TrackUri);
+        return track is null
+            ? null
+            : new PlaylistTrackResponse(
+                trackRecord.OrderNumber,
+                track.Title,
+                track.Author,
+                ToDurationSeconds(track.Duration),
+                trackRecord.TrackUri,
+                track.ArtworkUri?.ToString());
+    }
+
+    /// <summary>Finds the first available source artwork in saved playlist order.</summary>
+    internal static string? FindPlaylistArtworkUri(IReadOnlyCollection<PlaylistTrackRecord> tracks)
+    {
+
+        foreach (var track in tracks.OrderBy(track => track.OrderNumber))
+        {
+            var artworkUri = TryParse(track.TrackIdentifier)?.ArtworkUri?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(artworkUri))
+            {
+                return artworkUri;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

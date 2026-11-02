@@ -13,6 +13,10 @@ public class PlaybackBatchItemConfiguration : IEntityTypeConfiguration<PlaybackB
     /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<PlaybackBatchItemEntity> builder)
     {
+        builder.Property(item => item.IsRemoved)
+            .HasColumnName("is_removed");
+        builder.Property(item => item.EnqueueGroupId)
+            .HasColumnName("enqueue_group_id");
         builder.ToTable("playback_batch_items");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id)

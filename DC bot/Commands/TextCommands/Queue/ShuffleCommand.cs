@@ -80,6 +80,7 @@ public class ShuffleCommand(
 
         while (attempts < maxAttempts)
         {
+
             for (var i = trackList.Count - 1; i > 0; i--)
             {
                 var j = random.Next(i + 1);

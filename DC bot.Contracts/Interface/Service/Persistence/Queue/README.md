@@ -8,6 +8,27 @@ Defines repository operations for ordered queue entries, canonical batches, cond
 - Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 - The active canonical batch includes tracks appended before closure. Previous lookup excludes older batches, and repeat can restore already played canonical items. CloseBatchIfIdleAsync returning false means the caller must reconsider newly appended work.
 
+**Recovery Commit**
+
+**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
+
+**Methods:**
+
+```csharp
+Task<bool> CompleteStartAsync(
+    ulong guildId,
+    long queueItemId,
+    Guid operationId,
+    string trackIdentifier,
+    string realtimeEventName,
+    bool clearSourceMetadata = false,
+    TimeSpan? initialPosition = null,
+    bool initiallyPaused = false,
+    CancellationToken cancellationToken = default);
+```
+
+---
+
 ## Interfaces
 
 ### IQueueRepository
@@ -67,27 +88,6 @@ The caller supplies the component and argument values used in this example.
 
 ```csharp
 var result = await queueRepository.GetActiveBatchItemsAsync(guildId, cancellationToken);
-```
-
----
-
-## Recovery Commit
-
-**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
-
-**Methods:**
-
-```csharp
-Task<bool> CompleteStartAsync(
-    ulong guildId,
-    long queueItemId,
-    Guid operationId,
-    string trackIdentifier,
-    string realtimeEventName,
-    bool clearSourceMetadata = false,
-    TimeSpan? initialPosition = null,
-    bool initiallyPaused = false,
-    CancellationToken cancellationToken = default);
 ```
 
 ---

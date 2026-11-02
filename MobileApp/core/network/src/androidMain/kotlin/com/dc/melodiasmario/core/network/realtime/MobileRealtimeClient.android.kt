@@ -41,14 +41,14 @@ actual class MobileRealtimeClient {
         connect(
             accessToken = accessToken,
             guildId = guildId,
-            onEvent = { event -> trySend(event) },
+            onEvent = { event -> trySend(element = event) },
             onClosed = { error ->
 
                 if (isExpectedClose) {
                     _connectionState.value = RealtimeConnectionState.Disconnected
                 } else {
                     _connectionState.value = RealtimeConnectionState.Reconnecting
-                    close(error)
+                    close(cause = error)
                 }
             }
         )
@@ -69,8 +69,7 @@ actual class MobileRealtimeClient {
     ) {
         _connectionState.value = RealtimeConnectionState.Connecting
 
-        val connection = HubConnectionBuilder
-            .create(buildHubUrl(accessToken = accessToken))
+        val connection = HubConnectionBuilder.create(buildHubUrl(accessToken = accessToken))
             .build()
 
         hubConnection = connection
@@ -138,7 +137,7 @@ actual class MobileRealtimeClient {
     }
 
     private fun buildHubUrl(accessToken: String): String {
-        val realtimeBaseUrl = AppConstants.URLs.BaseUrl.removeSuffix("/api")
+        val realtimeBaseUrl = AppConstants.URLs.BaseUrl.removeSuffix(suffix = "/api")
         val encodedToken = URLEncoder.encode(accessToken, "UTF-8")
 
         return "$realtimeBaseUrl/hubs/mobile?access_token=$encodedToken"

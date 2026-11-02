@@ -39,7 +39,8 @@ public static class QueueHandlers
         }
 
         var queueItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
-        return HttpResults.Ok(QueueResponseMapper.Map(guildId, queueItems));
+        var displayItems = await queueRepository.GetDisplayItemsAsync(guildId, cancellationToken);
+        return HttpResults.Ok(QueueResponseMapper.MapWithHistory(guildId, queueItems, displayItems));
     }
 
     /// <summary>

@@ -56,7 +56,8 @@ interface PlaylistsRemoteDataSource {
         accessToken: String,
         guildId: String,
         playlistName: String,
-        trackUrls: List<String>
+        trackUrls: List<String>,
+        queueItemIds: List<String>
     ): Playlist
 
 }

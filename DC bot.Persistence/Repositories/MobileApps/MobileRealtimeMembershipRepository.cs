@@ -21,7 +21,8 @@ public class MobileRealtimeMembershipRepository(
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var existing = await dbContext.MobileRealtimeGuildMemberships.FirstOrDefaultAsync(membership => membership.ConnectionId == connectionId && membership.GuildId == guildId, cancellationToken);
+        var existing = await dbContext.MobileRealtimeGuildMemberships.FirstOrDefaultAsync(membership => membership.ConnectionId == connectionId
+            && membership.GuildId == guildId, cancellationToken);
 
         if (existing is null)
         {
@@ -44,7 +45,9 @@ public class MobileRealtimeMembershipRepository(
         CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        await dbContext.MobileRealtimeGuildMemberships.Where(membership => membership.ConnectionId == connectionId && membership.DiscordUserId == discordUserId && membership.GuildId == guildId)
+        await dbContext.MobileRealtimeGuildMemberships.Where(membership => membership.ConnectionId == connectionId
+            && membership.DiscordUserId == discordUserId
+            && membership.GuildId == guildId)
             .ExecuteDeleteAsync(cancellationToken);
     }
 

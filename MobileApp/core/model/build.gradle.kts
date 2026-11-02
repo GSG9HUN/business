@@ -23,17 +23,17 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":core:common"))
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
             }
         }
-        commonTest { dependencies { implementation(libs.kotlin.test) } }
+        commonTest { dependencies { implementation(dependencyNotation = libs.kotlin.test) } }
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

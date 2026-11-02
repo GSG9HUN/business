@@ -10,9 +10,55 @@ Android and iOS applications.
 - Shared queue drag handling and edge scrolling.
 - Material 3 light, dark, and system-following themes.
 
-## Theme colors
+The module depends on `core:common`, `core:presentation`, and `core:model`. Feature UI modules consume its Compose components; platform adapters remain in their Android or iOS source sets.
 
-`designsystem/theme/MelodiasMarioTheme.kt` is the single palette source.
+## Subfolders
+
+### src/commonMain/
+
+Shared Compose components, theme palettes, resources, biometric UI contracts, and reorder behavior.
+
+**Files:**
+
+- [`MTrackItemRow.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/components/MTrackItemRow.kt)
+- [`MelodiasMarioTheme.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/designsystem/theme/MelodiasMarioTheme.kt)
+- [`AppLockHost.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/biometric/AppLockHost.kt)
+
+**Purpose:** Shared Compose components, theme palettes, resources, biometric UI contracts, and reorder behavior.
+
+---
+
+### src/androidMain/
+
+Android biometric, lifecycle, feedback, and playback-notification adapters.
+
+**Files:**
+
+- [`BiometricAuthenticator.android.kt`](src/androidMain/kotlin/com/dc/melodiasmario/core/commonui/biometric/BiometricAuthenticator.android.kt)
+- [`PlaybackNotificationController.android.kt`](src/androidMain/kotlin/com/dc/melodiasmario/core/commonui/playbacknotification/PlaybackNotificationController.android.kt)
+
+**Purpose:** Android biometric, lifecycle, feedback, and playback-notification adapters.
+
+---
+
+### src/iosMain/
+
+Native iOS biometric, lifecycle, feedback, and playback-notification adapters.
+
+**Files:**
+
+- [`BiometricAuthenticator.ios.kt`](src/iosMain/kotlin/com/dc/melodiasmario/core/commonui/biometric/BiometricAuthenticator.ios.kt)
+- [`PlaybackNotificationController.ios.kt`](src/iosMain/kotlin/com/dc/melodiasmario/core/commonui/playbacknotification/PlaybackNotificationController.ios.kt)
+
+**Purpose:** Native iOS biometric, lifecycle, feedback, and playback-notification adapters.
+
+---
+
+## Components
+
+### MelodiasMarioTheme and MText
+
+**Purpose:** `designsystem/theme/MelodiasMarioTheme.kt` is the single palette source.
 Components read roles directly from `MaterialTheme.colorScheme`; they do not
 cache an entire palette in a local `colors` variable or use a parallel token API.
 
@@ -37,13 +83,9 @@ annotation constants remain available because annotations require constants.
 Existing artwork gradients and warning-toast accents retain their explicit
 decorative colors.
 
-## Related modules
+**Validation Checks:**
 
-- `core/presentation`: shared presentation contracts and controllers.
-- `core/model`: shared application models.
-- Feature UI modules consume these Compose components.
-
-## Validation
+Run the following command from the MobileApp root.
 
 Compile and package the Android app with:
 
@@ -54,9 +96,11 @@ Compile and package the Android app with:
 The build checks Android compilation and packaging. Visual behavior in both
 themes and iOS compilation need their respective runtime / platform checks.
 
-## Biometric UI
+---
 
-The biometric package contains native authenticator and lifecycle adapters, an
+### AppLockHost and BiometricLockSetting
+
+**Purpose:** The biometric package contains native authenticator and lifecycle adapters, an
 application lock host, a lock screen, localized errors, and a stateless profile toggle.
 AppLockHost supplies the controller and authenticator to routes. ProfileRoute passes
 controller state through the screen to BiometricLockSetting. Visual components have
@@ -64,18 +108,42 @@ theme-wrapped previews that do not open native prompts or require DI.
 
 See [the shared lock controller](../presentation/src/commonMain/kotlin/com/dc/melodiasmario/core/presentation/biometric/AppLockController.kt).
 
-## Playback and reorder lifecycle
+---
 
-PlaybackNotificationController exposes notification startup. The Android foreground service owns notification STOP actions and task-removal cleanup. ReorderDragContainer calculates the drop target from visible list geometry; there is no separate unused index helper.
+### PlaybackNotificationController and ReorderDragContainer
 
-## Track item rows
+**Purpose:** PlaybackNotificationController exposes notification startup. The Android foreground service owns notification STOP actions and task-removal cleanup. ReorderDragContainer calculates the drop target from visible list geometry; there is no separate unused index helper.
 
-MTrackItemRow in components/ is shared by QueueScreen, CurrentTrackScreen, and PlaylistTrackScreen, including drag overlays. It displays trackNumber, artwork, title, artist and duration, a remove button, and a drag handle. enabled controls interaction; reorderEnabled separately gates move accessibility actions and local dragging. Container-managed dragging uses dragEnabled = false to avoid competing gesture handlers. Queue ordering is unchanged; playlist ordering remains disabled until backend support exists.
+---
 
-## Playlist Fallback Artwork
+### MTrackItemRow
 
-`components/MPlaylistArtwork.kt` prefers the API image URL and uses bundled vector covers selected by `PlaylistArtworkTheme.fromName` when the image is missing, loading, or failed. Night Drive uses a neon city/road image, Chill uses a sunset/waves image, and Workout uses a lightning image. Other names retain the gradient/music icon. Both playlist cards and detail headers use this component. `MArtwork.fallbackImage` accepts an optional full-size local fallback without changing queue artwork defaults.
+**Purpose:** MTrackItemRow in components/ is shared by QueueScreen, CurrentTrackScreen, and PlaylistTrackScreen, including drag overlays. It displays trackNumber, artwork, title, artist and duration, a remove button, and a drag handle. enabled controls interaction; reorderEnabled separately gates move accessibility actions and local dragging. Container-managed dragging uses dragEnabled = false to avoid competing gesture handlers. Queue ordering is unchanged; playlist ordering remains disabled until backend support exists.
 
-## Source conventions
+---
 
-UI callbacks declare descriptive input parameter names. Components use named arguments, explicit imports, and KDoc for their contracts. `MMoreAction`, `MelodiasMarioThemeMode`, and `FloatingActionButtonIcon` each have a separate file. IDE previews remain private helpers.
+### MPlaylistArtwork and MArtwork
+
+**Purpose:** `components/MPlaylistArtwork.kt` prefers the API image URL and uses bundled vector covers selected by `PlaylistArtworkTheme.fromName` when the image is missing, loading, or failed. Night Drive uses a neon city/road image, Chill uses a sunset/waves image, and Workout uses a lightning image. Other names retain the gradient/music icon. Both playlist cards and detail headers use this component. `MArtwork.fallbackImage` accepts an optional full-size local fallback without changing queue artwork defaults.
+
+---
+
+### MMoreAction and shared UI contracts
+
+**Purpose:** UI callbacks declare descriptive input parameter names. Components use named arguments, explicit imports, and KDoc for their contracts. `MMoreAction`, `MelodiasMarioThemeMode`, and `FloatingActionButtonIcon` each have a separate file. IDE previews remain private helpers.
+
+---
+
+### queueBatchItems and MSwitchButton
+
+**Purpose:** `components/QueueBatchItems.kt` renders batch headers and read-only history while preserving the zero-based indexes of waiting tracks passed to its `key` and `itemContent` callbacks. Playing occurrences use the primary-container background; completed and skipped occurrences are dimmed. History rows have no queue mutation callbacks.
+
+The switch thumb in `MSwitchButton` reads `MaterialTheme.colorScheme.onPrimary` instead of a fixed color. Callbacks name their inputs, and fluent chains keep one subsequent call per line.
+
+---
+
+## Related Components
+
+- [core:presentation](../presentation/README.md): shared presentation contracts and controllers.
+- [core:model](../model): shared application models.
+- Feature UI modules consume these Compose components.

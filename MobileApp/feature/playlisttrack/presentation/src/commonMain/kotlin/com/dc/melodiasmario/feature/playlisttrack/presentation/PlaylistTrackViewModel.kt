@@ -86,7 +86,9 @@ class PlaylistTrackViewModel(
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
     fun onEvent(event: PlaylistTrackEvent): Unit {
+
         if (event.isCommandEvent()) {
+
             if (!startCommandIfIdle()) {
                 return
             }
@@ -116,6 +118,7 @@ class PlaylistTrackViewModel(
     }
 
     private suspend fun handleEvent(event: PlaylistTrackEvent) {
+
         if (_uiState.value.isCommandInFlight
             && event !is PlaylistTrackEvent.Load
             && event != PlaylistTrackEvent.BackClicked
@@ -152,6 +155,7 @@ class PlaylistTrackViewModel(
     }
 
     private fun loadPlaylist(guildId: String, playlistId: String) {
+
         if (currentGuildId == guildId
             && currentPlaylistId == playlistId
             && _uiState.value.playlist != null
@@ -170,6 +174,7 @@ class PlaylistTrackViewModel(
     }
 
     private fun refreshClicked() {
+
         if (_uiState.value.canModify || _uiState.value.hasLoadError) {
             refreshPlaylist()
         }
@@ -184,14 +189,15 @@ class PlaylistTrackViewModel(
     }
 
     private suspend fun fetchPlaylist(playlistId: String) {
-        getPlaylistDetailUseCase(playlistId = playlistId).map { result ->
+        getPlaylistDetailUseCase(playlistId = playlistId)
+            .map { result ->
 
-            if (result is Resource.Success && result.data.guildId != currentGuildId) {
-                Resource.Error(error = IllegalStateException("Playlist belongs to a different guild"))
-            } else {
-                result
+                if (result is Resource.Success && result.data.guildId != currentGuildId) {
+                    Resource.Error(error = IllegalStateException("Playlist belongs to a different guild"))
+                } else {
+                    result
+                }
             }
-        }
             .runAction(
                 uiState = _uiState,
                 effects = _effect,
@@ -213,12 +219,14 @@ class PlaylistTrackViewModel(
     }
 
     private fun moreClicked() {
+
         if (_uiState.value.playlist != null) {
             openDialog(dialog = PlaylistTrackDialog.More)
         }
     }
 
     private suspend fun addMusicClicked() {
+
         if (!_uiState.value.canModify) {
             return
         }
@@ -228,12 +236,14 @@ class PlaylistTrackViewModel(
     }
 
     private fun trackMoreClicked(orderNumber: Int) {
+
         if (_uiState.value.canModify) {
             openDialog(dialog = PlaylistTrackDialog.TrackActions(orderNumber = orderNumber))
         }
     }
 
     private fun removeClicked(orderNumber: Int) {
+
         if (_uiState.value.canModify) {
             openDialog(dialog = PlaylistTrackDialog.ConfirmRemove(orderNumber = orderNumber))
         }
@@ -263,7 +273,8 @@ class PlaylistTrackViewModel(
 
     private suspend fun removeTrack(playlistId: String, orderNumber: Int) {
         val track = _uiState.value.tracks.firstOrNull { track -> track.orderNumber == orderNumber } ?: return
-        removePlaylistTrackUseCase(playlistId = playlistId, trackNumber = track.orderNumber).runAction(
+        removePlaylistTrackUseCase(playlistId = playlistId, trackNumber = track.orderNumber)
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistTrackEffect.TrackRemoved,
@@ -274,11 +285,13 @@ class PlaylistTrackViewModel(
     }
 
     private suspend fun loadIntoQueue(playlistId: String) {
+
         if (_uiState.value.tracks.isEmpty()) {
             return
         }
 
-        loadPlaylistUseCase(playlistId = playlistId).runBotCommand(
+        loadPlaylistUseCase(playlistId = playlistId)
+            .runBotCommand(
             uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
@@ -305,7 +318,8 @@ class PlaylistTrackViewModel(
             return
         }
 
-        addPlaylistTrackUseCase(playlistId = playlistId, query = query).runBotCommand(
+        addPlaylistTrackUseCase(playlistId = playlistId, query = query)
+            .runBotCommand(
             uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
@@ -328,15 +342,15 @@ class PlaylistTrackViewModel(
     private suspend fun addSelectedTrack(playlistId: String) {
         val music = _uiState.value.addMusic
 
-        val result = music.results
-            .firstOrNull { searchResult -> searchResult.id == music.selectedResultId }
+        val result = music.results.firstOrNull { searchResult -> searchResult.id == music.selectedResultId }
             ?: return
 
         val url = result.canonicalUrl
             ?.takeIf { textValue -> result.canEnqueue && textValue.isNotBlank() }
             ?: return
 
-        addPlaylistTrackUseCase(playlistId = playlistId, query = url).runBotCommand(
+        addPlaylistTrackUseCase(playlistId = playlistId, query = url)
+            .runBotCommand(
             uiState = _uiState,
             effects = _effect,
             acceptedEffect = PlaylistTrackEffect.CommandAccepted,
@@ -366,6 +380,7 @@ class PlaylistTrackViewModel(
     }
 
     private fun startCommandIfIdle(): Boolean {
+
         if (currentPlaylistId == null
             || !_uiState.value.canModify
             || !commandLock.startIfIdle()) {
@@ -379,6 +394,7 @@ class PlaylistTrackViewModel(
     }
 
     private fun finishCommand(version: Long) {
+
         if (version == commandVersion) {
             commandLock.finish()
         }

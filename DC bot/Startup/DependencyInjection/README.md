@@ -7,6 +7,17 @@ Registers command, core, Discord, Lavalink, logging, and music dependencies at t
 - BotServiceProviderFactory invokes these modules and AddPersistenceServices. Discord builder callbacks route gateway, message, reaction, and voice events to injected handlers.
 - Keep concrete construction and factory wiring here. MUSIC_JOIN_DEADLINE and MUSIC_LEAVE_DEADLINE must be positive supported TimeSpan values; they are validated before runtime work.
 
+**Twenty-Four-Seven Registration**
+
+**Purpose:** Connect both Discord command entry points to the same settings workflow.
+
+- `AddTextCommands` registers `TwentyFourSevenCommand` as an `ICommand` singleton.
+- `AddSlashCommandServices` registers `TwentyFourSevenSlashCommand` as transient; `AddSlashCommandProcessor` adds its command type to the extension.
+- `AddMusicServices` registers `TwentyFourSevenService`, `DisconnectedPlayerCleanupService`, `PersistentVoiceGate`, `PersistentVoiceLeaveService`, and `PersistentVoiceRecoveryService` as singletons. `BotApplication.RunAsync` explicitly starts the persistent voice worker alongside the existing workers; this runtime uses a `ServiceProvider`, so registration alone does not start a hosted service.
+- `IGuildDataRepository` remains provided by the persistence registration.
+
+---
+
 ## Classes
 
 ### CommandServiceCollectionExtensions
@@ -150,17 +161,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 var result = services.AddMusicServices();
 ```
-
----
-
-## Twenty-Four-Seven Registration
-
-**Purpose:** Connect both Discord command entry points to the same settings workflow.
-
-- `AddTextCommands` registers `TwentyFourSevenCommand` as an `ICommand` singleton.
-- `AddSlashCommandServices` registers `TwentyFourSevenSlashCommand` as transient; `AddSlashCommandProcessor` adds its command type to the extension.
-- `AddMusicServices` registers `TwentyFourSevenService`, `DisconnectedPlayerCleanupService`, `PersistentVoiceGate`, `PersistentVoiceLeaveService`, and `PersistentVoiceRecoveryService` as singletons. `BotApplication.RunAsync` explicitly starts the persistent voice worker alongside the existing workers; this runtime uses a `ServiceProvider`, so registration alone does not start a hosted service.
-- `IGuildDataRepository` remains provided by the persistence registration.
 
 ---
 

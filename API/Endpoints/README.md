@@ -7,6 +7,18 @@ Registers minimal API routes, handler bindings, authorization, and endpoint filt
 - Program.cs mounts these groups under /api. Route registration selects the handler; handlers own repository calls and response decisions.
 - Keep route composition here and request processing in Handlers. Authentication alone does not replace a handler's guild-access check.
 
+**Playlist Cover Route**
+
+`PATCH /api/playlists/{playlistId}/artwork` maps to `PlaylistHandlers.SetArtworkAsync`. It shares the authenticated playlist route group and requires access to the owning guild.
+
+**Playlist Command Execution**
+
+POST /api/guilds/{guildId}/playlists resolves IOptions<PlaylistOptions> through dependency injection and rejects creation at the configured limit. Playlist command routes retain asynchronous 202 semantics.
+
+**Queue Snapshot Playlist Saving**
+
+The authorized guild playlist group exposes POST /from-queue through QueuePlaylistHandlers.CreateAsync. It returns a completed 201 response rather than an asynchronous bot-control command.
+
 ## Classes
 
 ### AuthEndpoints

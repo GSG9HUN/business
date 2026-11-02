@@ -164,7 +164,19 @@ internal sealed class PlaylistMutationService(
                 return CreatePlaylistResult.PlaylistLimitReached;
             }
 
-            await playlistRepository.CreatePlaylistAsync(guildId, playlistName, cancellationToken: cancellationToken);
+            var playlistId = await playlistRepository.CreateSnapshotAsync(
+                guildId,
+                playlistName,
+                [],
+                options.MaxPlaylistsPerGuild,
+                options.MaxTracksPerPlaylist,
+                cancellationToken);
+
+            if (playlistId is null)
+            {
+                return CreatePlaylistResult.PlaylistLimitReached;
+            }
+
             logger.LogInformation("Created new playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
             return CreatePlaylistResult.Created;
         }

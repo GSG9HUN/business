@@ -14,7 +14,6 @@ using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
 using DC_bot.Service.Music.Lifecycle.Sessions;
@@ -395,6 +394,7 @@ public class PlaybackControlService(
         {
             reservation = sessions.ReserveControl(session, operationName);
             // Check the track after acquiring the shared reservation.
+
             if (connection.CurrentTrack is null)
             {
                 await trackNotificationService.SendSafeAsync(channel, localizationService.Get(guildId, noTrackLocalizationKey), $"{operationName}.NoTrack", cancellationToken);

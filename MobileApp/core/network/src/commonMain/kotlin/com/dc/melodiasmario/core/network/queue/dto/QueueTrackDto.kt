@@ -22,7 +22,11 @@ data class QueueTrackDto(
     val duration: Int = 0,
     val trackUri: String = "",
     val artworkUri: String? = null,
-    val requestedBy: String? = null
+    val requestedBy: String? = null,
+    val queueItemId: String? = null,
+    val batchId: String? = null,
+    val batchPosition: Int = 0,
+    val state: String = "Queued"
 ) {
     /**
      * Maps this value to domain.
@@ -33,6 +37,10 @@ data class QueueTrackDto(
         artist = author,
         durationSeconds = duration,
         thumbnailUrl = artworkUri,
-        requestedBy = requestedBy
+        requestedBy = requestedBy,
+        queueItemId = queueItemId,
+        batchId = batchId,
+        batchPosition = batchPosition,
+        queueState = state
     )
 }

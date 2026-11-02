@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,8 +31,7 @@ fun MSwitchButton(
     val trackColor = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
     Box(
-        modifier = modifier
-            .minimumInteractiveComponentSize()
+        modifier = modifier.minimumInteractiveComponentSize()
             .toggleable(
                 value = checked,
                 onValueChange = onCheckedChange,
@@ -42,18 +40,16 @@ fun MSwitchButton(
         contentAlignment = Alignment.Center
     ) {
         Box(
-            modifier = Modifier
-                .size(width = 32.dp, height = 18.dp)
+            modifier = Modifier.size(width = 32.dp, height = 18.dp)
                 .clip(shape = RoundedCornerShape(size = 12.dp))
-                .background(trackColor)
+                .background(color = trackColor)
                 .padding(all = 2.dp),
             contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart
         ) {
             Box(
-                modifier = Modifier
-                    .size(size = 14.dp)
+                modifier = Modifier.size(size = 14.dp)
                     .clip(shape = CircleShape)
-                    .background(Color.White)
+                    .background(color = MaterialTheme.colorScheme.onPrimary)
             )
         }
     }

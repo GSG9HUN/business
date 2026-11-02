@@ -28,7 +28,8 @@ class PlaylistTrackApiService(
     suspend fun getPlaylist(accessToken: String, playlistId: String): PlaylistDetailDto {
         return httpClient.get(urlString = "$baseUrl/playlists/$playlistId") {
             header(key = "Authorization", value = "Bearer $accessToken")
-        }.body()
+        }
+            .body()
     }
 
     /**
@@ -38,7 +39,8 @@ class PlaylistTrackApiService(
         return httpClient.delete(urlString = "$baseUrl/playlists/$playlistId/tracks/$trackNumber") {
             expectSuccess = true
             header(key = "Authorization", value = "Bearer $accessToken")
-        }.body()
+        }
+            .body()
     }
 
     /**
@@ -47,6 +49,7 @@ class PlaylistTrackApiService(
     suspend fun loadPlaylist(accessToken: String, playlistId: String): BotControlCommandDto {
         return httpClient.post(urlString = "$baseUrl/playlists/$playlistId/load") {
             header(key = "Authorization", value = "Bearer $accessToken")
-        }.body()
+        }
+            .body()
     }
 }

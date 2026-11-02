@@ -4,9 +4,35 @@ This folder contains EF Core schema migrations, their generated metadata, and th
 
 ## Overview
 
+Convention maintenance removes compiler-reported unused imports and documents the artwork target-model override. Migration operations, identifiers, and generated target-model expressions are unchanged.
+
 - Preserve the chronological schema transitions required by the current database model.
 - Keep each migration operation file together with its matching generated designer file.
 - Apply pending schema changes through bot startup or an explicit EF tooling command.
+
+**Schema Change Checks**
+
+- Review the generated operations and snapshot against the entity/configuration change.
+- Apply schema changes to the intended database environment.
+- Add a new migration for a new schema transition instead of rewriting previously deployed history.
+- Documentation, DI, XML, and cancellation-only changes do not need a migration unless the model also changes.
+
+**Persistent Voice Schema**
+
+**AddTwentyFourSevenSettings**
+
+**Files:**
+
+- `20261023110102_AddTwentyFourSevenSettings.cs`
+- `20261023110102_AddTwentyFourSevenSettings.Designer.cs`
+
+**Purpose:** Adds `is_twenty_four_seven_enabled` (default false), `preferred_voice_channel_id`, and `preferred_text_channel_id` to `guild_data`. The channel identifiers are nullable `numeric(20,0)` values. Apply this migration before using preference reads and writes; it changes storage only.
+
+---
+
+**Staging Integration**
+
+The regenerated AddQueueBatches migration adds enqueue_group_id to queue and canonical rows, batch_position to queue rows, and is_removed to canonical items. It preserves the existing bigint batch_id foreign keys. Legacy occurrences receive deterministic separate display groups. AddPlaylistArtwork metadata includes the staging canonical batch model. These migrations were generated and checked without applying them to a running database.
 
 ## Migration Components
 
@@ -62,26 +88,6 @@ dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.cspro
 - Keeps generated schema comparisons tied to a source-controlled model.
 - Makes a new migration describe a transition from the previous model.
 - Separates schema evolution from repository implementation and documentation changes.
-
-## Schema Change Checks
-
-- Review the generated operations and snapshot against the entity/configuration change.
-- Apply schema changes to the intended database environment.
-- Add a new migration for a new schema transition instead of rewriting previously deployed history.
-- Documentation, DI, XML, and cancellation-only changes do not need a migration unless the model also changes.
-
-## Persistent Voice Schema
-
-### AddTwentyFourSevenSettings
-
-**Files:**
-
-- `20261023110102_AddTwentyFourSevenSettings.cs`
-- `20261023110102_AddTwentyFourSevenSettings.Designer.cs`
-
-**Purpose:** Adds `is_twenty_four_seven_enabled` (default false), `preferred_voice_channel_id`, and `preferred_text_channel_id` to `guild_data`. The channel identifiers are nullable `numeric(20,0)` values. Apply this migration before using preference reads and writes; it changes storage only.
-
----
 
 ## Related Components
 

@@ -13,10 +13,10 @@ fun Int.toDurationLabel(): String {
 
     return if (hours > 0) {
         "$hours:${minutes.toString()
-            .padStart(2, '0')}:${seconds.toString()
-            .padStart(2, '0')}"
+            .padStart(length = 2, padChar = '0')}:${seconds.toString()
+                .padStart(length = 2, padChar = '0')}"
     } else {
         "$minutes:${seconds.toString()
-            .padStart(2, '0')}"
+            .padStart(length = 2, padChar = '0')}"
     }
 }

@@ -81,7 +81,10 @@ internal sealed class PlaylistTrackMutationService(
             }
 
             var searchMode = trackSearchResolverService.ResolveSearchMode(playlistUrl);
-            var loadResult = await trackLoader.LoadTracksAsync(playlistUrl, searchMode, "SavePlaylistAsync.LoadTracksAsync", cancellationToken);
+            var loadResult = await trackLoader.LoadTracksAsync(
+                playlistUrl,
+                searchMode,
+                "SavePlaylistAsync.LoadTracksAsync", cancellationToken);
             var tracks = ExtractTracks(loadResult);
 
             if (loadResult.IsFailed || tracks.Count == 0)
@@ -100,23 +103,22 @@ internal sealed class PlaylistTrackMutationService(
             }
 
             var source = searchMode.ToString();
-            var trackRecords = tracks.Select(track => CreateTrackRecord(source, trackSerializer.Serialize(new LavaLinkTrackWrapper(track)), playlistUrl))
+            var trackRecords = tracks.Select(track => CreateTrackRecord(
+                    source,
+                    trackSerializer.Serialize(new LavaLinkTrackWrapper(track)),
+                    track.Uri?.ToString() ?? string.Empty))
                 .ToList();
-            var playlistCreated = false;
-            try
-            {
-                var playlistId = await playlistRepository.CreatePlaylistAsync(guildId, playlistName, cancellationToken: cancellationToken);
-                playlistCreated = true;
-                await playlistTrackRepository.AddRangeAsync(playlistId, trackRecords, cancellationToken: cancellationToken);
-            }
-            catch
-            {
-                if (playlistCreated)
-                {
-                    await TryDeleteCreatedPlaylistAsync(guildId, playlistName, default);
-                }
+            var playlistId = await playlistRepository.CreateSnapshotAsync(
+                guildId,
+                playlistName,
+                trackRecords,
+                options.MaxPlaylistsPerGuild,
+                trackLimit,
+                cancellationToken);
 
-                throw;
+            if (playlistId is null)
+            {
+                return SavePlaylistResult.PlaylistLimitReached;
             }
 
             logger.LogInformation("Saved playlist {PlaylistName} for guild {GuildId}. Track count: {TrackCount}", playlistName, guildId, trackRecords.Count);
@@ -127,7 +129,7 @@ internal sealed class PlaylistTrackMutationService(
             logger.LogWarning(ex, "Playlist {PlaylistName} already exists for guild {GuildId}", playlistName, guildId);
             return SavePlaylistResult.AlreadyExists;
         }
-        catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -169,7 +171,7 @@ internal sealed class PlaylistTrackMutationService(
 
         try
         {
-            var playlist = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName, cancellationToken: cancellationToken);
+            var playlist = await playlistRepository.GetByGuildAndNameAsync(guildId, playlistName, cancellationToken);
 
             if (playlist is null)
             {
@@ -177,7 +179,7 @@ internal sealed class PlaylistTrackMutationService(
                 return AddSongResult.PlaylistDoesNotExist;
             }
 
-            var existingTracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id, cancellationToken: cancellationToken);
+            var existingTracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id, cancellationToken);
 
             if (existingTracks.Count >= GetMaxTracksPerPlaylist())
             {
@@ -186,7 +188,10 @@ internal sealed class PlaylistTrackMutationService(
             }
 
             var searchMode = trackSearchResolverService.ResolveSearchMode(songUrl);
-            var loadedTrack = await trackLoader.LoadTracksAsync(songUrl, searchMode, "AddSongToPlaylistAsync.LoadTracksAsync", cancellationToken);
+            var loadedTrack = await trackLoader.LoadTracksAsync(
+                songUrl,
+                searchMode,
+                "AddSongToPlaylistAsync.LoadTracksAsync", cancellationToken);
 
             if (loadedTrack.IsFailed)
             {
@@ -201,11 +206,16 @@ internal sealed class PlaylistTrackMutationService(
             }
 
             var track = tracks[0];
-            var trackRecord = CreateTrackRecord(searchMode.ToString(), trackSerializer.Serialize(new LavaLinkTrackWrapper(track)), songUrl);
-            await playlistTrackRepository.AddTrackAsync(playlist.Id, trackRecord, cancellationToken: cancellationToken);
+            var trackRecord = CreateTrackRecord(
+                searchMode.ToString(),
+                trackSerializer.Serialize(new LavaLinkTrackWrapper(track)),
+                track.Uri?.ToString() ?? string.Empty);
+
+            await playlistTrackRepository.AddTrackAsync(playlist.Id, trackRecord, cancellationToken);
+
             return AddSongResult.Added;
         }
-        catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -317,29 +327,6 @@ internal sealed class PlaylistTrackMutationService(
     private int GetMaxImportedTracks()
     {
         return Math.Max(1, options.MaxImportedTracks);
-    }
-
-    /// <summary>
-    /// Attempts to remove a newly created playlist when the surrounding save must be rolled back.
-    /// </summary>
-    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
-    /// <param name="playlistName">The playlist name supplied for this operation.</param>
-    /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    private async Task TryDeleteCreatedPlaylistAsync(
-        ulong guildId,
-        string playlistName,
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            await playlistRepository.DeleteByGuildAndNameAsync(guildId, playlistName, cancellationToken: cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to clean up playlist {PlaylistName} for guild {GuildId} after save failure", playlistName, guildId);
-        }
     }
 
     /// <summary>

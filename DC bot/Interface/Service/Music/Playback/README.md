@@ -7,6 +7,26 @@ Defines the playback boundary used by the bot music pipeline.
 - Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 
+**Existing-Item Recovery**
+
+**Methods:**
+
+```csharp
+Task<PlaybackStartResult> StartExistingAsync(
+    PlaybackSession session,
+    IDiscordChannel textChannel,
+    long queueItemId,
+    PlaybackStartReason reason,
+    ILavaLinkTrack? replacement = null,
+    ControlReservation? reservation = null,
+    PlaybackResumeOptions? resume = null,
+    CancellationToken cancellationToken = default);
+```
+
+**Purpose:** Preserve the same queue occurrence while forwarding a confirmed position and pause state through start dispatch and commit. The optional checkpoint does not enqueue another canonical item.
+
+---
+
 ## Subfolders
 
 ### Models/
@@ -212,26 +232,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 var result = await trackPlaybackService.TryPlayNextTrackAsync(session, textChannel, reason, reservation, cancellationToken);
 ```
-
----
-
-## Existing-Item Recovery
-
-**Methods:**
-
-```csharp
-Task<PlaybackStartResult> StartExistingAsync(
-    PlaybackSession session,
-    IDiscordChannel textChannel,
-    long queueItemId,
-    PlaybackStartReason reason,
-    ILavaLinkTrack? replacement = null,
-    ControlReservation? reservation = null,
-    PlaybackResumeOptions? resume = null,
-    CancellationToken cancellationToken = default);
-```
-
-**Purpose:** Preserve the same queue occurrence while forwarding a confirmed position and pause state through start dispatch and commit. The optional checkpoint does not enqueue another canonical item.
 
 ---
 

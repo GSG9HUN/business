@@ -10,7 +10,6 @@ using DC_bot.Interface.Service.Music.Queue.Models;
 using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Recovery;
 using DC_bot.Service.Music.Lifecycle.Sessions;
@@ -221,6 +220,7 @@ public sealed class TrackPlaybackService(
         finally
         {
             // The caller releases an inherited reservation.
+
             if (ownedReservation is not null)
             {
                 sessions.ReleaseControl(ownedReservation);
@@ -338,6 +338,7 @@ public sealed class TrackPlaybackService(
                             properties,
                             cancellationToken);
                     }
+
                     started = true;
                 }
                 catch (Exception transportError)

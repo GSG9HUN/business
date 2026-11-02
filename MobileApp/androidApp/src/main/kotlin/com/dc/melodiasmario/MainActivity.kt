@@ -68,7 +68,8 @@ class MainActivity : FragmentActivity() {
 
         if (uri.scheme == "myapp" && uri.host == "auth") {
             val ticket = uri.getQueryParameter("ticket")
-            val authDeepLinkDispatcher = getKoin().get<AuthDeepLinkDispatcher>()
+            val authDeepLinkDispatcher = getKoin()
+                .get<AuthDeepLinkDispatcher>()
 
             ticket?.takeIf { textValue -> textValue.isNotBlank() }
                 ?.let { authTicket ->

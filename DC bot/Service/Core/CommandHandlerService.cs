@@ -33,7 +33,13 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
     /// <param name="botSettings">The bot settings supplied for this operation.</param>
     /// <param name="messageFactory">The Discord message factory dependency used by this boundary.</param>
     /// <param name="isTestMode">Whether explicit test-runtime behavior is enabled.</param>
-    public CommandHandlerService(ICommandRegistry commandRegistry, ILogger<CommandHandlerService> logger, ILocalizationService localizationService, BotSettings botSettings, IDiscordMessageFactory messageFactory, bool isTestMode = false)
+    public CommandHandlerService(
+        ICommandRegistry commandRegistry,
+        ILogger<CommandHandlerService> logger,
+        ILocalizationService localizationService,
+        BotSettings botSettings,
+        IDiscordMessageFactory messageFactory,
+        bool isTestMode = false)
     {
         _logger = logger;
         _commandRegistry = commandRegistry;
@@ -44,6 +50,7 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
         Prefix = botSettings.Prefix;
     }
 
+    /// <summary>Gets or sets the text-command prefix captured from bot settings.</summary>
     internal string? Prefix { get; set; }
 
     /// <summary>

@@ -26,42 +26,42 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                implementation(project(":core:common"))
-                implementation(project(":core:model"))
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.koin.core)
-                implementation(libs.koin.annotations)
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.logging)
-                implementation(libs.ktor.client.content.negotiation)
-                implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = project(":core:model"))
+                implementation(dependencyNotation = libs.kotlinx.coroutines.core)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.annotations)
+                implementation(dependencyNotation = libs.ktor.client.core)
+                implementation(dependencyNotation = libs.ktor.client.logging)
+                implementation(dependencyNotation = libs.ktor.client.content.negotiation)
+                implementation(dependencyNotation = libs.ktor.serialization.kotlinx.json)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
             }
         }
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.ktor.client.mock)
+                implementation(dependencyNotation = libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.test)
+                implementation(dependencyNotation = libs.ktor.client.mock)
             }
         }
         androidMain {
             dependencies {
-                implementation(libs.ktor.client.okhttp)
-                implementation(libs.microsoft.signalr)
-                implementation(libs.rxjava3)
+                implementation(dependencyNotation = libs.ktor.client.okhttp)
+                implementation(dependencyNotation = libs.microsoft.signalr)
+                implementation(dependencyNotation = libs.rxjava3)
             }
         }
         iosMain {
             dependencies {
-                implementation(libs.ktor.client.darwin)
+                implementation(dependencyNotation = libs.ktor.client.darwin)
             }
         }
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

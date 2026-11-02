@@ -19,13 +19,14 @@ class MelodiasMario : Application() {
             androidContext(this@MelodiasMario)
 
             properties(
-                mapOf(
+                values = mapOf(
                     AppConstants.Properties.ApiBaseUrl to AppConstants.URLs.BaseUrl
                 )
             )
 
             modules(
-                SharedModule().module(),
+                SharedModule()
+                    .module(),
                 androidAppModule
             )
         }

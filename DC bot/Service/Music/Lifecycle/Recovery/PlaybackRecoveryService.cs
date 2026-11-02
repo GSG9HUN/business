@@ -49,6 +49,7 @@ public sealed class PlaybackRecoveryService(
         string? previousEncodedTrack)
     {
         // Same-track replacement cannot be disambiguated by a snapshot.
+
         if (encodedTrack == previousEncodedTrack
             || session.Player.SessionId != nodeSessionId
             || !sessions.IsAttemptCurrent(session, reservation, operationId, queueItemId, encodedTrack))
@@ -60,7 +61,9 @@ public sealed class PlaybackRecoveryService(
         try
         {
             var matches = await probe.IsPlayingAsync(nodeSessionId, session.GuildId, encodedTrack, deadline.Token);
-            return matches && session.Player.SessionId == nodeSessionId && sessions.IsAttemptCurrent(session, reservation, operationId, queueItemId, encodedTrack);
+            return matches
+                && session.Player.SessionId == nodeSessionId
+                && sessions.IsAttemptCurrent(session, reservation, operationId, queueItemId, encodedTrack);
         }
         catch (Exception ex)
         {
@@ -93,6 +96,7 @@ public sealed class PlaybackRecoveryService(
         try
         {
             // Idempotent persistence retry only. Never retry PlayAsync here.
+
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 try
@@ -152,6 +156,7 @@ public sealed class PlaybackRecoveryService(
         return await sessions.RecoverWithoutPlayerAsync(guildId, async () =>
         {
             // Re-read after entering the lifecycle boundary.
+
             if (
                 await audioService.Players.GetPlayerAsync(
                 guildId,
@@ -222,6 +227,7 @@ public sealed class PlaybackRecoveryService(
                 return;
             }
         }
+
     }
 
     /// <summary>
@@ -252,5 +258,6 @@ public sealed class PlaybackRecoveryService(
                 logger.LogWarning(ex, "Guild recovery remains pending. Guild={GuildId}", guildId);
             }
         }
+
     }
 }

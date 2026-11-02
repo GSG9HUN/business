@@ -2,6 +2,8 @@
 
 This project contains the automated tests for the Discord bot.
 
+`UnitTests/Api/PlaylistArtworkTests.cs` verifies saved playlist cover selection and per-track artwork in API responses, including missing artwork and invalid persisted metadata.
+
 ## Test Categories
 
 - `Unit` - isolated tests with mocks and no external services
@@ -83,3 +85,27 @@ Live music-flow E2E tests use `EndToEndTests/Service/LiveMusicFlowTestContext.cs
 - `../DC bot/Startup/README.md` - startup composition
 - `TestHelperFiles/README.md` - shared unit/integration/E2E test helpers
 - `../readme_required_tests.md` - historical test coverage plan
+
+## Custom Playlist Cover Verification
+
+`UnitTests/Api/PlaylistArtworkTests.cs` covers custom-cover precedence, URL validation, authorization, and clearing. `IntegrationTests/Persistence/PlaylistRepositoryPostgreSqlIntegrationTests.SetArtworkAsync_PersistsAndClearsCover` verifies PostgreSQL migration and repository read/write behavior when Docker is available.
+
+## Saved Track URL Regression Coverage
+
+`UnitTests/Service/Music/Playlist/PlaylistServiceTrackUriTests.cs` verifies playlist imports persist individual track URLs and song additions persist resolved URLs rather than input references. Missing URLs remain empty without losing serialized track identity.
+
+## Playlist Command Execution
+
+The new `PlaylistCreationTests` and `PlaylistBotControlHandlerTests` contain test scaffolds only. All scenarios are explicitly skipped with implementation pending; they do not provide behavior coverage.
+
+## Queue Repeat Synchronization
+
+QueueRepeatListSynchronizationTests contains skipped integration-test scaffolds for remove/reorder/shuffle, duplicate occurrences, clear, disabled repeat, and transaction rollback. These scaffolds do not provide behavior coverage.
+
+## Queue Batches and History
+
+QueueBatchPersistenceTests contains explicitly skipped scaffolds for batch identity, duplicate occurrences, reorder membership, current/history display, and waiting-only command indices. The existing in-memory repository adapter implements the new display-read contract for compilation.
+
+## Queue Snapshot Playlist Saving
+
+QueuePlaylistSnapshotTests and PlaylistSnapshotTransactionTests contain skipped scaffolds for ordering, duplicates, advancement, guild access, limits, and transaction rollback. No behavior coverage is claimed for these scaffolds.

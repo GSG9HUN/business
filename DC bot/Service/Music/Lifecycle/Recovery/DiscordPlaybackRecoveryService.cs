@@ -57,7 +57,8 @@ public sealed class DiscordPlaybackRecoveryService(
 
         foreach (var guildId in guildIds)
         {
-            var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId);
+            using var settingsDeadline = new CancellationTokenSource(options.Value.JoinDeadline);
+            var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId, settingsDeadline.Token);
 
             if (settings.IsEnabled)
             {
@@ -85,7 +86,8 @@ public sealed class DiscordPlaybackRecoveryService(
     /// <returns>A task representing completion of this operation.</returns>
     public async Task OnBotVoiceStateUpdatedAsync(ulong guildId, ulong? channelId)
     {
-        var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId);
+        using var settingsDeadline = new CancellationTokenSource(options.Value.JoinDeadline);
+        var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId, settingsDeadline.Token);
 
         if (settings.IsEnabled)
         {
@@ -101,6 +103,7 @@ public sealed class DiscordPlaybackRecoveryService(
         if (channelId is> 0)
         {
             // Keep the recovery destination current after a channel move.
+
             if (channelId.Value != target.ChannelId)
             {
                 _targets.TryUpdate(guildId, target with { ChannelId = channelId.Value }, target);
@@ -111,6 +114,7 @@ public sealed class DiscordPlaybackRecoveryService(
 
         // An ordinary voice disconnect must not automatically trigger rejoin.
         // Only react during the bounded gateway recovery window.
+
         if (!_windows.TryGetValue(guildId, out var window)
             || window.Generation != target.Session.Generation
             || window.Until <= DateTimeOffset.UtcNow)
@@ -183,6 +187,7 @@ public sealed class DiscordPlaybackRecoveryService(
 
                 await Task.Delay(500, ct);
             }
+
         }
         catch (PlaybackSessionExpiredException)
         {

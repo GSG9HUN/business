@@ -98,15 +98,16 @@ class ProfileViewModel(
     }
 
     private suspend fun loadProfile() {
-        getProfileUseCase().collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
+        getProfileUseCase()
+            .collect { result ->
+                when (result) {
+                    Resource.Loading -> onLoading()
 
-                is Resource.Success -> onProfileSuccess(data = result.data)
+                    is Resource.Success -> onProfileSuccess(data = result.data)
 
-                is Resource.Error -> onProfileError(error = result.error)
+                    is Resource.Error -> onProfileError(error = result.error)
+                }
             }
-        }
     }
 
     private fun onProfileError(error: Throwable) {
@@ -191,13 +192,14 @@ class ProfileViewModel(
     }
 
     private suspend fun onSaveSettingsClicked() {
-        updateProfileSettingsUseCase(userSettings = _uiState.value.draftUserSettings).collect { result ->
-            when (result) {
-                Resource.Loading -> onProfileSettingsSaving()
-                is Resource.Success -> onProfileSettingsSaved(profileSettingsData = result.data)
-                is Resource.Error -> onProfileSettingsSaveError(error = result.error)
+        updateProfileSettingsUseCase(userSettings = _uiState.value.draftUserSettings)
+            .collect { result ->
+                when (result) {
+                    Resource.Loading -> onProfileSettingsSaving()
+                    is Resource.Success -> onProfileSettingsSaved(profileSettingsData = result.data)
+                    is Resource.Error -> onProfileSettingsSaveError(error = result.error)
+                }
             }
-        }
     }
 
     private fun onProfileSettingsSaving() {
@@ -239,7 +241,8 @@ class ProfileViewModel(
 
     private suspend fun onLogoutClicked() {
 
-        discordLogoutUseCase().runAction(
+        discordLogoutUseCase()
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = ProfileEffect.LogoutSuccess,

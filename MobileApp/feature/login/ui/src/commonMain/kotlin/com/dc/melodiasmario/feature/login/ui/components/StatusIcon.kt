@@ -24,10 +24,9 @@ fun StatusIcon(
     textColor: Color
 ): Unit {
     Box(
-        modifier = Modifier
-            .size(size = 48.dp)
+        modifier = Modifier.size(size = 48.dp)
             .clip(shape = RoundedCornerShape(size = 12.dp))
-            .background(backgroundColor),
+            .background(color = backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         MText(

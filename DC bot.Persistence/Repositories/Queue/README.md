@@ -8,6 +8,31 @@ Implements shared storage operations for ordered queue entries, canonical batche
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - QueueRepository delegates atomic start ownership to QueueClaimService and canonical repeat/history to QueueBatchRepository. QueueBatchStore coordinates active batch state inside transactions; QueueRealtimeNotifier signals readers after relevant changes.
 
+**Recovery Commit**
+
+**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
+
+**Methods:**
+
+```csharp
+Task<bool> CompleteStartAsync(
+    ulong guildId,
+    long queueItemId,
+    Guid operationId,
+    string trackIdentifier,
+    string realtimeEventName,
+    bool clearSourceMetadata = false,
+    TimeSpan? initialPosition = null,
+    bool initiallyPaused = false,
+    CancellationToken cancellationToken = default);
+```
+
+---
+
+**Staging Integration**
+
+QueueRepeatListRepository now edits PlaybackBatchItems, the canonical source used by RestartAsync. Remove marks the exact BatchItemId as excluded; reorder/shuffle persist canonical order using temporary unique positions; clear excludes the active canonical batch. Existing rows and foreign-key history remain intact. Restart ignores excluded items and assigns fresh display groups while preserving canonical identity. GetDisplayItemsAsync groups by EnqueueGroupId and includes Starting items as active. Snapshot reads remain independent of live playback state.
+
 ## Classes
 
 ### QueueBatchRepository
@@ -278,27 +303,6 @@ The caller supplies the component and argument values used in this example.
 
 ```csharp
 var result = await queueRepository.GetActiveBatchItemsAsync(guildId, cancellationToken);
-```
-
----
-
-## Recovery Commit
-
-**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
-
-**Methods:**
-
-```csharp
-Task<bool> CompleteStartAsync(
-    ulong guildId,
-    long queueItemId,
-    Guid operationId,
-    string trackIdentifier,
-    string realtimeEventName,
-    bool clearSourceMetadata = false,
-    TimeSpan? initialPosition = null,
-    bool initiallyPaused = false,
-    CancellationToken cancellationToken = default);
 ```
 
 ---

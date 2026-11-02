@@ -31,37 +31,37 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":core:common"))
-                api(project(":core:presentation"))
-                implementation(project(":core:model"))
+                implementation(dependencyNotation = project(":core:common"))
+                api(dependencyNotation = project(":core:presentation"))
+                implementation(dependencyNotation = project(":core:model"))
 
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.compose.runtime)
-                implementation(libs.compose.foundation)
-                implementation(libs.compose.material3)
-                implementation(libs.compose.ui)
-                implementation(libs.compose.components.resources)
-                implementation(libs.compose.uiToolingPreview)
-                implementation(libs.coil.compose)
-                implementation(libs.coil.network.ktor3)
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.compose.runtime)
+                implementation(dependencyNotation = libs.compose.foundation)
+                implementation(dependencyNotation = libs.compose.material3)
+                implementation(dependencyNotation = libs.compose.ui)
+                implementation(dependencyNotation = libs.compose.components.resources)
+                implementation(dependencyNotation = libs.compose.uiToolingPreview)
+                implementation(dependencyNotation = libs.coil.compose)
+                implementation(dependencyNotation = libs.coil.network.ktor3)
             }
         }
 
-        commonTest { dependencies { implementation(libs.kotlin.test) } }
+        commonTest { dependencies { implementation(dependencyNotation = libs.kotlin.test) } }
         androidMain {
             dependencies {
-                implementation(libs.compose.uiTooling)
-                implementation(libs.core)
-                implementation(libs.androidx.biometric)
-                implementation(libs.androidx.fragment)
-                implementation(libs.androidx.lifecycle.runtimeCompose)
+                implementation(dependencyNotation = libs.compose.uiTooling)
+                implementation(dependencyNotation = libs.core)
+                implementation(dependencyNotation = libs.androidx.biometric)
+                implementation(dependencyNotation = libs.androidx.fragment)
+                implementation(dependencyNotation = libs.androidx.lifecycle.runtimeCompose)
             }
         }
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

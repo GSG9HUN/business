@@ -31,36 +31,37 @@ val AppRouteBackStackSaver: Saver<SnapshotStateList<AppRoute>, List<List<String>
         }
     },
     restore = { saved ->
-        mutableStateListOf<AppRoute>().apply {
-            addAll(
-                saved.mapNotNull { route ->
-                    when (route.firstOrNull()) {
-                        "Login" -> AppRoute.Login
-                        "GuildSelector" -> AppRoute.GuildSelector
-                        "MyProfile" -> AppRoute.MyProfile
-                        "Playlists" -> route.getOrNull(index = 1)
-                            ?.let(block = AppRoute::Playlists)
-                        "Queue" -> route.getOrNull(index = 1)
-                            ?.let(block = AppRoute::Queue)
-                        "CurrentTrack" -> route.getOrNull(index = 1)
-                            ?.let(block = AppRoute::CurrentTrack)
-                        "PlaylistTrack" -> route.getOrNull(index = 1)
-                            ?.let { guildId ->
-                                route.getOrNull(index = 2)
-                                    ?.let { playlistId ->
-                                        AppRoute.PlaylistTrack(guildId = guildId, playlistId = playlistId)
-                                    } ?: AppRoute.Playlists(guildId = guildId)
-                            }
+        mutableStateListOf<AppRoute>()
+            .apply {
+                addAll(
+                    saved.mapNotNull { route ->
+                        when (route.firstOrNull()) {
+                            "Login" -> AppRoute.Login
+                            "GuildSelector" -> AppRoute.GuildSelector
+                            "MyProfile" -> AppRoute.MyProfile
+                            "Playlists" -> route.getOrNull(index = 1)
+                                ?.let(block = AppRoute::Playlists)
+                            "Queue" -> route.getOrNull(index = 1)
+                                ?.let(block = AppRoute::Queue)
+                            "CurrentTrack" -> route.getOrNull(index = 1)
+                                ?.let(block = AppRoute::CurrentTrack)
+                            "PlaylistTrack" -> route.getOrNull(index = 1)
+                                ?.let { guildId ->
+                                    route.getOrNull(index = 2)
+                                        ?.let { playlistId ->
+                                            AppRoute.PlaylistTrack(guildId = guildId, playlistId = playlistId)
+                                        } ?: AppRoute.Playlists(guildId = guildId)
+                                }
 
-                        "RemoveSong" -> route.getOrNull(index = 1)
-                            ?.let(block = AppRoute::RemoveSong)
-                        "Settings" -> route.getOrNull(index = 1)
-                            ?.let(block = AppRoute::Settings)
-                        else -> null
+                            "RemoveSong" -> route.getOrNull(index = 1)
+                                ?.let(block = AppRoute::RemoveSong)
+                            "Settings" -> route.getOrNull(index = 1)
+                                ?.let(block = AppRoute::Settings)
+                            else -> null
+                        }
                     }
-                }
-                    .ifEmpty { listOf(AppRoute.Login) }
-            )
-        }
+                        .ifEmpty { listOf(AppRoute.Login) }
+                )
+            }
     }
 )

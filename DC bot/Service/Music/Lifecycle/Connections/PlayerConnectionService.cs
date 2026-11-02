@@ -86,6 +86,7 @@ public sealed class PlayerConnectionService(
         {
             await disconnectedPlayerCleanupService.ReconcileBeforeJoinAsync(guildId, deadline.Token);
             // A failed startup recovery must block only this guild's join.
+
             if (!await playbackRecoveryService.RecoverBeforeJoinAsync(guildId, deadline.Token))
             {
                 logger.LogWarning(
@@ -150,6 +151,7 @@ public sealed class PlayerConnectionService(
                     {
                         throw new InvalidOperationException("Joined player is not valid.");
                     }
+
                 },
                 cleanupFailedJoin: (player, joinInvoked) =>
                     playbackCleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: !joinInvoked));

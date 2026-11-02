@@ -7,6 +7,10 @@ Defines EF Core table mappings for ordered queue entries, canonical batches, con
 - These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 - Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
+**Staging Integration**
+
+The existing batch_id and batch_item_id mappings and relationships remain unchanged. Frontend grouping uses enqueue_group_id with a guild/group index; batch_position preserves occurrence display order.
+
 ## Classes
 
 ### GuildQueueItemConfiguration

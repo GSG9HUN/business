@@ -39,7 +39,10 @@ public sealed class MusicSearchService(
             var settings = Settings(provider.Id);
             var enabled = settings.Enabled && info.Sources.Contains(provider.SourceName);
             var reason = !settings.Enabled ? settings.UnavailableReason ?? "ProviderDisabled" : !enabled ? "SourceUnavailable" : !settings.CanEnqueue ? "EnqueueUnavailable" : null;
-            return new MusicSearchCapabilityResponse(provider.Id, enabled, enabled && settings.PlaylistSearch && provider.SupportsPlaylistSearch && info.HasLavaSearch, enabled && settings.CanEnqueue, reason);
+            return new MusicSearchCapabilityResponse(provider.Id, enabled, enabled
+                && settings.PlaylistSearch
+                && provider.SupportsPlaylistSearch
+                && info.HasLavaSearch, enabled && settings.CanEnqueue, reason);
         })
             .ToArray();
     }

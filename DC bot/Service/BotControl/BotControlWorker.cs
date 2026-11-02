@@ -143,6 +143,7 @@ public sealed class BotControlWorker(
                 await commandsRepository.MarkFailedAsync(command.CommandId, result.Message, result.ResultJson, cancellationToken);
             }
         }
+
     }
 
     /// <summary>

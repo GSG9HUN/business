@@ -7,6 +7,10 @@ Reconciles gateway voice state, durable playback starts, and authenticated Laval
 - Use bounded gateway recovery for non-persistent guilds and pending-start reconciliation before another join.
 - Query remote evidence rather than treating SDK registry absence as proof of disconnection.
 
+**Gateway Settings Deadline**
+
+`DiscordPlaybackRecoveryService` applies the configured `PlaybackLifecycleOptions.JoinDeadline` to persistent-voice settings reads in gateway-session and bot voice-state callbacks. Recovery transport retains its independent deadline and generation ownership checks.
+
 ## Recovery Services
 
 ### DiscordPlaybackRecoveryService

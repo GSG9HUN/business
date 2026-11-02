@@ -1,4 +1,4 @@
-# Program.cs and Startup
+# DC bot
 
 This document explains the bot process entry point, dependency composition, migration invocation, and coordinated runtime lifetime.
 

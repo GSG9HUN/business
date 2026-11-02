@@ -30,9 +30,11 @@ class QueuePlaylistSaveManager(
     suspend fun save(
         guildId: String,
         name: String,
-        trackUrls: List<String>
+        trackUrls: List<String>,
+        queueItemIds: List<String>
     ): QueuePlaylistSaveResult {
         val snapshot = trackUrls.toList()
+        val capturedIds = queueItemIds.toList()
         val playlistName = name.trim()
 
         val operation = mutex.withLock {
@@ -46,7 +48,8 @@ class QueuePlaylistSaveManager(
                         val playlist = createPlaylistFromQueueUseCase(
                             guildId = guildId,
                             name = playlistName,
-                            trackUrls = snapshot
+                            trackUrls = snapshot,
+                            queueItemIds = capturedIds
                         )
 
                         QueuePlaylistSaveResult(

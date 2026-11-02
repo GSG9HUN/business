@@ -16,6 +16,23 @@ internal static class QueueItemMapper
     /// <returns>The mapped, normalized, or configured value described above.</returns>
     internal static QueueItemRecord ToRecord(GuildQueueItemEntity entity)
     {
-        return new QueueItemRecord(entity.Id, entity.GuildId, entity.Position, entity.TrackIdentifier, entity.SourceQuery, entity.SourceSearchMode, entity.RequestedBy, entity.State, entity.BatchId, entity.BatchItemId, entity.AddedAtUtc, entity.PlayedAtUtc, entity.SkippedAtUtc);
+        return new QueueItemRecord(
+            entity.Id,
+            entity.GuildId,
+            entity.Position,
+            entity.TrackIdentifier,
+            entity.SourceQuery,
+            entity.SourceSearchMode,
+            entity.RequestedBy,
+            entity.State,
+            entity.BatchId,
+            entity.BatchItemId,
+            entity.AddedAtUtc,
+            entity.PlayedAtUtc,
+            entity.SkippedAtUtc)
+        {
+            EnqueueGroupId = entity.EnqueueGroupId,
+            BatchPosition = entity.BatchPosition
+        };
     }
 }

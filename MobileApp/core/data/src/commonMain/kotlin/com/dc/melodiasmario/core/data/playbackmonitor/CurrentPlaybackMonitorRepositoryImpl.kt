@@ -40,6 +40,7 @@ class CurrentPlaybackMonitorRepositoryImpl(
     private var currentGuildId: String? = null
 
     override fun start(guildId: String): Unit {
+
         if (currentGuildId == guildId && monitorJob?.isActive == true) {
             return
         }
@@ -62,23 +63,26 @@ class CurrentPlaybackMonitorRepositoryImpl(
     }
 
     private suspend fun observeRealtime(guildId: String) {
-        observeGuildRealtimeUseCase(guildId = guildId).collect { event ->
+        observeGuildRealtimeUseCase(guildId = guildId)
+            .collect { event ->
 
-            if (event.eventName.shouldRefreshPlayback()) {
-                refreshInternal(guildId = guildId)
+                if (event.eventName.shouldRefreshPlayback()) {
+                    refreshInternal(guildId = guildId)
+                }
             }
-        }
     }
 
     private suspend fun observeConnection() {
-        observeRealtimeConnectionStateUseCase().collect { connectionState ->
-            _playbackMonitorState.update { currentPlaybackMonitorState ->
-                currentPlaybackMonitorState.copy(isConnected = connectionState == RealtimeConnectionState.Connected)
+        observeRealtimeConnectionStateUseCase()
+            .collect { connectionState ->
+                _playbackMonitorState.update { currentPlaybackMonitorState ->
+                    currentPlaybackMonitorState.copy(isConnected = connectionState == RealtimeConnectionState.Connected)
+                }
             }
-        }
     }
 
     private suspend fun pollFallback(guildId: String) {
+
         while (currentCoroutineContext().isActive) {
             delay(duration = 15_000.milliseconds)
             refreshInternal(guildId = guildId)
@@ -86,31 +90,32 @@ class CurrentPlaybackMonitorRepositoryImpl(
     }
 
     private suspend fun refreshInternal(guildId: String) {
-        getCurrentTrackUseCase(guildId = guildId).collect { result ->
-            when (result) {
-                Resource.Loading -> _playbackMonitorState.update { currentPlaybackMonitorState -> currentPlaybackMonitorState.copy(
-                    isRefreshing = true
-                ) }
+        getCurrentTrackUseCase(guildId = guildId)
+            .collect { result ->
+                when (result) {
+                    Resource.Loading -> _playbackMonitorState.update { currentPlaybackMonitorState -> currentPlaybackMonitorState.copy(
+                        isRefreshing = true
+                    ) }
 
-                is Resource.Success -> _playbackMonitorState.update { currentPlaybackMonitorState ->
-                    currentPlaybackMonitorState.copy(
-                        guildId = guildId,
-                        currentTrack = result.data,
-                        isRefreshing = false,
-                        lastUpdatedAtMillis = Clock.System.now()
-                            .toEpochMilliseconds(),
-                        errorMessage = null
-                    )
-                }
+                    is Resource.Success -> _playbackMonitorState.update { currentPlaybackMonitorState ->
+                        currentPlaybackMonitorState.copy(
+                            guildId = guildId,
+                            currentTrack = result.data,
+                            isRefreshing = false,
+                            lastUpdatedAtMillis = Clock.System.now()
+                                .toEpochMilliseconds(),
+                            errorMessage = null
+                        )
+                    }
 
-                is Resource.Error -> _playbackMonitorState.update { currentPlaybackMonitorState ->
-                    currentPlaybackMonitorState.copy(
-                        isRefreshing = false,
-                        errorMessage = result.error.message
-                    )
+                    is Resource.Error -> _playbackMonitorState.update { currentPlaybackMonitorState ->
+                        currentPlaybackMonitorState.copy(
+                            isRefreshing = false,
+                            errorMessage = result.error.message
+                        )
+                    }
                 }
             }
-        }
     }
 
     private fun String.shouldRefreshPlayback(): Boolean {

@@ -12,6 +12,12 @@ This repository contains a .NET 9 Discord music bot, its test project, Docker/La
 
 ## Start Here
 
+- Playlist imports and Discord creation share the API transactional count-and-insert operation, preventing concurrent requests from exceeding the guild cap. Import metadata and tracks commit atomically.
+
+- Mobile playlist load commands now check the idle-player playback outcome. Failed or uncertain starts return terminal command failures with correlation metadata; already playing queues still accept playlist additions.
+
+The READMEs in `API`, `DC bot`, `DC bot.Persistence`, and `DC bot.Contracts` follow the root `AGENTS.md` documentation structure: overview, relevant subfolders, component categories, and related components.
+
 - `DC bot/README.md` - application architecture and setup
 - `DC bot/PROGRAM_CS_README.md` - process entry point and startup flow
 - `DC bot/Startup/README.md` - runtime composition, DI, migrations, DSharpPlus event wiring, and handler activation
@@ -56,3 +62,7 @@ Do not commit local secrets, IDE state, build output, test result artifacts, cov
 - cancellation-token based runtime shutdown from `Program.cs` through `BotApplication` to `BotService`
 
 `DiscordClientEventHandler` receives dependencies directly through constructor injection. `CommandHandlerService` and `HelpCommand` use `ICommandRegistry` instead of command service-location. `BotServiceProviderFactory` composes focused DI modules under `Startup/DependencyInjection/`; `AddDiscordRuntime` wires Discord socket/session/guild/voice/message/reaction callbacks through DSharpPlus 5 builder APIs, while `BotHandlerRegistrar` enables the text command and reaction handlers after the service graph is built. Track identity persistence is centralized behind `ITrackSerializer`; queue item states use the explicit `QueueItemState` enum; saved playlists are persisted through playlist repository records and EF Core playlist entities.
+
+## Staging Integration
+
+The playlist feature is reconciled with staging playback ownership and canonical batches. Canonical BatchId/BatchItemId remain long database keys; separate EnqueueGroupId values retain frontend grouping. Queue edits update canonical repeat items by stable ID, preserving history and duplicate tracks. Queue snapshot saving, cover artwork, limits, and mobile history remain available.

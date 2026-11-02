@@ -34,7 +34,10 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         var now = DateTimeOffset.UtcNow;
-        return await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId && g.IsPremium && (g.PremiumUntilUtc == null || g.PremiumUntilUtc > now), cancellationToken);
+        return await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId
+            && g.IsPremium
+            && (g.PremiumUntilUtc == null
+            || g.PremiumUntilUtc > now), cancellationToken);
     }
 
     /// <inheritdoc/>

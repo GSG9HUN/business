@@ -83,6 +83,7 @@ public sealed class PersistentVoiceRecoveryService(
             await Task.WhenAll(jobs);
         }
         while (await timer.WaitForNextTickAsync(cancellationToken));
+
     }
 
     /// <summary>
@@ -175,10 +176,12 @@ public sealed class PersistentVoiceRecoveryService(
         }
 
         var voice = guild.Channels.GetValueOrDefault(voiceChannelId)
-            ?? await guild.GetChannelAsync(voiceChannelId).WaitAsync(cancellationToken);
+            ?? await guild.GetChannelAsync(voiceChannelId)
+            .WaitAsync(cancellationToken);
 
         var text = guild.Channels.GetValueOrDefault(textChannelId)
-            ?? await guild.GetChannelAsync(textChannelId).WaitAsync(cancellationToken);
+            ?? await guild.GetChannelAsync(textChannelId)
+            .WaitAsync(cancellationToken);
 
         if (voice.GuildId != guildId || text.GuildId != guildId)
         {

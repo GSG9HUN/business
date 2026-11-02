@@ -1,29 +1,9 @@
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using System.ComponentModel;
 
 namespace DC_bot.Commands.SlashCommands.Utility;
-
-/// <summary>
-/// Identifies a language offered by the language slash command.
-/// </summary>
-public enum SlashLanguage
-{
-
-    /// <summary>
-    /// English is selected.
-    /// </summary>
-    [ChoiceDisplayName("en")]
-    Eng,
-
-    /// <summary>
-    /// Hungarian is selected.
-    /// </summary>
-    [ChoiceDisplayName("hu")]
-    Hu
-}
 
 /// <summary>
 /// Adapts the language slash command to shared command execution and interaction acknowledgement.

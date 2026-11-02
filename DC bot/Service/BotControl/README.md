@@ -4,8 +4,14 @@ Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
 
+- Idle-player playlist loads inspect `PlaybackStartResult`: only `Started` completes successfully. Other outcomes fail the command with `playbackStatus`, `operationId`, `queueItemId`, and `requiresReconciliation` metadata. Uncertain starts are not retried or re-enqueued; their messages warn against reloading the playlist. Loading into an already playing player still succeeds after enqueueing.
+
 - BotControlWorker claims work, resolves Discord context, dispatches allowed commands, and persists result or failure metadata. Adapter values make mobile requests compatible with existing bot boundaries.
 - Execution ownership and cancellation must survive process and request lifetimes. Treat notifications as wake-up hints and use repository state to decide which command can run.
+
+**Staging Integration**
+
+PlaylistBotControlHandler uses staging music interfaces and GuildPlaybackSessions. Playlist loads capture the joined generation, enqueue under its session fence, register correlated events, and start through the current PlaybackSession contract. Add/import and saved playlist artwork remain supported.
 
 ## Classes
 

@@ -39,6 +39,7 @@ public static class MusicSearchHandlers
         IMusicSearchService service,
         CancellationToken cancellationToken) => AuthorizedAsync(context, users, async () =>
     {
+
         foreach (var name in new[]
         {
             "provider",

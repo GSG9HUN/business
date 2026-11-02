@@ -8,6 +8,15 @@ namespace DC_bot.Interface.Service.Persistence.Queue;
 public interface IQueueRepository
 {
 
+    /// <summary>Reads captured occurrences within one authorized guild, independent of their current playback state.</summary>
+    Task<IReadOnlyList<QueueItemRecord>> GetSnapshotItemsAsync(
+        ulong guildId,
+        IReadOnlyCollection<long> queueItemIds,
+        CancellationToken cancellationToken);
+
+    /// <summary>Returns complete active enqueue batches, or the most recent batch when playback has ended.</summary>
+    Task<IReadOnlyList<QueueItemRecord>> GetDisplayItemsAsync(ulong guildId, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Atomically enables repeat for a live batch instead of snapshotting only its remaining tracks.
     /// </summary>

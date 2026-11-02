@@ -7,6 +7,10 @@ Translates DSharpPlus interaction context and response state into bot-facing mes
 - The factory creates an interaction context; wrappers expose deferred, initial, and follow-up response operations to the shared command pipeline.
 - An interaction response is not an ordinary text-message send. Preserve its response lifecycle instead of making commands know SDK-specific reply rules.
 
+**Context Adapter Contract**
+
+`ISlashCommandContextAdapter.cs` contains the internal SDK context adapter contract. `SlashInteractionContextWrapper.cs` retains interaction response ownership and SDK method signatures.
+
 ## Classes
 
 ### SlashInteractionContextWrapper

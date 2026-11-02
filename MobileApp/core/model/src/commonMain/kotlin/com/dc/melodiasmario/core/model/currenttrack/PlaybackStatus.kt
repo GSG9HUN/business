@@ -40,6 +40,7 @@ data class PlaybackStatus(
         guildBotStatus = guild?.botStatus,
         currentTrack = currentTrack,
         queuedTracks = queue.tracks,
+        displayTracks = queue.displayTracks,
         isPlaying = isPlaying,
         isPaused = isPaused,
         positionSeconds = positionSeconds,

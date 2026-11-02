@@ -22,9 +22,11 @@ fun NavigationFloatingActionButton(
         size = 45.dp,
         shape = RoundedCornerShape(size = 22.dp),
         onClick = {
+
             if (config.enabled) {
                 config.onClick()
             }
+
         },
         icon = {
             Icon(

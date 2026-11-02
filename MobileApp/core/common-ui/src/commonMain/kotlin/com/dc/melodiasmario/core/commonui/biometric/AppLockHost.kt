@@ -33,6 +33,7 @@ fun AppLockHost(
     }
 
     LaunchedEffect(key1 = biometricAuthenticator, key2 = state.isInitialized, key3 = state.isLocked) {
+
         if (state.isInitialized && state.isLocked) {
             appLockController.unlock(authenticate = authenticate)
         }
@@ -56,6 +57,7 @@ fun AppLockHost(
             },
             onSignOut = {
                 scope.launch {
+
                     if (appLockController.signOut()) {
                         onSignedOut()
                     }
@@ -74,6 +76,7 @@ private fun AppLockHostContent(
     onSignOut: () -> Unit,
     content: @Composable () -> Unit
 ) {
+
     if (!uiState.isInitialized || uiState.isLocked) {
         AppLockScreen(
             uiState = uiState,

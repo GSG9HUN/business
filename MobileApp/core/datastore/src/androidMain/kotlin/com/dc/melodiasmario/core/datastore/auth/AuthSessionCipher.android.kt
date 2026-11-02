@@ -23,7 +23,7 @@ actual open class AuthSessionCipher {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
 
-        val cipherText = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
+        val cipherText = cipher.doFinal(plainText.toByteArray(charset = Charsets.UTF_8))
         val iv = cipher.iv
 
         return JSONObject()

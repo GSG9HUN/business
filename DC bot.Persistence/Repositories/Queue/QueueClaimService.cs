@@ -102,7 +102,9 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
     {
         return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(factory, async (db, ct) =>
         {
-            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.Id == queueItemId && q.GuildId == guildId && q.PlaybackOperationId == operationId, ct);
+            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.Id == queueItemId
+                && q.GuildId == guildId
+                && q.PlaybackOperationId == operationId, ct);
 
             if (item is null)
             {
@@ -120,7 +122,9 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
             }
 
             var now = DateTimeOffset.UtcNow;
-            var previous = await db.GuildQueueItems.Where(q => q.GuildId == guildId && q.Id != queueItemId && q.State == QueueItemState.Playing)
+            var previous = await db.GuildQueueItems.Where(q => q.GuildId == guildId
+                && q.Id != queueItemId
+                && q.State == QueueItemState.Playing)
                 .ToListAsync(ct);
 
             foreach (var old in previous)
@@ -200,7 +204,10 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
     {
         return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(factory, async (db, ct) =>
         {
-            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.GuildId == guildId && q.Id == queueItemId && q.State == QueueItemState.Starting && q.PlaybackOperationId == operationId, ct);
+            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.GuildId == guildId
+                && q.Id == queueItemId
+                && q.State == QueueItemState.Starting
+                && q.PlaybackOperationId == operationId, ct);
 
             if (item is null)
             {
@@ -242,7 +249,11 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
     {
         return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(factory, async (db, ct) =>
         {
-            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.GuildId == guildId && q.Id == queueItemId && q.PlaybackOperationId == operationId && (q.State == QueueItemState.Playing || q.State == QueueItemState.Starting), ct);
+            var item = await db.GuildQueueItems.SingleOrDefaultAsync(q => q.GuildId == guildId
+                && q.Id == queueItemId
+                && q.PlaybackOperationId == operationId
+                && (q.State == QueueItemState.Playing
+                || q.State == QueueItemState.Starting), ct);
 
             if (item is null)
             {

@@ -57,7 +57,7 @@ class RealtimeRepositoryImpl(
 
     override fun observeGuildRealtime(guildId: String): Flow<RealtimeEvent> = flow {
         selectedGuildId.value = guildId
-        emitAll(sharedEvents.filter { sharedEvent -> sharedEvent.guildId == guildId })
+        emitAll(flow = sharedEvents.filter { sharedEvent -> sharedEvent.guildId == guildId })
     }
 
     override suspend fun disconnect(): Unit {
@@ -75,12 +75,13 @@ class RealtimeRepositoryImpl(
                 mobileRealtimeClient.observeGuild(accessToken = accessToken, guildId = guildId)
                     .collect { event ->
                         retryAttempt = 0
-                        emit(event)
+                        emit(value = event)
                     }
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {
-                currentCoroutineContext().ensureActive()
+                currentCoroutineContext()
+                    .ensureActive()
             }
 
             delay(duration = reconnectDelayMillis(retryAttempt = retryAttempt).milliseconds)

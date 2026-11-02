@@ -212,6 +212,7 @@ public class CommandValidationService : ICommandHelper
             return payload;
         }
 
-        return TryReadArgument(payload, out var argument, out var remainingPayload) && string.IsNullOrWhiteSpace(remainingPayload) ? argument : payload;
+        return TryReadArgument(payload, out var argument, out var remainingPayload)
+            && string.IsNullOrWhiteSpace(remainingPayload) ? argument : payload;
     }
 }

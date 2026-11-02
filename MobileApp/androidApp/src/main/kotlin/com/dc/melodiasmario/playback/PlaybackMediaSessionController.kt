@@ -14,20 +14,21 @@ class PlaybackMediaSessionController(
     context: Context,
     private val callback: Callback
 ) {
-    private val mediaSession = MediaSessionCompat(context, "MelodiasMarioPlayback").apply {
-        setCallback(
-            object : MediaSessionCompat.Callback() {
-                override fun onPlay() = callback.onPlayPause()
+    private val mediaSession = MediaSessionCompat(context, "MelodiasMarioPlayback")
+        .apply {
+            setCallback(
+                object : MediaSessionCompat.Callback() {
+                    override fun onPlay() = callback.onPlayPause()
 
-                override fun onPause() = callback.onPlayPause()
+                    override fun onPause() = callback.onPlayPause()
 
-                override fun onSkipToNext() = callback.onNext()
+                    override fun onSkipToNext() = callback.onNext()
 
-                override fun onSkipToPrevious() = callback.onPrevious()
-            }
-        )
-        isActive = true
-    }
+                    override fun onSkipToPrevious() = callback.onPrevious()
+                }
+            )
+            isActive = true
+        }
 
     /**
      * Session token exposed by playback media session controller.

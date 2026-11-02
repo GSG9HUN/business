@@ -10,7 +10,7 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 - Protect command claims, queue order, batch state, and playback operation ownership.
 - Maintain schema migrations and publish database change notifications.
 
-## Runtime Flow
+**Runtime Flow**
 
 ```text
 Bot service or API handler
@@ -22,7 +22,7 @@ Bot service or API handler
 
 Repository notifications wake workers or signal snapshot readers; the database remains the durable source of command and playback state. This project does not execute Discord commands, send HTTP responses, or own live Lavalink players.
 
-## Stored Features
+**Stored Features**
 
 | Area | Stored responsibilities |
 |---|---|
@@ -37,19 +37,31 @@ Repository notifications wake workers or signal snapshot readers; the database r
 
 The retained `IBotRuntimeStatusRepository` contract is not bound by the current persistence registrations. Its existence must not be read as a running heartbeat writer or a join-readiness gate.
 
-## Registration and Context Lifetime
+**Registration and Context Lifetime**
 
 Both executable projects call `AddPersistenceServices(connectionString)`. This registers `IDbContextFactory<BotDbContext>`, repository contracts, queue claim/batch helpers, and the bot-command notifier. Repository singletons create short-lived contexts; they do not share a single tracked context across concurrent operations.
 
 Resolve queue storage through `IQueueRepository` so `QueueClaimService` and `QueueBatchRepository` are supplied by the composition root. Return shared records to callers instead of exposing EF entities. Discord ID conversion is centralized in model configuration helpers.
 
-## Transactions, Cancellation, and Notifications
+**Transactions, Cancellation, and Notifications**
 
 Multi-step mutations use conditional updates or transactions to protect queue ordering, command claims, and playback-start ownership. Supported PostgreSQL concurrency conflicts can be retried by the shared helper.
 
 Requested cancellation reaches normal database I/O and retry delays. Rollback is owned cleanup: it uses a fresh five-second deadline so an already-cancelled caller does not prevent cleanup. If rollback fails, the original exception remains primary, the cleanup failure is attached under `DC_bot.TransactionRollbackFailure`, and no new transaction retry is started.
 
 Notification helpers publish feature-specific PostgreSQL signals. Consumers reload current records and snapshots; a notification payload is not a complete queue or player state.
+
+**Schema Workflow**
+
+Change the contract, entity, mapping, and repository behavior together when the storage use case changes. A schema change also needs a new migration; documentation-only or service-only changes do not.
+
+Bot startup invokes `DatabaseMigrationRunner` before connecting the Discord runtime. The API does not currently invoke it. EF design-time tooling uses `BotDbContextFactory`, which reads `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from the process environment and does not itself load `.env`.
+
+See [Migrations](Migrations/README.md) for generation and application commands. Check that tooling targets the intended database before applying schema changes.
+
+**Source Convention Review**
+
+The November 2026 review aligns source formatting and XML documentation and separates top-level declarations where applicable. Existing contract namespaces and enum values are preserved. SDK-defined signatures and independently owned cleanup operations retain their cancellation contracts.
 
 ## Subfolders
 
@@ -139,14 +151,6 @@ Implements shared storage contracts with EF Core and PostgreSQL-specific concurr
 **Purpose:** Repositories open short-lived contexts, map entities to contract records, and publish change signals where required. Feature folders separate command, playback, queue, profile, and playlist storage.
 
 ---
-
-## Schema Workflow
-
-Change the contract, entity, mapping, and repository behavior together when the storage use case changes. A schema change also needs a new migration; documentation-only or service-only changes do not.
-
-Bot startup invokes `DatabaseMigrationRunner` before connecting the Discord runtime. The API does not currently invoke it. EF design-time tooling uses `BotDbContextFactory`, which reads `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from the process environment and does not itself load `.env`.
-
-See [Migrations](Migrations/README.md) for generation and application commands. Check that tooling targets the intended database before applying schema changes.
 
 ## Related Components
 

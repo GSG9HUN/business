@@ -66,6 +66,7 @@ fun ProfileRoute(
                 ProfileEffect.NavigateBack -> onBack()
 
                 ProfileEffect.NavigateToLogin -> {
+
                     if (appLockController.signOut()) {
                         logout()
                     }

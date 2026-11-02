@@ -88,6 +88,7 @@ public sealed class PlaybackCleanupService(
 
         // A missing managed player does not prove absence. A dead, durably
         // identified old node session can provide that proof instead.
+
         if (
             remote is
             not (LeavePhaseState.Succeeded or LeavePhaseState.NotApplicable))
@@ -103,6 +104,7 @@ public sealed class PlaybackCleanupService(
                     remote = LeavePhaseState.Succeeded;
                     return;
                 }
+
                 var pending = await queueRepository.GetPendingStartsAsync(guildId, ct);
 
                 if (pending.Count == 0)
@@ -141,7 +143,11 @@ public sealed class PlaybackCleanupService(
 
                 foreach (var item in pending)
                 {
-                    var matchingConfirmedDisconnect = item.TransportConfirmed && player is not null && item.NodeAddress == probe.NodeAddress && item.NodeSessionId == disconnectedSessionId && player.SessionId == disconnectedSessionId;
+                    var matchingConfirmedDisconnect = item.TransportConfirmed
+                        && player is not null
+                        && item.NodeAddress == probe.NodeAddress
+                        && item.NodeSessionId == disconnectedSessionId
+                        && player.SessionId == disconnectedSessionId;
 
                     if (!matchingConfirmedDisconnect)
                     {
@@ -177,6 +183,7 @@ public sealed class PlaybackCleanupService(
                         MobileRealtimeEventNames.PlaybackStopped,
                         ct);
                 }
+
             });
         }
 

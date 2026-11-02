@@ -9,6 +9,8 @@ namespace DC_bot.Service.BotControl;
 /// <param name="channel">The Discord channel used by the operation.</param>
 internal sealed class BotControlDiscordVoiceState(IDiscordChannel channel) : IDiscordVoiceState
 {
+
+    /// <inheritdoc />
     public IDiscordChannel Channel => channel;
 
     /// <summary>

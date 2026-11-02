@@ -34,7 +34,8 @@ public sealed class MusicEnqueueValidationFilter(IOptions<MusicSearchOptions> op
         }
 
         MusicSearchProvider? FindMode(string? value) => MusicSearchProviders.Find(string.Equals(value, "youtubemusic", StringComparison.OrdinalIgnoreCase) ? "ytmsearch" : value) ?? MusicSearchProviders.All.FirstOrDefault(p => string.Equals(p.SourceName, value, StringComparison.OrdinalIgnoreCase));
-        bool CanEnqueue(MusicSearchProvider provider) => options.Value.Providers.TryGetValue(provider.Id, out var setting) && setting.CanEnqueue;
+        bool CanEnqueue(MusicSearchProvider provider) => options.Value.Providers.TryGetValue(provider.Id, out var setting)
+            && setting.CanEnqueue;
         IResult Disabled() => HttpResults.Json(new MusicSearchErrorResponse("EnqueueUnavailable", "Queueing this provider is disabled."), statusCode: 422);
 
         if (FindMode(request.SearchMode?.Trim())is { } requestedProvider

@@ -23,31 +23,29 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                implementation(project(":core:common"))
-                implementation(project(":core:model"))
-                implementation(project(":core:domain"))
-                implementation(project(":core:network"))
-                implementation(project(":core:datastore"))
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.koin.core)
-                implementation(libs.koin.annotations)
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = project(":core:model"))
+                implementation(dependencyNotation = project(":core:domain"))
+                implementation(dependencyNotation = project(":core:network"))
+                implementation(dependencyNotation = project(":core:datastore"))
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.core)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.annotations)
             }
         }
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
+                implementation(dependencyNotation = libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.test)
             }
         }
-        getByName(
-            "androidDeviceTest"
-        ) { dependencies { implementation(
-            libs.androidx.core
-        ); implementation(
-            libs.androidx.junit
-        ); implementation(
-            libs.androidx.runner
-        ) } }
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
+            }
+        }
     }
 }

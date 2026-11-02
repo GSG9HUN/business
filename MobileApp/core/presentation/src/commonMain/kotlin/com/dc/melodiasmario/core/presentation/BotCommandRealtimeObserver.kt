@@ -24,6 +24,7 @@ class BotCommandRealtimeObserver(
      * Starts bot command realtime observer for the supplied configuration.
      */
     fun start(guildId: String): Unit {
+
         if (currentGuildId == guildId && job?.isActive == true) {
             return
         }
@@ -31,12 +32,13 @@ class BotCommandRealtimeObserver(
         currentGuildId = guildId
         job?.cancel()
         job = coroutineScope.launch {
-            observeGuildRealtime(guildId).collect { event ->
+            observeGuildRealtime(guildId)
+                .collect { event ->
 
-                if (event.guildId == guildId) {
-                    handle(event = event)
+                    if (event.guildId == guildId) {
+                        handle(event = event)
+                    }
                 }
-            }
         }
     }
 

@@ -7,6 +7,10 @@ Defines EF Core table mappings for current playback state, repeat flags, start o
 - These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 - Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
+**Staging Integration**
+
+PlaybackBatchItemConfiguration maps is_removed and enqueue_group_id. Canonical batch keys and the unique batch/position index are retained.
+
 ## Classes
 
 ### GuildPlaybackStateConfiguration

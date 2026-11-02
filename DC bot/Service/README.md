@@ -7,6 +7,10 @@ Groups process lifecycle, localization, command orchestration, music, reactions,
 - BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows.
 - Services receive dependencies from Startup. Persistence implementations remain in DC bot.Persistence, and SDK-specific object adaptation remains in Wrapper.
 
+**Runtime Client Contract**
+
+`IBotDiscordClient.cs` declares the internal connection boundary separately from `BotService.cs`. Its SDK-facing `ConnectAsync()` contract is unchanged.
+
 ## Subfolders
 
 ### BotControl/

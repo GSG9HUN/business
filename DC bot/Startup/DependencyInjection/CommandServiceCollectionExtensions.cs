@@ -21,6 +21,7 @@ namespace DC_bot.Startup.DependencyInjection;
 /// </summary>
 public static class CommandServiceCollectionExtensions
 {
+
     /// <summary>
     /// Registers the command services dependencies with the shared service collection.
     /// </summary>
