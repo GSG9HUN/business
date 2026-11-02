@@ -10,18 +10,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+/**
+ * Renders loading screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MLoadingScreen(
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
             color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.outline,
+            trackColor = MaterialTheme.colorScheme.outline
         )
     }
 }

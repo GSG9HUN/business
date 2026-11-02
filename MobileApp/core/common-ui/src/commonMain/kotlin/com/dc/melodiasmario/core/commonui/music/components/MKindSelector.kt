@@ -1,9 +1,9 @@
 package com.dc.melodiasmario.core.commonui.music.components
 
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -11,29 +11,32 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.button.MHelpTo
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
 import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
 
+/**
+ * Renders kind selector from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MKindSelector(
-    labels: MAddMusicLabels,
+    mAddMusicLabels: MAddMusicLabels,
     selectedKind: MMusicSearchKind,
-    onKindChanged: (MMusicSearchKind) -> Unit,
-) {
+    onKindChanged: (musicSearchKind: MMusicSearchKind) -> Unit
+): Unit {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         MSelectablePill(
-            modifier = Modifier.weight(1f),
-            text = labels.tracks,
+            modifier = Modifier.weight(weight = 1f),
+            text = mAddMusicLabels.tracks,
             selected = selectedKind == MMusicSearchKind.Track,
-            onClick = { onKindChanged(MMusicSearchKind.Track) },
+            onClick = { onKindChanged(MMusicSearchKind.Track) }
         )
         MSelectablePill(
-            modifier = Modifier.weight(1f),
-            text = labels.playlists,
+            modifier = Modifier.weight(weight = 1f),
+            text = mAddMusicLabels.playlists,
             selected = selectedKind == MMusicSearchKind.Playlist,
-            onClick = { onKindChanged(MMusicSearchKind.Playlist) },
+            onClick = { onKindChanged(MMusicSearchKind.Playlist) }
         )
-        MHelpTooltipButton(text = labels.kindHelp)
+        MHelpTooltipButton(text = mAddMusicLabels.kindHelp)
     }
 }

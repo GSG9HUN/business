@@ -11,13 +11,16 @@ import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionBut
 import com.dc.melodiasmario.core.commonui.floatingactionbutton.FloatingActionButtonIcon
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ * Renders navigation floating action button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun NavigationFloatingActionButton(
-    config: FloatingActionButtonConfig,
-) {
+    config: FloatingActionButtonConfig
+): Unit {
     MFloatingButton(
         size = 45.dp,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(size = 22.dp),
         onClick = {
             if (config.enabled) {
                 config.onClick()
@@ -25,10 +28,10 @@ fun NavigationFloatingActionButton(
         },
         icon = {
             Icon(
-                painter = painterResource(config.icon.drawableResource),
-                contentDescription = config.contentDescription,
+                painter = painterResource(resource = config.icon.drawableResource),
+                contentDescription = config.contentDescription
             )
-        },
+        }
     )
 }
 

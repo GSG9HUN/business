@@ -10,28 +10,28 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.headersOf
-import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.Serializable
 import kotlin.test.AfterTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.Test
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
 
 class HttpClientTest {
 
-    private var client: HttpClient? = null
+    private var httpClient: HttpClient? = null
 
     @AfterTest
-    fun tearDown() {
-        client?.close()
-        client = null
+    fun tearDown(): Unit {
+        httpClient?.close()
+        httpClient = null
     }
 
     @Test
     fun createHttpClientInstallsJsonContentNegotiation(): TestResult = runTest {
-        client = HttpClient(MockEngine) {
+        httpClient = HttpClient(engineFactory = MockEngine) {
             configureMelodiasHttpClient()
             engine {
                 addHandler {
@@ -46,17 +46,18 @@ class HttpClientTest {
             }
         }
 
-        val payload = requireNotNull(client).get("https://example.test/payload").body<TestPayload>()
+        val payload = requireNotNull(value = httpClient).get("https://example.test/payload")
+            .body<TestPayload>()
 
-        assertEquals("value", payload.known)
+        assertEquals(expected = "value", actual = payload.known)
     }
 
     @Test
     fun createHttpClientInstallsLoggingWithAuthorizationSanitization(): TestResult = runTest {
         val logger = CapturingLogger()
         val secret = "Bearer secret-token"
-        client = HttpClient(MockEngine) {
-            configureMelodiasHttpClient(logger)
+        httpClient = HttpClient(engineFactory = MockEngine) {
+            configureMelodiasHttpClient(logger = logger)
             engine {
                 addHandler {
                     respond(content = "OK")
@@ -64,13 +65,13 @@ class HttpClientTest {
             }
         }
 
-        requireNotNull(client).get("https://example.test/payload") {
-            header(HttpHeaders.Authorization, secret)
+        requireNotNull(value = httpClient).get("https://example.test/payload") {
+            header(key = HttpHeaders.Authorization, value = secret)
         }
 
         val logs = logger.messages.joinToString(separator = "\n")
-        assertTrue(logs.contains(HttpHeaders.Authorization))
-        assertFalse(logs.contains(secret))
+        assertTrue(actual = logs.contains(other = HttpHeaders.Authorization))
+        assertFalse(actual = logs.contains(other = secret))
     }
 
     @Serializable

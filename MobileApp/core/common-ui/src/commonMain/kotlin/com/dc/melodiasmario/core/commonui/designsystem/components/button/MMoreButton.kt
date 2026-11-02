@@ -13,19 +13,22 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.top_b
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders more button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MMoreButton(
     onClick: () -> Unit,
-    contentDescription: String,
-) {
+    contentDescription: String
+): Unit {
     IconButton(
         onClick = onClick,
-        enabled = true,
+        enabled = true
     ) {
         Image(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(Res.drawable.ic_more_vertical),
-            contentDescription = contentDescription,
+            modifier = Modifier.size(size = 24.dp),
+            painter = painterResource(resource = Res.drawable.ic_more_vertical),
+            contentDescription = contentDescription
         )
     }
 }
@@ -35,6 +38,6 @@ fun MMoreButton(
 private fun MoreButtonPreview() {
     MMoreButton(
         onClick = {},
-        contentDescription = stringResource(Res.string.top_bar_more_content_description),
+        contentDescription = stringResource(resource = Res.string.top_bar_more_content_description)
     )
 }

@@ -1,0 +1,31 @@
+<resources>
+    <string name="playlisttrack_title">Playlist</string>
+    <string name="playlisttrack_subtitle">%1$d tracks · guild playlist</string>
+    <string name="playlisttrack_summary">%1$d tracks · %2$d min</string>
+    <string name="playlisttrack_back">Back</string>
+    <string name="playlisttrack_more">Playlist actions</string>
+    <string name="playlisttrack_more_message">Manage the playlist or refresh its tracks.</string>
+    <string name="playlisttrack_load">Load playlist</string>
+    <string name="playlisttrack_processing">Processing…</string>
+    <string name="playlisttrack_add">+ Add tracks</string>
+    <string name="playlisttrack_shuffle">Shuffle</string>
+    <string name="playlisttrack_refresh">Refresh</string>
+    <string name="playlisttrack_cancel">Cancel</string>
+    <string name="playlisttrack_track_actions">Track actions</string>
+    <string name="playlisttrack_move_up">Move up</string>
+    <string name="playlisttrack_move_down">Move down</string>
+    <string name="playlisttrack_remove">Remove track</string>
+    <string name="playlisttrack_remove_confirm">Remove this track from the saved playlist?</string>
+    <string name="playlisttrack_empty">This playlist is empty</string>
+    <string name="playlisttrack_empty_message">Add a track to start building your playlist.</string>
+    <string name="playlisttrack_load_failed">The playlist could not be loaded. Please try again.</string>
+    <string name="playlisttrack_operation_failed">The operation failed. Refresh the playlist and try again.</string>
+    <string name="playlisttrack_search_failed">Search failed. Please try again.</string>
+    <string name="playlisttrack_accepted">Request accepted. Waiting for completion…</string>
+    <string name="playlisttrack_added">Tracks added to the playlist.</string>
+    <string name="playlisttrack_loaded">Playlist loaded into the playback queue.</string>
+    <string name="playlisttrack_removed">Track removed from the playlist.</string>
+    <string name="playlisttrack_order_updated">Playlist order updated.</string>
+    <string name="playlisttrack_timeout">Completion could not be confirmed. Refresh before retrying to avoid duplicates.</string>
+    <string name="playlisttrack_drag_handle_content_description">Drag to reorder tracks</string>
+</resources>

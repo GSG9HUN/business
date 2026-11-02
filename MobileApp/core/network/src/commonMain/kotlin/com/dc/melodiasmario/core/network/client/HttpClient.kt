@@ -11,18 +11,24 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
+/**
+ * Creates the platform HTTP client with the shared serialization and logging configuration.
+ */
 fun createHttpClient(): HttpClient {
     return HttpClient {
         configureMelodiasHttpClient()
     }
 }
 
+/**
+ * Installs the shared JSON and logging configuration while sanitizing authorization headers.
+ */
 internal fun HttpClientConfig<*>.configureMelodiasHttpClient(
     logger: Logger = Logger.DEFAULT
-) {
+): Unit {
     install(ContentNegotiation) {
         json(
-            Json {
+            json = Json {
                 ignoreUnknownKeys = true
                 isLenient = true
             }

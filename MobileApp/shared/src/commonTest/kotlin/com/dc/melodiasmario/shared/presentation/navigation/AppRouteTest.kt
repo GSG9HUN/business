@@ -6,12 +6,12 @@ import kotlin.test.Test
 class AppRouteTest {
 
     @Test
-    fun playlistsRouteKeepsGuildId() {
-        // TODO: Verify AppRoute.Playlists stores the selected guild id.
+    fun playlistsRouteKeepsGuildId(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun profileRouteKeepsProfileId() {
-        // TODO: Verify AppRoute.Profile stores the selected profile id.
+    fun profileRouteKeepsProfileId(): Unit {
+        throw NotImplementedError()
     }
 }

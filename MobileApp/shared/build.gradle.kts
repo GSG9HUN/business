@@ -25,12 +25,14 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     android {
        namespace = "com.dc.melodiasmario.shared"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-    
+       compileSdk = libs.versions.android.compileSdk.get()
+           .toInt()
+       minSdk = libs.versions.android.minSdk.get()
+           .toInt()
+
        compilerOptions {
            jvmTarget = JvmTarget.JVM_11
        }
@@ -46,7 +48,7 @@ kotlin {
            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
        }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -60,8 +62,8 @@ kotlin {
             implementation(project(":core:common-ui"))
             implementation(project(":core:di"))
 
-            implementation(project(":feature:playlistsong:presentation"))
-            implementation(project(":feature:playlistsong:ui"))
+            implementation(project(":feature:playlisttrack:presentation"))
+            implementation(project(":feature:playlisttrack:ui"))
             implementation(project(":feature:currenttrack:presentation"))
             implementation(project(":feature:currenttrack:ui"))
             implementation(project(":feature:guild:presentation"))
@@ -111,14 +113,13 @@ kotlin {
         }
     }
 
-    sourceSets.named("commonMain").configure {
-         kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
-     }
-    
+    sourceSets.named("commonMain")
+        .configure {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+        }
+
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
 }
-
-

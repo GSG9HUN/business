@@ -9,17 +9,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+/**
+ * Renders scrollable screen content from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MScrollableScreenContent(
     modifier: Modifier = Modifier,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-    content: @Composable ColumnScope.() -> Unit,
-) {
+    content: @Composable ColumnScope.() -> Unit
+): Unit {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(state = rememberScrollState()),
         verticalArrangement = verticalArrangement,
-        content = content,
+        content = content
     )
 }

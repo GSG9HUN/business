@@ -7,10 +7,13 @@ import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_li
 import com.dc.melodiasmario.feature.profile.generated.resources.profile_theme_system
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Maps this value to theme label.
+ */
 @Composable
 fun String.toThemeLabel(): String = when (this.lowercase()) {
-    "dark" -> stringResource(Res.string.profile_theme_dark)
-    "light" -> stringResource(Res.string.profile_theme_light)
-    "system" -> stringResource(Res.string.profile_theme_system)
+    "dark" -> stringResource(resource = Res.string.profile_theme_dark)
+    "light" -> stringResource(resource = Res.string.profile_theme_light)
+    "system" -> stringResource(resource = Res.string.profile_theme_system)
     else -> this
 }

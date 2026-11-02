@@ -19,16 +19,19 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.ic_player_r
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ * Renders player icon button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun PlayerIconButton(
     icon: DrawableResource,
     selected: Boolean = false,
     enabled: Boolean = true,
     contentDescription: String? = null,
-    onClick: () -> Unit = {},
-) {
+    onClick: () -> Unit = {}
+): Unit {
     Surface(
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(size = 48.dp),
         shape = CircleShape,
         color = if (selected) {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
@@ -36,20 +39,20 @@ fun PlayerIconButton(
             MaterialTheme.colorScheme.surfaceContainerHigh
         },
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     ) {
         Box(contentAlignment = Alignment.Center) {
             Image(
-                modifier = Modifier.size(24.dp),
-                painter = painterResource(icon),
+                modifier = Modifier.size(size = 24.dp),
+                painter = painterResource(resource = icon),
                 contentDescription = contentDescription,
                 colorFilter = ColorFilter.tint(
-                    when {
+                    color = when {
                         !enabled -> MaterialTheme.colorScheme.onSurfaceVariant
                         selected -> MaterialTheme.colorScheme.primary
                         else -> MaterialTheme.colorScheme.onSurface
-                    },
-                ),
+                    }
+                )
             )
         }
     }
@@ -57,29 +60,27 @@ fun PlayerIconButton(
 
 @Composable
 @Preview
-fun PlayerIconButtonSelectedPreview() {
+private fun PlayerIconButtonSelectedPreview() {
     PlayerIconButton(
         icon = Res.drawable.ic_player_repeat,
-        selected = true,
+        selected = true
     )
 }
 
 @Composable
 @Preview
-fun PlayerIconButtonRepeatOnePreview() {
+private fun PlayerIconButtonRepeatOnePreview() {
     PlayerIconButton(
         icon = Res.drawable.ic_player_repeat_one,
-        selected = true,
+        selected = true
     )
 }
-
 
 @Composable
 @Preview
-fun PlayerIconButtonPreview() {
+private fun PlayerIconButtonPreview() {
     PlayerIconButton(
         icon = Res.drawable.ic_player_play,
-        selected = false,
+        selected = false
     )
 }
-

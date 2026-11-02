@@ -6,12 +6,12 @@ import kotlin.test.Test
 class BotStatusDtoTest {
 
     @Test
-    fun toDomainMapsOnlineStateAndVoiceChannelData() {
-        // TODO: Verify isOnline, connectedVoiceChannelName, and connectedVoiceUserCount are mapped correctly.
+    fun toDomainMapsOnlineStateAndVoiceChannelData(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsNullVoiceChannelName() {
-        // TODO: Verify null connectedVoiceChannelName remains null in domain model.
+    fun toDomainMapsNullVoiceChannelName(): Unit {
+        throw NotImplementedError()
     }
 }

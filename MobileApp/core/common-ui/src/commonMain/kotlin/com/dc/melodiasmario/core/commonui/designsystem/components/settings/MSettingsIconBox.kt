@@ -13,25 +13,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 
+/**
+ * Renders settings icon box from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSettingsIconBox(
     painter: Painter,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Surface(
-        modifier = modifier.size(48.dp),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = modifier.size(size = 48.dp),
+        shape = RoundedCornerShape(size = 14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painter,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(size = 24.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }

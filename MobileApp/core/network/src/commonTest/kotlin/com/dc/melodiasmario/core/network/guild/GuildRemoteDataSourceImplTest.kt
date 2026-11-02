@@ -6,12 +6,12 @@ import kotlin.test.Test
 class GuildRemoteDataSourceImplTest {
 
     @Test
-    fun getGuildsMapsDtoListToDomainGuildList() {
-        // TODO: Given GuildApiService returns DTOs, when getGuilds is called, then domain models are returned.
+    fun getGuildsMapsDtoListToDomainGuildList(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsPropagatesApiServiceFailure() {
-        // TODO: Given GuildApiService throws, when getGuilds is called, then error is propagated.
+    fun getGuildsPropagatesApiServiceFailure(): Unit {
+        throw NotImplementedError()
     }
 }

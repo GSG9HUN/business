@@ -35,4 +35,9 @@
     <string name="playlists_delete_success">Playlist deleted.</string>
     <string name="playlists_delete_failed">Could not delete playlist.</string>
     <string name="playlists_name_placeholder">Playlist name</string>
+    <string name="playlists_artwork_title">Playlist cover</string>
+    <string name="playlists_artwork_placeholder">Image URL; leave empty for automatic cover</string>
+    <string name="playlists_artwork_save">Save cover</string>
+    <string name="playlists_artwork_success">Playlist cover saved.</string>
+    <string name="playlists_artwork_failed">Could not save playlist cover.</string>
 </resources>

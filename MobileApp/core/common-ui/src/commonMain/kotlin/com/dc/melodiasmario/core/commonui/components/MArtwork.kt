@@ -25,6 +25,9 @@ import com.dc.melodiasmario.core.commonui.designsystem.generated.resources.ic_ar
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ * Renders artwork from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MArtwork(
     modifier: Modifier = Modifier,
@@ -32,23 +35,24 @@ fun MArtwork(
     iconSize: Dp = 54.dp,
     imageUrl: String? = null,
     contentDescription: String? = null,
-) {
-    val shape = RoundedCornerShape(14.dp)
+    fallbackImage: DrawableResource? = null
+): Unit {
+    val shape = RoundedCornerShape(size = 14.dp)
     val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
     Box(
         modifier = modifier
-            .clip(shape)
+            .clip(shape = shape)
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        Color(0xFFE05AAE),
-                        Color(0xFFF3A83B),
-                    ),
+                        Color(color = 0xFFE05AAE),
+                        Color(color = 0xFFF3A83B)
+                    )
                 ),
-                shape = shape,
+                shape = shape
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         if (!artworkUrl.isNullOrBlank()) {
             SubcomposeAsyncImage(
@@ -58,24 +62,27 @@ fun MArtwork(
                 contentScale = ContentScale.Crop,
                 loading = {
                     ArtworkFallback(
+                        image = fallbackImage,
                         icon = icon,
                         iconSize = iconSize,
-                        contentDescription = contentDescription,
+                        contentDescription = contentDescription
                     )
                 },
                 error = {
                     ArtworkFallback(
+                        image = fallbackImage,
                         icon = icon,
                         iconSize = iconSize,
-                        contentDescription = contentDescription,
+                        contentDescription = contentDescription
                     )
-                },
+                }
             )
         } else {
             ArtworkFallback(
+                image = fallbackImage,
                 icon = icon,
                 iconSize = iconSize,
-                contentDescription = contentDescription,
+                contentDescription = contentDescription
             )
         }
     }
@@ -83,16 +90,27 @@ fun MArtwork(
 
 @Composable
 private fun ArtworkFallback(
+    image: DrawableResource?,
     icon: DrawableResource,
     iconSize: Dp,
-    contentDescription: String?,
+    contentDescription: String?
 ) {
+    if (image != null) {
+        Image(
+            painter = painterResource(resource = image),
+            contentDescription = contentDescription,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        return
+    }
 
     Image(
-        modifier = Modifier.size(iconSize).padding(start = 7.dp),
-        painter = painterResource(icon),
+        modifier = Modifier.size(size = iconSize)
+            .padding(start = 7.dp),
+        painter = painterResource(resource = icon),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
+        colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onPrimary)
     )
 }
 
@@ -103,23 +121,27 @@ private fun String.toHighResolutionArtworkUrl(): String {
 }
 
 private fun String.replaceYoutubeThumbnailQuality(): String {
-    if (!contains("ytimg.com", ignoreCase = true)) return this
+    if (!contains(other = "ytimg.com", ignoreCase = true)) {
+        return this
+    }
 
-    return replace("/default.jpg", "/sddefault.jpg")
-        .replace("/mqdefault.jpg", "/sddefault.jpg")
-        .replace("/hqdefault.jpg", "/sddefault.jpg")
+    return replace(oldValue = "/default.jpg", newValue = "/sddefault.jpg")
+        .replace(oldValue = "/mqdefault.jpg", newValue = "/sddefault.jpg")
+        .replace(oldValue = "/hqdefault.jpg", newValue = "/sddefault.jpg")
 }
 
 private fun String.replaceDiscordImageSize(): String {
-    if (!contains("cdn.discordapp.com", ignoreCase = true)) return this
+    if (!contains(other = "cdn.discordapp.com", ignoreCase = true)) {
+        return this
+    }
 
-    return replace(Regex("([?&]size=)\\d+")) { match ->
+    return replace(regex = Regex("([?&]size=)\\d+")) { match ->
         "${match.groupValues[1]}512"
     }
 }
 
 @Preview
 @Composable
-fun MArtworkPreview() {
+private fun MArtworkPreview() {
     MArtwork()
 }

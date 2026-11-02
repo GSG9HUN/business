@@ -17,8 +17,8 @@ dependencies {
     implementation(project(":core:presentation"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:di"))
-    implementation(project(":feature:playlistsong:presentation"))
-    implementation(project(":feature:playlistsong:ui"))
+    implementation(project(":feature:playlisttrack:presentation"))
+    implementation(project(":feature:playlisttrack:ui"))
     implementation(project(":feature:currenttrack:presentation"))
     implementation(project(":feature:currenttrack:ui"))
     implementation(project(":feature:guild:presentation"))
@@ -51,12 +51,15 @@ dependencies {
 
 android {
     namespace = "com.dc.melodiasmario"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk = libs.versions.android.compileSdk.get()
+        .toInt()
 
     defaultConfig {
         applicationId = "com.dc.melodiasmario"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get()
+            .toInt()
+        targetSdk = libs.versions.android.targetSdk.get()
+            .toInt()
         versionCode = 1
         versionName = "1.0"
     }
@@ -82,5 +85,3 @@ android {
         compose = true
     }
 }
-
-

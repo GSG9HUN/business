@@ -20,12 +20,15 @@ import androidx.compose.ui.unit.dp
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewColor
 
+/**
+ * Renders switch button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSwitchButton(
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+    onCheckedChange: (checked: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+): Unit {
     val trackColor = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
     Box(
@@ -34,23 +37,23 @@ fun MSwitchButton(
             .toggleable(
                 value = checked,
                 onValueChange = onCheckedChange,
-                role = Role.Switch,
+                role = Role.Switch
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .size(width = 32.dp, height = 18.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(shape = RoundedCornerShape(size = 12.dp))
                 .background(trackColor)
-                .padding(2.dp),
-            contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
+                .padding(all = 2.dp),
+            contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart
         ) {
             Box(
                 modifier = Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(Color.White),
+                    .size(size = 14.dp)
+                    .clip(shape = CircleShape)
+                    .background(Color.White)
             )
         }
     }
@@ -62,7 +65,7 @@ private fun MSwitchButtonPreview() {
     MelodiasMarioTheme {
         MSwitchButton(
             checked = true,
-            onCheckedChange = {},
+            onCheckedChange = {}
         )
     }
 }

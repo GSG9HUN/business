@@ -6,6 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dc.melodiasmario.core.commonui.selector.model.MSelectorOption
 
+/**
+ * Renders option selector bottom sheet from the supplied parameters and forwards interaction callbacks.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> MOptionSelectorBottomSheet(
@@ -14,12 +17,12 @@ fun <T> MOptionSelectorBottomSheet(
     selectedValue: T,
     searchEnabled: Boolean,
     onDismiss: () -> Unit,
-    onOptionSelected: (T) -> Unit,
+    onOptionSelected: (selectedOption: T) -> Unit,
     modifier: Modifier = Modifier,
-    searchPlaceholder: String = "",
-) {
+    searchPlaceholder: String = ""
+): Unit {
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismiss
     ) {
         MOptionSelector(
             modifier = modifier,
@@ -28,7 +31,7 @@ fun <T> MOptionSelectorBottomSheet(
             selectedValue = selectedValue,
             onOptionSelected = onOptionSelected,
             searchEnabled = searchEnabled,
-            searchPlaceholder = searchPlaceholder,
+            searchPlaceholder = searchPlaceholder
         )
     }
 }
