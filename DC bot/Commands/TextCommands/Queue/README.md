@@ -1,147 +1,231 @@
-# Queue Commands
+# Queue
 
-This folder contains text commands for managing the music playback queue.
+Exposes queue display, repetition, ordering, and recent batch history through text commands.
 
-## Commands
+## Overview
 
-### ViewQueueCommand.cs
+- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- The history command lists recent batches without changing playback. Repeat-list targets the active batch, including tracks played earlier in that batch; it does not select arbitrary older history for replay.
 
-**Command:** `!viewList`
+## Classes
 
-**Description:** Display the current music queue.
+### ClearCommand
 
-**Behavior:**
+**File:** `DC bot/Commands/TextCommands/Queue/ClearCommand.cs`
 
-1. Validates user
-2. Retrieves queue via `IMusicQueueService.ViewQueue(guildId)`
-3. Creates Discord embed with first 10 tracks
-4. Shows footer if queue has more than 10 tracks
+**Purpose:** Handles the clear text command through validation, service, and localized response boundaries.
 
-**Error Cases:**
+**Implements / inherits:** `ICommand`.
 
-- Empty queue -> warning response
+**Command identifier:** `clear`. Message routing applies the configured prefix.
 
----
-
-### ShuffleCommand.cs
-
-**Command:** `!shuffle`
-
-**Description:** Randomly shuffle the current queue order.
-
-**Behavior:**
-
-1. Validates user
-2. Retrieves queue via `IMusicQueueService.GetQueue(guildId)`
-3. Applies Fisher-Yates shuffle algorithm
-4. Sets shuffled queue back via `IMusicQueueService.SetQueue(guildId, shuffledQueue)`
-
-**Implementation:**
+**Properties:**
 
 ```csharp
-// Fisher-Yates algorithm with retry to ensure order changes
-for (var i = trackList.Count - 1; i > 0; i--)
-{
-    var j = random.Next(i + 1);
-    (trackList[i], trackList[j]) = (trackList[j], trackList[i]);
-}
+public string Name { get; }
+public string Description { get; }
 ```
 
-**Error Cases:**
+**Methods:**
 
-- Queue has 0 or 1 tracks -> warning response
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
----
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-### RepeatCommand.cs
+**Usage:**
 
-**Command:** `!repeat`
+The caller supplies the component and argument values used in this example.
 
-**Description:** Toggle repeat mode for the current track.
-
-**Behavior:**
-
-1. Validates user
-2. Checks repeat-list state through `IRepeatService.IsRepeatingListAsync(guildId)`
-3. Toggles single-track repeat through `IRepeatService.SetRepeatingAsync(guildId, value)`
-4. Uses `ICurrentTrackService.GetCurrentTrackFormattedAsync(guildId)` for the enabled response
+```csharp
+await clearCommand.ExecuteAsync(message);
+```
 
 ---
 
-### RepeatListCommand.cs
+### HistoryCommand
 
-**Command:** `!repeatList`
+**File:** `DC bot/Commands/TextCommands/Queue/HistoryCommand.cs`
 
-**Description:** Toggle repeat mode for the entire queue.
+**Purpose:** Reads recent playback batches and displays their status and track count. This is a read-only history scaffold; it does not replay an old batch or move the previous-track cursor.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates user
-2. Checks single-track repeat state through `IRepeatService.IsRepeatingAsync(guildId)`
-3. When enabling, snapshots the current track plus queued tracks through `IRepeatService.SaveRepeatListSnapshotAsync(...)`
-4. Toggles list repeat through `IRepeatService.SetRepeatingListAsync(guildId, value)`
-5. When playback reaches the end and repeat-list mode is still enabled, `TrackEndedHandlerService` reloads that snapshot through `IMusicQueueService.GetRepeatableQueue()` and copies it back into queue storage through `EnqueueMany()`
+**Command identifier:** `history`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Lists the guild's recent playback batches without requiring voice membership or changing playback state.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await historyCommand.ExecuteAsync(message);
+```
 
 ---
 
-### ClearCommand.cs
+### RepeatCommand
 
-**Command:** `!clear`
+**File:** `DC bot/Commands/TextCommands/Queue/RepeatCommand.cs`
 
-**Description:** Clear all tracks from the queue (keeps current track playing).
+**Purpose:** Handles the repeat text command through validation, service, and localized response boundaries.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates user
-2. Calls `IMusicQueueService.ClearQueue(guildId)`
-3. Removes all queued tracks
-4. Currently playing track continues
+**Command identifier:** `repeat`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await repeatCommand.ExecuteAsync(message);
+```
 
 ---
 
-## Service Dependencies
+### RepeatListCommand
 
-### IMusicQueueService
+**File:** `DC bot/Commands/TextCommands/Queue/RepeatListCommand.cs`
 
-- `ViewQueue(guildId)` - Read-only view
-- `GetQueue(guildId)` - Mutable queue access
-- `SetQueue(guildId, queue)` - Replace entire queue
-- `ClearQueue(guildId)` - Empty queue
-- `Enqueue(guildId, track)` - Add track
-- `EnqueueMany(guildId, tracks)` - Bulk add tracks, used when rehydrating repeat-list playback
-- `Dequeue(guildId)` - Remove and return next
-- `GetRepeatableQueue(guildId)` - Read the saved repeat-list snapshot and return parseable tracks
+**Purpose:** Handles the repeat list text command through validation, service, and localized response boundaries.
 
-### IRepeatService
+**Implements / inherits:** `ICommand`.
 
-- `IsRepeatingAsync(guildId)` / `SetRepeatingAsync(guildId, value)` - Single-track repeat state
-- `IsRepeatingListAsync(guildId)` / `SetRepeatingListAsync(guildId, value)` - Queue repeat-list state
-- `SaveRepeatListSnapshotAsync(guildId, currentTrack, queuedTracks)` - Persist the repeat-list snapshot
+**Command identifier:** `repeatList`. Message routing applies the configured prefix.
 
-### ICurrentTrackService / ITrackFormatterService
+**Properties:**
 
-- `GetCurrentTrackFormattedAsync(guildId)` - Format the single-track repeat response
-- `FormatCurrentTrackListAsync(guildId)` - Format repeat-list enable/disable responses
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-## Queue Persistence
+**Methods:**
 
-Queue state is persisted to:
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-- **Storage:** PostgreSQL via EF Core repositories
-- **Contract:** `IQueueRepository`
-- **Implementation:** `DC bot.Persistence/Repositories/QueueRepository.cs`
-- **Claim workflow:** `DC bot.Persistence/Repositories/QueueClaimService.cs` is used internally by `QueueRepository.ClaimNextQueuedItemAsync`
-- **State model:** `QueueItemState` queued/playing/played/skipped queue item lifecycle
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-Repeat-list snapshots are stored separately through `IRepeatListRepository`; they are read by `MusicQueueService.GetRepeatableQueue()` and copied back into the queue through `IQueueRepository.EnqueueManyAsync`.
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await repeatListCommand.ExecuteAsync(message);
+```
+
+---
+
+### ShuffleCommand
+
+**File:** `DC bot/Commands/TextCommands/Queue/ShuffleCommand.cs`
+
+**Purpose:** Handles the shuffle text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `shuffle`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await shuffleCommand.ExecuteAsync(message);
+```
+
+---
+
+### ViewQueueCommand
+
+**File:** `DC bot/Commands/TextCommands/Queue/ViewQueueCommand.cs`
+
+**Purpose:** Handles the view queue text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `viewList`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await viewQueueCommand.ExecuteAsync(message);
+```
+
+---
 
 ## Related Components
 
-- `Service/Music/MusicServices/MusicQueueService.cs` - Queue state management
-- `Service/Music/MusicServices/RepeatService.cs` - Repeat flags and repeat-list snapshot writes
-- `Interface/Service/Music/IMusicQueueService.cs` - Queue contract
-- `DC bot.Contracts/Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
-- `DC bot.Contracts/Interface/Service/Persistence/IRepeatListRepository.cs` - Repeat-list snapshot persistence contract
-- `DC bot.Persistence/Repositories/QueueRepository.cs` - Queue persistence implementation
-- `DC bot.Persistence/Repositories/QueueClaimService.cs` - Queue claim transaction helper
-
+- `DC bot/Commands/TextCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Interface/Core/` — Defines command lookup, argument helpers, and user/player validation boundaries.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

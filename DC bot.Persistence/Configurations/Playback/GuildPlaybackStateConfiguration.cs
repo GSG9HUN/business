@@ -5,53 +5,53 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DC_bot.Configurations.Playback;
 
+/// <summary>
+/// Configures PostgreSQL storage, keys, and relationships for guild playback state.
+/// </summary>
 public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPlaybackStateEntity>
 {
+
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<GuildPlaybackStateEntity> builder)
     {
+        builder.Property(x => x.ActiveBatchId)
+            .HasColumnName("active_batch_id");
+        builder.HasOne<PlaybackBatchEntity>()
+            .WithMany()
+            .HasForeignKey(x => x.ActiveBatchId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.ToTable("guild_playback_state");
-
         builder.HasKey(entity => entity.GuildId);
-
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
             .HasGuildIdStorage()
             .ValueGeneratedNever();
-
         builder.Property(entity => entity.IsRepeating)
             .HasColumnName("is_repeating")
             .HasDefaultValue(false)
             .IsRequired();
-
         builder.Property(entity => entity.IsRepeatingList)
             .HasColumnName("is_repeating_list")
             .HasDefaultValue(false)
             .IsRequired();
-
         builder.Property(entity => entity.IsPaused)
             .HasColumnName("is_paused")
             .HasDefaultValue(false)
             .IsRequired();
-
         builder.Property(entity => entity.PositionSeconds)
             .HasColumnName("position_seconds")
             .HasDefaultValue(0)
             .IsRequired();
-
         builder.Property(entity => entity.PositionUpdatedAtUtc)
             .HasColumnName("position_updated_at_utc");
-
         builder.Property(entity => entity.CurrentTrackIdentifier)
             .HasColumnName("current_track_identifier");
-
         builder.Property(entity => entity.QueueItemId)
             .HasColumnName("queue_item_id");
-
         builder.Property(entity => entity.UpdatedAtUtc)
             .HasColumnName("updated_at_utc")
             .HasDefaultValueSql("now()")
             .IsRequired();
-
         builder.HasOne(entity => entity.Guild)
             .WithOne(guild => guild.PlaybackState)
             .HasForeignKey<GuildPlaybackStateEntity>(entity => entity.GuildId)

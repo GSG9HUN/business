@@ -1,145 +1,257 @@
-﻿# Discord Interfaces
+# Discord
 
-This folder contains Discord abstraction interfaces.
+Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
 
 ## Overview
 
-These interfaces abstract the DSharpPlus library, making the code:
+- Wrapper/Discord adapts DSharpPlus objects; slash and mobile command paths can provide compatible contexts for the shared command pipeline.
+- These contracts expose only the behavior the application needs. A wrapper does not replace guild-access or voice-readiness validation.
 
-- Easier to test (mockable)
-- Less coupled to DSharpPlus
-- Portable to other Discord libraries
+## Interfaces
 
-## Files
+### IDiscordChannel
 
-### IDiscordMessage.cs
+**File:** `DC bot/Interface/Discord/IDiscordChannel.cs`
+
+**Purpose:** Defines the discord channel boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordMessage
-{
-    ulong Id { get; set; }
-    string Content { get; set; }
-    IDiscordChannel Channel { get; set; }
-    IDiscordUser Author { get; set; }
-    DateTimeOffset CreatedAt { get; set; }
-    IReadOnlyList<DiscordEmbed> Embeds { get; set; }
-    Task RespondAsync(string message);
-    Task RespondAsync(DiscordEmbed message);
-    Task ModifyAsync(DiscordMessageBuilder builder);
-}
+// The Discord identifier of this object.
+ulong Id { get; }
+string Name { get; }
+IDiscordGuild Guild { get; }
 ```
 
-**Implementation:** `Wrapper/DiscordMessageWrapper.cs`
+**Methods:**
+
+- `SendMessageAsync` — Sends a message through the wrapped Discord channel.
+
+```csharp
+Task SendMessageAsync(DiscordEmbed embed);
+```
+
+- `SendMessageAsync` — Sends a message through the wrapped Discord channel.
+
+```csharp
+Task SendMessageAsync(string message);
+```
+
+- `ToDiscordChannel` — Returns the underlying DSharpPlus channel represented by the adapter.
+
+```csharp
+DiscordChannel ToDiscordChannel();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await discordChannel.SendMessageAsync(embed);
+```
 
 ---
 
-### IDiscordMessageFactory.cs
+### IDiscordGuild
+
+**File:** `DC bot/Interface/Discord/IDiscordGuild.cs`
+
+**Purpose:** Defines the discord guild boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordMessageFactory
-{
-    IDiscordMessage Create(
-        DiscordMessage message,
-        DiscordChannel channel,
-        DiscordUser author,
-        DiscordGuild? guild = null);
-}
+// The Discord identifier of this object.
+ulong Id { get; }
+string Name { get; }
 ```
 
-**Implementation:** `Helper/Factory/DiscordMessageWrapperFactory.cs`
+**Methods:**
 
-This keeps the DSharpPlus message-to-wrapper boundary injectable for command handling while preserving the existing wrapper behavior in production.
+- `GetAllMembersAsync` — Retrieves guild members through the wrapped Discord API.
+
+```csharp
+Task<IReadOnlyCollection<IDiscordMember>> GetAllMembersAsync();
+```
+
+- `GetMemberAsync` — Resolves a guild member through the wrapped Discord API.
+
+```csharp
+Task<IDiscordMember> GetMemberAsync(ulong id);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await discordGuild.GetAllMembersAsync();
+```
 
 ---
 
-### IDiscordChannel.cs
+### IDiscordMember
+
+**File:** `DC bot/Interface/Discord/IDiscordMember.cs`
+
+**Purpose:** Defines the discord member boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordChannel
-{
-    ulong Id { get; }
-    string Name { get; }
-    IDiscordGuild Guild { get; }
-    Task SendMessageAsync(string message);
-    Task SendMessageAsync(DiscordEmbed embed);
-    DiscordChannel ToDiscordChannel();
-}
+// The Discord identifier of this object.
+ulong Id { get; }
+bool IsBot { get; }
+string Username { get; }
+string Mention { get; }
+IDiscordVoiceState? VoiceState { get; }
 ```
 
-**Implementation:** `Wrapper/DiscordChannelWrapper.cs`
+**Methods:**
+
+- `ToDiscordMember` — Returns the underlying DSharpPlus member represented by the adapter.
+
+```csharp
+DiscordMember ToDiscordMember();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = discordMember.ToDiscordMember();
+```
 
 ---
 
-### IDiscordUser.cs
+### IDiscordMessage
+
+**File:** `DC bot/Interface/Discord/IDiscordMessage.cs`
+
+**Purpose:** Defines the discord message boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordUser
-{
-    ulong Id { get; }
-    bool IsBot { get; }
-    string Username { get; }
-    string Mention { get; }
-    DiscordUser ToDiscordUser();
-}
+// The Discord identifier of this object.
+public ulong Id { get; set; }
+public string Content { get; set; }
+public IDiscordChannel Channel { get; set; }
+public IDiscordUser Author { get; set; }
+public DateTimeOffset CreatedAt { get; set; }
+public IReadOnlyList<DiscordEmbed> Embeds { get; set; }
 ```
 
-**Implementation:** `Wrapper/DiscordUserWrapper.cs`
+**Methods:**
+
+- `ModifyAsync` — Updates the wrapped Discord message or interaction response.
+
+```csharp
+Task ModifyAsync(DiscordMessageBuilder builder);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+Task RespondAsync(string message);
+```
+
+- `RespondAsync` — Sends a response through the wrapped message or interaction boundary.
+
+```csharp
+Task RespondAsync(DiscordEmbed message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await discordMessage.ModifyAsync(builder);
+```
 
 ---
 
-### IDiscordMember.cs
+### IDiscordUser
+
+**File:** `DC bot/Interface/Discord/IDiscordUser.cs`
+
+**Purpose:** Defines the discord user boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordMember
-{
-    ulong Id { get; }
-    bool IsBot { get; }
-    string Username { get; }
-    string Mention { get; }
-    IDiscordVoiceState? VoiceState { get; }
-    DiscordMember ToDiscordMember();
-}
+// The Discord identifier of this object.
+ulong Id { get; }
+bool IsBot { get; }
+string Username { get; }
+string Mention { get; }
 ```
-
-**Implementation:** `Wrapper/DiscordMemberWrapper.cs`
 
 ---
 
-### IDiscordGuild.cs
+### IDiscordVoiceState
+
+**File:** `DC bot/Interface/Discord/IDiscordVoiceState.cs`
+
+**Purpose:** Defines the discord voice state boundary so callers are independent of its concrete implementation.
+
+**Properties:**
 
 ```csharp
-public interface IDiscordGuild
-{
-    ulong Id { get; }
-    string Name { get; }
-    Task<IDiscordMember> GetMemberAsync(ulong id);
-    DiscordGuild ToDiscordGuild();
-    Task<IReadOnlyCollection<IDiscordMember>> GetAllMembersAsync();
-}
+// The Discord channel associated with this object.
+IDiscordChannel? Channel { get; }
 ```
 
-**Implementation:** `Wrapper/DiscordGuildWrapper.cs`
+**Methods:**
+
+- `ToDiscordVoiceState` — Returns the underlying DSharpPlus voice state represented by the adapter.
+
+```csharp
+DiscordVoiceState ToDiscordVoiceState();
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = discordVoiceState.ToDiscordVoiceState();
+```
 
 ---
 
-### IDiscordVoiceState.cs
+## Factory Classes
+
+### IDiscordMessageFactory
+
+**File:** `DC bot/Interface/Discord/IDiscordMessageFactory.cs`
+
+**Purpose:** Defines the discord message factory boundary so callers are independent of its concrete implementation.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
 
 ```csharp
-public interface IDiscordVoiceState
-{
-    IDiscordChannel? Channel { get; }
-    DiscordVoiceState ToDiscordVoiceState();
-}
+IDiscordMessage Create(DiscordMessage message, DiscordChannel channel, DiscordUser author, DiscordGuild? guild = null);
 ```
 
-**Implementation:** `Wrapper/DiscordVoiceStateWrapper.cs`
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = discordMessageFactory.Create(message, channel, author, guild);
+```
 
 ---
 
 ## Related Components
 
-- **Wrapper/** - Implements these interfaces
-- **Helper/Factory/** - Creates wrapper instances from DSharpPlus objects
-- **Commands/** - Use these interfaces instead of DSharpPlus types
-- **Service/** - Use these interfaces for Discord operations
-
+- `DC bot/Interface/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

@@ -3,6 +3,7 @@ using API.Mapping;
 using API.Requests.Playlists;
 using API.Responses.Playlists;
 using DC_bot.BotControl;
+using DC_bot.BotControl.Payloads;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Interface.Service.Persistence.MobileApps;
@@ -13,8 +14,21 @@ using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers.Playlists;
 
+/// <summary>
+/// Authorizes playlist reads and edits and queues bot commands for track loading and imports.
+/// </summary>
 public static class PlaylistHandlers
 {
+
+    /// <summary>
+    /// Lists authorized guild playlists with track counts and decoded total durations.
+    /// </summary>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistTrackRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> ListAsync(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
@@ -23,39 +37,39 @@ public static class PlaylistHandlers
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
-            httpContext,
-            userRepository,
-            guildId,
-            cancellationToken);
+        var(_, accessError) = await ApiUserContext.RequireGuildAccessAsync(httpContext, userRepository, guildId, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
         }
 
         var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken);
-        var playlistIds = playlists.Select(playlist => playlist.Id).ToList();
-        var tracksByPlaylistId = (await playlistTrackRepository.GetByPlaylistIdsOrderedAsync(
-                playlistIds,
-                cancellationToken))
-            .GroupBy(track => track.PlaylistId)
+        var playlistIds = playlists.Select(playlist => playlist.Id)
+            .ToList();
+        var tracksByPlaylistId = (await playlistTrackRepository.GetByPlaylistIdsOrderedAsync(playlistIds, cancellationToken)).GroupBy(track => track.PlaylistId)
             .ToDictionary(group => group.Key, group => group.ToList());
-
         var response = new List<PlaylistSummaryResponse>(playlists.Count);
 
         foreach (var playlist in playlists)
         {
             tracksByPlaylistId.TryGetValue(playlist.Id, out var tracks);
-            response.Add(new PlaylistSummaryResponse(
-                playlist.Id.ToString(),
-                playlist.Name,
-                playlist.TrackCount,
-                TrackResponseMapper.SumDurations(tracks ?? [])));
+            response.Add(new PlaylistSummaryResponse(playlist.Id.ToString(), playlist.Name, playlist.TrackCount, TrackResponseMapper.SumDurations(tracks ?? [])));
         }
 
         return HttpResults.Ok(response);
     }
 
+    /// <summary>
+    /// Returns the authorized playlist&apos;s ordered, decodable track details.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistTrackRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> GetAsync(
         long playlistId,
         HttpContext httpContext,
@@ -64,12 +78,8 @@ public static class PlaylistHandlers
         IPlaylistTrackRepository playlistTrackRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
@@ -79,6 +89,15 @@ public static class PlaylistHandlers
         return HttpResults.Ok(MapDetail(playlist, tracks));
     }
 
+    /// <summary>
+    /// Normalizes a playlist name and creates an empty guild playlist, returning conflicts for duplicates.
+    /// </summary>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> CreateAsync(
         HttpContext httpContext,
         CreatePlaylistRequest request,
@@ -87,22 +106,26 @@ public static class PlaylistHandlers
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
-            httpContext,
-            userRepository,
-            guildId,
-            cancellationToken);
+        var(_, accessError) = await ApiUserContext.RequireGuildAccessAsync(httpContext, userRepository, guildId, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
         }
 
-        if (!PlaylistNameValidator.TryNormalize(request.GetPlaylistName(), out var playlistName))
+        if (
+            !PlaylistNameValidator.TryNormalize(
+            request.GetPlaylistName(),
+            out var playlistName))
         {
             return HttpResults.BadRequest(new { ErrorMessage = "Invalid playlist name." });
         }
 
-        if (await playlistRepository.ExistsAsync(guildId, playlistName, cancellationToken))
+        if (
+            await playlistRepository.ExistsAsync(
+            guildId,
+            playlistName,
+            cancellationToken))
         {
             return HttpResults.Conflict(new { ErrorMessage = $"Playlist '{playlistName}' already exists." });
         }
@@ -110,9 +133,7 @@ public static class PlaylistHandlers
         try
         {
             var playlistId = await playlistRepository.CreatePlaylistAsync(guildId, playlistName, cancellationToken);
-            return HttpResults.Created(
-                $"/api/playlists/{playlistId}",
-                new PlaylistSummaryResponse(playlistId.ToString(), playlistName, 0, 0));
+            return HttpResults.Created($"/api/playlists/{playlistId}", new PlaylistSummaryResponse(playlistId.ToString(), playlistName, 0, 0));
         }
         catch (UniqueConstraintConflictException)
         {
@@ -120,6 +141,16 @@ public static class PlaylistHandlers
         }
     }
 
+    /// <summary>
+    /// Renames an authorized playlist after name validation, mapping uniqueness conflicts to HTTP Conflict.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> RenameAsync(
         long playlistId,
         RenamePlaylistRequest request,
@@ -128,12 +159,8 @@ public static class PlaylistHandlers
         IPlaylistRepository playlistRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
@@ -144,7 +171,11 @@ public static class PlaylistHandlers
             return HttpResults.BadRequest(new { ErrorMessage = "Invalid playlist name." });
         }
 
-        if (await playlistRepository.ExistsAsync(playlist!.GuildId, newName, cancellationToken))
+        if (
+            await playlistRepository.ExistsAsync(
+            playlist!.GuildId,
+            newName,
+            cancellationToken))
         {
             return HttpResults.Conflict(new { ErrorMessage = $"Playlist '{newName}' already exists." });
         }
@@ -160,6 +191,15 @@ public static class PlaylistHandlers
         }
     }
 
+    /// <summary>
+    /// Deletes a playlist only after confirming guild access.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> DeleteAsync(
         long playlistId,
         HttpContext httpContext,
@@ -167,12 +207,8 @@ public static class PlaylistHandlers
         IPlaylistRepository playlistRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
@@ -182,6 +218,17 @@ public static class PlaylistHandlers
         return deleted ? HttpResults.NoContent() : HttpResults.NotFound(new { ErrorMessage = "Playlist was not found." });
     }
 
+    /// <summary>
+    /// Removes an existing ordered playlist track after validating access and track number.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="trackNumber">The track number value for this operation.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistTrackRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> RemoveTrackAsync(
         long playlistId,
         int trackNumber,
@@ -191,12 +238,8 @@ public static class PlaylistHandlers
         IPlaylistTrackRepository playlistTrackRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
@@ -208,6 +251,7 @@ public static class PlaylistHandlers
         }
 
         var tracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist!.Id, cancellationToken);
+
         if (tracks.All(track => track.OrderNumber != trackNumber))
         {
             return HttpResults.NotFound(new { ErrorMessage = "Playlist track was not found." });
@@ -217,6 +261,17 @@ public static class PlaylistHandlers
         return HttpResults.NoContent();
     }
 
+    /// <summary>
+    /// Queues a durable bot command to resolve and add a supplied track URL to an authorized playlist.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="commandsRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> AddTrackAsync(
         long playlistId,
         AddSongRequest request,
@@ -226,12 +281,8 @@ public static class PlaylistHandlers
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
@@ -243,21 +294,21 @@ public static class PlaylistHandlers
         }
 
         var discordUserId = ApiUserContext.TryGetDiscordUserId(httpContext, out var userId) ? userId : 0;
-        var payloadJson = JsonSerializer.Serialize(new PlaylistTrackCommandPayload(
-            playlist!.Id.ToString(),
-            playlist.Name,
-            request.SongUrl.Trim()));
-
-        var command = await commandsRepository.EnqueueAsync(
-            playlist.GuildId,
-            discordUserId,
-            BotControlCommandTypes.AddSong,
-            payloadJson,
-            cancellationToken);
-
+        var payloadJson = JsonSerializer.Serialize(new PlaylistTrackCommandPayload(playlist!.Id.ToString(), playlist.Name, request.SongUrl.Trim()));
+        var command = await commandsRepository.EnqueueAsync(playlist.GuildId, discordUserId, BotControlCommandTypes.AddSong, payloadJson, cancellationToken);
         return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
+    /// <summary>
+    /// Queues a durable bot command to load an authorized playlist into playback.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="commandsRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> LoadAsync(
         long playlistId,
         HttpContext httpContext,
@@ -266,32 +317,28 @@ public static class PlaylistHandlers
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
     {
-        var (playlist, accessError) = await RequirePlaylistAccessAsync(
-            playlistId,
-            httpContext,
-            userRepository,
-            playlistRepository,
-            cancellationToken);
+        var(playlist, accessError) = await RequirePlaylistAccessAsync(playlistId, httpContext, userRepository, playlistRepository, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
         }
 
         var discordUserId = ApiUserContext.TryGetDiscordUserId(httpContext, out var userId) ? userId : 0;
-        var payloadJson = JsonSerializer.Serialize(new PlaylistCommandPayload(
-            playlist!.Id.ToString(),
-            playlist.Name));
-
-        var command = await commandsRepository.EnqueueAsync(
-            playlist.GuildId,
-            discordUserId,
-            BotControlCommandTypes.LoadPlaylist,
-            payloadJson,
-            cancellationToken);
-
+        var payloadJson = JsonSerializer.Serialize(new PlaylistCommandPayload(playlist!.Id.ToString(), playlist.Name));
+        var command = await commandsRepository.EnqueueAsync(playlist.GuildId, discordUserId, BotControlCommandTypes.LoadPlaylist, payloadJson, cancellationToken);
         return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
+    /// <summary>
+    /// Validates a playlist import request and queues a durable bot command to resolve its URL.
+    /// </summary>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="request">The client request to validate and process.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="commandsRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> ImportAsync(
         HttpContext httpContext,
         SavePlaylistRequest request,
@@ -300,17 +347,17 @@ public static class PlaylistHandlers
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
-        var (discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(
-            httpContext,
-            userRepository,
-            guildId,
-            cancellationToken);
+        var(discordUserId, accessError) = await ApiUserContext.RequireGuildAccessAsync(httpContext, userRepository, guildId, cancellationToken);
+
         if (accessError is not null)
         {
             return accessError;
         }
 
-        if (!PlaylistNameValidator.TryNormalize(request.Name, out var playlistName))
+        if (
+            !PlaylistNameValidator.TryNormalize(
+            request.Name,
+            out var playlistName))
         {
             return HttpResults.BadRequest(new { ErrorMessage = "Invalid playlist name." });
         }
@@ -320,20 +367,20 @@ public static class PlaylistHandlers
             return HttpResults.BadRequest(new { ErrorMessage = "Playlist URL is required." });
         }
 
-        var payloadJson = JsonSerializer.Serialize(new PlaylistImportCommandPayload(
-            playlistName,
-            request.Url.Trim()));
-
-        var command = await commandsRepository.EnqueueAsync(
-            guildId,
-            discordUserId,
-            BotControlCommandTypes.SavePlaylist,
-            payloadJson,
-            cancellationToken);
-
+        var payloadJson = JsonSerializer.Serialize(new PlaylistImportCommandPayload(playlistName, request.Url.Trim()));
+        var command = await commandsRepository.EnqueueAsync(guildId, discordUserId, BotControlCommandTypes.SavePlaylist, payloadJson, cancellationToken);
         return BotControlCommandHttpMapper.ToAccepted(command);
     }
 
+    /// <summary>
+    /// Loads a valid playlist and checks the authenticated user&apos;s access to its guild.
+    /// </summary>
+    /// <param name="playlistId">The playlist id value for this operation.</param>
+    /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
+    /// <param name="userRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     private static async Task<(PlaylistRecord? Playlist, IResult? Error)> RequirePlaylistAccessAsync(
         long playlistId,
         HttpContext httpContext,
@@ -347,36 +394,28 @@ public static class PlaylistHandlers
         }
 
         var playlist = await playlistRepository.GetByIdAsync(playlistId, cancellationToken);
+
         if (playlist is null)
         {
             return (null, HttpResults.NotFound(new { ErrorMessage = "Playlist was not found." }));
         }
 
-        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
-            httpContext,
-            userRepository,
-            playlist.GuildId,
-            cancellationToken);
-
+        var(_, accessError) = await ApiUserContext.RequireGuildAccessAsync(httpContext, userRepository, playlist.GuildId, cancellationToken);
         return accessError is null ? (playlist, null) : (null, accessError);
     }
 
-    private static PlaylistDetailResponse MapDetail(
-        PlaylistRecord playlist,
-        IReadOnlyList<PlaylistTrackRecord> tracks)
+    /// <summary>
+    /// Builds playlist detail from decodable tracks while preserving the stored track count and total duration.
+    /// </summary>
+    /// <param name="playlist">The playlist value for this operation.</param>
+    /// <param name="tracks">The tracks value for this operation.</param>
+    /// <returns>The computed map detail result.</returns>
+    private static PlaylistDetailResponse MapDetail(PlaylistRecord playlist, IReadOnlyList<PlaylistTrackRecord> tracks)
     {
-        var responseTracks = tracks
-            .Select(TrackResponseMapper.TryMapPlaylistTrack)
+        var responseTracks = tracks.Select(TrackResponseMapper.TryMapPlaylistTrack)
             .Where(track => track is not null)
             .Cast<PlaylistTrackResponse>()
             .ToList();
-
-        return new PlaylistDetailResponse(
-            playlist.Id.ToString(),
-            playlist.GuildId.ToString(),
-            playlist.Name,
-            tracks.Count,
-            TrackResponseMapper.SumDurations(tracks),
-            responseTracks);
+        return new PlaylistDetailResponse(playlist.Id.ToString(), playlist.GuildId.ToString(), playlist.Name, tracks.Count, TrackResponseMapper.SumDurations(tracks), responseTracks);
     }
 }

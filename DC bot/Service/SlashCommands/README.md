@@ -1,38 +1,46 @@
-# Slash Command Services
+# SlashCommands
 
-This folder contains service-layer slash command execution adapters.
+Reuses registered text commands for Discord slash interactions.
 
-## Why This Folder Exists
+## Overview
 
-Slash command modules should stay thin. They receive DSharpPlus interaction input, but the bot already has a mature text-command pipeline for validation, localization, and command behavior.
+- SlashCommandExecutor resolves the named command, validates guild context, handles deferral, and dispatches through an interaction-backed message wrapper.
+- Keep interaction response state in the slash adapter. Commands remain responsible for their ordinary validation, services, and localized outcomes.
 
-This service layer bridges slash commands into that existing pipeline so slash commands do not duplicate the behavior of text commands.
+## Classes
 
-## Files
+### SlashCommandExecutor
 
-### SlashCommandExecutor.cs
+**File:** `DC bot/Service/SlashCommands/SlashCommandExecutor.cs`
 
-**Implements:** `ISlashCommandExecutor`
+**Purpose:** Adapts slash interactions to registered commands and completes deferred interaction responses.
 
-**Purpose:** Execute slash command requests through the existing text command pipeline.
+**Implements / inherits:** `ISlashCommandExecutor`.
 
-## Behavior
+**Methods:**
 
-- Looks up registered `ICommand` implementations by command name.
-- Optionally rejects commands outside guild context with a localized slash-only response.
-- Optionally defers the interaction before executing the text command.
-- Creates an `IDiscordMessage`-compatible slash message through `ISlashInteractionContext.CreateMessage()`.
-- Sends a localized accepted fallback when a deferred slash command finishes without producing a response.
-- Handles `BotException` and unexpected exceptions without leaking framework details to the command modules.
+- `ExecuteAsync` — Executes the command request through the registered command pipeline and completes its response.
 
-## Design Rule
+```csharp
+public Task ExecuteAsync(SlashCommandExecutionRequest request, CancellationToken cancellationToken = default);
+```
 
-New slash command modules should delegate through this service when they mirror an existing text command. Only add slash-specific behavior in the module when Discord interaction UX requires it, such as option choices or member selectors.
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await slashCommandExecutor.ExecuteAsync(request, cancellationToken);
+```
+
+---
 
 ## Related Components
 
-- `Interface/Service/SlashCommands/README.md`
-- `Wrapper/SlashInteractionContextWrapper.cs`
-- `Wrapper/SlashInteractionMessageWrapper.cs`
-- `Commands/SlashCommands/`
-- `Commands/TextCommands/`
+- `DC bot/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Exceptions/` — Defines the common exception boundary and feature-specific failure categories.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

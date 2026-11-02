@@ -1,28 +1,65 @@
-# Bot Control Command Models
+# BotControlCommand
 
-This folder contains API-to-bot command bridge records.
+Defines shared records and state values for bot control command operations.
 
-## Why This Folder Exists
+## Overview
 
-Bot-control commands are persisted so the API can ask the bot process to perform work without directly referencing bot runtime services.
+- Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+- Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 
-These models describe the command as it crosses the repository boundary.
+## Models and Results
 
-## Files
+### BotControlCommandRecord
 
-### BotControlCommandRecord.cs
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/BotControlCommand/BotControlCommandRecord.cs`
 
-Immutable command record returned by command repository operations.
+**Purpose:** Carries immutable bot control command values across the shared storage or mobile-command boundary.
 
-### BotControlCommandState.cs
+**Record declaration:**
 
-Contract-level command state enum.
+```csharp
+public sealed record BotControlCommandRecord(
+    string CommandId,
+    ulong GuildId,
+    ulong UserId,
+    string Type,
+    BotControlCommandState State,
+    string? PayloadJson,
+    string? ErrorMessage,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset? ClaimedAtUtc,
+    DateTimeOffset? CompletedAtUtc,
+    string? ResultJson);
+```
 
-## Flow Context
+---
 
-The API creates a pending command. The bot worker claims pending commands, executes the corresponding bot behavior, then marks the command done or failed. `BotControlCommandState` makes that lifecycle explicit.
+### BotControlCommandState
 
-## Maintenance Notes
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/BotControlCommand/BotControlCommandState.cs`
 
-- Command state is shared by the API process and bot worker process.
-- Keep state transitions compatible with repository claim/update behavior.
+**Purpose:** Names the durable command lifecycle states shared by API polling, the bot worker, and realtime progress payloads.
+
+**Values:**
+
+```csharp
+public enum BotControlCommandState : short
+{
+    // The command is waiting to be claimed by a worker.
+    Pending = 0,
+    // A worker has claimed the command and started executing it.
+    Started = 1,
+    // The command completed successfully.
+    Done = 2,
+    // The operation failed.
+    Failed = 3
+}
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

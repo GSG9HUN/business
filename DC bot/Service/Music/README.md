@@ -1,149 +1,257 @@
-# Music Services
+# Music
 
-This folder contains music playback, queue management, and saved playlist services.
+Coordinates music requests through a facade and specialized playback components.
 
-## Root Files
+## Overview
 
-### LavaLinkService.cs
-
-**Purpose:** Facade for Lavalink audio server and music playback operations.
-
-**Implements:** `ILavaLinkService`
-
-**Key Methods:**
-
-- `ConnectAsync()` - Connect to Lavalink server
-- `PlayAsyncUrl()` - Play track from URL
-- `PlayAsyncQuery()` - Play track from search query
-- `PauseAsync()` - Pause current track
-- `ResumeAsync()` - Resume paused track
-- `SkipAsync()` - Skip to next track
-- `StartPlayingQueue()` - Join voice channel and start queue
-- `LeaveVoiceChannel()` - Disconnect from voice
-- `Init()` - Initialize guild state
-
-**Events:**
-
-- `TrackStarted` - Fired when track begins playing. The event publishes the target text channel and embed; `ReactionHandlerService` captures the `DiscordClient` when it registers.
-
-**Architecture:**
-
-- Delegates to specialized services for specific tasks
-- Uses `ILavalinkNodeConnectionService` for node connection lifecycle
-- Uses `IPlaybackRequestService` for URL/query play request orchestration
-- Uses `IPlaybackControlService` for pause/resume/skip/leave behavior
-- Uses `IPlayerConnectionService` for voice channel management
-- Uses `ITrackPlaybackService` for queue track playback
-- Uses `IPlaybackEventHandlerService` for event handling
-- Uses `IMusicQueueService` for queue management and repeat-list queue rehydration
-
----
-
-### TrackSearchResolverService.cs
-
-**Purpose:** Resolve search queries and URLs to appropriate search modes.
-
-**Implements:** `ITrackSearchResolverService`
-
-**Method:**
-
-- `ResolveSearchMode()` - Determine search mode from input string
-
-**Supported Prefixes:**
-
-- `spotify:` or `sptfy:` → Spotify
-- `soundcloud:` or `scsearch:` → SoundCloud
-- `youtubemusic:` or `ytmsearch:` → YouTube Music
-- `youtube:` or `ytsearch:` → YouTube
-- `applemusic:` or `amsearch:` → Apple Music
-- `deezer:` or `dzsearch:` → Deezer
-- `yandexmusic:` or `ymsearch:` → Yandex Music
-- `bandcamp:` or `bcsearch:` → Bandcamp
-
-**Default Search Mode:**
-
-- Configurable via `SearchResolverOptions`
-- Falls back to YouTube if not specified
-
-For absolute URLs, the resolver also maps known hosts such as YouTube, YouTube Music, SoundCloud, Spotify, Apple Music,
-Deezer, Yandex Music, and Bandcamp. Unknown absolute URLs resolve to `TrackSearchMode.None`.
-
----
-
-### MusicPlaybackArchitectureAndFixPlan.md
-
-**Purpose:** Architecture and fix-plan note for playback, queue, repeat-list, previous, API, and MobileApp flows.
-
-**Covers:**
-
-- expected Discord playback flow
-- expected API and MobileApp realtime flow
-- repeat-list and previous behavior rules
-- join/play first-call readiness failure points
-- implementation areas for future queue/repeat/previous hardening
-
----
+- `Lifecycle/TwentyFourSevenService` changes saved preferences under a shared guild gate. `PersistentVoiceRecoveryService` runs periodic recovery; `PersistentVoiceLeaveService` disables the preference before disconnecting and closing the batch.
+- LavaLinkService connects commands to request, lifecycle, control, queue, and track-playback services. TrackSearchResolverService interprets source prefixes and provider URLs.
+- The concrete components are organized into Events, Lavalink, Lifecycle, Playback, PlaylistService, Presentation, Queue, Repeat, and Tracks. There is no MusicServices or ProgressiveTimer implementation folder in the current layout.
 
 ## Subfolders
 
-### MusicServices/
+### Events/
 
-Granular music component services.
+Processes correlated track events and coordinates queue advancement.
 
-**Services:**
+**Files:**
+
+- `PlaybackEventHandlerService.cs`
+- `TrackEndedHandlerService.cs`
+
+**Purpose:** PlaybackEventHandlerService manages player subscriptions. TrackEndedHandlerService settles the accepted attempt and selects repeat, next-track, or queue-end behavior.
+
+---
+
+### Lavalink/
+
+Owns connection operations for the Lavalink audio node.
+
+**Files:**
+
+- `LavalinkNodeConnectionService.cs`
+
+**Purpose:** LavalinkNodeConnectionService isolates node-level connectivity from guild player lifecycle and individual track transport calls.
+
+---
+
+### Lifecycle/
+
+Coordinates player connections, session ownership, cleanup, and recovery through dedicated subfolders.
+
+**Files and folders:**
+
+- `Connections/PlayerConnectionService.cs`
+- `Connections/PlayerConnectionRetryPolicy.cs`
+- `Sessions/GuildPlaybackSessions.cs`
+- `Cleanup/`
+- `Recovery/`
+- `PersistentVoice/`
+- `Models/`
+- `README.md`
+
+**Purpose:** Keep lifecycle responsibilities and implementation-owned models separate. Configuration deadlines live in `DC bot/Configuration/PlaybackLifecycleOptions.cs`; each lifecycle subfolder documents its components and ownership rules.
+
+---
+
+### Playback/
+
+Coordinates requested tracks, start claims, playback controls, and current-track persistence.
+
+**Files:**
 
 - `CurrentTrackService.cs`
-- `LavalinkNodeConnectionService.cs`
-- `MusicQueueService.cs`
-- `LavalinkTrackSerializer.cs`
 - `PlaybackControlService.cs`
-- `PlaybackEventHandlerService.cs`
 - `PlaybackRequestService.cs`
-- `PlayerConnectionService.cs`
-- `PlayerConnectionRetryPolicy.cs`
-- `RepeatService.cs`
-- `TrackEndedHandlerService.cs`
-- `TrackFormatterService.cs`
-- `TrackNotificationService.cs`
 - `TrackPlaybackService.cs`
 
-Each service implements a corresponding interface from `Interface/Service/Music/`.
-
-`LavalinkTrackSerializer` is the shared track identity boundary for queue, repeat-list, and current-track persistence.
+**Purpose:** PlaybackRequestService resolves user input. TrackPlaybackService claims and starts a queue item; PlaybackControlService handles pause, resume, skip, previous, and leave under session ownership.
 
 ---
 
 ### PlaylistService/
 
-Contains `PlaylistService.cs`, which implements `IPlaylistService`.
+Separates saved-playlist queries, metadata changes, track loading, and track mutations behind IPlaylistService.
 
-Responsibilities:
+**Files:**
 
-- create empty guild playlists
-- save Lavalink-loaded playlist URLs into persistent playlist tracks
-- append the first loaded song to an existing playlist, including single-track fallback loads
-- remove a stored song from an existing playlist by track number
-- list saved playlists with track counts
-- load saved playlist track identities for queue rehydration
-- view stored playlist tracks by deserializing saved track identifiers
-- delete and rename guild playlists
-- enforce `PlaylistOptions` saved playlist and track limits
+- `PlaylistMutationService.cs`
+- `PlaylistQueryService.cs`
+- `PlaylistService.cs`
+- `PlaylistTrackDisplayMapper.cs`
+- `PlaylistTrackLoader.cs`
+- `PlaylistTrackMutationService.cs`
+
+**Purpose:** Query helpers map stored tracks; mutation helpers validate limits and uniqueness; the loader resolves Lavalink content before persistence.
 
 ---
 
-### ProgressiveTimer/
+### Presentation/
 
-Contains `ProgressiveTimerService.cs`, which implements `IProgressiveTimerService` and updates the now-playing message while a track is active. `SystemProgressTicker.cs` implements `IProgressTicker` for production elapsed-time and delay behavior.
-The timer is started from the reaction control message flow, paused/resumed by playback controls, and stopped by skip, leave, and track-ended handling.
+Formats playback metadata and sends now-playing notifications.
+
+**Files:**
+
+- `TrackFormatterService.cs`
+- `TrackNotificationService.cs`
+
+**Purpose:** TrackFormatterService builds track text and embeds; TrackNotificationService handles response delivery through the selected message channel.
+
+---
+
+### Queue/
+
+Maps track requests to durable queue items and batch-aware queue operations.
+
+**Files:**
+
+- `MusicQueueService.cs`
+
+**Purpose:** MusicQueueService uses ITrackSerializer and IQueueRepository for enqueue, reads, removal, shuffle, move, repetition, and history-related state.
+
+---
+
+### Repeat/
+
+Coordinates repeat-one and repeat-list behavior with playback state and canonical batches.
+
+**Files:**
+
+- `RepeatService.cs`
+
+**Purpose:** RepeatService uses repositories to toggle repeat state and retrieve the appropriate tracks for another playback cycle.
+
+---
+
+### Tracks/
+
+Adapts Lavalink tracks to the persisted identity format used by queue and playlist storage.
+
+**Files:**
+
+- `LavalinkTrackSerializer.cs`
+
+**Purpose:** LavalinkTrackSerializer implements ITrackSerializer so use cases do not duplicate parsing or encoding details.
+
+---
+
+## Classes
+
+### LavaLinkService
+
+**File:** `DC bot/Service/Music/LavaLinkService.cs`
+
+**Purpose:** Exposes music commands through connection, request, queue, and playback-control services.
+
+**Implements / inherits:** `ILavaLinkService`.
+
+**Methods:**
+
+- `StartPlayingQueue` — Joins and validates the player's channel, registers completion handling, and attempts to start the next waiting item.
+
+```csharp
+public async Task<PlaybackStartResult> StartPlayingQueue(
+    IDiscordMessage message,
+    IDiscordChannel textChannel,
+    IDiscordMember? member,
+    CancellationToken cancellationToken = default);
+```
+
+- `ConnectAsync` — Connects the configured Discord or Lavalink runtime boundary and propagates connection failures.
+
+```csharp
+public async Task ConnectAsync(CancellationToken cancellationToken = default);
+```
+
+- `Init` — Initializes guild-specific persisted music state for subsequent commands.
+
+```csharp
+public async Task Init(ulong guildId, CancellationToken cancellationToken = default);
+```
+
+- `LeaveVoiceChannel` — Runs shared leave cleanup and closes the active batch after all applicable cleanup phases succeed.
+
+```csharp
+public async Task LeaveVoiceChannel(
+    IDiscordMessage message,
+    IDiscordMember? member,
+    CancellationToken cancellationToken = default);
+```
+
+- `PauseAsync` — Pauses the validated player and persists playback position and pause state.
+
+```csharp
+public Task<PlaybackControlResult> PauseAsync(
+    IDiscordMessage message,
+    IDiscordMember? member,
+    CancellationToken cancellationToken = default);
+```
+
+- `PlayAsyncQuery` — Delegates query playback to the request service using the supplied voice and response context.
+
+```csharp
+public Task<PlaybackStartResult> PlayAsyncQuery(
+    IDiscordChannel voiceStateChannel,
+    string query,
+    IDiscordMessage message,
+    TrackSearchMode trackSearchMode,
+    string? requestedBy = null,
+    CancellationToken cancellationToken = default);
+```
+
+**Additional methods:** `PlayAsyncUrl`, `ResumeAsync`, `SkipAsync`, `PreviousAsync`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await lavaLinkService.ConnectAsync(cancellationToken);
+```
+
+---
+
+### TrackSearchResolverService
+
+**File:** `DC bot/Service/Music/TrackSearchResolverService.cs`
+
+**Purpose:** Selects a search provider from a prefix, URL, or configured default.
+
+**Implements / inherits:** `ITrackSearchResolverService`.
+
+**Methods:**
+
+- `ResolveSearchMode` — Resolves an explicit provider prefix or URL, falling back to the configured default.
+
+```csharp
+public TrackSearchMode ResolveSearchMode(string input);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = trackSearchResolverService.ResolveSearchMode(input);
+```
 
 ---
 
 ## Related Components
 
-- **Interface/Service/Music/** - Service contracts
-- **Commands/TextCommands/Music/** - Text commands that use `LavaLinkService`
-- **Commands/TextCommands/Queue/** - Text commands that use `MusicQueueService`
-- **Commands/TextCommands/Playlist/** - Text commands that use `PlaylistService`
-- **Commands/SlashCommands/Playlist/** - Slash adapters that reuse the same text command pipeline
-- **Service/Music/MusicServices/** - Detailed service implementations
-
+- `DC bot/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Service/Music/Events/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Lavalink/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Lifecycle/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/PlaylistService/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Presentation/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Repeat/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/Tracks/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Configuration/` — Defines typed options for bot identity, Lavalink connectivity, search resolution, and saved-playlist limits.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Interface/Service/Music/` — Exposes the top-level music operations used by commands and adapters.
+- `DC bot/Interface/Service/Presentation/` — Defines localized success, warning, error, and validation responses.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

@@ -1,124 +1,160 @@
-﻿# Utility Commands
+# Utility
 
-This folder contains general-purpose bot commands.
+Exposes help, language selection, latency checks, and user tagging through text commands.
 
-## Commands
+## Overview
 
-### HelpCommand.cs
+- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 
-**Command:** `!help`
+## Classes
 
-**Description:** List all available commands with descriptions.
+### HelpCommand
 
-**Behavior:**
+**File:** `DC bot/Commands/TextCommands/Utility/HelpCommand.cs`
 
-1. Checks if user is a bot (returns early if true)
-2. Retrieves the stable registered command list from `ICommandRegistry`
-3. Builds response with command names and descriptions
-4. Sends response to channel
+**Purpose:** Handles the help text command through validation, service, and localized response boundaries.
 
-**Implementation:**
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `help`. Message routing applies the configured prefix.
+
+**Properties:**
 
 ```csharp
-var commands = commandRegistry.Commands;
-var response = commands.Aggregate(string.Empty,
-    (current, command) => current + $"{command.Name} : {command.Description}\n");
+public string Name { get; }
+public string Description { get; }
 ```
 
----
+**Methods:**
 
-### PingCommand.cs
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-**Command:** `!ping`
-
-**Description:** Reply with `Pong!`.
-
-**Behavior:**
-
-1. Validates user is not a bot
-2. Sends the configured ping response
-
----
-
-### LanguageCommand.cs
-
-**Command:** `!language <code>`
-
-**Description:** Change the guild's language setting.
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
 **Usage:**
 
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await helpCommand.ExecuteAsync(message);
 ```
-!language eng
-!language hu
-```
-
-**Behavior:**
-
-1. Validates user
-2. Extracts language code from command arguments
-3. Calls `ILocalizationService.SaveLanguage(guildId, languageCode)`
-4. Saves language preference to `guildFiles/localization/`
-
-**Supported Languages:**
-
-- `eng` - English
-- `hu` - Hungarian
-
-**Supported languages:** `LanguageCommand` validates the requested code against its allowed language set before saving.
-Unsupported codes return the localized invalid-language response.
 
 ---
 
-### TagCommand.cs
+### LanguageCommand
 
-**Command:** `!tag <username>`
+**File:** `DC bot/Commands/TextCommands/Utility/LanguageCommand.cs`
 
-**Description:** Mention a guild member by username.
+**Purpose:** Handles the language text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `language`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
 **Usage:**
 
-```
-!tag Mario
-```
+The caller supplies the component and argument values used in this example.
 
-**Behavior:**
-
-- Looks up the provided username in the current guild
-- Sends a localized mention response when the member exists
-- Sends a localized error response when the member cannot be found
+```csharp
+await languageCommand.ExecuteAsync(message);
+```
 
 ---
 
-## Common Pattern
+### PingCommand
+
+**File:** `DC bot/Commands/TextCommands/Utility/PingCommand.cs`
+
+**Purpose:** Handles the ping text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `ping`. Message routing applies the configured prefix.
+
+**Properties:**
 
 ```csharp
-public async Task ExecuteAsync(IDiscordMessage message)
-{
-    logger.CommandInvoked(Name);
-    
-    if (userValidation.IsBotUser(message))
-    {
-        return;
-    }
-    
-    // Command logic
-    
-    logger.CommandExecuted(Name);
-}
+public string Name { get; }
+public string Description { get; }
 ```
 
-## Dependencies
+**Methods:**
 
-- `IUserValidationService` - User validation
-- `IResponseBuilder` - Message sending
-- `ILocalizationService` - Language management
-- `ICommandRegistry` - Command discovery (HelpCommand)
-- `ILogger<T>` - Logging
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await pingCommand.ExecuteAsync(message);
+```
+
+---
+
+### TagCommand
+
+**File:** `DC bot/Commands/TextCommands/Utility/TagCommand.cs`
+
+**Purpose:** Handles the tag text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `tag`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await tagCommand.ExecuteAsync(message);
+```
+
+---
 
 ## Related Components
 
-- `Service/LocalizationService.cs` - Language management
-- `guildFiles/localization/` - Stored language preferences
-- `Constants/AppConstants.cs` - Localization key constants
-
+- `DC bot/Commands/TextCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Exceptions/Localization/` — Represents failures while loading or resolving translation resources.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

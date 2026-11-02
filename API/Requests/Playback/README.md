@@ -1,20 +1,31 @@
-# Playback Requests
+# Playback
 
-This folder contains request DTOs for playback endpoints.
+Defines client-supplied input for current playback state, repeat flags, start ownership, and canonical batch metadata.
 
-## Files
+## Overview
 
-### SetRepeatModeRequest.cs
+- Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+- Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
+- SetRepeatModeRequest uses none, one, or all. The explicit repeat-mode endpoint updates persistence directly and is separate from commands dispatched to the bot worker.
 
-Request body for explicitly setting repeat mode.
+## Models and Results
 
-`mode` values:
+### SetRepeatModeRequest
 
-- `none` - disable repeat modes
-- `one` - repeat the current track
-- `all` - repeat the active queue/list snapshot
+**File:** `API/Requests/Playback/SetRepeatModeRequest.cs`
 
-## Notes
+**Purpose:** Carries client input for set repeat mode processing; handlers and endpoint filters validate its values.
 
-- Request DTOs should stay transport-only.
-- Unlike command-submission endpoints, `PlaybackHandlers.SetRepeatModeAsync` updates persisted playback state and the repeat-list snapshot directly and returns `204 No Content`; it does not enqueue a bot-control command.
+**Record declaration:**
+
+```csharp
+public sealed record SetRepeatModeRequest(string Mode);
+```
+
+---
+
+## Related Components
+
+- `API/Requests/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

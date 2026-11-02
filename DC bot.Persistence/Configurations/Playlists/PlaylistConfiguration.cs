@@ -1,33 +1,33 @@
-﻿using DC_bot.Configurations.Shared;
+using DC_bot.Configurations.Shared;
 using DC_bot.Entities.Playlists;
 using Microsoft.EntityFrameworkCore;
 
 namespace DC_bot.Configurations.Playlists;
 
+/// <summary>
+/// Configures PostgreSQL storage, keys, and relationships for playlist.
+/// </summary>
 public class PlaylistConfiguration : IEntityTypeConfiguration<PlaylistEntity>
 {
+
+    /// <inheritdoc/>
     public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<PlaylistEntity> builder)
     {
         builder.ToTable("playlists");
-
         builder.HasKey(entity => entity.Id);
-
         builder.Property(entity => entity.Id)
             .HasColumnName("id")
             .UseIdentityByDefaultColumn();
-
         builder.Property(entity => entity.Name)
             .HasColumnName("name")
             .IsRequired()
             .HasMaxLength(100);
-
         builder.Property(entity => entity.GuildId)
             .HasColumnName("guild_id")
             .HasGuildIdStorage()
             .IsRequired();
-
-        builder.HasIndex(entity => new { entity.GuildId, entity.Name }).IsUnique();
-
+        builder.HasIndex(entity => new { entity.GuildId, entity.Name })
+            .IsUnique();
         builder.HasOne(entity => entity.Guild)
             .WithMany(entity => entity.Playlists)
             .HasForeignKey(entity => entity.GuildId)

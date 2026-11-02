@@ -1,20 +1,29 @@
-﻿# Helper
+# Helper
 
-This folder contains utility classes and helper methods.
+Contains small adapters and utilities used by command and presentation boundaries.
 
 ## Overview
 
-Reusable helper classes that:
-
-- Reduce code duplication
-- Provide validation result types
-- Offer factory methods for wrappers
+- DiscordTextSanitizer prepares text for Discord output; factories wrap SDK messages and validation models carry normalized outcomes.
+- Keep helpers focused. A helper should not become an alternate playback coordinator or bypass the injected service graph.
 
 ## Subfolders
 
+### Factory/
+
+Creates the message wrapper used by command dispatch.
+
+**Files:**
+
+- `DiscordMessageWrapperFactory.cs`
+
+**Purpose:** DiscordMessageWrapperFactory captures the SDK message together with resolved guild context and exposes IDiscordMessage.
+
+---
+
 ### Validation/
 
-Contains validation result models.
+Carries user, player, and connection validation outcomes without requiring exceptions for ordinary rejection.
 
 **Files:**
 
@@ -22,85 +31,43 @@ Contains validation result models.
 - `PlayerValidationResult.cs`
 - `UserValidationResult.cs`
 
-**Purpose:** Result objects for validation operations (alternative to exceptions).
+**Purpose:** ValidationService and command helpers return a success flag, an error key, and any validated member, channel, or player needed downstream.
 
 ---
 
-### Factory/
+## Classes
 
-Contains factory classes for object creation.
+### DiscordTextSanitizer
 
-**Files:**
+**File:** `DC bot/Helper/DiscordTextSanitizer.cs`
 
-- `DiscordMessageWrapperFactory.cs`
+**Purpose:** Escapes user-controlled text that could trigger unintended Discord mentions.
 
-**Purpose:** Create Discord wrapper instances from DSharpPlus objects.
+**Methods:**
+
+- `EscapeMentions` — Escapes mention syntax in user-controlled text before Discord presentation.
+
+```csharp
+public static string EscapeMentions(string? text);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = DiscordTextSanitizer.EscapeMentions(text);
+```
 
 ---
 
 ## Validation Result Types
 
-### UserValidationResult
-
-**Properties:**
-
-```csharp
-public bool IsValid { get; }
-public string ErrorKey { get; }
-public IDiscordMember? Member { get; }
-```
-
-**Usage:**
-
-```csharp
-var result = await validationService.ValidateUserAsync(message);
-if (!result.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
-    return;
-}
-
-var member = result.Member;
-```
-
-**Validation Checks:**
-
-- User is not a bot
-- User is in a voice channel
-- Bot users are invalid unless `ValidationService` is constructed in test mode
-
----
-
-### PlayerValidationResult
-
-**Properties:**
-
-```csharp
-public bool IsValid { get; }
-public string ErrorKey { get; }
-public ILavalinkPlayer? Player { get; }
-```
-
-**Usage:**
-
-```csharp
-var result = await validationService.ValidatePlayerAsync(audioService, guildId);
-if (!result.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
-    return;
-}
-
-var player = result.Player;
-```
-
-**Validation Checks:**
-
-- Player exists for guild
-
----
-
 ### ConnectionValidationResult
+
+**File:** `DC bot/Helper/Validation/ConnectionValidationResult.cs`
+
+**Purpose:** Carries outcome and response data for connection validation operations.
 
 **Properties:**
 
@@ -113,17 +80,90 @@ public ILavalinkPlayer? Connection { get; }
 **Usage:**
 
 ```csharp
-var result = await validationService.ValidateConnectionAsync(player);
+var result = await validationService.ValidateConnectionAsync(player, cancellationToken);
+
 if (!result.IsValid)
 {
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
     return;
 }
 ```
 
 **Validation Checks:**
 
-- Connection state reports connected
+- The SDK connected flag can confirm readiness immediately.
+- When the SDK flag lags, ValidationService can confirm matching node session, Discord voice session, and channel through a bounded REST probe.
+- Remote evidence is rejected if the captured local session or channel changed while the request was in flight.
+
+---
+
+### PlayerValidationResult
+
+**File:** `DC bot/Helper/Validation/PlayerValidationResult.cs`
+
+**Purpose:** Carries outcome and response data for player validation operations.
+
+**Properties:**
+
+```csharp
+public bool IsValid { get; }
+public string ErrorKey { get; }
+public ILavalinkPlayer? Player { get; }
+```
+
+**Usage:**
+
+```csharp
+var result = await validationService.ValidatePlayerAsync(audioService, guildId, cancellationToken);
+
+if (!result.IsValid)
+{
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
+    return;
+}
+
+var player = result.Player;
+```
+
+**Validation Checks:**
+
+- A Lavalink player must exist for the guild.
+- A player lookup result is not a permanent reservation of that player generation.
+
+---
+
+### UserValidationResult
+
+**File:** `DC bot/Helper/Validation/UserValidationResult.cs`
+
+**Purpose:** Carries outcome and response data for user validation operations.
+
+**Properties:**
+
+```csharp
+public bool IsValid { get; }
+public string ErrorKey { get; }
+public IDiscordMember? Member { get; }
+```
+
+**Usage:**
+
+```csharp
+var result = await validationService.ValidateUserAsync(message, cancellationToken);
+
+if (!result.IsValid)
+{
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
+    return;
+}
+
+var member = result.Member;
+```
+
+**Validation Checks:**
+
+- User validation rejects bot users unless test mode permits them.
+- The member must be in a voice channel; unsuccessful results carry a localization error key.
 
 ---
 
@@ -131,44 +171,52 @@ if (!result.IsValid)
 
 ### DiscordMessageWrapperFactory
 
-**Purpose:** Create `IDiscordMessage` wrapper from DSharpPlus `DiscordMessage`.
+**File:** `DC bot/Helper/Factory/DiscordMessageWrapperFactory.cs`
 
-**Method:**
+**Purpose:** Creates message adapters at the DSharpPlus command boundary.
+
+**Implements / inherits:** `IDiscordMessageFactory`.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
 
 ```csharp
 public static IDiscordMessage Create(
-    DiscordMessage message, 
-    DiscordChannel channel, 
-    DiscordUser author, 
+    DiscordMessage message,
+    DiscordChannel channel,
+    DiscordUser author,
     ILogger<DiscordMessageWrapper>? logger = null,
-    DiscordGuild? guild = null)
+    DiscordGuild? guild = null);
 ```
 
 **Usage:**
 
+The caller supplies the component and argument values used in this example.
+
 ```csharp
 var wrappedMessage = DiscordMessageWrapperFactory.Create(
-    discordMessage, 
-    channel, 
-    author, 
+    discordMessage,
+    channel,
+    author,
     logger,
-    guild
-);
+    guild);
 ```
 
 **Benefits:**
 
-- Centralizes wrapper creation logic
-- Ensures consistent wrapper initialization
-- Preserves explicit guild context for event payloads where `DiscordChannel.Guild` is not populated
-- Simplifies testing with mock objects
+- Centralizes message wrapper construction.
+- Preserves explicit guild context when the channel payload does not supply it.
+- Supports the injected IDiscordMessageFactory boundary while retaining the static helper.
 
 ---
 
 ## Related Components
 
-- **Service/Core/ValidationService.cs** - Creates validation result objects
-- **Wrapper/** - Discord wrapper implementations
-- **Interface/Discord/** - Discord interface contracts
-- **Commands/** - Consume validation results
-
+- `DC bot/Service/Core/ValidationService.cs` — Creates user, player, and connection validation results.
+- `DC bot/Wrapper/Discord/` — Implements the Discord wrappers created by the factory.
+- `DC bot/Interface/Discord/` — Defines the wrapper contracts consumed by commands.
+- `DC bot/Commands/` — Consumes validation results before invoking use cases.
+- `DC bot/Helper/Factory/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Helper/Validation/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

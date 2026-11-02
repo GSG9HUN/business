@@ -1,27 +1,40 @@
-# Status Persistence Contracts
+# Status
 
-This folder contains contracts used to report persistence health.
+Defines repository operations for database reachability checks.
 
-## Why This Folder Exists
+## Overview
 
-Status endpoints need a small, safe way to ask whether the configured database is reachable. They should not open EF Core contexts directly from the API layer, and they should not know how the persistence project checks connectivity.
+- The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+- Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 
-`IDbStatusCheck` is that boundary.
+## Interfaces
 
-## Files
+### IDbStatusCheck
 
-### IDbStatusCheck.cs
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Status/IDbStatusCheck.cs`
 
-Defines a single connectivity check:
+**Purpose:** Defines shared storage operations for db status check, including caller cancellation and immutable result contracts.
 
-- returns `true` when the database can be reached
-- returns `false` when the repository implementation handles a connection failure
-- keeps database provider details inside `DC bot.Persistence`
+**Methods:**
 
-## Usage Flow
+- `CanConnectAsync` — Checks database connectivity; requested cancellation propagates while ordinary connectivity failures return false.
 
-The API status handler depends on this contract. The persistence project implements it with EF Core. This keeps the health endpoint readable while still testing the real configured database path.
+```csharp
+Task<bool> CanConnectAsync(CancellationToken cancellationToken = default);
+```
 
-## Maintenance Notes
+**Usage:**
 
-Do not add broad database diagnostics here unless an endpoint or service actually needs them. This contract should stay intentionally small.
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await dbStatusCheck.CanConnectAsync(cancellationToken);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

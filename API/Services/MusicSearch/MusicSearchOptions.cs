@@ -1,19 +1,33 @@
 namespace API.Services.MusicSearch;
 
+/// <summary>
+/// Configures the Lavalink search endpoint, timeout, result limit, and provider rollout settings.
+/// </summary>
 public sealed class MusicSearchOptions
 {
-    public string BaseAddress { get; set; } = "http://localhost:2333/";
-    public string Password { get; set; } = "";
-    public int TimeoutSeconds { get; set; } = 10;
-    public int MaxResults { get; set; } = 20;
-    public Dictionary<string, MusicSearchProviderOptions> Providers { get; set; } = new(StringComparer.OrdinalIgnoreCase);
-}
 
-public sealed class MusicSearchProviderOptions
-{
-    // Explicit deployment rollout switches, independent of installed source managers.
-    public bool Enabled { get; set; }
-    public bool PlaylistSearch { get; set; }
-    public bool CanEnqueue { get; set; }
-    public string? UnavailableReason { get; set; }
+    /// <summary>
+    /// The base address of the Lavalink server used for music searches.
+    /// </summary>
+    public string BaseAddress { get; set; } = "http://localhost:2333/";
+
+    /// <summary>
+    /// The password used to authenticate requests to Lavalink.
+    /// </summary>
+    public string Password { get; set; } = "";
+
+    /// <summary>
+    /// The maximum duration of a music search request, in seconds.
+    /// </summary>
+    public int TimeoutSeconds { get; set; } = 10;
+
+    /// <summary>
+    /// The maximum number of search results returned to the client.
+    /// </summary>
+    public int MaxResults { get; set; } = 20;
+
+    /// <summary>
+    /// The search capabilities configured for each supported provider.
+    /// </summary>
+    public Dictionary<string, MusicSearchProviderOptions> Providers { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }

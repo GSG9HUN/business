@@ -1,68 +1,28 @@
 # guildFiles
 
-This folder stores filesystem-based per-guild data.
+Groups local files used for guild-specific preferences.
 
-Queue persistence is now database-backed and no longer stored here by the active queue repository implementation.
+## Overview
 
-## Structure
-
-```
-guildFiles/
-├── localization/
-│   └── {guildId}.json        # Guild language preference
-```
+- The localization subfolder holds guild language selections managed by LocalizationService through IFileSystem.
+- Queue, playback, saved playlists, and mobile session state live in PostgreSQL, not in this directory. Treat generated guild preference files as runtime data.
 
 ## Subfolders
 
 ### localization/
 
-**Purpose:** Store guild language preferences.
+Stores the language choice associated with an individual guild.
 
-**Format:**
+**Files:**
 
-```json
-"en"
-```
+- `README.md` — Folder overview and navigation to its source components.
 
-**File:** `{guildId}.json`
-
-**Usage:**
-
-```csharp
-// Save guild preference
-localizationService.SaveLanguage(guildId, "hu");
-
-// Load guild preference
-localizationService.LoadLanguage(guildId);
-```
-
----
-
-### queues/ (legacy only)
-
-**Purpose:** Legacy queue persistence location.
-
-**Status:**
-
-- Current queue persistence uses PostgreSQL via `IQueueRepository`.
-- The active source tree does not require this folder.
-- If a `queues/` folder exists in an older checkout, its files can be treated as historical/legacy artifacts.
-
----
-
-## File Management
-
-- **Created automatically** - Directories created on first write
-- **Per-guild isolation** - Each guild has separate files
-- **Runtime managed** - Don't edit manually while bot runs
-- **Corruption handling** - Missing files fall back to defaults; invalid JSON raises `LocalizationException`
+**Purpose:** LocalizationService reads and writes these preferences and resolves messages from the shared translation catalog.
 
 ---
 
 ## Related Components
 
-- **Service/LocalizationService.cs** - Language preference management
-- **Interface/Service/IO/IFileSystem.cs** - Filesystem operations
-- **DC bot.Contracts/Interface/Service/Persistence/IQueueRepository.cs** - Active queue persistence contract
-- **DC bot.Persistence/README.md** - Database persistence overview
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/guildFiles/localization/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

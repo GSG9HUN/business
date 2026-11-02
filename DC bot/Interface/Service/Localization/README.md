@@ -1,60 +1,58 @@
-﻿# Localization Service Interfaces
+# Localization
 
-This folder contains localization service interfaces.
+Defines translation lookup, formatting, and guild language selection.
 
-## Files
+## Overview
 
-### ILocalizationService.cs
+- LocalizationService loads translation resources and uses the file-system abstraction for persisted guild preferences.
+- Visible responses should use keys from Constants and retain a fallback language. Repository storage and audio playback do not belong in this contract.
 
-**Purpose:** Multi-language support contract.
+## Interfaces
 
-```csharp
-public interface ILocalizationService
-{
-    string Get(string key, params object[] args);
-    string Get(ulong guildId, string key, params object[] args);
-    void LoadLanguage(ulong guildId);
-    void SaveLanguage(ulong guildId, string language);
-}
-```
+### ILocalizationService
+
+**File:** `DC bot/Interface/Service/Localization/ILocalizationService.cs`
+
+**Purpose:** Defines the localization service boundary so callers are independent of its concrete implementation.
 
 **Methods:**
 
-- `Get(string key, ...)` - Retrieve default-language text by key with optional formatting
-- `Get(ulong guildId, string key, ...)` - Retrieve guild-specific text by key with optional formatting
-- `LoadLanguage()` - Load language for guild
-- `SaveLanguage()` - Save guild's language preference
+- `Get` — Resolves a localized value for the supplied key and formatting arguments.
 
-**Implementation:** `Service/LocalizationService.cs`
+```csharp
+string Get(ulong guildId, string key, params object[] args);
+```
+
+- `Get` — Resolves a localized value for the supplied key and formatting arguments.
+
+```csharp
+string Get(string key, params object[] args);
+```
+
+- `LoadLanguage` — Loads the guild's saved language preference and dictionary.
+
+```csharp
+void LoadLanguage(ulong guildId);
+```
+
+- `SaveLanguage` — Persists the guild's language preference and updates cached translations.
+
+```csharp
+void SaveLanguage(ulong guildId, string language);
+```
 
 **Usage:**
 
+The caller supplies the component and argument values used in this example.
+
 ```csharp
-// Get localized string
-var description = localizationService.Get(LocalizationKeys.PlayCommandDescription);
-
-// Get localized string for a guild
-var response = localizationService.Get(guildId, LocalizationKeys.PlayCommandMusicPlaying);
-
-// Get with formatting
-var message = localizationService.Get(guildId, LocalizationKeys.TagCommandResponse, member.Mention);
-
-// Change guild language
-localizationService.SaveLanguage(guildId, "hu");
-localizationService.LoadLanguage(guildId);
+var result = localizationService.Get(guildId, key, args);
 ```
-
-**Language Files:**
-
-- `localization/eng.json` - English
-- `localization/hu.json` - Hungarian
-- `guildFiles/localization/{guildId}.json` - Guild preferences
 
 ---
 
 ## Related Components
 
-- **Service/LocalizationService.cs** - Implementation
-- **localization/** - Language files
-- **Constants/AppConstants.cs** - Key constants
-
+- `DC bot/Interface/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

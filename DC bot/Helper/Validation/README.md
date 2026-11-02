@@ -1,219 +1,127 @@
-﻿# Helper Validation
+# Validation
 
-This folder contains validation result models used by validation services.
+Carries user, player, and connection validation outcomes without requiring exceptions for ordinary rejection.
 
 ## Overview
 
-Result models represent validation outcomes **without using exceptions**. These are returned by `ValidationService` and
-consumed by commands.
+- ValidationService and command helpers return a success flag, an error key, and any validated member, channel, or player needed downstream.
+- Consumers must inspect validity before using optional context. These values report a check at one moment, not permanent ownership of a player session.
 
-## Files
+## Validation Result Types
 
-### ConnectionValidationResult.cs
+### ConnectionValidationResult
 
-**Definition:**
+**File:** `DC bot/Helper/Validation/ConnectionValidationResult.cs`
 
-```csharp
-public class ConnectionValidationResult(bool isValid, string errorKey, ILavalinkPlayer? connection)
-{
-    public bool IsValid { get; }
-    public string ErrorKey { get; }
-    public ILavalinkPlayer? Connection { get; }
-}
-```
-
-**Purpose:** Represents the result of validating a Lavalink player connection.
-
-**Validation Checks:**
-
-- `connection.ConnectionState.IsConnected` is true
+**Purpose:** Carries outcome and response data for connection validation operations.
 
 **Properties:**
 
-- `IsValid` - Whether the connection is valid
-- `ErrorKey` - Localization key for error message (if invalid)
-- `Connection` - The validated connection (if valid)
+```csharp
+// Whether validation succeeded.
+public bool IsValid { get; }
+public string ErrorKey { get; }
+public ILavalinkPlayer? Connection { get; }
+```
 
 **Usage:**
 
 ```csharp
-var result = await validationService.ValidateConnectionAsync(player);
+// The localization key explaining a failed validation.
+var result = await validationService.ValidateConnectionAsync(player, cancellationToken);
+
 if (!result.IsValid)
 {
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
     return;
 }
-
-// Use result.Connection
 ```
 
-**Used By:**
+**Validation Checks:**
 
-- `Service/Core/ValidationService.cs` - Returns this result
-- Music commands - Consume this result
+- The SDK connected flag can confirm readiness immediately.
+- When the SDK flag lags, ValidationService can confirm matching node session, Discord voice session, and channel through a bounded REST probe.
+- Remote evidence is rejected if the captured local session or channel changed while the request was in flight.
 
 ---
 
-### PlayerValidationResult.cs
+### PlayerValidationResult
 
-**Definition:**
+**File:** `DC bot/Helper/Validation/PlayerValidationResult.cs`
 
-```csharp
-public class PlayerValidationResult(bool isValid, string errorKey, ILavalinkPlayer? player)
-{
-    public bool IsValid { get; }
-    public string ErrorKey { get; }
-    public ILavalinkPlayer? Player { get; }
-}
-```
-
-**Purpose:** Represents the result of validating that a Lavalink player exists for a guild.
-
-**Validation Checks:**
-
-- `audioService.Players.GetPlayerAsync(guildId)` returns a player
+**Purpose:** Carries outcome and response data for player validation operations.
 
 **Properties:**
 
-- `IsValid` - Whether the player is valid
-- `ErrorKey` - Localization key for error message (if invalid)
-- `Player` - The validated player (if valid)
+```csharp
+// Whether validation succeeded.
+public bool IsValid { get; }
+public string ErrorKey { get; }
+public ILavalinkPlayer? Player { get; }
+```
 
 **Usage:**
 
 ```csharp
-var result = await validationService.ValidatePlayerAsync(audioService, guildId);
+// The localization key explaining a failed validation.
+var result = await validationService.ValidatePlayerAsync(audioService, guildId, cancellationToken);
+
 if (!result.IsValid)
 {
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
     return;
 }
 
 var player = result.Player;
-await player.PauseAsync();
-```
-
-**Used By:**
-
-- `Service/Core/ValidationService.cs` - Returns this result
-- Music commands - Consume this result
-
----
-
-### UserValidationResult.cs
-
-**Definition:**
-
-```csharp
-public class UserValidationResult(bool isValid, string errorKey, IDiscordMember? member = null)
-{
-    public bool IsValid { get; }
-    public string ErrorKey { get; }
-    public IDiscordMember? Member { get; }
-}
-```
-
-**Purpose:** Represents the result of validating a Discord user for command execution.
-
-**Properties:**
-
-- `IsValid` - Whether the user is valid
-- `ErrorKey` - Localization key for error message (if invalid)
-- `Member` - The Discord member (if valid)
-
-**Usage:**
-
-```csharp
-var result = await validationService.ValidateUserAsync(message);
-if (!result.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
-    return;
-}
-
-var voiceChannel = result.Member?.VoiceState?.Channel;
 ```
 
 **Validation Checks:**
 
-- User is not a bot
-- User is in a voice channel
-- Bot users are invalid unless `ValidationService` is constructed in test mode
-
-**Used By:**
-
-- `Service/Core/ValidationService.cs` - Returns this result
-- All commands - Validate user before execution
+- A Lavalink player must exist for the guild.
+- A player lookup result is not a permanent reservation of that player generation.
 
 ---
 
-## Why Result Objects Instead of Exceptions?
+### UserValidationResult
 
-### Advantages:
+**File:** `DC bot/Helper/Validation/UserValidationResult.cs`
 
-- **Expected outcomes** - Validation failures are expected, not exceptional
-- **Performance** - No exception overhead
-- **Control flow** - Explicit handling without try-catch
-- **Type safety** - Compile-time checking
+**Purpose:** Carries outcome and response data for user validation operations.
 
-### Comparison:
-
-**With Exceptions (❌ Not used):**
+**Properties:**
 
 ```csharp
-try
-{
-    await validationService.ValidateUserAsync(message);
-    // Continue...
-}
-catch (ValidationException ex)
-{
-    logger.CommandExecutionFailed(ex, Name);
-    await responseBuilder.SendErrorAsync(message, LocalizationKeys.SlashCommandUnexpectedError);
-}
+// Whether validation succeeded.
+public bool IsValid { get; }
+public string ErrorKey { get; }
+public IDiscordMember? Member { get; }
 ```
 
-**With Result Objects (✅ Current approach):**
+**Usage:**
 
 ```csharp
-var result = await validationService.ValidateUserAsync(message);
+// The localization key explaining a failed validation.
+var result = await validationService.ValidateUserAsync(message, cancellationToken);
+
 if (!result.IsValid)
 {
-    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey);
+    await responseBuilder.SendValidationErrorAsync(message, result.ErrorKey, cancellationToken);
     return;
 }
-// Continue...
+
+var member = result.Member;
 ```
 
----
+**Validation Checks:**
 
-## Common Pattern in Commands
-
-```csharp
-public async Task ExecuteAsync(IDiscordMessage message)
-{
-    logger.CommandInvoked(Name);
-    
-    // Validate user
-    var validationResult = await commandHelper.TryValidateUserAsync(
-        userValidation, responseBuilder, message);
-    if (validationResult is null) return; // Already sent error to user
-    
-    // Command logic with validated member
-    var voiceChannel = validationResult.Member?.VoiceState?.Channel;
-    await lavaLinkService.DoSomethingAsync(voiceChannel);
-    
-    logger.CommandExecuted(Name);
-}
-```
+- User validation rejects bot users unless test mode permits them.
+- The member must be in a voice channel; unsuccessful results carry a localization error key.
 
 ---
 
 ## Related Components
 
-- **Service/Core/ValidationService.cs** - Creates these result objects
-- **Interface/Core/IValidationService.cs** - Validation service contracts
-- **Interface/Core/IUserValidationService.cs** - User validation contract
-- **Commands/** - Consume these result objects
-- **Exceptions/Validation/ValidationException.cs** - Not used (result objects preferred)
-
+- `DC bot/Helper/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

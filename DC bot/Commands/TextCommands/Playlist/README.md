@@ -1,244 +1,336 @@
-# Playlist Commands
+# Playlist
 
-This folder contains text commands for saved playlist management.
+Exposes saved playlist creation, URL import, track editing, and queue loading through text commands.
 
-Playlist names are normalized and validated by the playlist service for every service entrypoint. Text commands that
-need two values support quoted playlist names, for example `!addSong "road trip" madeon imperium`.
+## Overview
 
-## Commands
+- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Playlist names containing spaces can be quoted. Two-value commands such as savePlaylist, addSong, removeSong, and renamePlaylist use the shared argument parser; their slash adapters prepare the same argument shape.
 
-### CreatePlaylistCommand.cs
+## Classes
 
-**Command:** `!createPlaylist <playlistName>`
+### AddSongToPlaylistCommand
 
-**Description:** Create an empty saved playlist for the current guild.
+**File:** `DC bot/Commands/TextCommands/Playlist/AddSongToPlaylistCommand.cs`
 
-**Behavior:**
+**Purpose:** Handles the add song to playlist text command through validation, service, and localized response boundaries.
 
-1. Validates the user.
-2. Reads the playlist name through `ICommandHelper.TryGetArgumentAsync`.
-3. Calls `IPlaylistService.CreatePlaylistAsync(guildId, playlistName)`.
-4. Sends success, warning, or error responses based on `CreatePlaylistResult`.
+**Implements / inherits:** `ICommand`.
 
-**Error Cases:**
+**Command identifier:** `addSong`. Message routing applies the configured prefix.
 
-- Playlist already exists -> warning.
-- Playlist name is empty, too long, or contains line breaks -> warning.
-- Guild playlist limit reached -> warning.
-- Unexpected service failure -> error.
+**Properties:**
 
----
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-### SavePlaylistCommand.cs
+**Methods:**
 
-**Command:** `!savePlaylist <playlistName> <playlistUrl>`
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-**Description:** Load a playlist URL through Lavalink and save its tracks.
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-**Behavior:**
+**Usage:**
 
-1. Validates the user.
-2. Parses playlist name and URL through `ICommandHelper.TryParseSavePlaylistArguments`.
-3. Calls `IPlaylistService.SavePlaylistAsync(guildId, playlistName, playlistUrl)`.
-4. Stores serialized track identifiers through the playlist service and repositories.
+The caller supplies the component and argument values used in this example.
 
-**Error Cases:**
-
-- Playlist already exists -> warning.
-- No tracks were found from the provided URL -> warning.
-- Playlist name is invalid -> warning.
-- Guild playlist limit reached -> warning.
-- Loaded playlist exceeds the configured import or per-playlist track limit -> warning.
-- Unexpected service failure -> error.
-
-The service serializes loaded tracks before creating the playlist and deletes the just-created playlist if track insert
-fails, so an `UnknownError` does not leave an empty saved playlist behind.
+```csharp
+await addSongToPlaylistCommand.ExecuteAsync(message);
+```
 
 ---
 
-### DeletePlaylistCommand.cs
+### CreatePlaylistCommand
 
-**Command:** `!deletePlaylist <playlistName>`
+**File:** `DC bot/Commands/TextCommands/Playlist/CreatePlaylistCommand.cs`
 
-**Description:** Delete a saved playlist and its stored tracks.
+**Purpose:** Handles the create playlist text command through validation, service, and localized response boundaries.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates the user.
-2. Reads the playlist name.
-3. Calls `IPlaylistService.DeletePlaylistAsync(guildId, playlistName)`.
-4. Sends a localized response for deleted, missing, invalid-name, or unknown-error outcomes.
+**Command identifier:** `createPlaylist`. Message routing applies the configured prefix.
 
----
+**Properties:**
 
-### AddSongToPlaylistCommand.cs
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-**Command:** `!addSong <playlistName> <songUrlOrQuery>`
+**Methods:**
 
-**Description:** Load a single song URL or search query and append the first loaded track to an existing saved playlist.
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-**Behavior:**
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-1. Validates the user.
-2. Parses playlist name and song URL.
-3. Calls `IPlaylistService.AddSongToPlaylistAsync(guildId, playlistName, songUrl)`.
-4. Appends the track at the next playlist order number.
+**Usage:**
 
-**Error Cases:**
+The caller supplies the component and argument values used in this example.
 
-- Playlist does not exist -> warning.
-- URL or query cannot be loaded -> warning.
-- No tracks found -> warning.
-- Playlist name is invalid -> warning.
-- Playlist track limit reached -> warning.
-- Unexpected service failure -> error.
-
-The add-song path handles Lavalink single-track fallback results the same way as save, so a valid single track does not
-produce a false `NoTracksFound` response.
+```csharp
+await createPlaylistCommand.ExecuteAsync(message);
+```
 
 ---
 
-### ListPlaylistsCommand.cs
+### DeletePlaylistCommand
 
-**Command:** `!listPlaylists`
+**File:** `DC bot/Commands/TextCommands/Playlist/DeletePlaylistCommand.cs`
 
-**Description:** List saved playlists for the current guild.
+**Purpose:** Handles the delete playlist text command through validation, service, and localized response boundaries.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates the user.
-2. Calls `IPlaylistService.ListPlaylistsAsync(guildId)`.
-3. Displays playlist names with stored track counts.
+**Command identifier:** `deletePlaylist`. Message routing applies the configured prefix.
 
----
+**Properties:**
 
-### ViewPlaylistCommand.cs
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-**Command:** `!viewPlaylist <playlistName>`
+**Methods:**
 
-**Description:** Show tracks stored in a saved playlist.
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-**Behavior:**
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-1. Validates the user.
-2. Reads the playlist name.
-3. Calls `IPlaylistService.ViewPlaylistAsync(guildId, playlistName)`.
-4. Displays the first 10 tracks with author, title, and duration.
-5. Appends an overflow line when more tracks exist.
+**Usage:**
 
-**Error Cases:**
+The caller supplies the component and argument values used in this example.
 
-- Playlist does not exist -> warning.
-- Playlist exists but has no tracks -> warning.
-- Playlist name is invalid -> warning.
-- Stored tracks cannot be deserialized for display -> error.
+```csharp
+await deletePlaylistCommand.ExecuteAsync(message);
+```
 
 ---
 
-### LoadPlaylistCommand.cs
+### ListPlaylistsCommand
 
-**Command:** `!loadPlaylist <playlistName>`
+**File:** `DC bot/Commands/TextCommands/Playlist/ListPlaylistsCommand.cs`
 
-**Description:** Load a saved playlist into the persistent queue and start playback when the player is idle.
+**Purpose:** Handles the list playlists text command through validation, service, and localized response boundaries.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates the user and voice-channel state.
-2. Reads the playlist name through `ICommandHelper.TryGetArgumentAsync`.
-3. Calls `IPlaylistService.LoadPlaylistAsync(guildId, playlistName)`.
-4. Deserializes stored track identities through `ITrackSerializer`.
-5. Joins/validates the user's voice channel through `IPlayerConnectionService`.
-6. Registers the playback-finished handler and enqueues the loaded tracks with `IMusicQueueService.EnqueueMany`.
-7. Starts the first queued track through `ITrackPlaybackService.TryPlayNextTrackAsync` only when the player is idle.
+**Command identifier:** `listPlaylists`. Message routing applies the configured prefix.
 
-**Error Cases:**
+**Properties:**
 
-- Playlist does not exist -> warning.
-- Playlist exists but has no tracks -> warning.
-- Playlist name is invalid -> warning.
-- Stored track identity cannot be deserialized -> error.
-- Unexpected service failure -> error.
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-The command does not call `ILavaLinkService.StartPlayingQueue` directly, because that method starts the next queued track
-without checking whether a track is already playing. `loadPlaylist` preserves active playback and only fills the queue
-when the player is busy.
+**Methods:**
 
----
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-### RenamePlaylistCommand.cs
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-**Command:** `!renamePlaylist <currentName> <newName>`
+**Usage:**
 
-**Description:** Rename an existing saved playlist.
+The caller supplies the component and argument values used in this example.
 
-**Behavior:**
-
-1. Validates the user.
-2. Parses current and new playlist names.
-3. Calls `IPlaylistService.RenamePlaylistAsync(guildId, currentName, newName)`.
-4. Sends localized responses for renamed, missing, duplicate-name, invalid-name, or unknown-error outcomes.
+```csharp
+await listPlaylistsCommand.ExecuteAsync(message);
+```
 
 ---
 
-### RemoveSongFromPlaylistCommand.cs
+### LoadPlaylistCommand
 
-**Command:** `!removeSong <playlistName> <trackNumber>`
+**File:** `DC bot/Commands/TextCommands/Playlist/LoadPlaylistCommand.cs`
 
-**Description:** Remove one stored track from an existing saved playlist by its playlist order number.
+**Purpose:** Handles the load playlist text command through validation, service, and localized response boundaries.
 
-**Behavior:**
+**Implements / inherits:** `ICommand`.
 
-1. Validates the user.
-2. Parses playlist name and track number.
-3. Rejects non-positive or non-numeric track numbers before calling the service.
-4. Calls `IPlaylistService.RemoveSongFromPlaylistAsync(guildId, playlistName, trackNumber)`.
-5. Removes the matching stored track and lets the repository compact playlist order numbers.
+**Command identifier:** `loadPlaylist`. Message routing applies the configured prefix.
 
-**Error Cases:**
+**Properties:**
 
-- Playlist does not exist -> warning.
-- Track number is invalid or not found -> warning.
-- Playlist name is invalid -> warning.
-- Unexpected service failure -> error.
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
 
-## Service Dependencies
+**Methods:**
 
-- `IPlaylistService` - playlist use-cases and result mapping.
-- `IMusicQueueService` - queue persistence for loaded playlist tracks.
-- `ITrackSerializer` - stored track identity deserialization.
-- `IPlayerConnectionService` / `IPlaybackEventHandlerService` / `ITrackPlaybackService` - voice join and idle playback start for `loadPlaylist`.
-- `ICommandHelper` - user validation and argument parsing.
-- `IResponseBuilder` - success, warning, and error responses.
-- `ILocalizationService` - localized command text.
-- `IUserValidationService` - user/voice validation boundary.
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
 
-## Safety and Limits
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
 
-- Playlist command responses escape Discord mass/user/role mentions in playlist names and track metadata before sending
-  text responses.
-- `PlaylistOptions` controls `MaxPlaylistsPerGuild`, `MaxTracksPerPlaylist`, and `MaxImportedTracks`; defaults are used
-  unless tests or startup code override the options.
-- Slash commands reuse these text commands. The slash adapter quotes playlist-name arguments when needed so names with
-  spaces survive the text parser.
+**Usage:**
 
-## Persistence
+The caller supplies the component and argument values used in this example.
 
-Saved playlists are persisted through:
+```csharp
+await loadPlaylistCommand.ExecuteAsync(message);
+```
 
-- `IPlaylistRepository` / `PlaylistRepository`
-- `IPlaylistTrackRepository` / `PlaylistTrackRepository`
-- `PlaylistEntity`
-- `PlaylistTrackEntity`
+---
 
-Track identity is serialized through `ITrackSerializer`, so playlist persistence uses the same Lavalink track boundary as queue, repeat-list, and current-track storage.
+### RemoveSongFromPlaylistCommand
+
+**File:** `DC bot/Commands/TextCommands/Playlist/RemoveSongFromPlaylistCommand.cs`
+
+**Purpose:** Handles the remove song from playlist text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `removeSong`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await removeSongFromPlaylistCommand.ExecuteAsync(message);
+```
+
+---
+
+### RenamePlaylistCommand
+
+**File:** `DC bot/Commands/TextCommands/Playlist/RenamePlaylistCommand.cs`
+
+**Purpose:** Handles the rename playlist text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `renamePlaylist`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await renamePlaylistCommand.ExecuteAsync(message);
+```
+
+---
+
+### SavePlaylistCommand
+
+**File:** `DC bot/Commands/TextCommands/Playlist/SavePlaylistCommand.cs`
+
+**Purpose:** Handles the save playlist text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `savePlaylist`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await savePlaylistCommand.ExecuteAsync(message);
+```
+
+---
+
+### ViewPlaylistCommand
+
+**File:** `DC bot/Commands/TextCommands/Playlist/ViewPlaylistCommand.cs`
+
+**Purpose:** Handles the view playlist text command through validation, service, and localized response boundaries.
+
+**Implements / inherits:** `ICommand`.
+
+**Command identifier:** `viewPlaylist`. Message routing applies the configured prefix.
+
+**Properties:**
+
+```csharp
+public string Name { get; }
+public string Description { get; }
+```
+
+**Methods:**
+
+- `ExecuteAsync` — Validates the message context, performs this command's action, and sends its localized outcome.
+
+```csharp
+public async Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await viewPlaylistCommand.ExecuteAsync(message);
+```
+
+---
 
 ## Related Components
 
-- `Service/Music/PlaylistService/PlaylistService.cs`
-- `Interface/Service/Music/PlaylistServiceInterface/`
-- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistRepository.cs`
-- `DC bot.Contracts/Interface/Service/Persistence/IPlaylistTrackRepository.cs`
-- `DC bot.Persistence/Repositories/PlaylistRepository.cs`
-- `DC bot.Persistence/Repositories/PlaylistTrackRepository.cs`
-- `localization/eng.json`
-- `localization/hu.json`
+- `DC bot/Commands/TextCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Helper/` — Contains small adapters and utilities used by command and presentation boundaries.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

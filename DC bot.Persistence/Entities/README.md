@@ -1,55 +1,127 @@
-# Persistence Entities
+# Entities
 
-This folder contains EF Core entity classes mapped to PostgreSQL tables.
+Groups tracked database entity types by storage feature.
 
-## Why This Folder Exists
+## Overview
 
-Entities are the persistence project's in-memory representation of database rows. Repository implementations use them to read and write data through EF Core.
-
-They are intentionally not exposed through `DC bot.Contracts`. Service code should consume immutable contract records instead, because entity navigation properties and EF tracking behavior are implementation details.
+- BotDbContext and feature repositories use these types; Configurations defines their PostgreSQL mapping.
+- Return shared contract records to services and API handlers instead of exposing tracked entities across the persistence boundary.
 
 ## Subfolders
 
-### Guilds
+### BotControl/
 
-Guild data and premium audit entities.
+Represents the database rows used for durable bot commands, their claim/completion state, and cross-process change signals.
 
-### Playback
+**Files:**
 
-Playback state and repeat-list entities.
+- `BotControlCommandEntity.cs`
 
-### Queue
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 
-Guild queue item entities.
+---
 
-### Playlists
+### GuildBotStatus/
 
-Saved playlist and playlist track entities.
+Represents the database rows used for persisted bot voice presence, channel display metadata, and voice-user counts.
 
-### MobileApps
+**Files:**
 
-Mobile app user, user-guild link, and refresh session entities.
+- `GuildBotStatusEntity.cs`
 
-### BotControl
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 
-API-to-bot command bridge entities.
+---
 
-## Mapping Notes
+### Guilds/
 
-- Primary guild identifier is represented as `ulong` (`GuildId`) in entities and contracts.
-- Queue item state values are stored as `short` but represented as `QueueItemState` in the entity and repository code.
-- Navigation properties are configured in `../Configurations/`.
-- `GuildPremiumAuditEntity` is part of the EF model; active repository code currently updates premium state through `GuildDataRepository`.
-- Playlist tracks are cascade-deleted when their parent playlist is deleted.
-- Mobile app refresh session entities store token hashes only.
+Represents the database rows used for guild defaults, premium state, and the mapped premium-audit schema.
 
-## When To Add An Entity
+**Files:**
 
-Add an entity when the database needs a new table or an existing table needs new persisted columns. Also add or update the matching configuration and migration in the same change.
+- `GuildDataEntity.cs`
+- `GuildPremiumAuditEntity.cs`
 
-Do not add computed API-only or display-only fields here. Those belong in API response DTOs or service-level projections.
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 
-## Related
+---
 
-- `../Configurations/README.md`
-- `../Migrations/README.md`
+### MobileApps/
+
+Represents the database rows used for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+
+**Files:**
+
+- `MobileAppSessionEntity.cs`
+- `MobileAppUserEntity.cs`
+- `MobileRealtimeGuildMembershipEntity.cs`
+- `UserGuildEntity.cs`
+
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+
+---
+
+### MobileAppUserSettings/
+
+Represents the database rows used for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+
+**Files:**
+
+- `MobileAppUserSettingsEntity.cs`
+
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+
+---
+
+### Playback/
+
+Represents the database rows used for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `GuildPlaybackStateEntity.cs`
+- `GuildRepeatListItemEntity.cs`
+- `PlaybackBatchEntity.cs`
+- `PlaybackBatchItemEntity.cs`
+
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+
+---
+
+### Playlists/
+
+Represents the database rows used for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `PlaylistEntity.cs`
+- `PlaylistTrackEntity.cs`
+
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+
+---
+
+### Queue/
+
+Represents the database rows used for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `GuildQueueItemEntity.cs`
+
+**Purpose:** Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/Entities/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/GuildBotStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/Guilds/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/MobileApps/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/MobileAppUserSettings/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/Entities/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

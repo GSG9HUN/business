@@ -12,6 +12,15 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Playlist;
 
+/// <summary>
+/// Handles the save playlist text command through validation, service, and localized response boundaries.
+/// </summary>
+/// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="userValidation">The user validation service dependency used by this boundary.</param>
+/// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
+/// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="playlistService">The playlist service dependency used by this boundary.</param>
+/// <param name="commandHelper">The command helper dependency used by this boundary.</param>
 public class SavePlaylistCommand(
     ILogger<SavePlaylistCommand> logger,
     IUserValidationService userValidation,
@@ -20,52 +29,61 @@ public class SavePlaylistCommand(
     IPlaylistService playlistService,
     ICommandHelper commandHelper) : ICommand
 {
+
+    /// <inheritdoc />
     public string Name => "savePlaylist";
+
+    /// <inheritdoc />
     public string Description => localizationService.Get(LocalizationKeys.SavePlaylistCommandDescription);
 
+    /// <summary>
+    /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
+    /// </summary>
+    /// <param name="message">The message supplying command context and the response channel.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
+        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 
-        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
-        if (validationResult is null) return;
+        if (validationResult is null)
+        {
+            return;
+        }
 
-        var parsed = await commandHelper.TryParseSavePlaylistArguments(message, responseBuilder, logger, Name);
-        if (parsed is null) return;
+        var parsed = await commandHelper.TryParseSavePlaylistArguments(message, responseBuilder, logger, Name, default);
 
-        var (playlistName, playlistUrl) = parsed.Value;
+        if (parsed is null)
+        {
+            return;
+        }
+
+        var(playlistName, playlistUrl) = parsed.Value;
         var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
-        var result = await playlistService.SavePlaylistAsync(guildId, playlistName, playlistUrl);
-
+        var result = await playlistService.SavePlaylistAsync(guildId, playlistName, playlistUrl, default);
         switch (result)
         {
             case SavePlaylistResult.Saved:
                 await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SavePlaylistCommandSaved, safePlaylistName);
                 break;
             case SavePlaylistResult.AlreadyExists:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandAlreadyExists,
-                    safePlaylistName);
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandAlreadyExists, safePlaylistName);
                 break;
             case SavePlaylistResult.NoTracksFound:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandNoTracksFound,
-                    safePlaylistName);
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandNoTracksFound, safePlaylistName);
                 break;
             case SavePlaylistResult.InvalidPlaylistName:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandInvalidPlaylistName,
-                    safePlaylistName);
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandInvalidPlaylistName, safePlaylistName);
                 break;
             case SavePlaylistResult.PlaylistLimitReached:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandPlaylistLimitReached,
-                    safePlaylistName);
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandPlaylistLimitReached, safePlaylistName);
                 break;
             case SavePlaylistResult.TrackLimitExceeded:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandTrackLimitExceeded,
-                    safePlaylistName);
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandTrackLimitExceeded, safePlaylistName);
                 break;
             case SavePlaylistResult.UnknownError:
-                await responseBuilder.SendErrorAsync(message, LocalizationKeys.SavePlaylistCommandUnknownError,
-                    safePlaylistName);
+                await responseBuilder.SendErrorAsync(message, LocalizationKeys.SavePlaylistCommandUnknownError, safePlaylistName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);

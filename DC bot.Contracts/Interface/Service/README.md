@@ -1,30 +1,29 @@
-# Service Interfaces
+# Service
 
-This folder contains contracts consumed by service-layer code.
+Groups persistence abstractions used by application services and handlers.
 
-## Why This Folder Exists
+## Overview
 
-The service layer should coordinate business behavior without knowing the concrete infrastructure behind it. A music service should not know whether queue items come from PostgreSQL, a file, memory, or a test double. It only needs the contract that describes the operations it can call.
+- Feature interfaces expose immutable records and cancellable operations; the persistence project supplies database implementations.
+- The folder name describes the consuming layer, not a requirement to implement database access inside a service.
 
-This folder is the boundary for those service dependencies.
+## Subfolders
 
-## Current Subfolders
+### Persistence/
 
-### Persistence
+Defines the shared storage vocabulary for guild data, commands, queues, playback, playlists, and mobile identities.
 
-Repository contracts and persistence records used by bot/API services to read and write persisted state.
+**Files:**
 
-## Design Rule
+- `README.md` — Folder overview and navigation to its source components.
 
-Types here should describe what the service layer needs, not how the infrastructure performs it.
+**Purpose:** API handlers and bot services depend on these interfaces while persistence registrations select the implementations.
 
-That means:
+---
 
-- method names should express use cases
-- parameters should use domain-friendly types such as `ulong` Discord IDs
-- return types should be immutable records
-- EF Core details should stay out
+## Related Components
 
-## When To Add Something Here
-
-Add a new service interface here only when multiple projects or layers need to share the same abstraction. If a type is only used inside one implementation project, keep it local to that project.
+- `DC bot.Contracts/Interface/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Contracts/Interface/Service/Persistence/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

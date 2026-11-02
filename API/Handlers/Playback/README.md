@@ -1,28 +1,61 @@
-# Playback Handlers
+# Playback
 
-This folder contains handlers for API-originated playback commands.
+Accepts playback control requests and explicit repeat-mode changes for an authorized guild.
 
-## Why This Folder Exists
+## Overview
 
-The mobile API should not execute Discord or Lavalink playback directly. Playback is owned by the bot process. API playback handlers therefore validate HTTP/auth context and persist a bot-control command that the bot worker can execute.
+- Command execution requests become durable bot-control rows. SetRepeatModeAsync directly updates repeat flags and repeat-list storage through repositories.
+- The repeat-mode endpoint has its own persistence path; it does not itself perform a Discord or Lavalink operation. Keep this distinction when changing bot and mobile behavior together.
 
-## Files
+## Classes
 
-### PlaybackHandler.cs
+### PlaybackHandlers
 
-Accepts playback command requests and stores them as bot-control commands.
+**File:** `API/Handlers/Playback/PlaybackHandlers.cs`
 
-Responsibilities:
+**Purpose:** Accepts authorized playback commands and persists explicit repeat-mode changes.
 
-- read validated `guildId` from `HttpContext.Items`
-- enqueue commands through `IBotControlCommandsRepository`
-- return `202 Accepted` with the command ID and state
+**Methods:**
 
-## Flow Context
+- `ExecuteAsync` — Persists an authorized playback command for asynchronous execution by the bot.
 
-A mobile client calls a playback command endpoint for a guild. The endpoint validates `guildId`, the handler should validate the authenticated user context, then it enqueues a command row. The bot process later claims that row and performs the actual pause/resume/skip/stop behavior.
+```csharp
+public static async Task<IResult> ExecuteAsync(
+    HttpContext httpContext,
+    IBotControlCommandsRepository repository,
+    IMobileAppUserRepository userRepository,
+    CancellationToken ct);
+```
 
-## Maintenance Notes
+- `SetRepeatModeAsync` — Validates the requested repeat mode and persists repeat flags and the repeat-list snapshot.
 
-- Current implementation still has a TODO for reading the authenticated user ID from claims.
-- Actual Discord/Lavalink playback execution should remain in the bot worker process, not in API handlers.
+```csharp
+public static async Task<IResult> SetRepeatModeAsync(
+    HttpContext httpContext,
+    SetRepeatModeRequest request,
+    IMobileAppUserRepository userRepository,
+    IPlaybackStateRepository playbackStateRepository,
+    IQueueRepository queueRepository,
+    IRepeatListRepository repeatListRepository,
+    CancellationToken cancellationToken);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await PlaybackHandlers.ExecuteAsync(httpContext, repository, userRepository, ct);
+```
+
+---
+
+## Related Components
+
+- `API/Handlers/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `API/Mapping/` — Converts repository records and service outcomes into HTTP response contracts.
+- `API/Requests/Playback/` — Defines client-supplied input for current playback state, repeat flags, start ownership, and canonical batch metadata.
+- `DC bot.Contracts/BotControl/` — Defines command type identifiers, realtime event names, and optional execution-channel context shared by the API and bot.
+- `DC bot.Contracts/Interface/Service/Persistence/BotControl/` — Defines repository operations for durable bot commands, their claim/completion state, and cross-process change signals.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.
