@@ -102,6 +102,13 @@ public sealed class DiscordPlaybackRecoveryService(
 
         if (channelId is> 0)
         {
+            var channels = sessions.GetRecoveryChannels(guildId);
+
+            if (channels is { } remembered)
+            {
+                sessions.RememberRecoveryChannels(target.Session, channelId.Value, remembered.TextChannelId);
+            }
+
             // Keep the recovery destination current after a channel move.
 
             if (channelId.Value != target.ChannelId)

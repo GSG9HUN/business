@@ -37,9 +37,49 @@ public sealed class GuildPlaybackSessions
         public Task<LeaveResult>? Leave;
         public Guid? ActiveControlOperationId;
         public string? ActiveControlName;
+        public (ulong VoiceChannelId, ulong TextChannelId)? RecoveryChannels;
     }
 
     private readonly ConcurrentDictionary<ulong, State> _states = new();
+
+    /// <summary>Remembers recovery destinations only for the current player generation.</summary>
+    /// <param name="session">The player generation owning the successful join.</param>
+    /// <param name="voiceChannelId">The voice channel to rejoin while music remains.</param>
+    /// <param name="textChannelId">The channel receiving playback notifications.</param>
+    public void RememberRecoveryChannels(PlaybackSession session, ulong voiceChannelId, ulong textChannelId)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            if (Matches(state, session))
+            {
+                state.RecoveryChannels = (voiceChannelId, textChannelId);
+            }
+        }
+    }
+
+    /// <summary>Reads process-local recovery destinations retained across replacement player generations.</summary>
+    /// <param name="guildId">The guild whose destinations are requested.</param>
+    /// <returns>The most recent joined destinations, or null after explicit leave.</returns>
+    public (ulong VoiceChannelId, ulong TextChannelId)? GetRecoveryChannels(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            return state.RecoveryChannels;
+        }
+    }
+
+    /// <summary>Suppresses automatic music recovery when an explicit leave is admitted.</summary>
+    /// <param name="guildId">The guild whose recovery intent is cancelled.</param>
+    public void ForgetRecoveryChannels(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            state.RecoveryChannels = null;
+        }
+    }
 
     /// <summary>
     /// Creates a signal whose continuations execute asynchronously outside the guild lock.

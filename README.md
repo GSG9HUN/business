@@ -12,6 +12,8 @@ This repository contains a .NET 9 Discord music bot, its test project, Docker/La
 
 ## Start Here
 
+- Music-backed voice recovery now operates independently of the gateway recovery window and 24/7 preference, using remembered join destinations until explicit leave or application restart. Confirmed checkpoints and canonical repeat ownership are preserved during player replacement.
+
 - Playlist imports and Discord creation share the API transactional count-and-insert operation, preventing concurrent requests from exceeding the guild cap. Import metadata and tracks commit atomically.
 
 - Mobile playlist load commands now check the idle-player playback outcome. Failed or uncertain starts return terminal command failures with correlation metadata; already playing queues still accept playlist additions.

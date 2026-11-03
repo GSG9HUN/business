@@ -115,6 +115,7 @@ public sealed class PlayerConnectionService(
 
                         if (checkedPlayer.isValid)
                         {
+                            sessions.RememberRecoveryChannels(captured, channel.Id, message.Channel.Id);
                             return checkedPlayer;
                         }
                     }
@@ -203,6 +204,7 @@ public sealed class PlayerConnectionService(
             }
 
             gatewayRecovery.Remember(session, channel.Id);
+            sessions.RememberRecoveryChannels(session, channel.Id, message.Channel.Id);
             return (session.Player, channel, guildId, true);
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)

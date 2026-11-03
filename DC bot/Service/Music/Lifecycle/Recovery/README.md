@@ -4,6 +4,8 @@ Reconciles gateway voice state, durable playback starts, and authenticated Laval
 
 ## Overview
 
+- Gateway recovery remains bounded and may preserve an existing player without replay. Independently, `PersistentVoiceRecoveryService` periodically handles remaining music outside that window, including replacement after confirmed cleanup. Remembered notification targets follow observed voice-channel moves.
+
 - Use bounded gateway recovery for non-persistent guilds and pending-start reconciliation before another join.
 - Query remote evidence rather than treating SDK registry absence as proof of disconnection.
 

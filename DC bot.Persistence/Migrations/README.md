@@ -63,6 +63,8 @@ dotnet ef migrations add <MigrationName> --project "DC bot.Persistence/DC bot.Pe
 dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"
 ```
 
+To inspect unapplied migrations without changing the database, run `dotnet ef migrations list --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"`. Apply existing pending migrations with the `database update` command above; generating a new migration is unnecessary for that operation. Run against the same database as the API. In the Docker Compose deployment, rebuilding and starting `discord-bot` also applies pending migrations before connecting to Discord. An existing history entry combined with missing columns indicates schema drift and needs separate investigation; an ordinary update will not rerun an already recorded migration.
+
 `BotDbContextFactory` reads `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from the tooling process environment. It does not load `.env` itself. Bot startup separately invokes `DatabaseMigrationRunner`; the API does not currently apply migrations in its startup path.
 
 ---

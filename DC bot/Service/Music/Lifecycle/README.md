@@ -4,6 +4,8 @@ Coordinates guild player ownership, voice connections, cleanup, and playback rec
 
 ## Overview
 
+- The periodic voice worker also reconnects with 24/7 disabled while confirmed playing, queued, or repeated canonical music remains. It uses process-local destinations captured at join, preserves confirmed checkpoints during replacement, and honors explicit leave by clearing recovery intent first.
+
 - `Connections` joins and validates players; `Sessions` owns generations, transport draining, and attempt correlation.
 - `Cleanup` settles local, remote, and persistence outcomes; `Recovery` handles gateway and uncertain-start evidence.
 - `PersistentVoice` shares a guild gate between saved settings, periodic recovery, and explicit leave.
