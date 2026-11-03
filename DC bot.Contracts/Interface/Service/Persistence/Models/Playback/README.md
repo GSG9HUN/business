@@ -1,24 +1,39 @@
-# Playback Models
+# Playback
 
-This folder contains playback persistence records.
+Defines shared records and state values for current playback state, repeat flags, start ownership, and canonical batch metadata.
 
-## Why This Folder Exists
+## Overview
 
-Playback services need a compact snapshot of persisted playback state without depending on the EF entity that maps the database table.
+- Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
+- Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 
-The model here represents what service code needs to know, not how the table is configured.
+## Models and Results
 
-## Files
+### PlaybackStateRecord
 
-### PlaybackStateRecord.cs
+**File:** `DC bot.Contracts/Interface/Service/Persistence/Models/Playback/PlaybackStateRecord.cs`
 
-Immutable record for guild playback state.
+**Purpose:** Carries immutable playback state values across the shared storage or mobile-command boundary.
 
-## Flow Context
+**Record declaration:**
 
-When the bot loads or changes playback state, repositories return this record to describe repeat flags, current track identity, and the optional queue item link.
+```csharp
+public record PlaybackStateRecord(
+    ulong GuildId,
+    bool IsRepeating,
+    bool IsRepeatingList,
+    string? CurrentTrackIdentifier,
+    long? QueueItemId,
+    DateTimeOffset UpdatedAtUtc,
+    bool IsPaused = false,
+    int PositionSeconds = 0,
+    DateTimeOffset? PositionUpdatedAtUtc = null);
+```
 
-## Maintenance Notes
+---
 
-- `QueueItemId` links the current playback state to a persisted queue item when available.
-- Add fields here only when service code genuinely needs them across the repository boundary.
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

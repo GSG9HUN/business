@@ -8,16 +8,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
+/**
+ * Renders avatar fallback from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
-fun AvatarFallback(name: String, contentColor: Color) {
+fun AvatarFallback(name: String, contentColor: Color): Unit {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         MText(
-            text = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+            text = name.firstOrNull()
+                ?.uppercaseChar()
+                ?.toString() ?: "?",
             color = contentColor,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
     }
 }

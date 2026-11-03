@@ -1,86 +1,60 @@
-﻿# Helper Factory
+# Factory
 
-This folder contains factory classes for creating wrapper objects.
+Creates the message wrapper used by command dispatch.
 
 ## Overview
 
-Factory classes centralize object creation logic for Discord wrappers.
+- DiscordMessageWrapperFactory captures the SDK message together with resolved guild context and exposes IDiscordMessage.
+- Centralizing wrapper construction keeps message routing independent of concrete wrapper constructors and easier to isolate in tests.
 
-## Files
+## Factory Classes
 
-### DiscordMessageWrapperFactory.cs
+### DiscordMessageWrapperFactory
 
-**Purpose:** Create `IDiscordMessage` wrapper instances from DSharpPlus `DiscordMessage` objects.
+**File:** `DC bot/Helper/Factory/DiscordMessageWrapperFactory.cs`
 
-**Definition:**
+**Purpose:** Creates message adapters at the DSharpPlus command boundary.
+
+**Implements / inherits:** `IDiscordMessageFactory`.
+
+**Methods:**
+
+- `Create` — Constructs the adapter or runtime object from supplied context and dependencies.
 
 ```csharp
-public class DiscordMessageWrapperFactory : IDiscordMessageFactory
-{
-    public static IDiscordMessage Create(
-        DiscordMessage message,
-        DiscordChannel channel,
-        DiscordUser author,
-        ILogger<DiscordMessageWrapper>? logger = null,
-        DiscordGuild? guild = null)
-    {
-        var discordAuthor = new DiscordUserWrapper(author);
-        var discordChannel = new DiscordChannelWrapper(channel, guild: guild);
-
-        return new DiscordMessageWrapper(
-            message.Id,
-            message.Content,
-            discordChannel,
-            discordAuthor,
-            message.CreationTimestamp,
-            message.Embeds?.ToList() ?? [],
-            message.RespondAsync,
-            message.RespondAsync,
-            builder => message.ModifyAsync(builder),
-            logger
-        );
-    }
-}
+public static IDiscordMessage Create(
+    DiscordMessage message,
+    DiscordChannel channel,
+    DiscordUser author,
+    ILogger<DiscordMessageWrapper>? logger = null,
+    DiscordGuild? guild = null);
 ```
 
 **Usage:**
 
+The caller supplies the component and argument values used in this example.
+
 ```csharp
-// In event handlers or service code
 var wrappedMessage = DiscordMessageWrapperFactory.Create(
     discordMessage,
     channel,
     author,
     logger,
-    guild
-);
-
-// Now use as IDiscordMessage
-await command.ExecuteAsync(wrappedMessage);
+    guild);
 ```
 
 **Benefits:**
 
-- **Centralizes wrapper creation** - Single place for initialization logic
-- **Consistent initialization** - All wrappers created the same way
-- **Simplifies testing** - `CommandHandlerService` can receive an `IDiscordMessageFactory` test double
-- **Reduces duplication** - No repeated wrapper construction code
-
-**Created Wrappers:**
-
-- `DiscordMessageWrapper` - Main message wrapper
-- `DiscordUserWrapper` - Wraps message author
-- `DiscordChannelWrapper` - Wraps message channel and optional explicit guild context
+- Centralizes message wrapper construction.
+- Preserves explicit guild context when the channel payload does not supply it.
+- Supports the injected IDiscordMessageFactory boundary while retaining the static helper.
 
 ---
 
 ## Related Components
 
-- **Wrapper/DiscordMessageWrapper.cs** - Created by this factory
-- **Wrapper/DiscordUserWrapper.cs** - Created internally by factory
-- **Wrapper/DiscordChannelWrapper.cs** - Created internally by factory
-- **Interface/Discord/IDiscordMessage.cs** - Interface returned by factory
-- **Interface/Discord/IDiscordMessageFactory.cs** - Injectable factory boundary
-- **Service/Core/CommandHandlerService.cs** - Uses the injectable factory to create wrappers
-- **Service/ReactionHandler/ReactionContextFactory.cs** - Uses explicit guild context when building reaction event wrappers
-
+- `DC bot/Helper/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Wrapper/Discord/` — Wraps messages, users, guilds, channels, members, and voice state and handles Discord client events.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

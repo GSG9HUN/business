@@ -1,27 +1,45 @@
-# Queue Configurations
+# Queue
 
-This folder contains EF Core mappings for queue entities.
+Defines EF Core table mappings for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
 
-## Why This Folder Exists
+## Overview
 
-Queue queries depend heavily on guild, state, and ordering. The EF mapping here defines how queue rows are stored and which indexes support the repository's common operations.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-This is also where enum-to-column conversion is kept, so repository code can use `QueueItemState` instead of raw numeric values.
+## Classes
 
-## Files
+### GuildQueueItemConfiguration
 
-### GuildQueueItemConfiguration.cs
+**File:** `DC bot.Persistence/Configurations/Queue/GuildQueueItemConfiguration.cs`
 
-Maps queue item columns, indexes, relationships, and state conversion.
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for guild queue item.
 
-## What To Keep Here
+**Implements / inherits:** `IEntityTypeConfiguration<GuildQueueItemEntity>`.
 
-- queue table and column names
-- queue item state conversion
-- indexes for queued item lookups and ordering
-- guild relationship mapping
+**Methods:**
 
-## Maintenance Notes
+- `Configure` — Implements `Configure` using the contract shown below.
 
-- Queue item state is converted to the `short` database column.
-- Queue ordering and state indexes should stay aligned with repository query patterns.
+```csharp
+public void Configure(EntityTypeBuilder<GuildQueueItemEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+guildQueueItemConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/Queue/` — Represents the database rows used for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/Queue/` — Defines shared records and state values for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

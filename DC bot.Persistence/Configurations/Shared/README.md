@@ -1,24 +1,40 @@
-# Shared Configurations
+# Shared
 
-This folder contains EF Core configuration helpers shared by multiple feature mappings.
+Centralizes the Discord guild identifier conversion used by entity mappings.
 
-## Why This Folder Exists
+## Overview
 
-Some EF mapping rules are not owned by one feature. Guild id mapping is a good example: many tables store Discord guild IDs and they should all be configured consistently.
+- Feature configuration classes call GuildIdPropertyBuilderExtensions rather than repeating provider conversion rules.
+- Keep this helper focused on model mapping; it must not execute repository queries or application commands.
 
-Putting shared mapping helpers here avoids copy-pasting the same configuration code into every feature configuration.
+## Classes
 
-## Files
+### GuildIdPropertyBuilderExtensions
 
-### GuildIdPropertyBuilderExtensions.cs
+**File:** `DC bot.Persistence/Configurations/Shared/GuildIdPropertyBuilderExtensions.cs`
 
-Shared helper for configuring guild id properties.
+**Purpose:** Provides the shared PostgreSQL representation for unsigned Discord guild identifiers.
 
-## When To Add Something Here
+**Methods:**
 
-Add helpers here only when at least two feature configurations need the same EF mapping behavior. If a rule is specific to one table, keep it inside that feature's configuration file.
+- `HasGuildIdStorage` — Maps unsigned Discord snowflakes to the shared PostgreSQL storage representation.
 
-## Maintenance Notes
+```csharp
+internal static PropertyBuilder<ulong> HasGuildIdStorage(this PropertyBuilder<ulong> builder);
+```
 
-- Keep reusable EF mapping helpers here when they are not owned by one feature.
-- Shared helpers should stay small and obvious; avoid hiding feature-specific constraints behind generic helpers.
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = builder.HasGuildIdStorage();
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

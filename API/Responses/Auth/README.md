@@ -1,32 +1,30 @@
-# Auth Responses
+# Auth
 
-This folder contains DTOs used by Discord OAuth and mobile app session endpoints.
+Defines client-facing output for application access/refresh tokens and short-lived login exchange input.
 
-## Files
+## Overview
 
-### AuthSessionResponse.cs
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-Returned by app session exchange and refresh endpoints.
+## Models and Results
 
-Fields:
+### AuthSessionResponse
 
-- `AccessToken` - short-lived app JWT
-- `RefreshToken` - opaque refresh token
-- `ExpiresInSeconds` - access token lifetime
+**File:** `API/Responses/Auth/AuthSessionResponse.cs`
 
-### DiscordTokenResponse.cs
+**Purpose:** Carries the auth session payload returned to HTTP and mobile clients.
 
-Discord OAuth token response DTO.
+**Record declaration:**
 
-### DiscordUserResponse.cs
+```csharp
+public sealed record AuthSessionResponse(string AccessToken, string RefreshToken, int ExpiresInSeconds, long ExpiresAtMillis);
+```
 
-Discord current-user response DTO.
+---
 
-### DiscordGuildResponse.cs
+## Related Components
 
-Discord current-user guild response DTO.
-
-## Notes
-
-- Discord snowflake IDs are represented as strings in Discord DTOs and parsed into `ulong` before persistence.
-- Discord access tokens are server-side only and should not be returned to Android.
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

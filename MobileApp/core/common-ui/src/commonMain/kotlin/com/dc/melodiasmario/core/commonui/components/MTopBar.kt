@@ -6,65 +6,59 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MBackButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MMoreButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MRefreshButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.button.MSearchButton
-import com.dc.melodiasmario.core.commonui.designsystem.components.display.MAvatar
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
-import com.dc.melodiasmario.core.commonui.topbar.TopBarAction
-import com.dc.melodiasmario.core.commonui.topbar.TopBarConfig
-import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
 
+/**
+ * Renders top bar from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MTopBar(
     modifier: Modifier = Modifier,
     title: String,
     subTitle: String? = null,
     navigationIcon: @Composable (() -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit = {},
-) {
+    actions: @Composable RowScope.() -> Unit = {}
+): Unit {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             navigationIcon?.invoke()
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(weight = 1f),
+                verticalArrangement = Arrangement.Center
             ) {
                 MText(
                     text = title,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 if (!subTitle.isNullOrBlank()) {
                     MText(
                         text = subTitle,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                content = actions,
+                content = actions
             )
         }
     }

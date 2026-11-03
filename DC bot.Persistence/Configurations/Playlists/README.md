@@ -1,30 +1,70 @@
-# Playlist Configurations
+# Playlists
 
-This folder contains EF Core mappings for playlist entities.
+Defines EF Core table mappings for saved playlist metadata and ordered, serialized playlist tracks.
 
-## Why This Folder Exists
+## Overview
 
-Saved playlists have two related table shapes: playlist metadata and ordered playlist tracks. The mappings here enforce the rules that make playlist operations deterministic, such as unique playlist names per guild and unique order numbers within one playlist.
+- These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
+- Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 
-## Files
+## Classes
 
-### PlaylistConfiguration.cs
+### PlaylistConfiguration
 
-Maps saved playlist metadata.
+**File:** `DC bot.Persistence/Configurations/Playlists/PlaylistConfiguration.cs`
 
-### PlaylistTrackConfiguration.cs
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for playlist.
 
-Maps ordered playlist tracks.
+**Implements / inherits:** `IEntityTypeConfiguration<PlaylistEntity>`.
 
-## What To Keep Here
+**Methods:**
 
-- playlist table and column names
-- playlist name uniqueness per guild
-- playlist track table mapping
-- track ordering uniqueness per playlist
-- cascade behavior between playlists and tracks
+- `Configure` — Implements `Configure` using the contract shown below.
 
-## Maintenance Notes
+```csharp
+public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<PlaylistEntity> builder);
+```
 
-- Playlist names are unique per guild.
-- Track order numbers are unique inside one playlist.
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+playlistConfiguration.Configure(builder);
+```
+
+---
+
+### PlaylistTrackConfiguration
+
+**File:** `DC bot.Persistence/Configurations/Playlists/PlaylistTrackConfiguration.cs`
+
+**Purpose:** Configures PostgreSQL storage, keys, and relationships for playlist track.
+
+**Implements / inherits:** `IEntityTypeConfiguration<PlaylistTrackEntity>`.
+
+**Methods:**
+
+- `Configure` — Implements `Configure` using the contract shown below.
+
+```csharp
+public void Configure(EntityTypeBuilder<PlaylistTrackEntity> builder);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+playlistTrackConfiguration.Configure(builder);
+```
+
+---
+
+## Related Components
+
+- `DC bot.Persistence/Configurations/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Persistence/README.md` — Project setup and architecture.
+- `DC bot.Persistence/Configurations/Shared/` — Centralizes the Discord guild identifier conversion used by entity mappings.
+- `DC bot.Persistence/Entities/Playlists/` — Represents the database rows used for saved playlist metadata and ordered, serialized playlist tracks.
+- `DC bot.Contracts/Interface/Service/Persistence/` — Shared interfaces and immutable values implemented by persistence.

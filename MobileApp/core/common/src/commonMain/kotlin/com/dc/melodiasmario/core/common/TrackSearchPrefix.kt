@@ -1,16 +1,24 @@
 package com.dc.melodiasmario.core.common
 
-/** Search prefixes supported by the bot's TrackSearchResolverService, without the colon. */
+/**
+ * Search prefixes supported by the bot's TrackSearchResolverService, without the colon.
+ *
+ * @property prefix Prefix.
+ * @property alias Alias.
+ */
 enum class TrackSearchPrefix(val prefix: String, val alias: String) {
-    SPOTIFY("sptfy", "spotify"),
-    SOUNDCLOUD("scsearch", "soundcloud"),
-    YOUTUBE_MUSIC("ytmsearch", "youtubemusic"),
-    YOUTUBE("ytsearch", "youtube"),
-    APPLE_MUSIC("amsearch", "applemusic"),
-    DEEZER("dzsearch", "deezer"),
-    YANDEX_MUSIC("ymsearch", "yandexmusic"),
-    BANDCAMP("bcsearch", "bandcamp");
+    SPOTIFY(prefix = "sptfy", alias = "spotify"),
+    SOUNDCLOUD(prefix = "scsearch", alias = "soundcloud"),
+    YOUTUBE_MUSIC(prefix = "ytmsearch", alias = "youtubemusic"),
+    YOUTUBE(prefix = "ytsearch", alias = "youtube"),
+    APPLE_MUSIC(prefix = "amsearch", alias = "applemusic"),
+    DEEZER(prefix = "dzsearch", alias = "deezer"),
+    YANDEX_MUSIC(prefix = "ymsearch", alias = "yandexmusic"),
+    BANDCAMP(prefix = "bcsearch", alias = "bandcamp");
 
+    /**
+     * Maps this value to music search provider id.
+     */
     fun toMusicSearchProviderId(): String {
         return when (this) {
             SPOTIFY -> "sptfy"
@@ -24,14 +32,20 @@ enum class TrackSearchPrefix(val prefix: String, val alias: String) {
         }
     }
 
+    /**
+     * Shared values and operations for the enclosing type.
+     */
     companion object {
         /** Returns null for unprefixed queries, URLs, and unsupported prefixes. */
         fun fromInput(input: String): TrackSearchPrefix? {
-            if (':' !in input) return null
+            if (':' !in input) {
+                return null
+            }
+
             val value = input.substringBefore(':')
-            return entries.firstOrNull {
-                it.prefix.equals(value, ignoreCase = true) ||
-                        it.alias.equals(value, ignoreCase = true)
+            return entries.firstOrNull { searchPrefix ->
+                searchPrefix.prefix.equals(other = value, ignoreCase = true) ||
+                        searchPrefix.alias.equals(other = value, ignoreCase = true)
             }
         }
     }

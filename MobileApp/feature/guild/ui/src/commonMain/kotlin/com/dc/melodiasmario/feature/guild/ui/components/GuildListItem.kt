@@ -29,42 +29,46 @@ import com.dc.melodiasmario.core.model.guild.Guild
 import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders guild list item from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun GuildListItem(
     guild: Guild,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-) {
+    onClick: () -> Unit = {}
+): Unit {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        onClick = onClick,
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
+        onClick = onClick
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             MAvatar(
                 name = guild.name,
                 imageUrl = guild.iconUrl,
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(size = 10.dp),
                 size = 44.dp,
                 backgroundColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(weight = 1f),
+                verticalArrangement = Arrangement.Center
             ) {
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
                     text = guild.name,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
                 MText(
                     modifier = Modifier.padding(start = 5.dp),
@@ -72,12 +76,12 @@ fun GuildListItem(
                         isOnline = guild.botStatus?.isOnline,
                         connectedVoiceChannelName = guild.botStatus?.connectedVoiceChannelName,
                         connectedVoiceUserCount = guild.botStatus?.connectedVoiceUserCount ?: 0,
-                        isOnlineText = stringResource(CommonUiRes.string.guild_status_online),
-                        isOfflineText = stringResource(CommonUiRes.string.guild_status_offline),
-                        unknownText = stringResource(CommonUiRes.string.guild_status_unknown),
-                        connectedInVoiceSuffix = stringResource(CommonUiRes.string.guild_status_in_voice_channel),
+                        isOnlineText = stringResource(resource = CommonUiRes.string.guild_status_online),
+                        isOfflineText = stringResource(resource = CommonUiRes.string.guild_status_offline),
+                        unknownText = stringResource(resource = CommonUiRes.string.guild_status_unknown),
+                        connectedInVoiceSuffix = stringResource(resource = CommonUiRes.string.guild_status_in_voice_channel)
                     ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -90,8 +94,8 @@ fun GuildListItem(
 @Composable
 private fun GuildListItemPreview() {
     GuildListItem(
-        modifier = Modifier.padding(10.dp),
-        guild = previewGuild(),
+        modifier = Modifier.padding(all = 10.dp),
+        guild = previewGuild()
     )
 }
 
@@ -99,15 +103,15 @@ private fun GuildListItemPreview() {
 @Composable
 private fun GuildListItemPreviewWithNoConnectedUserCount() {
     GuildListItem(
-        modifier = Modifier.padding(10.dp),
+        modifier = Modifier.padding(all = 10.dp),
         guild = previewGuild(
             botStatus = BotStatus(
                 isOnline = true,
                 connectedVoiceChannelName = "Random VC name",
-                connectedVoiceUserCount = 0,
+                connectedVoiceUserCount = 0
             ),
-            accessLevel = GuildAccessLevel.DJ,
-        ),
+            accessLevel = GuildAccessLevel.DJ
+        )
     )
 }
 
@@ -115,11 +119,11 @@ private fun GuildListItemPreviewWithNoConnectedUserCount() {
 @Composable
 private fun GuildListItemPreviewBotIsOffline() {
     GuildListItem(
-        modifier = Modifier.padding(10.dp),
+        modifier = Modifier.padding(all = 10.dp),
         guild = previewGuild(
             botStatus = BotStatus(isOnline = false, connectedVoiceChannelName = null, connectedVoiceUserCount = 0),
-            accessLevel = GuildAccessLevel.Admin,
-        ),
+            accessLevel = GuildAccessLevel.Admin
+        )
     )
 }
 
@@ -131,13 +135,12 @@ private fun previewGuild(
     botStatus: BotStatus? = BotStatus(
         isOnline = true,
         connectedVoiceChannelName = "General",
-        connectedVoiceUserCount = 3,
-    ),
+        connectedVoiceUserCount = 3
+    )
 ): Guild = Guild(
     id = id,
     name = name,
     iconUrl = iconUrl,
     accessLevel = accessLevel,
-    botStatus = botStatus,
+    botStatus = botStatus
 )
-

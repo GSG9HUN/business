@@ -1,37 +1,130 @@
 # Responses
 
-This folder contains response DTOs grouped by feature.
+Groups stable client-facing output shapes for auth, guilds, playback, queues, profiles, playlists, and music search.
 
-## Why This Folder Exists
+## Overview
 
-Response DTOs define the JSON shape returned to mobile/API clients. They are the public output contract of the API.
+- Handlers, mappers, and snapshot providers construct these values from shared repository records and service results.
+- Keep HTTP serialization concerns here. A response record must not expose a tracked EF entity or a live Discord or Lavalink object.
 
-They should be stable, explicit, and decoupled from EF Core entities. This allows persistence tables and internal contract records to evolve without accidentally changing what the mobile app receives.
+## Subfolders
 
-## Feature Folders
+### Auth/
 
-- `Auth/` - Discord OAuth DTOs and mobile session responses
-- `BotControl/` - command acceptance and command status responses
-- `Guilds/` - guild summary and status responses
-- `Playback/` - playback status responses
-- `Playlists/` - playlist summary/detail/track responses
-- `Profile/` - mobile user profile and settings responses
-- `Queue/` - queue and queue-track responses
+Defines client-facing output for application access/refresh tokens and short-lived login exchange input.
 
-## What Belongs Here
+**Files:**
 
-- DTOs returned by API endpoints
-- Discord OAuth transport DTOs used by the auth service
-- app-facing response shapes grouped by feature
+- `AuthSessionResponse.cs`
 
-## What Does Not Belong Here
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
 
-- request DTOs
-- EF Core entities
-- repository contract records
-- bot worker command entities
+---
 
-## Maintenance Notes
+### BotControl/
 
-- Do not return EF entities directly from API handlers.
-- Keep Discord API transport DTOs in `Auth/` because they are part of the login/session boundary.
+Defines client-facing output for durable bot commands, their claim/completion state, and cross-process change signals.
+
+**Files:**
+
+- `BotControlCommandResponse.cs`
+- `BotControlCommandStatusResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### Guilds/
+
+Defines client-facing output for guild defaults, premium state, and the mapped premium-audit schema.
+
+**Files:**
+
+- `GuildBotStatusResponse.cs`
+- `GuildSummaryResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### MusicSearch/
+
+Defines client-facing output for provider capabilities, search results, and safe provider error responses.
+
+**Files:**
+
+- `MusicSearchCapabilityResponse.cs`
+- `MusicSearchErrorResponse.cs`
+- `MusicSearchResponse.cs`
+- `MusicSearchResultResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### Playback/
+
+Defines client-facing output for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `PlaybackStatusResponse.cs`
+- `PlaybackTrackResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### Playlists/
+
+Defines client-facing output for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `PlaylistDetailResponse.cs`
+- `PlaylistSummaryResponse.cs`
+- `PlaylistTrackResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### Profile/
+
+Defines client-facing output for mobile user identity and optional preference updates.
+
+**Files:**
+
+- `ProfileResponse.cs`
+- `ProfileSettingsResponse.cs`
+- `ProfileUserResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+### Queue/
+
+Defines client-facing output for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `QueueResponse.cs`
+- `QueueTrackResponse.cs`
+
+**Purpose:** Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+
+---
+
+## Related Components
+
+- `API/README.md` — Parent feature overview and neighboring components.
+- `API/Responses/Auth/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/Guilds/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/MusicSearch/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/Profile/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Responses/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

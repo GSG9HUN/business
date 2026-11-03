@@ -5,12 +5,20 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands.Utility;
 
-public class HelpSlashCommand(
-    ISlashCommandExecutor slashCommandExecutor,
-    ISlashInteractionContextFactory contextFactory)
+/// <summary>
+/// Adapts the help slash command to shared command execution and interaction acknowledgement.
+/// </summary>
+/// <param name="slashCommandExecutor">The slash command executor dependency used by this boundary.</param>
+/// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
+public class HelpSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
     private const string CommandName = "help";
 
+    /// <summary>
+    /// Adapts the help slash route to its shared handler and interaction response policy.
+    /// </summary>
+    /// <param name="context">The context supplied for this operation.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     [Command("help")]
     [Description("List the available commands")]
     public Task Help(SlashCommandContext context)
@@ -18,11 +26,13 @@ public class HelpSlashCommand(
         return ExecuteAsync(contextFactory.Create(context));
     }
 
+    /// <summary>
+    /// Routes the slash interaction through the shared command executor and acknowledgement policy.
+    /// </summary>
+    /// <param name="context">The slash interaction context dependency used by this boundary.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     public Task ExecuteAsync(ISlashInteractionContext context)
     {
-        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(
-            CommandName,
-            context,
-            RequireGuild: true));
+        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(CommandName, context, RequireGuild: true), default);
     }
 }

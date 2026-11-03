@@ -3,6 +3,20 @@ package com.dc.melodiasmario.core.network.search.dto
 import com.dc.melodiasmario.core.model.search.MusicSearchResult
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents music search result dto in the API transport contract.
+ *
+ * @property id Id.
+ * @property providerId Provider id.
+ * @property kind Kind.
+ * @property title Title.
+ * @property creator Creator.
+ * @property thumbnailUrl Optional track artwork URL.
+ * @property durationSeconds Track duration in seconds.
+ * @property itemCount Item count.
+ * @property canonicalUrl Canonical url.
+ * @property canEnqueue Can enqueue.
+ */
 @Serializable
 data class MusicSearchResultDto(
     val id: String,
@@ -14,8 +28,11 @@ data class MusicSearchResultDto(
     val durationSeconds: Int? = null,
     val itemCount: Int? = null,
     val canonicalUrl: String? = null,
-    val canEnqueue: Boolean = canonicalUrl != null,
+    val canEnqueue: Boolean = canonicalUrl != null
 ){
+    /**
+     * Maps this value to domain or null.
+     */
     fun toDomainOrNull(): MusicSearchResult? {
         val provider = providerId.toTrackSearchPrefixOrNull() ?: return null
         val resultKind = kind.toMusicSearchResultKindOrNull() ?: return null

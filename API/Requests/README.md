@@ -1,35 +1,84 @@
 # Requests
 
-This folder contains request DTOs grouped by feature.
+Groups client input by feature before handler validation and orchestration.
 
-## Why This Folder Exists
+## Overview
 
-Request DTOs represent client-provided HTTP request bodies. They are the public input contract of the HTTP API, so they should stay separate from persistence records and EF entities.
+- Minimal API binding creates these values; filters and handlers interpret them and build repository inputs or bot-command payloads.
+- HTTP request shapes are distinct from shared persistence records. Validation should not be hidden in EF entities or response models.
 
-This separation matters because client payloads often differ from internal data. A request may contain a one-time auth ticket, a refresh token, a playlist name, or a queue query. None of those should force repository records or database entities to mirror the HTTP shape.
+## Subfolders
 
-## Feature Folders
+### Auth/
 
-- `Auth/` - app session exchange and refresh/logout request bodies
-- `Playback/` - repeat-mode request bodies
-- `Playlists/` - playlist create, rename, save, and track-add request bodies
-- `Profile/` - profile settings request bodies
-- `Queue/` - queue enqueue request bodies
+Defines client-supplied input for application access/refresh tokens and short-lived login exchange input.
 
-## What Belongs Here
+**Files:**
 
-- request body DTOs used by minimal API endpoints
-- simple client-provided fields
-- DTOs grouped by the feature endpoint that receives them
+- `ExchangeRequest.cs`
+- `RefreshRequest.cs`
 
-## What Does Not Belong Here
+**Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
 
-- response DTOs
-- EF entities
-- persistence records
-- validation filters
+---
 
-## Maintenance Notes
+### Playback/
 
-- Keep validation rules in endpoint filters, handlers, or dedicated validators rather than embedding database or service calls in DTOs.
-- Use feature namespaces such as `API.Requests.Auth` and `API.Requests.Playlists`.
+Defines client-supplied input for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `SetRepeatModeRequest.cs`
+
+**Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+
+---
+
+### Playlists/
+
+Defines client-supplied input for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `AddSongRequest.cs`
+- `CreatePlaylistRequest.cs`
+- `RenamePlaylistRequest.cs`
+- `SavePlaylistRequest.cs`
+
+**Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+
+---
+
+### Profile/
+
+Defines client-supplied input for mobile user identity and optional preference updates.
+
+**Files:**
+
+- `UpdateProfileSettingsRequest.cs`
+
+**Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+
+---
+
+### Queue/
+
+Defines client-supplied input for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `EnqueueRequest.cs`
+
+**Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
+
+---
+
+## Related Components
+
+- `API/README.md` — Parent feature overview and neighboring components.
+- `API/Requests/Auth/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Requests/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Requests/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Requests/Profile/README.md` — Detailed component contracts and examples for this subfolder.
+- `API/Requests/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

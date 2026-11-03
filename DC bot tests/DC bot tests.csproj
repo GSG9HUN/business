@@ -57,10 +57,52 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="EndToEndTests\Commands\SlashCommands\Music\" />
+      <Folder Include="EndToEndTests\Commands\SlashCommands\Playlist\" />
+      <Folder Include="EndToEndTests\Commands\SlashCommands\Queue\" />
+      <Folder Include="EndToEndTests\Commands\SlashCommands\Utility\" />
+      <Folder Include="EndToEndTests\Service\Core\" />
+      <Folder Include="EndToEndTests\Wrapper\" />
+      <Folder Include="IntegrationTests\Commands\SlashCommands\Music\" />
+      <Folder Include="IntegrationTests\Commands\SlashCommands\Playlist\" />
+      <Folder Include="IntegrationTests\Commands\SlashCommands\Queue\" />
+      <Folder Include="IntegrationTests\Commands\SlashCommands\Utility\" />
+      <Folder Include="IntegrationTests\Commands\TextCommands\" />
+      <Folder Include="IntegrationTests\Persistence\" />
+      <Folder Include="IntegrationTests\Service\Core\" />
+      <Folder Include="IntegrationTests\Service\Localization\" />
+      <Folder Include="IntegrationTests\Service\Music\" />
+      <Folder Include="IntegrationTests\Service\ReactionHandler\" />
+      <Folder Include="UnitTests\API\" />
       <Folder Include="UnitTests\Commands\SlashCommands\Music\" />
+      <Folder Include="UnitTests\Commands\SlashCommands\Playlist\" />
       <Folder Include="UnitTests\Commands\SlashCommands\Queue\" />
       <Folder Include="UnitTests\Commands\SlashCommands\Utility\" />
       <Folder Include="UnitTests\Commands\TextCommands\" />
+      <Folder Include="UnitTests\Commands\TextCommands\Music\" />
+      <Folder Include="UnitTests\Commands\TextCommands\Playlist\" />
+      <Folder Include="UnitTests\Commands\TextCommands\Queue\" />
+      <Folder Include="UnitTests\Commands\TextCommands\Utility\" />
+      <Folder Include="UnitTests\Configuration\" />
+      <Folder Include="UnitTests\Exceptions\Localization\" />
+      <Folder Include="UnitTests\Exceptions\Messaging\" />
+      <Folder Include="UnitTests\Exceptions\Music\" />
+      <Folder Include="UnitTests\Exceptions\Validation\" />
+      <Folder Include="UnitTests\Helper\" />
+      <Folder Include="UnitTests\IO\" />
+      <Folder Include="UnitTests\Model\" />
+      <Folder Include="UnitTests\Persistence\" />
+      <Folder Include="UnitTests\Service\BotControl\" />
+      <Folder Include="UnitTests\Service\Core\" />
+      <Folder Include="UnitTests\Service\Localization\" />
+      <Folder Include="UnitTests\Service\Music\PlaybackControl\" />
+      <Folder Include="UnitTests\Service\Music\Playlist\" />
+      <Folder Include="UnitTests\Service\Music\ProgressiveTimer\" />
+      <Folder Include="UnitTests\Service\Presentation\" />
+      <Folder Include="UnitTests\Service\ReactionHandler\" />
+      <Folder Include="UnitTests\Service\SlashCommands\" />
+      <Folder Include="UnitTests\Startup\" />
+      <Folder Include="UnitTests\Wrapper\" />
     </ItemGroup>
 
 </Project>

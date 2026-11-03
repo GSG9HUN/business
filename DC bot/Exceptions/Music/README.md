@@ -1,119 +1,70 @@
-# Music Exceptions
+# Music
 
-This folder contains exceptions for music playback operations.
+Distinguishes Lavalink failures, track-load failures, expired sessions, and busy control operations.
 
-## LavalinkOperationException
+## Overview
 
-**Namespace:** `DC_bot.Exceptions.Music`
+- Lifecycle and playback services use these types to prevent stale or competing commands from acting on a replaced player.
+- A busy or superseded operation is different from a node outage. Preserve these distinctions when mapping failures to user responses.
 
-**Properties:**
+## Classes
 
-- `Operation` (string) - The Lavalink operation that failed
+### LavalinkOperationException
 
-**When Thrown:**
+**File:** `DC bot/Exceptions/Music/LavalinkOperationException.cs`
 
-```csharp
-// In LavalinkNodeConnectionService.ConnectAsync()
-catch (Exception ex)
-{
-    throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
-}
-```
+**Purpose:** Exception thrown when Lavalink operations fail.
 
-**Usage:** Thrown when starting the Lavalink audio service or waiting for the node readiness signal fails.
-
----
-
-## QueueOperationException
-
-**Namespace:** `DC_bot.Exceptions.Music`
+**Implements / inherits:** `BotException`.
 
 **Properties:**
 
-- `Operation` (string) - The queue operation that failed
-- `GuildId` (ulong) - Discord guild ID
-
-**When Thrown:**
-
-`QueueOperationException` is defined for queue persistence failure boundaries, but production code currently does not
-throw it. `MusicQueueService` now lets repository exceptions bubble naturally and uses validation/logging for expected
-queue states.
-
 ```csharp
-throw new QueueOperationException("SetQueue", guildId, "Failed to persist queue reorder", ex);
+// The operation that failed.
+public string Operation { get; }
 ```
-
-**Usage:** Reserved for future queue-specific exception wrapping.
 
 ---
 
-## TrackLoadException
+### PlaybackOperationBusyException
 
-**Namespace:** `DC_bot.Exceptions.Music`
+**File:** `DC bot/Exceptions/Music/PlaybackOperationBusyException.cs`
+
+**Purpose:** Signals a competing or unresolved operation that prevents playback control.
+
+**Implements / inherits:** `InvalidOperationException`.
+
+---
+
+### PlaybackSessionExpiredException
+
+**File:** `DC bot/Exceptions/Music/PlaybackSessionExpiredException.cs`
+
+**Purpose:** Signals that work no longer owns the current guild player generation.
+
+**Implements / inherits:** `InvalidOperationException`.
+
+---
+
+### TrackLoadException
+
+**File:** `DC bot/Exceptions/Music/TrackLoadException.cs`
+
+**Purpose:** Exception thrown when a track cannot be loaded or played.
+
+**Implements / inherits:** `BotException`.
 
 **Properties:**
 
-- `Query` (string) - The URL or search query that failed
-
-**When Thrown:**
-
-### 1. Track Load Failure
-
 ```csharp
-// In PlaybackRequestService.PlayAsync()
-catch (Exception ex)
-{
-    throw new TrackLoadException(query, loadFailureMessage, ex);
-}
+// The search query or track URL.
+public string Query { get; }
 ```
-
-### 2. No Track Returned
-
-```csharp
-if (loadResult.Track is null || loadResult.IsFailed)
-{
-    throw new TrackLoadException(query, "Track not found or load failed");
-}
-```
-
-**Usage:** Thrown when track loading/searching fails via Lavalink for URL and query requests.
 
 ---
 
-## Usage in Code
+## Related Components
 
-### LavalinkNodeConnectionService.cs
-
-- `LavalinkOperationException` - Lavalink connection failures
-
-### PlaybackRequestService.cs
-
-- `TrackLoadException` - Track loading from URLs or search queries
-
-### MusicQueueService.cs
-
-- Does not currently throw `QueueOperationException`
-
-## Handling
-
-Music exceptions bubble to the shared command execution boundaries. `CommandHandlerService`, `SlashCommandExecutor`, and
-reaction handling catch `BotException` and log the command or operation failure.
-
-```csharp
-try
-{
-    await command.ExecuteAsync(message);
-}
-catch (BotException botEx)
-{
-    logger.CommandExecutionFailed(botEx, commandName);
-}
-```
-
-## Related Files
-
-- `Service/Music/MusicServices/LavalinkNodeConnectionService.cs` - Throws `LavalinkOperationException`
-- `Service/Music/MusicServices/PlaybackRequestService.cs` - Throws `TrackLoadException`
-- `Service/Music/MusicServices/MusicQueueService.cs` - Lets repository exceptions bubble; it does not currently throw `QueueOperationException`
-- `DC bot.Contracts/Interface/Service/Persistence/IQueueRepository.cs` - Queue persistence contract
-
+- `DC bot/Exceptions/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

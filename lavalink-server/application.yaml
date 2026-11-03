@@ -108,4 +108,5 @@ lavalink:
 
 logging:
   level:
-    dev.lavalink.youtube.http.YoutubeOauth2Handler: INFO
+    root: WARN
+    dev.lavalink.youtube.http.YoutubeOauth2Handler: WARN

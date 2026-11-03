@@ -8,6 +8,9 @@ import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
 import com.dc.melodiasmario.core.network.currenttrack.CurrentTrackRemoteDataSource
 import org.koin.core.annotation.Single
 
+/**
+ * Implements current track data access using the injected data sources.
+ */
 @Single(binds = [CurrentTrackRepository::class])
 class CurrentTrackRepositoryImpl(
     private val currentTrackRemoteDataSource: CurrentTrackRemoteDataSource,
@@ -17,7 +20,7 @@ class CurrentTrackRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return currentTrackRemoteDataSource.getPlaybackStatus(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -25,7 +28,7 @@ class CurrentTrackRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return currentTrackRemoteDataSource.nextTrack(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -33,7 +36,7 @@ class CurrentTrackRepositoryImpl(
         val accessToken = authorizedSessionProvider.getValidSession()
         return currentTrackRemoteDataSource.previousTrack(
             accessToken = accessToken,
-            guildId = guildId,
+            guildId = guildId
         )
     }
 
@@ -47,12 +50,12 @@ class CurrentTrackRepositoryImpl(
         return currentTrackRemoteDataSource.pause(accessToken = accessToken, guildId = guildId)
     }
 
-    override suspend fun setRepeatMode(guildId: String, repeatMode: RepeatMode) {
+    override suspend fun setRepeatMode(guildId: String, repeatMode: RepeatMode): Unit {
         val accessToken = authorizedSessionProvider.getValidSession()
         currentTrackRemoteDataSource.setRepeatMode(
             accessToken = accessToken,
             guildId = guildId,
-            mode = repeatMode.toApiValue(),
+            mode = repeatMode.toApiValue()
         )
     }
 

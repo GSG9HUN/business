@@ -11,50 +11,56 @@ import androidx.compose.animation.togetherWith
 
 private const val NavigationAnimationDurationMillis = 260
 
+/**
+ * Provides the melodias forward transition operation for navigation transitions.
+ */
 fun melodiasForwardTransition(): ContentTransform {
     return slideInHorizontally(
         animationSpec = tween(
             durationMillis = NavigationAnimationDurationMillis,
-            easing = FastOutSlowInEasing,
+            easing = FastOutSlowInEasing
         ),
-        initialOffsetX = { fullWidth -> fullWidth / 4 },
+        initialOffsetX = { fullWidth -> fullWidth / 4 }
     ) + fadeIn(
         animationSpec = tween(
-            durationMillis = NavigationAnimationDurationMillis,
-        ),
+            durationMillis = NavigationAnimationDurationMillis
+        )
     ) togetherWith slideOutHorizontally(
         animationSpec = tween(
             durationMillis = NavigationAnimationDurationMillis,
-            easing = FastOutSlowInEasing,
+            easing = FastOutSlowInEasing
         ),
-        targetOffsetX = { fullWidth -> -fullWidth / 4 },
+        targetOffsetX = { fullWidth -> -fullWidth / 4 }
     ) + fadeOut(
         animationSpec = tween(
-            durationMillis = NavigationAnimationDurationMillis,
-        ),
+            durationMillis = NavigationAnimationDurationMillis
+        )
     )
 }
 
+/**
+ * Provides the melodias pop transition operation for navigation transitions.
+ */
 fun melodiasPopTransition(): ContentTransform {
     return slideInHorizontally(
         animationSpec = tween(
             durationMillis = NavigationAnimationDurationMillis,
-            easing = FastOutSlowInEasing,
+            easing = FastOutSlowInEasing
         ),
-        initialOffsetX = { fullWidth -> -fullWidth / 4 },
+        initialOffsetX = { fullWidth -> -fullWidth / 4 }
     ) + fadeIn(
         animationSpec = tween(
-            durationMillis = NavigationAnimationDurationMillis,
-        ),
+            durationMillis = NavigationAnimationDurationMillis
+        )
     ) togetherWith slideOutHorizontally(
         animationSpec = tween(
             durationMillis = NavigationAnimationDurationMillis,
-            easing = FastOutSlowInEasing,
+            easing = FastOutSlowInEasing
         ),
-        targetOffsetX = { fullWidth -> fullWidth / 4 },
+        targetOffsetX = { fullWidth -> fullWidth / 4 }
     ) + fadeOut(
         animationSpec = tween(
-            durationMillis = NavigationAnimationDurationMillis,
-        ),
+            durationMillis = NavigationAnimationDurationMillis
+        )
     )
 }

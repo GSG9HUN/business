@@ -1,97 +1,187 @@
-﻿# Service
+# Service
 
-This folder contains the business logic layer of the application.
+Groups process lifecycle, localization, command orchestration, music, reactions, and slash execution.
 
 ## Overview
 
-Services implement use-cases and orchestration between command handlers, Discord/Lavalink wrappers, and persistence
-repositories.
-
-## Root Files
-
-### BotService.cs
-
-Starts and maintains the Discord client lifecycle. `StartAsync` accepts a `CancellationToken` so production shutdown can
-stop the indefinite wait cleanly.
-
-### LocalizationService.cs
-
-Handles localization lookup and guild language persistence.
-
-## Reaction Handler
-
-`ReactionHandler/` contains message reaction handlers used for playback controls.
-
-Main reaction components:
-
-- `ReactionHandler/ReactionHandlerService.cs` - registers Discord reaction events and delegates playback-control reactions
-- `ReactionHandler/ReactionControlMessageService.cs` - builds/sends the now-playing control message and attaches playback emojis
-- `ReactionHandler/ReactionContextFactory.cs` - converts DSharpPlus reaction event payloads into Discord wrapper context
-- `ReactionHandler/ReactionActionDispatcher.cs` - maps normalized control emojis to Lavalink/repeat actions
-- `ReactionHandler/ReactionControlEmojis.cs` - central emoji constants and normalization
+- BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows.
+- Services receive dependencies from Startup. Persistence implementations remain in DC bot.Persistence, and SDK-specific object adaptation remains in Wrapper.
 
 ## Subfolders
 
+### BotControl/
+
+Executes API-originated commands from the durable PostgreSQL command bridge.
+
+**Files:**
+
+- `BotControlCommandDispatcher.cs`
+- `BotControlContextResolver.cs`
+- `BotControlDiscordChannelResolver.cs`
+- `BotControlDiscordMember.cs`
+- `BotControlDiscordMessage.cs`
+- `BotControlDiscordResponseService.cs`
+- `BotControlDiscordVoiceState.cs`
+- `BotControlResultFactory.cs`
+- `BotControlRuntimeContext.cs`
+- `BotControlWorker.cs`
+- `MobilePlayInput.cs`
+
+**Purpose:** BotControlWorker claims work, resolves Discord context, dispatches allowed commands, and persists result or failure metadata. Adapter values make mobile requests compatible with existing bot boundaries.
+
+---
+
 ### Core/
 
-Command dispatching, command registry lookup, and validation services.
+Handles text command routing, registry snapshots, argument parsing, and user/player readiness validation.
+
+**Files:**
+
+- `CommandHandlerService.cs`
+- `CommandRegistry.cs`
+- `CommandRegistrySnapshot.cs`
+- `CommandValidationService.cs`
+- `ValidationService.cs`
+
+**Purpose:** CommandHandlerService dispatches registered ICommand values. CommandRegistry materializes lookup state; CommandValidationService parses command payloads. ValidationService checks voice context and player readiness.
+
+---
 
 ### Music/
 
-Playback orchestration, queue behavior, repeat state, and saved playlist use-cases.
+Coordinates music requests through a facade and specialized playback components.
 
-Main entry service: `LavaLinkService.cs`
+**Files:**
 
-Subcomponents:
+- `LavaLinkService.cs`
+- `TrackSearchResolverService.cs`
 
-- `MusicServices/` - focused music playback, queue, repeat, notification, and connection services
-- `PlaylistService/` - saved playlist creation, saving, listing, viewing, renaming, deletion, and track append behavior
-- `ProgressiveTimer/` - now-playing message update timer
+**Purpose:** LavaLinkService connects commands to request, lifecycle, control, queue, and track-playback services. TrackSearchResolverService interprets source prefixes and provider URLs.
+
+---
 
 ### Presentation/
 
-Message/embed response construction and sending.
+Builds Discord success, warning, error, and validation replies from localization keys.
 
-### BotControl/
+**Files:**
 
-Bot-side execution of commands submitted by the API. The bot worker claims persisted commands, resolves Discord context, dispatches music/queue/playback actions, and persists command results for API realtime updates.
+- `ResponseBuilder.cs`
+
+**Purpose:** ResponseBuilder retrieves the guild language, formats arguments, and sends through IDiscordMessage.
+
+---
+
+### ReactionHandler/
+
+Connects now-playing messages and Discord reactions to music controls.
+
+**Files:**
+
+- `ReactionActionDispatcher.cs`
+- `ReactionContext.cs`
+- `ReactionContextFactory.cs`
+- `ReactionControlEmojis.cs`
+- `ReactionControlMessageService.cs`
+- `ReactionHandlerService.cs`
+
+**Purpose:** The handler registers reaction processing; context factories validate the reacting user and message; the dispatcher maps known emoji to control operations.
+
+---
 
 ### SlashCommands/
 
-Slash command execution adapters that turn DSharpPlus interaction contexts into the existing text command pipeline.
+Reuses registered text commands for Discord slash interactions.
 
-Files:
+**Files:**
 
 - `SlashCommandExecutor.cs`
 
-## Persistence Boundary
+**Purpose:** SlashCommandExecutor resolves the named command, validates guild context, handles deferral, and dispatches through an interaction-backed message wrapper.
 
-There is no `Service/Persistence/` folder in the current source tree. Persistence contracts and implementations live in separate projects:
+---
 
-- `../../DC bot.Contracts/Interface/Service/Persistence/`
-- `../../DC bot.Persistence/`
+## Classes
 
-## Service Architecture
+### BotService
 
+**File:** `DC bot/Service/BotService.cs`
+
+**Purpose:** Starts the Discord client and keeps the application alive until lifetime cancellation.
+
+**Methods:**
+
+- `StartAsync` — Connects Discord and optionally waits until application-lifetime cancellation.
+
+```csharp
+public async Task StartAsync(bool isTestEnvironment = false, CancellationToken cancellationToken = default);
 ```
-Commands / Slash adapters
-   ↓
-ICommandHelper / IValidationService
-   ↓
-Core Services
-   ↓
-Music Services / Localization Services
-   ↓
-ILavaLinkService / IPlaylistService / Repository Interfaces
-   ↓
-Lavalink / PostgreSQL / Discord
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await botService.StartAsync(isTestEnvironment, cancellationToken);
 ```
+
+---
+
+### LocalizationService
+
+**File:** `DC bot/Service/LocalizationService.cs`
+
+**Purpose:** Loads language dictionaries and persists guild language preferences through the file-system boundary.
+
+**Implements / inherits:** `ILocalizationService`.
+
+**Methods:**
+
+- `Get` — Resolves a localized value for the supplied key and formatting arguments.
+
+```csharp
+public string Get(ulong guildId, string key, params object[] args);
+```
+
+- `Get` — Resolves a localized value for the supplied key and formatting arguments.
+
+```csharp
+public string Get(string key, params object[] args);
+```
+
+- `LoadLanguage` — Loads the guild's saved language preference and dictionary.
+
+```csharp
+public void LoadLanguage(ulong guildId);
+```
+
+- `SaveLanguage` — Persists the guild's language preference and updates cached translations.
+
+```csharp
+public void SaveLanguage(ulong guildId, string language);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = localizationService.Get(guildId, key, args);
+```
+
+---
 
 ## Related Components
 
-- `Interface/Service/` - service contracts
-- `DC bot.Contracts/Interface/Service/Persistence/` - persistence contracts
-- `DC bot.Persistence/` - repository implementations
-- `Commands/` - service consumers
-- `API/Handlers/BotControl/` - API command creation/status boundary
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Service/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Core/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Music/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/Presentation/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/ReactionHandler/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Service/SlashCommands/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/IO/` — Implements the injected file-system boundary for translation and guild preference data.
+- `DC bot/Logging/` — Defines typed log messages and reusable scopes for bot operations.
+- `DC bot/Exceptions/Localization/` — Represents failures while loading or resolving translation resources.
+- `DC bot/Interface/Service/IO/` — Abstracts the file operations required by localization and guild preference storage.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

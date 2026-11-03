@@ -6,22 +6,22 @@ import kotlin.test.Test
 class NavigationBackStackTest {
 
     @Test
-    fun navigateAddsRouteToBackStack() {
-        // TODO: Given existing back stack, when navigate is called, then route is appended.
+    fun navigateAddsRouteToBackStack(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun replaceAllClearsBackStackAndAddsRoute() {
-        // TODO: Given existing back stack, when replaceAll is called, then only new route remains.
+    fun replaceAllClearsBackStackAndAddsRoute(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun goBackRemovesLastRouteWhenBackStackHasMoreThanOneEntry() {
-        // TODO: Given multiple routes, when goBack is called, then last route is removed.
+    fun goBackRemovesLastRouteWhenBackStackHasMoreThanOneEntry(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun goBackDoesNothingWhenBackStackHasSingleEntry() {
-        // TODO: Given one route, when goBack is called, then route remains.
+    fun goBackDoesNothingWhenBackStackHasSingleEntry(): Unit {
+        throw NotImplementedError()
     }
 }

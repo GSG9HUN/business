@@ -6,32 +6,32 @@ import kotlin.test.Test
 class LoginViewModelTest {
 
     @Test
-    fun startStatusPollingUpdatesStateWithOnlineStatus() {
-        // TODO: Given status use case succeeds with Online, when StartStatusPolling event is sent, then state is Online.
+    fun startStatusPollingUpdatesStateWithOnlineStatus(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun startStatusPollingUpdatesStateWithOfflineStatusOnError() {
-        // TODO: Given status use case fails, when StartStatusPolling event is sent, then state is Offline with error.
+    fun startStatusPollingUpdatesStateWithOfflineStatusOnError(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun discordLoginClickedEmitsOpenExternalUrlEffectOnSuccess() {
-        // TODO: Given start login succeeds, when DiscordLoginClicked event is sent, then OpenExternalUrl is emitted.
+    fun discordLoginClickedEmitsOpenExternalUrlEffectOnSuccess(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun discordLoginClickedEmitsShowErrorEffectOnFailure() {
-        // TODO: Given start login fails, when DiscordLoginClicked event is sent, then ShowError is emitted.
+    fun discordLoginClickedEmitsShowErrorEffectOnFailure(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun authTicketReceivedExchangesTicketAndNavigatesToGuildSelectorOnSuccess() {
-        // TODO: Given exchange succeeds, when AuthTicketReceived event is sent, then NavigateToGuildSelector is emitted.
+    fun authTicketReceivedExchangesTicketAndNavigatesToGuildSelectorOnSuccess(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun authTicketReceivedEmitsShowErrorEffectOnExchangeFailure() {
-        // TODO: Given exchange fails, when AuthTicketReceived event is sent, then ShowError is emitted.
+    fun authTicketReceivedEmitsShowErrorEffectOnExchangeFailure(): Unit {
+        throw NotImplementedError()
     }
 }

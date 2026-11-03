@@ -1,4 +1,4 @@
-﻿using API.Realtime.Events;
+using API.Realtime.Events;
 using API.Realtime.Publishing.Interface;
 using API.Realtime.Snapshots.Interface;
 using DC_bot.BotControl;
@@ -7,114 +7,104 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace API.Realtime.Publishing;
 
+/// <summary>
+/// Publishes current snapshots to persisted subscribers whose guild access is still authorized.
+/// </summary>
+/// <param name="hubContext">The injected hub context dependency.</param>
+/// <param name="snapshotProvider">The injected snapshot provider dependency.</param>
+/// <param name="mobileRealtimeMembershipRepository">The injected persistence contract used by this operation.</param>
+/// <param name="logger">The logger for lifecycle and failure diagnostics.</param>
 public sealed class GuildRealtimePublisher(
     IHubContext<MobileUpdatesHub> hubContext,
     IRealtimeSnapshotProvider snapshotProvider,
     IMobileRealtimeMembershipRepository mobileRealtimeMembershipRepository,
     ILogger<GuildRealtimePublisher> logger) : IGuildRealtimePublisher
 {
-    public async Task PublishPlaybackAsync(
-        ulong guildId,
-        string eventName,
-        CancellationToken cancellationToken = default)
+
+    /// <summary>
+    /// Reads and publishes the current playback snapshot to authorized guild subscribers.
+    /// </summary>
+    /// <param name="guildId">The guild id value for this operation.</param>
+    /// <param name="eventName">The event name value for this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>A task that completes when the operation and its required side effects finish.</returns>
+    public async Task PublishPlaybackAsync(ulong guildId, string eventName, CancellationToken cancellationToken = default)
     {
         try
         {
-            var snapshot = await snapshotProvider.GetPlaybackSnapshotAsync(
-                guildId,
-                cancellationToken);
-
-            var payload = new PlaybackSnapshotEvent(
-                GuildId: guildId.ToString(),
-                EventName: eventName,
-                UpdatedAtUtc: DateTimeOffset.UtcNow,
-                Snapshot: snapshot);
-
-            await PublishGuildEventAsync(
-                guildId,
-                eventName,
-                MobileRealtimeEventNames.PlaybackSnapshotChanged,
-                payload,
-                cancellationToken);
+            var snapshot = await snapshotProvider.GetPlaybackSnapshotAsync(guildId, cancellationToken);
+            var payload = new PlaybackSnapshotEvent(GuildId: guildId.ToString(), EventName: eventName, UpdatedAtUtc: DateTimeOffset.UtcNow, Snapshot: snapshot);
+            await PublishGuildEventAsync(guildId, eventName, MobileRealtimeEventNames.PlaybackSnapshotChanged, payload, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            logger.LogWarning(
-                ex,
-                "Failed to publish playback realtime event. GuildId: {GuildId}, EventName: {EventName}",
-                guildId,
-                eventName);
+            logger.LogWarning(ex, "Failed to publish playback realtime event. GuildId: {GuildId}, EventName: {EventName}", guildId, eventName);
         }
     }
 
-    public async Task PublishQueueAsync(
-        ulong guildId,
-        string eventName,
-        CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Reads and publishes the current queue snapshot to authorized guild subscribers.
+    /// </summary>
+    /// <param name="guildId">The guild id value for this operation.</param>
+    /// <param name="eventName">The event name value for this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>A task that completes when the operation and its required side effects finish.</returns>
+    public async Task PublishQueueAsync(ulong guildId, string eventName, CancellationToken cancellationToken = default)
     {
         try
         {
-            var snapshot = await snapshotProvider.GetQueueSnapshotAsync(
-                guildId,
-                cancellationToken);
-
-            var payload = new QueueSnapshotEvent(
-                GuildId: guildId.ToString(),
-                EventName: eventName,
-                UpdatedAtUtc: DateTimeOffset.UtcNow,
-                Snapshot: snapshot);
-
-            await PublishGuildEventAsync(
-                guildId,
-                eventName,
-                MobileRealtimeEventNames.QueueSnapshotChanged,
-                payload,
-                cancellationToken);
+            var snapshot = await snapshotProvider.GetQueueSnapshotAsync(guildId, cancellationToken);
+            var payload = new QueueSnapshotEvent(GuildId: guildId.ToString(), EventName: eventName, UpdatedAtUtc: DateTimeOffset.UtcNow, Snapshot: snapshot);
+            await PublishGuildEventAsync(guildId, eventName, MobileRealtimeEventNames.QueueSnapshotChanged, payload, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            logger.LogWarning(
-                ex,
-                "Failed to publish queue realtime event. GuildId: {GuildId}, EventName: {EventName}",
-                guildId,
-                eventName);
+            logger.LogWarning(ex, "Failed to publish queue realtime event. GuildId: {GuildId}, EventName: {EventName}", guildId, eventName);
         }
     }
 
-    public async Task PublishGuildBotStatusAsync(
-        ulong guildId,
-        string eventName,
-        CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Reads and publishes the current bot presence snapshot to authorized guild subscribers.
+    /// </summary>
+    /// <param name="guildId">The guild id value for this operation.</param>
+    /// <param name="eventName">The event name value for this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>A task that completes when the operation and its required side effects finish.</returns>
+    public async Task PublishGuildBotStatusAsync(ulong guildId, string eventName, CancellationToken cancellationToken = default)
     {
         try
         {
-            var snapshot = await snapshotProvider.GetGuildBotStatusSnapshotAsync(
-                guildId,
-                cancellationToken);
-
-            var payload = new GuildBotStatusEvent(
-                GuildId: guildId.ToString(),
-                EventName: eventName,
-                UpdatedAtUtc: DateTimeOffset.UtcNow,
-                Snapshot: snapshot);
-
-            await PublishGuildEventAsync(
-                guildId,
-                eventName,
-                MobileRealtimeEventNames.GuildBotStatusChanged,
-                payload,
-                cancellationToken);
+            var snapshot = await snapshotProvider.GetGuildBotStatusSnapshotAsync(guildId, cancellationToken);
+            var payload = new GuildBotStatusEvent(GuildId: guildId.ToString(), EventName: eventName, UpdatedAtUtc: DateTimeOffset.UtcNow, Snapshot: snapshot);
+            await PublishGuildEventAsync(guildId, eventName, MobileRealtimeEventNames.GuildBotStatusChanged, payload, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            logger.LogWarning(
-                ex,
-                "Failed to publish guild bot status realtime event. GuildId: {GuildId}, EventName: {EventName}",
-                guildId,
-                eventName);
+            logger.LogWarning(ex, "Failed to publish guild bot status realtime event. GuildId: {GuildId}, EventName: {EventName}", guildId, eventName);
         }
     }
 
+    /// <summary>
+    /// Sends a typed guild payload and its generic event alias to currently authorized subscribers.
+    /// </summary>
+    /// <param name="guildId">The guild id value for this operation.</param>
+    /// <param name="eventName">The event name value for this operation.</param>
+    /// <param name="genericEventName">The generic event name value for this operation.</param>
+    /// <param name="payload">The payload value for this operation.</param>
+    /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
+    /// <returns>A task that completes when the operation and its required side effects finish.</returns>
     private async Task PublishGuildEventAsync<TPayload>(
         ulong guildId,
         string eventName,
@@ -122,31 +112,21 @@ public sealed class GuildRealtimePublisher(
         TPayload payload,
         CancellationToken cancellationToken)
     {
-        var subscribedUserIds = await mobileRealtimeMembershipRepository.GetAuthorizedSubscribedUserIdsAsync(
-            guildId,
-            cancellationToken);
-        
+        var subscribedUserIds = await mobileRealtimeMembershipRepository.GetAuthorizedSubscribedUserIdsAsync(guildId, cancellationToken);
+
         foreach (var userId in subscribedUserIds)
         {
             var group = MobileUpdateGroups.UserGuild(guildId, userId);
-
-            await hubContext.Clients
-                .Group(group)
+            await hubContext.Clients.Group(group)
                 .SendAsync(eventName, payload, cancellationToken);
-        
+
             if (eventName != genericEventName)
             {
-                await hubContext.Clients
-                    .Group(group)
+                await hubContext.Clients.Group(group)
                     .SendAsync(genericEventName, payload, cancellationToken);
             }
         }
 
-        logger.LogInformation(
-            "Published guild realtime event. GuildId: {GuildId}, EventName: {EventName}, GenericEventName: {GenericEventName}, SubscriberCount: {SubscriberCount}",
-            guildId,
-            eventName,
-            genericEventName,
-            subscribedUserIds.Count);
+        logger.LogInformation("Published guild realtime event. GuildId: {GuildId}, EventName: {EventName}, GenericEventName: {GenericEventName}, SubscriberCount: {SubscriberCount}", guildId, eventName, genericEventName, subscribedUserIds.Count);
     }
 }

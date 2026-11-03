@@ -12,29 +12,32 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.button.MModeBu
 import com.dc.melodiasmario.core.commonui.music.model.MAddMusicLabels
 import com.dc.melodiasmario.core.presentation.music.model.MAddMusicMode
 
+/**
+ * Renders add music mode selector from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MAddMusicModeSelector(
-    labels: MAddMusicLabels,
+    mAddMusicLabels: MAddMusicLabels,
     selectedMode: MAddMusicMode,
-    onModeChanged: (MAddMusicMode) -> Unit,
-) {
+    onModeChanged: (addMusicMode: MAddMusicMode) -> Unit
+): Unit {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
     ) {
         MModeButton(
-            modifier = Modifier.weight(1f),
-            text = labels.searchMode,
+            modifier = Modifier.weight(weight = 1f),
+            text = mAddMusicLabels.searchMode,
             selected = selectedMode == MAddMusicMode.Search,
-            onClick = { onModeChanged(MAddMusicMode.Search) },
+            onClick = { onModeChanged(MAddMusicMode.Search) }
         )
         MModeButton(
-            modifier = Modifier.weight(1f),
-            text = labels.manualMode,
+            modifier = Modifier.weight(weight = 1f),
+            text = mAddMusicLabels.manualMode,
             selected = selectedMode == MAddMusicMode.Manual,
-            onClick = { onModeChanged(MAddMusicMode.Manual) },
+            onClick = { onModeChanged(MAddMusicMode.Manual) }
         )
-        MHelpTooltipButton(text = labels.modeHelp)
+        MHelpTooltipButton(text = mAddMusicLabels.modeHelp)
     }
 }

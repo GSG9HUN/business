@@ -1,75 +1,33 @@
-﻿# Messaging Exceptions
+# Messaging
 
-This folder contains exceptions for Discord message operation failures.
+Represents Discord response delivery failures at the presentation boundary.
 
-## MessageSendException
+## Overview
 
-**Namespace:** `DC_bot.Exceptions.Messaging`
+- Response-building and notification paths can attach message-send context while preserving the underlying cause.
+- Message delivery failure does not automatically mean a playback transport operation failed; handle the two outcomes separately.
+
+## Classes
+
+### MessageSendException
+
+**File:** `DC bot/Exceptions/Messaging/MessageSendException.cs`
+
+**Purpose:** Exception thrown when Discord message operations fail.
+
+**Implements / inherits:** `BotException`.
 
 **Properties:**
 
-- `Operation` (string) - The operation that failed (e.g., "SendMessage", "SendReactionControlMessage")
-
-**When Thrown:**
-
-### 1. Reaction Control Message Send Failure
-
 ```csharp
-// In ReactionControlMessageService.SendMusicControlMessage()
-catch (Exception ex)
-{
-    throw new MessageSendException("SendReactionControlMessage", "Failed to send reaction control message", ex);
-}
+// The operation that failed.
+public string Operation { get; }
 ```
 
-### 2. Track Notification Send Failure
+---
 
-```csharp
-// In TrackNotificationService.SendSafeAsync()
-catch (Exception ex)
-{
-    throw new MessageSendException(operation, "Failed to send Discord message", ex);
-}
-```
+## Related Components
 
-## Usage in Code
-
-### ReactionControlMessageService.cs
-
-- Thrown when sending reaction control messages fails
-- Wraps underlying Discord API exceptions
-
-### TrackNotificationService.cs
-
-- Thrown when sending track notification messages fails
-- Used in "now playing" messages and queue updates
-
-## Handling
-
-Services catch this exception to log message send failures:
-
-```csharp
-try
-{
-    await trackNotificationService.NotifyNowPlayingAsync(textChannel, track, position, duration);
-}
-catch (MessageSendException ex)
-{
-    logger.LogError(ex, "Failed to send track notification: {Operation}", ex.Operation);
-    // Continue operation - message send is not critical
-}
-```
-
-## Common Causes
-
-- Missing channel permissions (SEND_MESSAGES, EMBED_LINKS)
-- Discord API rate limiting
-- Channel deleted while sending
-- Network timeouts
-
-## Related Files
-
-- `Service/ReactionHandler/ReactionControlMessageService.cs` - Throws for reaction messages
-- `Service/Music/MusicServices/TrackNotificationService.cs` - Throws for track notifications
-- `Wrapper/DiscordChannelWrapper.cs` - Channel abstraction used for sending
-
+- `DC bot/Exceptions/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

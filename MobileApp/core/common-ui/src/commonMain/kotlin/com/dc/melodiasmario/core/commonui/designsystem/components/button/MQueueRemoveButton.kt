@@ -16,29 +16,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 
+/**
+ * Renders queue remove button from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MQueueRemoveButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+    enabled: Boolean = true
+): Unit {
     Surface(
         modifier = modifier
-            .size(36.dp)
+            .size(size = 36.dp)
             .semantics { this.contentDescription = contentDescription },
-        shape = RoundedCornerShape(9.dp),
+        shape = RoundedCornerShape(size = 9.dp),
         color = MaterialTheme.colorScheme.errorContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.28f)),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.error.copy(alpha = 0.28f)),
         onClick = onClick,
-        enabled = enabled,
+        enabled = enabled
     ) {
         Box(contentAlignment = Alignment.Center) {
             MText(
                 text = "X",
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
         }
     }

@@ -1,28 +1,52 @@
 # Results
 
-This folder contains API result wrappers used before mapping to HTTP responses.
+Represents either a successful value or an expected error before conversion to HTTP.
 
-## Why This Folder Exists
+## Overview
 
-Handlers and helper services sometimes need to return either a successful value or a structured failure before the response is converted to HTTP. Result wrappers make that explicit without throwing exceptions for expected outcomes such as validation failures, conflicts, or missing records.
+- ApiResult<T> is consumed by DomainToHttpMapper. OAuth redirects and accepted bot commands can return IResult directly when their HTTP semantics differ.
+- Use structured failures for expected outcomes. This wrapper does not replace cancellation propagation or unexpected exception handling.
 
-## Files
+## Models and Results
 
-### ApiResults.cs
+### ApiResult
 
-Defines `ApiResult<T>`, a simple success/failure wrapper.
+**File:** `API/Results/ApiResult.cs`
 
-Purpose:
+**Purpose:** Carries either a typed API success value or an error code and message for HTTP mapping.
 
-- carry successful values
-- carry structured error codes and messages
-- keep handlers consistent before `DomainToHttpMapper` converts results to HTTP responses
+**Record declaration:**
 
-## Flow Context
+```csharp
+public sealed record ApiResult<T>(bool Success, T? Value, ApiErrorCode? ErrorCode, string? ErrorMessage);
+```
 
-A handler can build an `ApiResult<T>`, pass it to `DomainToHttpMapper`, and let the mapper choose the final status code and error response shape. That keeps handler code focused on orchestration instead of repeated response construction.
+**Methods:**
 
-## Maintenance Notes
+- `Fail` — Creates a failed API result containing an error code and message.
 
-- Use `ApiResult<T>` for normal JSON API responses.
-- Do not force OAuth redirects or accepted command submissions into this wrapper if direct `IResult` values are clearer.
+```csharp
+public static ApiResult<T> Fail(ApiErrorCode code, string message);
+```
+
+- `Ok` — Creates a successful API result containing the supplied value.
+
+```csharp
+public static ApiResult<T> Ok(T value);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = ApiResult.Fail(code, message);
+```
+
+---
+
+## Related Components
+
+- `API/README.md` — Parent feature overview and neighboring components.
+- `API/Errors/` — Defines error categories understood by HTTP result mapping.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

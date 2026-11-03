@@ -4,6 +4,16 @@ import com.dc.melodiasmario.core.model.profile.ProfileSettingsData
 import com.dc.melodiasmario.core.model.settings.UserSettings
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents profile settings dto in the API transport contract.
+ *
+ * @property languageCode Language code.
+ * @property theme Theme.
+ * @property hapticFeedbackEnabled Haptic feedback enabled.
+ * @property soundEffectsEnabled Sound effects enabled.
+ * @property telemetryEnabled Telemetry enabled.
+ * @property updatedAtUtc Updated at utc.
+ */
 @Serializable
 data class ProfileSettingsDto(
     val languageCode: String,
@@ -11,18 +21,24 @@ data class ProfileSettingsDto(
     val hapticFeedbackEnabled: Boolean,
     val soundEffectsEnabled: Boolean,
     val telemetryEnabled: Boolean,
-    val updatedAtUtc: String,
+    val updatedAtUtc: String
 ) {
-    fun toDomain() = UserSettings(
+    /**
+     * Maps this value to domain.
+     */
+    fun toDomain(): UserSettings = UserSettings(
         languageCode = languageCode,
         theme = theme,
         hapticFeedbackEnabled = hapticFeedbackEnabled,
         soundEffectsEnabled = soundEffectsEnabled,
-        telemetryEnabled = telemetryEnabled,
+        telemetryEnabled = telemetryEnabled
     )
 
-    fun toProfileSettingsData() = ProfileSettingsData(
+    /**
+     * Maps this value to profile settings data.
+     */
+    fun toProfileSettingsData(): ProfileSettingsData = ProfileSettingsData(
         userSettings = toDomain(),
-        settingsUpdatedAtUtc = updatedAtUtc,
+        settingsUpdatedAtUtc = updatedAtUtc
     )
 }

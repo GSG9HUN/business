@@ -1,135 +1,203 @@
-# Core Services
+# Core
 
-This folder contains core application services for command handling and validation.
+Handles text command routing, registry snapshots, argument parsing, and user/player readiness validation.
 
-## Files
+## Overview
 
-### CommandHandlerService.cs
+- CommandHandlerService dispatches registered ICommand values. CommandRegistry materializes lookup state; CommandValidationService parses command payloads. ValidationService checks voice context and player readiness.
+- If the SDK reports disconnected, readiness can use REST evidence tied to unchanged node and Discord voice sessions. A voice channel ID alone is not sufficient proof of a valid connection.
 
-**Purpose:** Route Discord messages to appropriate command handlers.
+## Classes
 
-**Implements:** No interface (event handler service)
+### CommandHandlerService
 
-**Key Methods:**
+**File:** `DC bot/Service/Core/CommandHandlerService.cs`
 
-- `HandleEventAsync()` - Receives DSharpPlus `MessageCreatedEventArgs`
-- `RegisterHandler()` - Enables text command processing after the service graph is built
-- `UnregisterHandler()` - Disables processing in tests/internal cleanup
+**Purpose:** Dispatches prefixed Discord messages through the registry and contains command execution failures.
 
-**Behavior:**
-
-1. Receives message-created events wired by `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
-2. Ignores messages until `RegisterHandler()` has enabled processing
-3. Ignores bot authors unless the service was created in test mode
-4. Parses the configured prefix (e.g., `!play`)
-5. Extracts command name and argument text
-6. Finds the matching `ICommand` through `ICommandRegistry`
-7. Wraps the DSharpPlus message with explicit guild context
-8. Executes the command and logs the result
-9. Sends a guild-localized unknown-command response when no command matches
-
-**Initialization:**
-
-```csharp
-BotHandlerRegistrar.RegisterHandlers(services);
-```
-
-Event routing itself is configured through DSharpPlus 5 builder APIs in `Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`.
-
----
-
-### ValidationService.cs
-
-**Purpose:** Validate user, player, and connection state.
-
-**Implements:**
-
-- `IValidationService` - Player and connection validation
-- `IUserValidationService` - User validation
+**Implements / inherits:** `IEventHandler<MessageCreatedEventArgs>`.
 
 **Methods:**
 
-#### IValidationService
+- `HandleEventAsync` — Dispatches a message-created event only while this command handler is registered.
 
-- `ValidatePlayerAsync()` - Check if Lavalink player exists for guild
-- `ValidateConnectionAsync()` - Check if player connection is established
+```csharp
+public Task HandleEventAsync(DiscordClient sender, MessageCreatedEventArgs eventArgs);
+```
 
-#### IUserValidationService
+- `RegisterHandler` — Registers runtime event handlers while preventing duplicate subscriptions.
 
-- `ValidateUserAsync()` - Validate user (not bot, in voice channel)
-- `IsBotUser()` - Check if message author is a bot
+```csharp
+public void RegisterHandler(DiscordClient _);
+```
+
+- `UnregisterHandler` — Removes registered event subscriptions and detaches their runtime callbacks.
+
+```csharp
+internal void UnregisterHandler(DiscordClient _);
+```
 
 **Usage:**
 
-```csharp
-// Validate user
-var userResult = await validationService.ValidateUserAsync(message);
-if (!userResult.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, userResult.ErrorKey);
-    return;
-}
+The caller supplies the component and argument values used in this example.
 
-// Validate player
-var playerResult = await validationService.ValidatePlayerAsync(audioService, guildId);
-if (!playerResult.IsValid)
-{
-    await responseBuilder.SendValidationErrorAsync(message, playerResult.ErrorKey);
-    return;
-}
+```csharp
+await commandHandlerService.HandleEventAsync(sender, eventArgs);
 ```
 
-**Validation Checks:**
+---
 
-User validation:
+### CommandRegistry
 
-- User is not a bot
-- User is in a voice channel
-- Bot users are ignored unless test mode is enabled
+**File:** `DC bot/Service/Core/CommandRegistry.cs`
 
-Player validation:
+**Purpose:** Builds a lazy, name-indexed snapshot of registered commands for discovery and dispatch.
 
-- Player exists for guild; a missing player returns `BotIsNotConnectedError`, not a Lavalink node error
-- `ValidatePlayerAsync()` logs Lavalink connection state, player state, voice channel ID, and current track identifier when a player is found
-- `ValidateConnectionAsync()` requires `connection.ConnectionState.IsConnected`; disconnected or destroyed players fail with `BotIsNotConnectedError` even if they still have a voice channel ID
+**Implements / inherits:** `ICommandRegistry`.
+
+**Properties:**
+
+```csharp
+public IReadOnlyCollection<ICommand> Commands { get; }
+```
+
+**Methods:**
+
+- `TryGetCommand` — Looks up a command by name without rebuilding the lazy registry snapshot.
+
+```csharp
+public bool TryGetCommand(string commandName, out ICommand command);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = commandRegistry.TryGetCommand(commandName, out var command);
+```
 
 ---
 
-### CommandValidationService.cs
+### CommandValidationService
 
-**Purpose:** Command-specific validation logic.
+**File:** `DC bot/Service/Core/CommandValidationService.cs`
 
-**Details:** Used by commands for custom validation beyond standard user/player checks.
+**Purpose:** Parses command arguments and presents user-validation failures before execution.
 
-Argument extraction treats missing and whitespace-only arguments as invalid. This keeps commands such as `!play   `
-from receiving an empty payload.
+**Implements / inherits:** `ICommandHelper`.
 
-Playlist commands that need two values, such as `!savePlaylist <name> <url>`, `!addSong <name> <url>`,
-`!removeSong <name> <trackNumber>`, and `!renamePlaylist <currentName> <newName>`, use
-`TryParseSavePlaylistArguments` to validate and split the payload.
+**Methods:**
 
-The first argument can be quoted when it contains spaces, for example `!savePlaylist "road trip" https://example.com`.
-Slash playlist adapters always quote playlist-name arguments for these two-value commands before they enter the text
-command parser.
+- `TryGetArgumentAsync` — Resolves a required argument and presents usage guidance when absent.
+
+```csharp
+public async Task<string?> TryGetArgumentAsync(
+    IDiscordMessage message,
+    IResponseBuilder responseBuilder,
+    ILogger logger,
+    string commandName,
+    CancellationToken cancellationToken = default);
+```
+
+- `TryParseSavePlaylistArguments` — Parses a playlist name and source argument while preserving quoted values.
+
+```csharp
+public async Task<(
+    IDiscordMessage message,
+    IResponseBuilder responseBuilder,
+    ILogger logger,
+    string commandName,
+    CancellationToken cancellationToken = default);
+```
+
+- `TryValidateUserAsync` — Runs user validation and sends a localized failure response when validation fails.
+
+```csharp
+public async Task<UserValidationResult?> TryValidateUserAsync(
+    IUserValidationService userValidation,
+    IResponseBuilder responseBuilder,
+    IDiscordMessage message,
+    CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await commandValidationService.TryGetArgumentAsync(
+    message,
+    responseBuilder,
+    logger,
+    commandName,
+    cancellationToken);
+```
 
 ---
 
-### CommandRegistry.cs
+### ValidationService
 
-**Purpose:** Materialize registered `ICommand` implementations once and expose name-based lookup.
+**File:** `DC bot/Service/Core/ValidationService.cs`
 
-**Behavior:**
+**Purpose:** Checks voice membership and Lavalink connection readiness before music operations are accepted.
 
-- Injected into `CommandHandlerService` and `HelpCommand` instead of resolving commands through `IServiceProvider`.
-- Builds a stable command list and dictionary from the DI-provided `IEnumerable<ICommand>`.
-- Duplicate command names fail during lookup initialization, so ambiguous command routing is caught early.
+**Implements / inherits:** `IValidationService`, `IUserValidationService`.
+
+**Methods:**
+
+- `ValidateConnectionAsync` — Validates Lavalink readiness using available player and remote voice-state evidence.
+
+```csharp
+public async Task<ConnectionValidationResult> ValidateConnectionAsync(
+    ILavalinkPlayer connection,
+    CancellationToken cancellationToken = default);
+```
+
+- `ValidateUserAsync` — Checks that the requesting Discord user may perform voice-bound music operations.
+
+```csharp
+public async Task<UserValidationResult> ValidateUserAsync(IDiscordMessage message, CancellationToken cancellationToken = default);
+```
+
+- `IsBotUser` — Checks whether an event user is the currently authenticated bot.
+
+```csharp
+public bool IsBotUser(IDiscordMessage message);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+var result = await validationService.ValidateConnectionAsync(connection, cancellationToken);
+```
+
+---
+
+## Models and Results
+
+### CommandRegistrySnapshot
+
+**File:** `DC bot/Service/Core/CommandRegistrySnapshot.cs`
+
+**Purpose:** Keeps the materialized commands and their name lookup together after registry initialization.
+
+**Record declaration:**
+
+```csharp
+internal sealed record CommandRegistrySnapshot(IReadOnlyList<ICommand> Commands, IReadOnlyDictionary<string, ICommand> Lookup);
+```
 
 ---
 
 ## Related Components
 
-- **Interface/Core/** - Service contracts
-- **Commands/** - Use these services
-- **Helper/Validation/** - Validation result types
-- **Service/LocalizationService.cs** - Localization lookup
-
+- `DC bot/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Configuration/` — Defines typed options for bot identity, Lavalink connectivity, search resolution, and saved-playlist limits.
+- `DC bot/Constants/` — Centralizes identifiers used to select localized messages and validation errors.
+- `DC bot/Exceptions/` — Defines the common exception boundary and feature-specific failure categories.
+- `DC bot/Interface/` — Defines command and adapter boundaries used inside the bot executable.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

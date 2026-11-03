@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
+/**
+ * Renders reorder drag container from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun ReorderDragContainer(
     listState: LazyListState,
@@ -36,25 +39,26 @@ fun ReorderDragContainer(
     horizontalContentPadding: Dp = 12.dp,
     onMove: (fromIndex: Int, toIndex: Int) -> Unit,
     dragOverlay: @Composable (index: Int) -> Unit,
-    content: @Composable (draggedIndex: Int?) -> Unit,
-) {
+    content: @Composable (draggedIndex: Int?) -> Unit
+): Unit {
     var draggedItem by remember {
-        mutableStateOf<DraggedItem?>(null)
+        mutableStateOf<DraggedItem?>(value = null)
     }
     var viewportHeightPx by remember {
-        mutableFloatStateOf(0f)
+        mutableFloatStateOf(value = 0f)
     }
 
-    val currentOnMove by rememberUpdatedState(onMove)
-    val indexByKey = remember(itemKeys) {
-        itemKeys.withIndex().associate { (index, key) -> key to index }
+    val currentOnMove by rememberUpdatedState(newValue = onMove)
+    val indexByKey = remember(key1 = itemKeys) {
+        itemKeys.withIndex()
+            .associate { (index, key) -> key to index }
     }
 
     Box(
         modifier = modifier
             .clipToBounds()
-            .onSizeChanged {
-                viewportHeightPx = it.height.toFloat()
+            .onSizeChanged { layoutSize ->
+                viewportHeightPx = layoutSize.height.toFloat()
             }
             .pointerInput(listState, itemKeys, enabled) {
                 if (!enabled) {
@@ -62,7 +66,7 @@ fun ReorderDragContainer(
                 }
 
                 awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false,)
+                    val down = awaitFirstDown(requireUnconsumed = false)
                     val initialLayout = listState.layoutInfo
                     val downY = down.position.y + initialLayout.viewportStartOffset
 
@@ -73,11 +77,11 @@ fun ReorderDragContainer(
                                     && downY < item.offset + item.size
                         } ?: return@awaitEachGesture
 
-                    val longPress = awaitLongPressOrCancellation(down.id)
+                    val longPress = awaitLongPressOrCancellation(pointerId = down.id)
                         ?: return@awaitEachGesture
 
                     val layout = listState.layoutInfo
-                    val item = layout.visibleItemsInfo.firstOrNull { it.key == initialItem.key }
+                    val item = layout.visibleItemsInfo.firstOrNull { visibleItemsInfo -> visibleItemsInfo.key == initialItem.key }
                         ?: return@awaitEachGesture
 
                     val fromIndex = indexByKey[item.key]
@@ -97,7 +101,7 @@ fun ReorderDragContainer(
                     var move: Pair<Int, Int>? = null
 
                     try {
-                        val completed = drag(longPress.id) { change ->
+                        val completed = drag(pointerId = longPress.id) { change ->
                             change.consume()
 
                             draggedItem = draggedItem?.copy(pointerY = change.position.y)
@@ -105,6 +109,7 @@ fun ReorderDragContainer(
 
                         if (completed) {
                             currentEvent.changes.forEach { change ->
+
                                 if (change.changedToUp()) {
                                     change.consume()
                                 }
@@ -162,13 +167,11 @@ fun ReorderDragContainer(
     }
 }
 
-
-
 private fun calculateTargetIndex(
     draggedItem: DraggedItem,
     listState: LazyListState,
     indexByKey: Map<String, Int>,
-    itemCount: Int,
+    itemCount: Int
 ): Int {
     val layout = listState.layoutInfo
     val draggedCenterY =
@@ -188,13 +191,13 @@ private fun calculateTargetIndex(
 
             queueIndex to (item.offset + item.size / 2f)
         }
-        .sortedBy { it.first }
+        .sortedBy { indexedItem -> indexedItem.first }
 
     if (visibleQueueItems.isEmpty()) {
         val onlyHeadersVisible =
             layout.visibleItemsInfo.isNotEmpty() &&
-                    layout.visibleItemsInfo.all {
-                        it.index < draggedItem.headerItemCount
+                    layout.visibleItemsInfo.all { visibleItemsInfo ->
+                        visibleItemsInfo.index < draggedItem.headerItemCount
                     }
 
         return if (onlyHeadersVisible) {

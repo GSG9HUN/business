@@ -1,91 +1,259 @@
-# Music Slash Commands
+# Music
 
-This folder contains slash command adapters for music playback control.
+Exposes voice join/leave and playback controls through slash commands.
 
-## Commands
+## Overview
 
-### JoinSlashCommand.cs
+- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
+- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 
-**Command:** `/join`
+## Classes
 
-**Delegates to:** `JoinCommand`
+### JoinSlashCommand
 
-**Behavior:** Requires a guild context, defers the interaction, and joins the user's voice channel to start queued music
-through the existing text command pipeline.
+**File:** `DC bot/Commands/SlashCommands/Music/JoinSlashCommand.cs`
 
----
+**Purpose:** Adapts the join slash command to shared command execution and interaction acknowledgement.
 
-### PlaySlashCommand.cs
+**Methods:**
 
-**Command:** `/play query:<url-or-search>`
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
 
-**Delegates to:** `PlayCommand`
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
 
-**Behavior:**
+- `Join` — Adapts the join slash route to its shared handler and interaction response policy.
 
-1. Requires a guild context.
-2. Defers the interaction because track loading can take longer than a simple response.
-3. Passes the query or URL as the text command argument.
-4. Reuses the existing play pipeline for voice validation, source resolution, queueing, playback, and localized responses.
+```csharp
+public Task Join(SlashCommandContext context);
+```
 
----
+**Usage:**
 
-### PauseSlashCommand.cs
+The caller supplies the component and argument values used in this example.
 
-**Command:** `/pause`
-
-**Delegates to:** `PauseCommand`
-
-**Behavior:** Requires a guild context, defers the interaction, and pauses the current track through the existing text
-command pipeline.
+```csharp
+await joinSlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### ResumeSlashCommand.cs
+### LeaveSlashCommand
 
-**Command:** `/resume`
+**File:** `DC bot/Commands/SlashCommands/Music/LeaveSlashCommand.cs`
 
-**Delegates to:** `ResumeCommand`
+**Purpose:** Adapts the leave slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:** Requires a guild context, defers the interaction, and resumes paused playback through the existing text
-command pipeline.
+**Methods:**
 
----
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
 
-### SkipSlashCommand.cs
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
 
-**Command:** `/skip`
+- `Leave` — Adapts the leave slash route to its shared handler and interaction response policy.
 
-**Delegates to:** `SkipCommand`
+```csharp
+public Task Leave(SlashCommandContext context);
+```
 
-**Behavior:** Requires a guild context, defers the interaction, and skips/stops the current track through the existing
-text command pipeline.
+**Usage:**
 
----
+The caller supplies the component and argument values used in this example.
 
-### PreviousSlashCommand.cs
-
-**Command:** `/previous`
-
-**Delegates to:** `PreviousCommand`
-
-**Behavior:** Requires a guild context, defers the interaction, and starts the previous track through the existing text
-command pipeline.
+```csharp
+await leaveSlashCommand.ExecuteAsync(context);
+```
 
 ---
 
-### LeaveSlashCommand.cs
+### PauseSlashCommand
 
-**Command:** `/leave`
+**File:** `DC bot/Commands/SlashCommands/Music/PauseSlashCommand.cs`
 
-**Delegates to:** `LeaveCommand`
+**Purpose:** Adapts the pause slash command to shared command execution and interaction acknowledgement.
 
-**Behavior:** Requires a guild context, defers the interaction, and disconnects/cleans up playback state through the
-existing text command pipeline.
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Pause` — Adapts the pause slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Pause(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await pauseSlashCommand.ExecuteAsync(context);
+```
+
+---
+
+### PlaySlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Music/PlaySlashCommand.cs`
+
+**Purpose:** Adapts the play slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string query);
+```
+
+- `Play` — Adapts the play slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Play(SlashCommandContext context, [Parameter("query")][Description("URL or search query")] string query);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await playSlashCommand.ExecuteAsync(context, query);
+```
+
+---
+
+### PreviousSlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Music/PreviousSlashCommand.cs`
+
+**Purpose:** Adapts the previous slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Previous` — Adapts the previous slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Previous(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await previousSlashCommand.ExecuteAsync(context);
+```
+
+---
+
+### ResumeSlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Music/ResumeSlashCommand.cs`
+
+**Purpose:** Adapts the resume slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Resume` — Adapts the resume slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Resume(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await resumeSlashCommand.ExecuteAsync(context);
+```
+
+---
+
+### SkipSlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Music/SkipSlashCommand.cs`
+
+**Purpose:** Adapts the skip slash command to shared command execution and interaction acknowledgement.
+
+**Methods:**
+
+- `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context);
+```
+
+- `Skip` — Adapts the skip slash route to its shared handler and interaction response policy.
+
+```csharp
+public Task Skip(SlashCommandContext context);
+```
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await skipSlashCommand.ExecuteAsync(context);
+```
+
+---
+
+### TwentyFourSevenSlashCommand
+
+**File:** `DC bot/Commands/SlashCommands/Music/TwentyFourSevenSlashCommand.cs`
+
+**Purpose:** Adapts the registered `/24-7` command to the shared text command with a required boolean option.
+
+**Methods:**
+
+```csharp
+public Task TwentyFourSeven(SlashCommandContext context, bool enabled);
+public Task ExecuteAsync(
+    ISlashInteractionContext context,
+    bool enabled,
+    CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+```text
+/24-7 enabled:true
+/24-7 enabled:false
+```
+
+**Validation Checks:**
+
+- Require a guild and defer the interaction before executing the shared command.
+- Forward the boolean as `true` or `false` to `TwentyFourSevenCommand`.
+- Register both the adapter and its command type through `CommandServiceCollectionExtensions`.
+- The adapter changes the shared preference. The separate persistent voice worker handles automatic rejoining and checkpoint restoration.
+
+---
 
 ## Related Components
 
-- `../README.md` - slash command architecture
-- `../../TextCommands/Music/README.md` - text command behavior reused by these adapters
-- `../../../Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
-- `../../../Service/Music/README.md` - music playback services
+- `DC bot/Commands/SlashCommands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Interface/Service/SlashCommands/` — Connects DSharpPlus interactions to the shared text command pipeline.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

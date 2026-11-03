@@ -31,20 +31,23 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders search bar from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun MSearchBar(
     query: String,
-    onQueryChange: (String) -> Unit,
+    onQueryChange: (query: String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
     enabled: Boolean = true,
-    onSearch: () -> Unit = {},
-) {
+    onSearch: () -> Unit = {}
+): Unit {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(size = 16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         BasicTextField(
             value = query,
@@ -62,29 +65,29 @@ fun MSearchBar(
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(space = 10.dp)
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.ic_search),
+                        painter = painterResource(resource = Res.drawable.ic_search),
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(size = 16.dp)
                     )
 
                     Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier.weight(weight = 1f),
+                        contentAlignment = Alignment.CenterStart
                     ) {
                         if (query.isBlank()) {
                             MText(
                                 text = placeholder,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         innerTextField()
                     }
                 }
-            },
+            }
         )
     }
 }
@@ -96,6 +99,6 @@ private fun SearchBarPreview() {
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
         query = "",
         onQueryChange = {},
-        placeholder = stringResource(Res.string.search_placeholder),
+        placeholder = stringResource(resource = Res.string.search_placeholder)
     )
 }

@@ -1,108 +1,228 @@
-# Music Service Interfaces
+# Music
 
-This folder contains music-domain service interfaces.
+Exposes the top-level music operations used by commands and adapters.
 
-## Files
+## Overview
 
-### ILavaLinkService.cs
+- ILavaLinkService delegates to specialized request, connection, control, queue, and playback services.
+- Use the feature subcontracts for internal responsibilities. A caller must not infer session ownership from a stored player reference alone.
 
-**Purpose:** Facade over music playback orchestration.
+## Subfolders
 
-```csharp
-public interface ILavaLinkService
-{
-    Task<PlaybackControlResult> PauseAsync(IDiscordMessage message, IDiscordMember? member);
-    Task PlayAsyncUrl(IDiscordChannel toDiscordChannel, Uri result, IDiscordMessage message, TrackSearchMode trackSearchMode);
-    Task PlayAsyncQuery(IDiscordChannel toDiscordChannel, string query, IDiscordMessage message, TrackSearchMode trackSearchMode);
-    Task ConnectAsync();
-    Task<PlaybackControlResult> SkipAsync(IDiscordMessage message, IDiscordMember? member);
-    Task<PlaybackControlResult> PreviousAsync(IDiscordMessage message, IDiscordMember? member);
-    Task<PlaybackControlResult> ResumeAsync(IDiscordMessage message, IDiscordMember? member);
-    Task Init(ulong guildId);
-    event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted;
-    Task StartPlayingQueue(IDiscordMessage message, IDiscordChannel textChannel, IDiscordMember? member);
-    Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member);
-}
-```
+### Events/
 
-**Methods:**
+Defines the events boundary used by the bot music pipeline.
 
-- `ConnectAsync()` - Delegate Lavalink node startup
-- `PlayAsyncUrl()` - Delegate URL play request handling
-- `PlayAsyncQuery()` - Delegate query play request handling
-- `PauseAsync()` - Delegate pause control
-- `ResumeAsync()` - Delegate resume control
-- `SkipAsync()` - Delegate skip control
-- `StartPlayingQueue()` - Join voice and start queue
-- `LeaveVoiceChannel()` - Disconnect from voice
-- `Init()` - Initialize guild state
+**Files:**
 
-**Events:**
+- `IPlaybackEventHandlerService.cs`
+- `ITrackEndedHandlerService.cs`
 
-- `TrackStarted` - Fired when track starts playing; carries the target text channel and embed payload
-
-**Implementation:** `Service/Music/LavaLinkService.cs`
+**Purpose:** Implementations live under Service/Music/Events; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 
 ---
 
-### ITrackSearchResolverService.cs
+### Lavalink/
 
-**Purpose:** Resolve URLs and search queries.
+Defines the lavalink boundary used by the bot music pipeline.
 
-**Method:**
+**Files:**
 
-- `ResolveSearchMode(string input)` - Determine the Lavalink `TrackSearchMode` from URL host, explicit prefix, or default search option
+- `ILavalinkNodeConnectionService.cs`
 
-**Implementation:** `Service/Music/TrackSearchResolverService.cs`
+**Purpose:** Implementations live under Service/Music/Lavalink; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 
 ---
 
-### Granular Music Service Interfaces
+### Lifecycle/
 
-The music contract files live directly in this folder:
+Defines the lifecycle boundary used by the bot music pipeline.
+
+**Files:**
+
+- `IPlayerConnectionService.cs`
+
+**Purpose:** Implementations live under Service/Music/Lifecycle; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+### Playback/
+
+Defines the playback boundary used by the bot music pipeline.
+
+**Files:**
 
 - `ICurrentTrackService.cs`
-- `ILavalinkNodeConnectionService.cs`
-- `IMusicQueueService.cs`
 - `IPlaybackControlService.cs`
-- `IPlaybackEventHandlerService.cs`
-- `IPlayerConnectionService.cs`
 - `IPlaybackRequestService.cs`
-- `IRepeatService.cs`
-- `ITrackEndedHandlerService.cs`
-- `ITrackFormatterService.cs`
-- `ITrackNotificationService.cs`
 - `ITrackPlaybackService.cs`
-- `ITrackSerializer.cs`
 
-**Implementations:** `Service/Music/MusicServices/*.cs`
+**Purpose:** Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 
 ---
 
 ### PlaylistServiceInterface/
 
-Contains `IPlaylistService` and playlist result/DTO models.
-`LoadPlaylistAsync` returns stored track identity DTOs used by playlist commands to refill the queue and start idle playback.
+Defines the playlist service boundary used by the bot music pipeline.
 
-**Implementation:** `Service/Music/PlaylistService/PlaylistService.cs`
+**Files:**
+
+- `IPlaylistService.cs`
+
+**Purpose:** Implementations live under Service/Music/PlaylistService; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 
 ---
 
-### ProgressiveTimerInterface/
+### Presentation/
 
-Contains `IProgressiveTimerService`, which starts, pauses, resumes, and stops per-guild timer updates for the now-playing message. It also contains `IProgressTicker`, the internal timing boundary used by `ProgressiveTimerService`.
+Defines the presentation boundary used by the bot music pipeline.
 
-**Implementation:** `Service/Music/ProgressiveTimer/ProgressiveTimerService.cs`
+**Files:**
+
+- `ITrackFormatterService.cs`
+- `ITrackNotificationService.cs`
+
+**Purpose:** Implementations live under Service/Music/Presentation; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+### Queue/
+
+Defines the queue boundary used by the bot music pipeline.
+
+**Files:**
+
+- `IMusicQueueService.cs`
+- `QueueMoveResult.cs`
+- `QueueRemoveResult.cs`
+- `QueueShuffleResult.cs`
+
+**Purpose:** Implementations live under Service/Music/Queue; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+### Repeat/
+
+Defines the repeat boundary used by the bot music pipeline.
+
+**Files:**
+
+- `IRepeatService.cs`
+
+**Purpose:** Implementations live under Service/Music/Repeat; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+### Search/
+
+Defines the search boundary used by the bot music pipeline.
+
+**Files:**
+
+- `ITrackSearchResolverService.cs`
+
+**Purpose:** Implementations live under Service/Music/Search; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+### Tracks/
+
+Defines the tracks boundary used by the bot music pipeline.
+
+**Files:**
+
+- `ILavaLinkTrack.cs`
+- `ITrackSerializer.cs`
+
+**Purpose:** Implementations live under Service/Music/Tracks; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
+
+---
+
+## Interfaces
+
+### ILavaLinkService
+
+**File:** `DC bot/Interface/Service/Music/ILavaLinkService.cs`
+
+**Purpose:** Defines the lava link service boundary so callers are independent of its concrete implementation.
+
+**Methods:**
+
+- `StartPlayingQueue` — Requests a validated player connection and starts the next waiting queue item.
+
+```csharp
+Task<PlaybackStartResult> StartPlayingQueue(
+    IDiscordMessage message,
+    IDiscordChannel textChannel,
+    IDiscordMember? member,
+    CancellationToken cancellationToken = default);
+```
+
+- `ConnectAsync` — Connects the configured Discord or Lavalink runtime boundary and propagates connection failures.
+
+```csharp
+Task ConnectAsync(CancellationToken cancellationToken = default);
+```
+
+- `Init` — Initializes guild-specific persisted music state for subsequent commands.
+
+```csharp
+Task Init(ulong guildId, CancellationToken cancellationToken = default);
+```
+
+- `LeaveVoiceChannel` — Runs shared leave cleanup and closes the active batch after all applicable cleanup phases succeed.
+
+```csharp
+Task LeaveVoiceChannel(IDiscordMessage message, IDiscordMember? member, CancellationToken cancellationToken = default);
+```
+
+- `PauseAsync` — Pauses the validated player and persists playback position and pause state.
+
+```csharp
+Task<PlaybackControlResult> PauseAsync(
+    IDiscordMessage message,
+    IDiscordMember? member,
+    CancellationToken cancellationToken = default);
+```
+
+- `PlayAsyncQuery` — Requests query playback using the supplied Discord voice and response context.
+
+```csharp
+Task<PlaybackStartResult> PlayAsyncQuery(
+    IDiscordChannel toDiscordChannel,
+    string query,
+    IDiscordMessage message,
+    TrackSearchMode trackSearchMode,
+    string? requestedBy = null,
+    CancellationToken cancellationToken = default);
+```
+
+**Additional methods:** `PlayAsyncUrl`, `SkipAsync`, `PreviousAsync`, `ResumeAsync`. See the source and its XML contracts for the complete parameter lists.
+
+**Usage:**
+
+The caller supplies the component and argument values used in this example.
+
+```csharp
+await lavaLinkService.ConnectAsync(cancellationToken);
+```
 
 ---
 
 ## Related Components
 
-- **Service/Music/LavaLinkService.cs** - Main service
-- **Service/Music/MusicServices/** - Granular services
-- **Service/Music/PlaylistService/** - Saved playlist service
-- **Commands/TextCommands/Music/** - Text commands that use these interfaces
-- **Commands/TextCommands/Playlist/** - Playlist commands that use `IPlaylistService`
-- **Commands/SlashCommands/Music/** - Music slash adapters that reach these interfaces through the text command pipeline
-- **Commands/SlashCommands/Playlist/** - Playlist slash adapters that reach `IPlaylistService` through the text command pipeline
-
+- `DC bot/Interface/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Interface/Service/Music/Events/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Lavalink/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Lifecycle/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/PlaylistServiceInterface/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Presentation/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Repeat/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Search/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Service/Music/Tracks/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Interface/Discord/` — Abstracts the Discord message, channel, guild, member, user, and voice-state values consumed by commands.
+- `DC bot/Interface/Service/Music/Playback/Models/` — Carries inputs, statuses, and results for the playback use cases.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

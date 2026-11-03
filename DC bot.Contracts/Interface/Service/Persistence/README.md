@@ -1,81 +1,177 @@
-# Persistence Service Interfaces
+# Persistence
 
-This folder contains persistence contracts used by the bot and API service layers.
+Defines the shared storage vocabulary for guild data, commands, queues, playback, playlists, and mobile identities.
 
-## Why This Folder Exists
+## Overview
 
-Persistence is shared by both running processes:
-
-- the Discord bot reads and mutates queue, playback, playlist, and command state
-- the API reads mobile app access and writes bot-control commands
-- tests need to replace persistence with predictable fakes
-
-This folder defines the repository contracts that make those interactions possible without leaking database implementation details into the bot or API.
-
-Implementations live in `../../../../DC bot.Persistence/Repositories/`.
-
-## How The Boundary Works
-
-Callers depend on interfaces from this folder. They receive immutable model records from `Models/`. The persistence project translates between those records and EF Core entities.
-
-That gives the codebase three separate shapes:
-
-- API DTOs describe HTTP payloads
-- contract records describe cross-project data
-- EF entities describe database tables
-
-Keeping those shapes separate avoids accidental coupling. A database column rename should not force API clients to change, and an API response change should not require entity changes.
+- API handlers and bot services depend on these interfaces while persistence registrations select the implementations.
+- Storage operations expose records and results, not tracked EF entities. Cancellation is forwarded through ordinary I/O; required ownership cleanup can use an independent lifetime.
 
 ## Subfolders
 
-### Guilds
+### BotControl/
 
-Guild row creation and premium state contracts. Other persistence areas depend on guild rows existing before child records are inserted.
+Defines repository operations for durable bot commands, their claim/completion state, and cross-process change signals.
 
-### Playback
+**Files:**
 
-Playback state and repeat-list persistence contracts. These are used by the music services to resume and control guild playback behavior.
+- `IBotControlCommandNotifier.cs`
+- `IBotControlCommandsRepository.cs`
 
-### Queue
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
 
-Queue item lifecycle, ordering, state transitions, and atomic queue claim contracts. Queue claim operations are important because the bot worker must not start the same queued item twice.
+---
 
-### Playlists
+### BotRuntimeStatus/
 
-Saved playlist metadata and playlist track mutation contracts. Playlist metadata and ordered tracks are split because the operations and constraints are different.
+Defines repository operations for the retained bot-runtime heartbeat and liveness contract.
 
-### MobileApps
+**Files:**
 
-Mobile app user, user-guild access, and refresh session contracts. These support the Discord login to app-session flow.
+- `IBotRuntimeStatusRepository.cs`
 
-### BotControl
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
 
-API-to-bot command bridge contracts. The API writes commands here; the bot process claims and executes them.
+---
 
-### Status
+### Exceptions/
 
-Database connectivity/status contracts used by health/status endpoints.
+Defines the implementation-independent error used for a uniqueness conflict.
 
-### Models
+**Files:**
 
-Immutable record models and enums used in persistence contract method signatures.
+- `UniqueConstraintConflictException.cs`
 
-## What Belongs Here
+**Purpose:** Repositories translate a provider-specific uniqueness violation into UniqueConstraintConflictException so callers can produce a stable conflict outcome.
 
-- repository interfaces
-- contract records used by those interfaces
-- enums needed to describe repository state
+---
 
-## What Does Not Belong Here
+### GuildBotStatus/
 
-- EF Core configuration
-- SQL or migrations
-- ASP.NET Core endpoint responses
-- Discord client types
+Defines repository operations for persisted bot voice presence, channel display metadata, and voice-user counts.
 
-## Maintenance Notes
+**Files:**
 
-- Contracts use `ulong` guild/user identifiers to match Discord domain objects.
-- Repository methods should return contract records, not EF Core entities.
-- Keep this layer free of database provider and ASP.NET Core dependencies.
-- Physical folders are feature-scoped, while namespaces remain stable for existing consumers.
+- `IGuildBotStatusRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### Guilds/
+
+Defines repository operations for guild defaults, premium state, and the mapped premium-audit schema.
+
+**Files:**
+
+- `IGuildDataRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### MobileApps/
+
+Defines repository operations for mobile identities, guild access, refresh sessions, and realtime subscription membership.
+
+**Files:**
+
+- `IMobileAppSessionRepository.cs`
+- `IMobileAppUserRepository.cs`
+- `IMobileRealtimeMembershipRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### MobileAppUserSettings/
+
+Defines repository operations for per-user mobile language, theme, feedback, sound, and telemetry preferences.
+
+**Files:**
+
+- `IMobileAppUserSettingsRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### Models/
+
+Groups immutable records and state enums passed across repository boundaries.
+
+**Files:**
+
+- `README.md` — Folder overview and navigation to its source components.
+
+**Purpose:** Repositories map their EF entities into these records; services and API mappers use them without knowing table mappings.
+
+---
+
+### Playback/
+
+Defines repository operations for current playback state, repeat flags, start ownership, and canonical batch metadata.
+
+**Files:**
+
+- `IPlaybackStateRepository.cs`
+- `IRepeatListRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### Playlists/
+
+Defines repository operations for saved playlist metadata and ordered, serialized playlist tracks.
+
+**Files:**
+
+- `IPlaylistRepository.cs`
+- `IPlaylistTrackRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### Queue/
+
+Defines repository operations for ordered queue entries, canonical batches, conditional start claims, and bounded playback history.
+
+**Files:**
+
+- `IQueueRepository.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+### Status/
+
+Defines repository operations for database reachability checks.
+
+**Files:**
+
+- `IDbStatusCheck.cs`
+
+**Purpose:** The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
+
+---
+
+## Related Components
+
+- `DC bot.Contracts/Interface/Service/README.md` — Parent feature overview and neighboring components.
+- `DC bot.Contracts/README.md` — Project setup and architecture.
+- `DC bot.Contracts/Interface/Service/Persistence/BotControl/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/BotRuntimeStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Exceptions/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/GuildBotStatus/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Guilds/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/MobileApps/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/MobileAppUserSettings/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Models/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Playback/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Playlists/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Contracts/Interface/Service/Persistence/Status/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot.Persistence/` — Repository implementations and database mappings that consume these shared contracts.

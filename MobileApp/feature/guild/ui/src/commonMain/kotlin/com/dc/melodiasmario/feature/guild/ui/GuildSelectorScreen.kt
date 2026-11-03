@@ -40,69 +40,75 @@ import com.dc.melodiasmario.feature.guild.ui.components.GuildListItem
 import com.dc.melodiasmario.feature.guild.ui.components.GuildSelectorPlaceholder
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders guild selector screen from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun GuildSelectorScreen(
     modifier: Modifier = Modifier,
     uiState: GuildSelectorUiState,
-    onEvent: (GuildSelectorEvent) -> Unit = {},
-) {
+    onEvent: (guildSelectorEvent: GuildSelectorEvent) -> Unit = {}
+): Unit {
     val guilds = uiState.filteredGuilds
 
     SetTopBarConfig(
-        TopBarConfig(
-            title = stringResource(Res.string.guild_select_title),
-            subTitle = stringResource(Res.string.guild_available_count, guilds.size),
+        config = TopBarConfig(
+            title = stringResource(resource = Res.string.guild_select_title),
+            subTitle = stringResource(resource = Res.string.guild_available_count, formatArgs = arrayOf<Any>(guilds.size)),
             navigationIcon = TopBarNavigationIcon.Avatar(
                 name = uiState.currentUser.displayName,
                 imageUrl = uiState.currentUser.avatarUrl,
-                onClick = { onEvent(GuildSelectorEvent.AvatarClicked) },
+                onClick = { onEvent(GuildSelectorEvent.AvatarClicked) }
             ),
             actions = listOf(
                 TopBarAction.Refresh(
                     onClick = { onEvent(GuildSelectorEvent.RefreshClicked) },
-                    contentDescription = stringResource(Res.string.guild_refresh_content_description),
+                    contentDescription = stringResource(resource = Res.string.guild_refresh_content_description)
                 )
-            ),
+            )
         )
     )
 
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = Alignment.Start
     ) {
 
         HorizontalDivider()
         MSearchBar(
             query = uiState.searchQuery,
-            onQueryChange = { onEvent(GuildSelectorEvent.SearchQueryChanged(it)) },
-            placeholder = stringResource(Res.string.guild_search_placeholder),
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+            onQueryChange = { searchQuery -> onEvent(GuildSelectorEvent.SearchQueryChanged(query = searchQuery)) },
+            placeholder = stringResource(resource = Res.string.guild_search_placeholder),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
         )
         when {
             uiState.isLoading -> MLoadingScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f)
             )
 
             uiState.errorMessage != null -> MErrorScreen(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                errorMessage = requireNotNull(uiState.errorMessage),
-                onClick = { onEvent(GuildSelectorEvent.RefreshClicked) },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                errorMessage = requireNotNull(value = uiState.errorMessage),
+                onClick = { onEvent(GuildSelectorEvent.RefreshClicked) }
             )
 
             guilds.isEmpty() -> GuildSelectorPlaceholder(
-                title = stringResource(Res.string.guild_placeholder_title),
-                contentText = stringResource(Res.string.guild_empty_message),
+                title = stringResource(resource = Res.string.guild_placeholder_title),
+                contentText = stringResource(resource = Res.string.guild_empty_message)
             )
 
             else -> LazyColumn(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(12.dp, 0.dp, 12.dp, 12.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .weight(weight = 1f),
+                contentPadding = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 5.dp)
             ) {
                 items(guilds) { guild ->
                     GuildListItem(
                         guild = guild,
-                        onClick = { onEvent(GuildSelectorEvent.GuildClicked(guild.id)) },
+                        onClick = { onEvent(GuildSelectorEvent.GuildClicked(guildId = guild.id)) }
                     )
                 }
             }
@@ -110,24 +116,22 @@ fun GuildSelectorScreen(
     }
 }
 
-
 @Preview(showBackground = true, backgroundColor = MmBackgroundPreviewColor)
 @Composable
 private fun GuildSelectorScreenEmptyListPreview() {
     MelodiasMarioTheme {
         GuildSelectorScreen(
-            uiState = previewUiState(),
+            uiState = previewUiState()
         )
     }
 }
-
 
 @Preview(showBackground = true, backgroundColor = MmBackgroundPreviewColor)
 @Composable
 private fun GuildSelectorScreenIsLoadingPreview() {
     MelodiasMarioTheme {
         GuildSelectorScreen(
-            uiState = previewUiState(isLoading = true),
+            uiState = previewUiState(isLoading = true)
         )
     }
 }
@@ -139,8 +143,8 @@ private fun GuildSelectorScreenPreview() {
         GuildSelectorScreen(
             uiState = previewUiState(
                 guilds = listOf(guild),
-                filteredGuilds = listOf(guild),
-            ),
+                filteredGuilds = listOf(guild)
+            )
         )
     }
 }
@@ -148,17 +152,17 @@ private fun GuildSelectorScreenPreview() {
 private fun previewUiState(
     guilds: List<Guild> = emptyList(),
     filteredGuilds: List<Guild> = guilds,
-    isLoading: Boolean = false,
+    isLoading: Boolean = false
 ): GuildSelectorUiState = GuildSelectorUiState(
     currentUser = CurrentUser(
         id = "1234567890",
         displayName = "John Doe",
         avatarUrl = "https://example.com/avatar.jpg",
-        username = "johndoe",
+        username = "johndoe"
     ),
     guilds = guilds,
     filteredGuilds = filteredGuilds,
-    isLoading = isLoading,
+    isLoading = isLoading
 )
 
 private val guild = Guild(
@@ -169,6 +173,6 @@ private val guild = Guild(
     botStatus = BotStatus(
         isOnline = false,
         connectedVoiceChannelName = null,
-        connectedVoiceUserCount = 0,
-    ),
+        connectedVoiceUserCount = 0
+    )
 )

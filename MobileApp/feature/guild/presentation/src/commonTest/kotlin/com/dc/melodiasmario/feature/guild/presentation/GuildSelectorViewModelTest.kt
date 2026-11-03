@@ -6,32 +6,32 @@ import kotlin.test.Test
 class GuildSelectorViewModelTest {
 
     @Test
-    fun getGuildsUpdatesStateWithLoadedGuildsOnSuccess() {
-        // TODO: Given get guild use case succeeds, when GetGuilds event is sent, then state contains guilds.
+    fun getGuildsUpdatesStateWithLoadedGuildsOnSuccess(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsUpdatesStateWithErrorMessageOnFailure() {
-        // TODO: Given get guild use case fails, when GetGuilds event is sent, then state contains error message.
+    fun getGuildsUpdatesStateWithErrorMessageOnFailure(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun searchQueryChangedFiltersGuildsIgnoringCase() {
-        // TODO: Given loaded guilds, when SearchQueryChanged is sent, then filteredGuilds matches query.
+    fun searchQueryChangedFiltersGuildsIgnoringCase(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun refreshClickedReloadsGuilds() {
-        // TODO: Given current state, when RefreshClicked is sent, then get guild use case is called again.
+    fun refreshClickedReloadsGuilds(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun guildClickedEmitsNavigateToPlaylistsEffect() {
-        // TODO: Given a guild id, when GuildClicked is sent, then NavigateToPlaylists is emitted.
+    fun guildClickedEmitsNavigateToPlaylistsEffect(): Unit {
+        throw NotImplementedError()
     }
 
     @Test
-    fun avatarClickedEmitsNavigateToProfileEffect() {
-        // TODO: Given current profile id, when AvatarClicked is sent, then NavigateToProfile is emitted.
+    fun avatarClickedEmitsNavigateToProfileEffect(): Unit {
+        throw NotImplementedError()
     }
 }

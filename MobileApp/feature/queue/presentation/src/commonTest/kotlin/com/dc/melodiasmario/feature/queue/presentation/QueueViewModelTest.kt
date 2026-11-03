@@ -5,37 +5,37 @@ import kotlin.test.Test
 @Ignore
 class QueueViewModelTest {
     @Test
-    fun duplicateClickDoesNotSubmitAnotherCommand() {
-        throw NotImplementedError("Test implementation pending")
+    fun duplicateClickDoesNotSubmitAnotherCommand(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun unrelatedRealtimeEventDoesNotFinishPendingCommand() {
-        throw NotImplementedError("Test implementation pending")
+    fun unrelatedRealtimeEventDoesNotFinishPendingCommand(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun realtimeResultArrivingBeforeHttpResponseIsHandled() {
-        throw NotImplementedError("Test implementation pending")
+    fun realtimeResultArrivingBeforeHttpResponseIsHandled(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun timeoutReleasesCommandLock() {
-        throw NotImplementedError("Test implementation pending")
+    fun timeoutReleasesCommandLock(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun guildChangeClearsPreviousCommandExecution() {
-        throw NotImplementedError("Test implementation pending")
+    fun guildChangeClearsPreviousCommandExecution(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun reopeningScreenDoesNotDuplicateMonitorCollection() {
-        throw NotImplementedError("Test implementation pending")
+    fun reopeningScreenDoesNotDuplicateMonitorCollection(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun removalUsesOneBasedAndMoveUsesZeroBasedIndexes() {
-        throw NotImplementedError("Test implementation pending")
+    fun removalUsesOneBasedAndMoveUsesZeroBasedIndexes(): Unit {
+        throw NotImplementedError(message = "Test implementation pending")
     }
 }

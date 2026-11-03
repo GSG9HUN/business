@@ -1,18 +1,53 @@
-# Bot Control Responses
+# BotControl
 
-This folder contains response DTOs for API-originated bot-control commands.
+Defines client-facing output for durable bot commands, their claim/completion state, and cross-process change signals.
 
-## Files
+## Overview
 
-### BotControlCommandResponse.cs
+- Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
+- Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
-Returned when a command is accepted/enqueued.
+## Models and Results
 
-### BotControlCommandStatusResponse.cs
+### BotControlCommandResponse
 
-Returned when a client asks for command execution state.
+**File:** `API/Responses/BotControl/BotControlCommandResponse.cs`
 
-## Notes
+**Purpose:** Carries the bot control command payload returned to HTTP and mobile clients.
 
-- These DTOs describe command acceptance/status, not direct playback state.
-- Playback and queue snapshots are returned by their feature-specific response DTOs.
+**Record declaration:**
+
+```csharp
+public sealed record BotControlCommandResponse(string CommandId, string Type, string State);
+```
+
+---
+
+### BotControlCommandStatusResponse
+
+**File:** `API/Responses/BotControl/BotControlCommandStatusResponse.cs`
+
+**Purpose:** Carries the bot control command status payload returned to HTTP and mobile clients.
+
+**Record declaration:**
+
+```csharp
+public sealed record BotControlCommandStatusResponse(
+    string CommandId,
+    string GuildId,
+    string Type,
+    string State,
+    string? ErrorMessage,
+    string? ResultJson,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset? ClaimedAtUtc,
+    DateTimeOffset? CompletedAtUtc);
+```
+
+---
+
+## Related Components
+
+- `API/Responses/README.md` — Parent feature overview and neighboring components.
+- `API/README.md` — Project setup and architecture.
+- `DC bot.Contracts/` — Shared storage and command protocol used by handlers and services.

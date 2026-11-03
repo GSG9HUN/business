@@ -1,155 +1,98 @@
-﻿# Configuration
+# Configuration
 
-This folder contains application configuration models using the Options pattern.
+Defines typed options for bot identity, Lavalink connectivity, search resolution, saved-playlist limits, and playback lifecycle deadlines.
 
-## Files
+## Overview
 
-### BotSettings.cs
+- Startup builds the runtime settings and registers options. PlaybackLifecycleOptions defines the join and cleanup deadlines used by the music lifecycle services.
+- Keep deployment configuration out of commands. Provider credentials and source plugins are configured on the Lavalink side rather than by these DTOs alone.
 
-**Purpose:** Bot Discord settings.
+## Classes
 
-```csharp
-public sealed class BotSettings
-{
-    public string? Token { get; init; }
-    public string Prefix { get; init; } = "!";
-}
-```
+### BotSettings
+
+**File:** `DC bot/Configuration/BotSettings.cs`
+
+**Purpose:** Defines Discord authentication and the text-command prefix.
 
 **Properties:**
 
-- `Token` - Discord bot token (from `DISCORD_TOKEN`)
-- `Prefix` - Command prefix (default: `!`)
-
-**Usage:**
-
 ```csharp
-// In Startup/BotConfigurationLoader.cs
-var botSettings = new BotSettings
-{
-    Token = GetEnv("DISCORD_TOKEN"),
-    Prefix = GetEnv("BOT_PREFIX") ?? "!"
-};
-
-// In services
-var commandHandler = new CommandHandlerService(..., botSettings);
+// The Discord bot authentication token.
+public string? Token { get; init; }
+public string Prefix { get; init; }
 ```
 
 ---
 
-### LavalinkSettings.cs
+### LavalinkSettings
 
-**Purpose:** Lavalink audio server connection settings.
+**File:** `DC bot/Configuration/LavalinkSettings.cs`
+
+**Purpose:** Defines the Lavalink endpoint and authentication used at startup.
 
 **Properties:**
-
-- `Hostname` - Lavalink server host
-- `Port` - Lavalink server port
-- `Secured` - Whether to use HTTPS/WSS for Lavalink
-- `Password` - Lavalink server password
-
----
-
-### SearchResolverOptions.cs
-
-**Purpose:** Music search resolution options.
 
 ```csharp
-public sealed class SearchResolverOptions
-{
-    public string DefaultQueryMode { get; set; } = "yt";
-}
+// The hostname of the Lavalink server.
+public string? Hostname { get; init; }
+public int Port { get; init; }
+public bool Secured { get; init; }
+public string Password { get; init; }
 ```
-
-**Properties:**
-
-- `DefaultQueryMode` - Default search mode for plain text queries. Supported configured values are:
-  - `yt` or any unknown value -> YouTube
-  - `ytm` -> YouTube Music
-  - `sc` -> SoundCloud
-  - `sp` -> Spotify
-
-`TrackSearchResolverService` also detects explicit query prefixes such as `spotify:`, `soundcloud:`, `youtube:`,
-`youtubemusic:`, `applemusic:`, `deezer:`, `yandexmusic:`, and `bandcamp:`. Absolute URLs are resolved from their host
-where possible.
-
-**Current runtime note:** `SearchResolverOptions` currently uses its code default unless tests or future startup code
-provide an `IOptions<SearchResolverOptions>` value. There is no environment variable mapping for this option yet.
 
 ---
 
-### PlaylistOptions.cs
+### PlaylistOptions
 
-**Purpose:** Saved playlist safety limits.
+**File:** `DC bot/Configuration/PlaylistOptions.cs`
+
+**Purpose:** Defines playlist and track limits applied to saved-playlist operations.
+
+**Properties:**
 
 ```csharp
-public sealed class PlaylistOptions
-{
-    public int MaxPlaylistsPerGuild { get; set; } = 50;
-    public int MaxTracksPerPlaylist { get; set; } = 250;
-    public int MaxImportedTracks { get; set; } = 100;
-}
+// The maximum number of saved playlists allowed per guild.
+public int MaxPlaylistsPerGuild { get; set; }
+public int MaxTracksPerPlaylist { get; set; }
+public int MaxImportedTracks { get; set; }
 ```
-
-**Properties:**
-
-- `MaxPlaylistsPerGuild` - Maximum saved playlists one guild can own.
-- `MaxTracksPerPlaylist` - Maximum stored tracks in one saved playlist.
-- `MaxImportedTracks` - Maximum tracks accepted from one save/import request.
-
-`PlaylistService` clamps these values to at least `1` before enforcing them.
-
-**Current runtime note:** `PlaylistOptions` currently uses its code defaults unless tests or future startup code provide an
-`IOptions<PlaylistOptions>` value. There is no environment variable mapping for this option yet.
 
 ---
 
-## Configuration Sources
+### SearchResolverOptions
 
-Runtime configuration comes from environment variables. `Program.cs` loads repository-root `.env` values through DotNetEnv when the file exists; Docker Compose, CI, and production can provide the same keys directly.
+**File:** `DC bot/Configuration/SearchResolverOptions.cs`
 
-1. **Bot**
-   ```env
-   DISCORD_TOKEN=your_token
-   BOT_PREFIX=!
-   ```
+**Purpose:** Defines the provider used when a query does not identify a source.
 
-2. **Lavalink connection**
-   ```env
-   # Host dotnet run/tests against docker-compose: 127.0.0.1
-   # Bot running inside Docker Compose network: lavalink
-   LAVALINK_HOSTNAME=127.0.0.1
-   LAVALINK_PORT=2333
-   LAVALINK_SECURED=false
-   LAVALINK_PASSWORD=CHANGE_ME
-   ```
+**Properties:**
 
-3. **PostgreSQL**
-   ```env
-   POSTGRES_HOST=postgres
-   POSTGRES_PORT=5432
-   POSTGRES_DB=dc_bot
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=CHANGE_ME
-   ```
+```csharp
+// The search mode used when the caller does not specify a provider.
+public string DefaultQueryMode { get; set; }
+```
 
-4. **Lavalink provider secrets**
-   ```env
-   SPOTIFY_CLIENT_ID=
-   SPOTIFY_CLIENT_SECRET=
-   APPLE_MUSIC_API_TOKEN=
-   DEEZER_ARL=
-   YANDEX_MUSIC_ACCESS_TOKEN=
-   YOUTUBE_REFRESH_TOKEN=
-   ```
+---
 
-The provider secrets are consumed by `lavalink-server/application.yaml` through Docker Compose; they are not mapped to the C# configuration classes.
+### PlaybackLifecycleOptions
+
+**File:** `DC bot/Configuration/PlaybackLifecycleOptions.cs`
+
+**Purpose:** Defines deadlines for join, leave, cleanup, and pending-start reconciliation.
+
+**Properties:**
+
+```csharp
+// The maximum time allowed for the join lifecycle operation.
+public TimeSpan JoinDeadline { get; set; }
+public TimeSpan LeaveDeadline { get; set; }
+```
+
+
+---
 
 ## Related Components
 
-- **Startup/BotConfigurationLoader.cs** - Configuration loading
-- **Startup/BotServiceProviderFactory.cs** - Configuration injection
-- **Service/Music/TrackSearchResolverService.cs** - Uses `SearchResolverOptions`
-- **Service/Music/PlaylistService/PlaylistService.cs** - Uses `PlaylistOptions`
-- **Service/Core/CommandHandlerService.cs** - Uses `BotSettings`
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

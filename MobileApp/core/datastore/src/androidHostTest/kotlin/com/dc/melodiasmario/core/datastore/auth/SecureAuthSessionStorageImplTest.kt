@@ -6,6 +6,12 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.test.core.app.ApplicationProvider
 import com.dc.melodiasmario.core.model.auth.AuthSession
+import java.io.File
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,12 +20,6 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.io.File
-import java.util.UUID
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.test.Test
 
 @RunWith(RobolectricTestRunner::class)
 class SecureAuthSessionStorageImplTest {
@@ -28,7 +28,7 @@ class SecureAuthSessionStorageImplTest {
     fun getSessionReturnsNullBeforeSessionIsSaved(): TestResult = runTest {
         val storage = createStorage()
 
-        assertNull(storage.getSession())
+        assertNull(actual = storage.getSession())
     }
 
     @Test
@@ -36,22 +36,22 @@ class SecureAuthSessionStorageImplTest {
         val storage = createStorage()
         val session = authSession(accessToken = "access", refreshToken = "refresh")
 
-        storage.saveSession(session)
+        storage.saveSession(session = session)
 
-        assertEquals(session, storage.getSession())
+        assertEquals(expected = session, actual = storage.getSession())
     }
 
     @Test
     fun saveSessionWritesEncryptedPayloadToDataStore(): TestResult = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val dataStore = createTestDataStore(context)
-        val storage = createStorage(context, dataStore)
+        val dataStore = createTestDataStore(context = context)
+        val storage = createStorage(context = context, dataStore = dataStore)
         val session = authSession(
             accessToken = "encrypted-access",
-            refreshToken = "encrypted-refresh",
+            refreshToken = "encrypted-refresh"
         )
 
-        storage.saveSession(session)
+        storage.saveSession(session = session)
 
         val storedValue = dataStore.data.first()
             .asMap()
@@ -59,24 +59,24 @@ class SecureAuthSessionStorageImplTest {
             .single()
             .toString()
 
-        assertTrue(storedValue.startsWith(TestAuthSessionCipher.PREFIX))
+        assertTrue(actual = storedValue.startsWith(TestAuthSessionCipher.PREFIX))
     }
 
     @Test
     fun saveSessionPersistsAcrossStorageInstances(): TestResult = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val dataStore = createTestDataStore(context)
-        val storage = createStorage(context, dataStore)
+        val dataStore = createTestDataStore(context = context)
+        val storage = createStorage(context = context, dataStore = dataStore)
         val session = authSession(
             accessToken = "persisted-access",
-            refreshToken = "persisted-refresh",
+            refreshToken = "persisted-refresh"
         )
 
-        storage.saveSession(session)
+        storage.saveSession(session = session)
 
-        val restoredStorage = createStorage(context, dataStore)
+        val restoredStorage = createStorage(context = context, dataStore = dataStore)
 
-        assertEquals(session, restoredStorage.getSession())
+        assertEquals(expected = session, actual = restoredStorage.getSession())
     }
 
     @Test
@@ -85,39 +85,39 @@ class SecureAuthSessionStorageImplTest {
 
         storage.clearSession()
 
-        assertNull(storage.getSession())
+        assertNull(actual = storage.getSession())
     }
 
     private suspend fun createStorage(): SecureAuthSessionStorageImpl {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        return createStorage(context, createTestDataStore(context)).also { storage ->
+        return createStorage(context = context, dataStore = createTestDataStore(context = context)).also { storage ->
             storage.clearSession()
         }
     }
 
     private fun createStorage(
         context: Context,
-        dataStore: DataStore<Preferences>,
+        dataStore: DataStore<Preferences>
     ): SecureAuthSessionStorageImpl {
         return SecureAuthSessionStorageImpl(
             context = context,
             cipher = TestAuthSessionCipher,
-            dataStore = dataStore,
+            dataStore = dataStore
         )
     }
 
     private fun createTestDataStore(
-        context: Context,
+        context: Context
     ): DataStore<Preferences> {
         val fileName = "secure_auth_session_test_${UUID.randomUUID()}.preferences_pb"
 
         return PreferenceDataStoreFactory.create(
-            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            scope = CoroutineScope(context = Dispatchers.IO + SupervisorJob()),
             produceFile = {
                 File(context.filesDir, "datastore/$fileName").also { file ->
                     file.parentFile?.mkdirs()
                 }
-            },
+            }
         )
     }
 

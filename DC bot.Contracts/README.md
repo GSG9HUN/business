@@ -1,61 +1,103 @@
 # DC bot.Contracts
 
-This project is the shared contract boundary between the executable projects and the infrastructure projects.
+This class library defines the shared language used by the Discord bot, mobile API, and persistence implementation. It contains repository interfaces, immutable storage models, bot-command payloads and identifiers, music-provider definitions, and shared playlist-name validation.
 
-## Why This Project Exists
+## Overview
 
-The bot, the API, and the tests all need to talk about the same persistence operations without knowing how those operations are implemented. This project holds that shared language.
+- `TwentyFourSevenSettingsRecord` and `IGuildDataRepository` expose persistent voice preferences independently of observed connection status.
+- Public member documentation defines persisted queue and command states, supported settings values, bot command type identifiers, and realtime protocol event names.
+- Define repository operations and immutable storage models.
+- Share bot-command payloads, identifiers, and event names across processes.
+- Reuse provider URL rules and playlist-name validation without SDK or database dependencies.
 
-For example, the API can ask for guilds visible to a mobile app user through `IMobileAppUserRepository`, and the bot can claim bot-control commands through `IBotControlCommandsRepository`. Neither caller needs to reference EF Core entities, database mappings, or repository implementation classes.
+## Runtime Flow
 
-That separation matters because it keeps dependencies one-way:
+```text
+DC bot / API
+  -> repository interfaces and shared values
+  <- DC bot.Persistence implements storage
 
-- `DC bot` depends on contracts and persistence registrations
-- `API` depends on contracts and persistence registrations
-- `DC bot.Persistence` implements the contracts
-- contracts do not depend on API, bot runtime, Discord clients, or EF Core
+API -> command type + serialized payload -> PostgreSQL -> bot worker
+Bot/persistence state -> shared event name -> API realtime publisher
+```
 
-## What Belongs Here
+The project targets .NET 9 and has no project or package references. It does not depend on EF Core, Npgsql, ASP.NET Core, DSharpPlus, or Lavalink implementations. Its explicit namespace root is `DC_bot`, so shared types keep that prefix even though the folder and project file are named `DC bot.Contracts`.
 
-Use this project for types that describe a boundary between projects:
+## Subfolders
 
-- repository interfaces
-- immutable records returned by repository interfaces
-- small enums used by those records
-- input records used by repository methods when they are not API request DTOs
+### BotControl/
 
-The important rule is that a contract type should still make sense if the storage implementation changes from EF Core/PostgreSQL to another database.
+Defines command type identifiers, realtime event names, and optional execution-channel context shared by the API and bot.
 
-## What Does Not Belong Here
+**Files:**
 
-Do not put these here:
+- `BotControlCommandChannelContext.cs`
+- `BotControlCommandTypes.cs`
+- `MobileRealtimeEventNames.cs`
 
-- EF Core entities or configuration classes
-- ASP.NET Core request/response DTOs
-- Discord client wrappers
-- concrete service implementations
-- business orchestration code
+**Purpose:** The API writes commands using these names and Payloads; the worker reads them and the API publishes state updates using the shared event identifiers.
 
-Those belong in the project that owns the behavior.
+---
 
-## Folder Structure
+### Interface/
 
-### Interface/Service/Persistence
+Groups contracts consumed across project boundaries.
 
-This is the current home of repository contracts. The path means: service-layer code depends on these persistence abstractions.
+**Files:**
 
-The structure is intentionally explicit, but it is also deeper than strictly necessary while this project only contains persistence contracts. A flatter `Persistence/` root folder would also be valid if the project stays focused on repository contracts only.
+- `README.md` — Overview and navigation to feature-specific source files.
 
-### Interface/Service/Persistence/Models
+**Purpose:** The Service/Persistence tree defines operations implemented by DC bot.Persistence and used by the bot and API.
 
-Contains immutable records and enums used by persistence interfaces.
+---
 
-These are not EF entities. They are stable data shapes that service code can consume without pulling database-specific behavior into the service layer.
+### Music/
 
-## Maintenance Rules
+Groups provider definitions used by both bot input resolution and API search.
 
-- Keep public contracts small and focused on use cases.
-- Prefer records for returned data because they are immutable and test-friendly.
-- Keep database table shape inside `DC bot.Persistence`.
-- Keep HTTP payload shape inside `API`.
-- When a repository method changes, update the matching README in this project and the implementation README in `DC bot.Persistence`.
+**Files:**
+
+- `README.md` — Overview and navigation to feature-specific source files.
+
+**Purpose:** The Search subfolder defines provider IDs, prefixes, source-manager names, supported URLs, and capability metadata.
+
+---
+
+### Validation/
+
+Normalizes and validates playlist names consistently across bot and API entry points.
+
+**Files:**
+
+- `PlaylistNameValidator.cs`
+
+**Purpose:** PlaylistNameValidator checks the name before a caller reaches a repository or submits a playlist command.
+
+---
+
+## Contract Semantics
+
+Repository absence, ordering, conditional mutation, and cancellation behavior should be explicit. Queue start claims carry operation identity; a late completion must not commit against a newer claim. Canonical batch items preserve the playback list independently of waiting queue positions. Previous lookup is limited to the active batch, while history reads can list recent batches without changing playback.
+
+Records at this boundary are not tracked database entities and are not automatically HTTP response shapes. An API mapper chooses its own client contract, and a repository chooses how an entity is stored. The shared value must remain meaningful without either implementation detail.
+
+Command and event names form a cross-process protocol. Adding or changing a payload requires coordinated handling in the API producer and bot consumer, including input validation and compatibility during deployment.
+
+## Maintenance Boundaries
+
+- Keep SQL, table mapping, migrations, and provider exceptions in Persistence; translate expected uniqueness conflicts into the shared exception.
+- Keep HTTP request and response DTOs in API.
+- Keep live player sessions, Discord wrappers, and command orchestration in the bot.
+- Pass cancellation through repository I/O; an implementation may retain an independent lifetime for required cleanup.
+- Provider definitions describe supported naming and URLs. Deployment switches and node capabilities decide actual search and enqueue availability.
+
+When a shared interface or record changes, update its implementation and consumers together, build the solution, and run the relevant behavior tests. Folder READMEs explain the feature boundary and link the current types rather than tracking a change log.
+
+## Related Components
+
+- `DC bot/` — Discord commands, live playback lifecycle, and the mobile command worker.
+- `API/` — HTTP request handling, authentication, response mapping, and SignalR publication.
+- `DC bot.Contracts/` — Shared storage interfaces, immutable models, command payloads, and protocol names.
+- `DC bot.Persistence/` — PostgreSQL repository implementations, migrations, and database notifications.
+- `DC bot tests/` — Behavior tests and explicitly skipped planned cases.
+- `AGENTS.md` — Implementation and detailed README conventions.

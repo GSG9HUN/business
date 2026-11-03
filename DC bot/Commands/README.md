@@ -1,140 +1,41 @@
 # Commands
 
-This folder contains the Discord command presentation layer.
+Groups prefix-based text commands and slash command adapters.
 
 ## Overview
 
-Commands handle user input from Discord and delegate business logic to services. The bot currently exposes two command
-surfaces:
+- Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor.
+- Keep command parsing and presentation at this boundary; guild sessions, transport calls, and persistence decisions belong to services.
 
-1. **TextCommands** - prefix-based message commands such as `!play`, `!pause`, `!viewList`, and `!savePlaylist`.
-2. **SlashCommands** - Discord application commands such as `/play`, `/pause`, `/queue`, and `/playlist`.
-
-Slash commands are intentionally thin adapters. They create a slash execution request and reuse the existing text command
-pipeline through `ISlashCommandExecutor`, so validation, localization, playback, persistence, and response behavior stay
-aligned between both command surfaces.
-
-## Folder Structure
-
-### TextCommands/
-
-Text command implementations grouped by domain.
-
-- `README.md` - text command flow and domain group overview
-- `Music/` - `PlayCommand`, `PauseCommand`, `ResumeCommand`, `SkipCommand`, `JoinCommand`, `LeaveCommand`
-- `Queue/` - `ViewQueueCommand`, `ShuffleCommand`, `RepeatCommand`, `RepeatListCommand`, `ClearCommand`
-- `Playlist/` - `CreatePlaylistCommand`, `SavePlaylistCommand`, `DeletePlaylistCommand`, `AddSongToPlaylistCommand`, `RemoveSongFromPlaylistCommand`, `ListPlaylistsCommand`, `ViewPlaylistCommand`, `LoadPlaylistCommand`, `RenamePlaylistCommand`
-- `Utility/` - `HelpCommand`, `PingCommand`, `LanguageCommand`, `TagCommand`
+## Subfolders
 
 ### SlashCommands/
 
-Slash command modules grouped to mirror the text command domains.
+Exposes Discord application commands through DSharpPlus command modules.
 
-- `Music/` - `/join`, `/play`, `/pause`, `/resume`, `/skip`, `/leave`
-- `Queue/` - `/queue`, `/shuffle`, `/repeat track`, `/repeat list`, `/clear`
-- `Playlist/` - `/playlist create`, `/playlist save`, `/playlist list`, `/playlist view`, `/playlist load`, `/playlist add-song`, `/playlist remove-song`, `/playlist rename`, `/playlist delete`
-- `Utility/` - `/help`, `/ping`, `/language`, `/tag`
+**Files:**
 
-Runtime registration is composed by `Startup/BotServiceProviderFactory.cs` and grouped in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs` through `AddCommandServices()`, `DSharpPlus.Commands`, and `SlashCommandProcessor`.
+- `README.md` — Folder overview and navigation to its source components.
 
-## Text Command Contract
+**Purpose:** Adapters build SlashCommandExecutionRequest values and delegate to ISlashCommandExecutor, which reuses the registered text command implementation.
 
-Text commands implement `ICommand`:
+---
 
-```csharp
-public interface ICommand
-{
-    string Name { get; }
-    string Description { get; }
-    Task ExecuteAsync(IDiscordMessage message);
-}
-```
+### TextCommands/
 
-## Text Command Flow
+Implements commands selected by the configured message prefix and ICommandRegistry.
 
-```text
-Discord Message
-    -> CommandHandlerService
-    -> Parse prefix and command name
-    -> Resolve ICommand through ICommandRegistry
-    -> command.ExecuteAsync(message)
-    -> Validate input and user state
-    -> Call domain services
-    -> Send localized response
-```
+**Files:**
 
-## Slash Command Flow
+- `README.md` — Folder overview and navigation to its source components.
 
-```text
-Discord Interaction
-    -> DSharpPlus Commands / SlashCommandProcessor
-    -> Slash command module
-    -> ISlashInteractionContextFactory
-    -> ISlashCommandExecutor
-    -> Existing ICommand implementation
-```
+**Purpose:** CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services.
 
-## Common Text Command Pattern
-
-```csharp
-public async Task ExecuteAsync(IDiscordMessage message)
-{
-    logger.CommandInvoked(Name);
-
-    var validationResult = await commandHelper.TryValidateUserAsync(
-        userValidation, responseBuilder, message);
-    if (validationResult is null) return;
-
-    await service.DoSomethingAsync();
-
-    logger.CommandExecuted(Name);
-}
-```
-
-## Common Slash Command Pattern
-
-```csharp
-public Task ExecuteAsync(ISlashInteractionContext context)
-{
-    return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(
-        "commandName",
-        context,
-        RequireGuild: true,
-        Defer: true));
-}
-```
-
-## Dependencies
-
-Commands typically inject a subset of:
-
-- `ILavaLinkService` / `IMusicQueueService` - music and queue orchestration
-- `IUserValidationService` - user and voice-state validation
-- `IResponseBuilder` - Discord response sending
-- `ILocalizationService` - localized response text
-- `ICommandHelper` - text command argument and validation helpers
-- `ICommandRegistry` - registered text command enumeration/lookup used by help and routing
-- `ISlashCommandExecutor` - slash-to-text command adapter execution
-- `ISlashInteractionContextFactory` - slash context wrapper creation
-- `ILogger<T>` - structured logging
-
-## Registration
-
-Commands are registered in `Startup/DependencyInjection/CommandServiceCollectionExtensions.cs`:
-
-```csharp
-services.AddCommandServices();
-```
-
-`AddCommandServices()` also registers the slash modules with the DSharpPlus Commands extension and `SlashCommandProcessor`.
+---
 
 ## Related Components
 
-- `Interface/ICommand.cs` - text command contract
-- `Interface/Service/SlashCommands/` - slash adapter contracts
-- `Service/Core/CommandHandlerService.cs` - text command routing
-- `Service/Core/CommandValidationService.cs` - command argument helpers
-- `Service/Core/ValidationService.cs` - validation services
-- `Service/Music/PlaylistService/PlaylistService.cs` - saved playlist use-cases
-- `Service/SlashCommands/SlashCommandExecutor.cs` - slash-to-text command execution
-- `Wrapper/SlashInteractionContextWrapper.cs` - slash context wrapper
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Commands/SlashCommands/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/TextCommands/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

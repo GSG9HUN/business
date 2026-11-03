@@ -10,22 +10,25 @@ import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorEvent
 import com.dc.melodiasmario.feature.guild.presentation.GuildSelectorViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Connects guild selector presentation state and effects to its screen callbacks.
+ */
 @Composable
 fun GuildSelectorRoute(
     modifier: Modifier = Modifier,
-    viewModel: GuildSelectorViewModel = koinViewModel(),
+    guildSelectorViewModel: GuildSelectorViewModel = koinViewModel(),
     onGuildClicked: (guildId: String) -> Unit = {},
-    onAvatarClicked: () -> Unit = {},
-) {
-    val uiState by viewModel.uiState.collectAsState()
+    onAvatarClicked: () -> Unit = {}
+): Unit {
+    val uiState by guildSelectorViewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.onEvent(GuildSelectorEvent.GetGuilds)
-        viewModel.onEvent(GuildSelectorEvent.GetCurrentUser)
+    LaunchedEffect(key1 = Unit) {
+        guildSelectorViewModel.onEvent(event = GuildSelectorEvent.GetGuilds)
+        guildSelectorViewModel.onEvent(event = GuildSelectorEvent.GetCurrentUser)
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
+    LaunchedEffect(key1 = Unit) {
+        guildSelectorViewModel.effect.collect { effect ->
             when (effect) {
                 is GuildSelectorEffect.NavigateToPlaylists -> {
                     onGuildClicked(effect.guildId)
@@ -41,6 +44,6 @@ fun GuildSelectorRoute(
     GuildSelectorScreen(
         modifier = modifier,
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = guildSelectorViewModel::onEvent
     )
 }

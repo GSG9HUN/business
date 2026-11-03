@@ -21,53 +21,56 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MelodiasMarioTheme
 import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreviewColor
 
+/**
+ * Renders playlists placeholder from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun PlaylistsPlaceholder(
     title: String,
     contentText: String,
-    modifier: Modifier = Modifier,
-) {
+    modifier: Modifier = Modifier
+): Unit {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(PaddingValues(12.dp, 0.dp, 12.dp, 12.dp)),
-        shape = RoundedCornerShape(12.dp),
+            .padding(paddingValues = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp)),
+        shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(space = 12.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(size = 10.dp),
+                color = MaterialTheme.colorScheme.primary
             ) {
                 MText(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                     text = "MM",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.weight(weight = 1f),
+                verticalArrangement = Arrangement.spacedBy(space = 4.dp)
             ) {
                 MText(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
                 MText(
                     text = contentText,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Start
                 )
             }
         }
@@ -80,7 +83,7 @@ private fun PlaylistsPlaceholderPreview() {
     MelodiasMarioTheme {
         PlaylistsPlaceholder(
             title = "No playlists yet",
-            contentText = "Create one to keep your favorite tracks close.",
+            contentText = "Create one to keep your favorite tracks close."
         )
     }
 }

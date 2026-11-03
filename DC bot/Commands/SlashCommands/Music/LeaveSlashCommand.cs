@@ -5,12 +5,20 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace DC_bot.Commands.SlashCommands.Music;
 
-public class LeaveSlashCommand(
-    ISlashCommandExecutor slashCommandExecutor,
-    ISlashInteractionContextFactory contextFactory)
+/// <summary>
+/// Adapts the leave slash command to shared command execution and interaction acknowledgement.
+/// </summary>
+/// <param name="slashCommandExecutor">The slash command executor dependency used by this boundary.</param>
+/// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
+public class LeaveSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
     private const string CommandName = "leave";
 
+    /// <summary>
+    /// Adapts the leave slash route to its shared handler and interaction response policy.
+    /// </summary>
+    /// <param name="context">The context supplied for this operation.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     [Command("leave")]
     [Description("Leave the voice channel")]
     public Task Leave(SlashCommandContext context)
@@ -18,13 +26,13 @@ public class LeaveSlashCommand(
         return ExecuteAsync(contextFactory.Create(context));
     }
 
+    /// <summary>
+    /// Routes the slash interaction through the shared command executor and acknowledgement policy.
+    /// </summary>
+    /// <param name="context">The slash interaction context dependency used by this boundary.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     public Task ExecuteAsync(ISlashInteractionContext context)
     {
-        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(
-            CommandName,
-            context,
-            RequireGuild: true,
-            Defer: true,
-            EnsureDeferredResponse: true));
+        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(CommandName, context, RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

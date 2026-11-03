@@ -10,6 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Music;
 
+/// <summary>
+/// Handles the resume text command through validation, service, and localized response boundaries.
+/// </summary>
+/// <param name="lavaLinkService">The lava link service dependency used by this boundary.</param>
+/// <param name="userValidation">The user validation service dependency used by this boundary.</param>
+/// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
+/// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="commandHelper">The command helper dependency used by this boundary.</param>
 public class ResumeCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
@@ -18,16 +27,37 @@ public class ResumeCommand(
     ILocalizationService localizationService,
     ICommandHelper commandHelper) : ICommand
 {
+
+    /// <inheritdoc />
     public string Name => "resume";
+
+    /// <inheritdoc />
     public string Description => localizationService.Get(LocalizationKeys.ResumeCommandDescription);
 
+    /// <summary>
+    /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
+    /// </summary>
+    /// <param name="message">The message supplying command context and the response channel.</param>
+    /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
-        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message);
-        if (validationResult is null) return;
+        var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 
-        await lavaLinkService.ResumeAsync(message, validationResult.Member);
+        if (validationResult is null)
+        {
+            return;
+        }
+
+        var result = await lavaLinkService.ResumeAsync(message, validationResult.Member);
+
+        if (!result.Success)
+        {
+            await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError, default);
+            return;
+        }
+
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ResumeCommandResponse);
         logger.CommandExecuted(Name);
     }
 }

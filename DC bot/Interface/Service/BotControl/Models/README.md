@@ -1,18 +1,57 @@
-# Bot Control Models
+# Models
 
-This folder contains bot-control execution models shared by bot-control services.
+Carries resolved Discord execution context and normalized command results within the bot.
 
-## Files
+## Overview
 
-### BotControlCommandResult.cs
+- The dispatcher and response service use these values to execute an accepted command and persist its outcome.
+- These are bot runtime values, not API response records. Store only the explicit serialized command result across process boundaries.
 
-Normalized command result object persisted after command execution. It carries success/failure information and optional result metadata.
+## Models and Results
 
-### BotControlExecutionContext.cs
+### BotControlCommandResult
 
-Resolved Discord execution context for a claimed command, including guild/channel/member details where available.
+**File:** `DC bot/Interface/Service/BotControl/Models/BotControlCommandResult.cs`
 
-## Notes
+**Purpose:** Contains durable command results and optional Discord-notification metadata.
 
-- Models here describe bot-side execution, not HTTP request/response payloads.
-- API response DTOs live under `API/Responses/BotControl/`.
+**Record declaration:**
+
+```csharp
+public sealed record BotControlCommandResult(
+    bool Success,
+    string Message,
+    string ResultJson,
+    ulong GuildId,
+    ulong UserId,
+    ulong? VoiceChannelId,
+    ulong? TextChannelId,
+    bool ShouldNotifyDiscord);
+```
+
+---
+
+### BotControlExecutionContext
+
+**File:** `DC bot/Interface/Service/BotControl/Models/BotControlExecutionContext.cs`
+
+**Purpose:** Contains guild, user, channel, and notification permissions resolved for a mobile command.
+
+**Record declaration:**
+
+```csharp
+public sealed record BotControlExecutionContext(
+    ulong GuildId,
+    ulong UserId,
+    ulong? VoiceChannelId,
+    ulong? TextChannelId,
+    bool CanSendDiscordResponse);
+```
+
+---
+
+## Related Components
+
+- `DC bot/Interface/Service/BotControl/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

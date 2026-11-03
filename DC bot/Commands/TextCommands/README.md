@@ -1,38 +1,90 @@
-# Text Commands
+# TextCommands
 
-This folder contains prefix-based Discord text commands grouped by feature.
+Implements commands selected by the configured message prefix and ICommandRegistry.
+
+## Overview
+
+- CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services.
+- Commands expose a name and localized description. The same implementations are reused by slash and selected mobile command paths.
 
 ## Subfolders
 
 ### Music/
 
-Playback commands such as join, play, pause, resume, skip, previous, and leave.
+Exposes voice join/leave and playback controls through text commands.
 
-### Queue/
+**Files:**
 
-Queue commands such as view queue, clear, shuffle, repeat track, repeat list, and queue item movement/removal.
+- `JoinCommand.cs`
+- `LeaveCommand.cs`
+- `PauseCommand.cs`
+- `PlayCommand.cs`
+- `PreviousCommand.cs`
+- `ResumeCommand.cs`
+- `SkipCommand.cs`
+
+**Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+
+---
 
 ### Playlist/
 
-Saved playlist commands for create, save, load, view, list, rename, delete, and track mutation.
+Exposes saved playlist creation, URL import, track editing, and queue loading through text commands.
+
+**Files:**
+
+- `AddSongToPlaylistCommand.cs`
+- `CreatePlaylistCommand.cs`
+- `DeletePlaylistCommand.cs`
+- `ListPlaylistsCommand.cs`
+- `LoadPlaylistCommand.cs`
+- `RemoveSongFromPlaylistCommand.cs`
+- `RenamePlaylistCommand.cs`
+- `SavePlaylistCommand.cs`
+- `ViewPlaylistCommand.cs`
+
+**Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+
+---
+
+### Queue/
+
+Exposes queue display, repetition, ordering, and recent batch history through text commands.
+
+**Files:**
+
+- `ClearCommand.cs`
+- `HistoryCommand.cs`
+- `RepeatCommand.cs`
+- `RepeatListCommand.cs`
+- `ShuffleCommand.cs`
+- `ViewQueueCommand.cs`
+
+**Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
+
+---
 
 ### Utility/
 
-General utility commands such as help, ping, language, and tag.
+Exposes help, language selection, latency checks, and user tagging through text commands.
 
-## Flow
+**Files:**
 
-```text
-Discord message
-  -> CommandHandlerService
-  -> ICommandRegistry
-  -> ICommand.ExecuteAsync
-  -> validation + domain service
-  -> localized response
-```
+- `HelpCommand.cs`
+- `LanguageCommand.cs`
+- `PingCommand.cs`
+- `TagCommand.cs`
 
-## Notes
+**Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
 
-- Text commands own Discord message parsing and user-facing responses.
-- Business behavior belongs in services, not command classes.
-- Slash commands reuse this pipeline through `ISlashCommandExecutor`.
+---
+
+## Related Components
+
+- `DC bot/Commands/README.md` — Parent feature overview and neighboring components.
+- `DC bot/README.md` — Project setup and architecture.
+- `DC bot/Commands/TextCommands/Music/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/TextCommands/Playlist/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/TextCommands/Queue/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Commands/TextCommands/Utility/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.

@@ -10,28 +10,35 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
+import com.dc.melodiasmario.feature.queue.generated.resources.Res
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_edit_mode_label
+import com.dc.melodiasmario.feature.queue.generated.resources.queue_edit_mode_message
+import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Renders queue edit mode card from the supplied parameters and forwards interaction callbacks.
+ */
 @Composable
 fun QueueEditModeCard(
     modifier: Modifier = Modifier,
     title: String,
-    message: String,
-) {
+    message: String
+): Unit {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(size = 16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
         ) {
             MText(
                 modifier = Modifier.fillMaxWidth(),
@@ -39,14 +46,14 @@ fun QueueEditModeCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             MText(
                 modifier = Modifier.fillMaxWidth(),
                 text = message,
                 textAlign = TextAlign.Start,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
+                fontSize = 13.sp
             )
         }
     }
@@ -54,9 +61,9 @@ fun QueueEditModeCard(
 
 @Preview
 @Composable
-fun QueueEditModeCardPreview() {
+private fun QueueEditModeCardPreview() {
     QueueEditModeCard(
-        title = "Edit Mode",
-        message = "You can now reorder or remove tracks from the queue, but the string should be at least 2 lines long to see how it looks when the text wraps to the next line.",
+        title = stringResource(resource = Res.string.queue_edit_mode_label),
+        message = stringResource(resource = Res.string.queue_edit_mode_message)
     )
 }

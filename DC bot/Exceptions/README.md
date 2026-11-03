@@ -1,266 +1,153 @@
-﻿# Exceptions
+# Exceptions
 
-This folder contains custom exception types for domain-specific error handling.
+Defines the common exception boundary and feature-specific failure categories.
 
 ## Overview
 
-All custom exceptions inherit from `BotException`, providing:
-
-- Type-safe error handling
-- Domain-specific context data
-- Clear error boundaries
-
-## Exception Hierarchy
-
-```
-System.Exception
-    ↓
-BotException (abstract)
-    ├── LocalizationException (Localization/)
-    ├── MessageSendException (Messaging/)
-    ├── ValidationException (Validation/) [currently not thrown]
-    └── Music Exceptions (Music/)
-        ├── LavalinkOperationException
-        ├── QueueOperationException [defined, currently not thrown]
-        └── TrackLoadException
-```
-
-## Base Exception
-
-### BotException.cs
-
-**Purpose:** Abstract base class for all bot-related exceptions.
-
-```csharp
-public abstract class BotException : Exception
-{
-    protected BotException(string message) : base(message) { }
-    
-    protected BotException(string message, Exception innerException) 
-        : base(message, innerException) { }
-}
-```
-
----
+- Services raise typed failures where callers need operation context; command boundaries log failures and produce localized responses.
+- Expected validation failures also use result objects. Do not use an exception simply to represent every rejected user input.
 
 ## Subfolders
 
 ### Localization/
 
-Contains `LocalizationException` for language file loading errors.
+Represents failures while loading or resolving translation resources.
 
-**Thrown by:**
+**Files:**
 
-- `LocalizationService` - File read/write failures, translation file not found
+- `LocalizationException.cs`
 
-**Common causes:**
-
-- Missing language file
-- Invalid JSON in language file
-- File I/O errors
+**Purpose:** LocalizationService supplies context about missing or invalid localization data for logging and caller handling.
 
 ---
 
 ### Messaging/
 
-Contains `MessageSendException` for Discord message operation failures.
+Represents Discord response delivery failures at the presentation boundary.
 
-**Thrown by:**
+**Files:**
 
-- `ReactionControlMessageService` - Reaction control message send failures
-- `TrackNotificationService` - Track notification send failures
+- `MessageSendException.cs`
 
-**Common causes:**
-
-- Missing channel permissions
-- Discord API rate limiting
-- Channel deleted during send
+**Purpose:** Response-building and notification paths can attach message-send context while preserving the underlying cause.
 
 ---
 
 ### Music/
 
-Contains music playback exceptions.
+Distinguishes Lavalink failures, track-load failures, expired sessions, and busy control operations.
 
-**Exception types:**
+**Files:**
 
-- `LavalinkOperationException` - Lavalink connection failures
-- `QueueOperationException` - Defined for queue save/load boundaries, not currently thrown
-- `TrackLoadException` - Track loading failures
+- `LavalinkOperationException.cs`
+- `PlaybackOperationBusyException.cs`
+- `PlaybackSessionExpiredException.cs`
+- `TrackLoadException.cs`
 
-**Thrown by:**
-
-- `LavalinkNodeConnectionService` - Lavalink connection failures
-- `PlaybackRequestService` - Track loading failures
-- `MusicQueueService` - Queue persistence currently lets repository exceptions bubble naturally
+**Purpose:** Lifecycle and playback services use these types to prevent stale or competing commands from acting on a replaced player.
 
 ---
 
-### Validation/
+## Classes
 
-Contains `ValidationException` (currently not thrown in code).
+### BotException
 
-The application uses validation result objects instead (`UserValidationResult`, `PlayerValidationResult`,
-`ConnectionValidationResult`).
+**File:** `DC bot/Exceptions/BotException.cs`
 
----
+**Purpose:** Base exception for all bot-related errors.
 
-## Usage Example
-
-### Throwing Exceptions
-
-```csharp
-// Localization
-try
-{
-    var json = _fileSystem.ReadAllText(filePath);
-    return JsonSerializer.Deserialize<T>(json);
-}
-catch (Exception ex)
-{
-    throw new LocalizationException(_lang ?? "unknown", $"Failed to read JSON file: {filePath}", ex);
-}
-
-// Messaging
-try
-{
-    await channel.SendMessageAsync(embed);
-}
-catch (Exception ex)
-{
-    throw new MessageSendException("SendReactionControlMessage", "Failed to send reaction control message", ex);
-}
-
-// Music - Lavalink node connection
-try
-{
-    await audioService.StartAsync();
-    await audioService.WaitForReadyAsync();
-}
-catch (Exception ex)
-{
-    throw new LavalinkOperationException("ConnectAsync", "Failed to connect to Lavalink node", ex);
-}
-
-// Music - Track Loading
-try
-{
-    loadResult = await audioService.Tracks.LoadTracksAsync(query, trackSearchMode);
-}
-catch (Exception ex)
-{
-    throw new TrackLoadException(query, "Failed to load track from query", ex);
-}
-
-if (loadResult.Tracks.Count == 0)
-{
-    throw new TrackLoadException(query, "Track not found or load failed");
-}
-```
-
-### Catching Exceptions
-
-```csharp
-// LanguageCommand catches the expected localization failure boundary.
-try
-{
-    localizationService.SaveLanguage(message.Channel.Guild.Id, language);
-}
-catch (LocalizationException ex)
-{
-    logger.CommandExecutionFailed(ex, Name);
-    await responseBuilder.SendErrorAsync(message, LocalizationKeys.LanguageCommandError);
-}
-
-// CommandHandlerService and SlashCommandExecutor catch all BotException instances.
-try
-{
-    await command.ExecuteAsync(message);
-}
-catch (BotException botEx)
-{
-    logger.CommandExecutionFailed(botEx, commandName);
-}
-```
+**Implements / inherits:** `Exception`.
 
 ---
-
-## Exception Properties
 
 ### LocalizationException
 
-- `LanguageCode` (string) - Language code that caused the error
+**File:** `DC bot/Exceptions/Localization/LocalizationException.cs`
 
-### MessageSendException
+**Purpose:** Exception thrown when localization operations fail.
 
-- `Operation` (string) - Operation that failed
+**Implements / inherits:** `BotException`.
 
-### LavalinkOperationException
+**Properties:**
 
-- `Operation` (string) - Lavalink operation that failed
-
-### QueueOperationException
-
-- `Operation` (string) - Queue operation that failed
-- `GuildId` (ulong) - Discord guild ID
-- Current status: defined for queue persistence failure boundaries, but not currently thrown by production code
-
-### TrackLoadException
-
-- `Query` (string) - URL or search query that failed
+```csharp
+public string LanguageCode { get; }
+```
 
 ---
 
-## Testing
+### MessageSendException
 
-### Unit Test Examples
+**File:** `DC bot/Exceptions/Messaging/MessageSendException.cs`
+
+**Purpose:** Exception thrown when Discord message operations fail.
+
+**Implements / inherits:** `BotException`.
+
+**Properties:**
 
 ```csharp
-[Fact]
-public void LoadLanguage_WhenTranslationFileIsMissing_ThrowsLocalizationException()
-{
-    // Arrange
-    var service = new LocalizationService(logger, mockFileSystem.Object);
+public string Operation { get; }
+```
 
-    // Act & Assert
-    var exception = Assert.Throws<LocalizationException>(
-        () => service.SaveLanguage(123UL, "invalid"));
-    
-    Assert.Equal("invalid", exception.LanguageCode);
-    Assert.Contains("not found", exception.Message);
-}
+---
 
-[Fact]
-public async Task HandleEventAsync_WhenCommandThrowsBotException_LogsFailure()
-{
-    // Arrange
-    commandMock
-        .Setup(x => x.ExecuteAsync(It.IsAny<IDiscordMessage>()))
-        .ThrowsAsync(new TrackLoadException("query", "Not found"));
+### LavalinkOperationException
 
-    // Act
-    await commandHandler.HandleEventAsync(discordClient, messageCreatedArgs);
+**File:** `DC bot/Exceptions/Music/LavalinkOperationException.cs`
 
-    // Assert
-    logger.VerifyCommandExecutionFailed("play");
-}
+**Purpose:** Exception thrown when Lavalink operations fail.
+
+**Implements / inherits:** `BotException`.
+
+**Properties:**
+
+```csharp
+public string Operation { get; }
+```
+
+---
+
+### PlaybackOperationBusyException
+
+**File:** `DC bot/Exceptions/Music/PlaybackOperationBusyException.cs`
+
+**Purpose:** Signals a competing or unresolved operation that prevents playback control.
+
+**Implements / inherits:** `InvalidOperationException`.
+
+---
+
+### PlaybackSessionExpiredException
+
+**File:** `DC bot/Exceptions/Music/PlaybackSessionExpiredException.cs`
+
+**Purpose:** Signals that work no longer owns the current guild player generation.
+
+**Implements / inherits:** `InvalidOperationException`.
+
+---
+
+### TrackLoadException
+
+**File:** `DC bot/Exceptions/Music/TrackLoadException.cs`
+
+**Purpose:** Exception thrown when a track cannot be loaded or played.
+
+**Implements / inherits:** `BotException`.
+
+**Properties:**
+
+```csharp
+public string Query { get; }
 ```
 
 ---
 
 ## Related Components
 
-- **Logging/LogExtensions.cs** - Exception logging extensions
-- **Service/** - Services that throw domain exceptions
-- **Helper/Validation/** - Validation result objects
-- **Constants/AppConstants.cs** - Error message keys
-
----
-
-## Best Practices
-
-- Include relevant context in exception properties
-- Preserve inner exceptions when wrapping
-- Log exceptions with structured logging
-- Don't expose sensitive data in exception messages
-
+- `DC bot/README.md` — Parent feature overview and neighboring components.
+- `DC bot/Exceptions/Localization/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Exceptions/Messaging/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Exceptions/Music/README.md` — Detailed component contracts and examples for this subfolder.
+- `DC bot/Startup/DependencyInjection/` — Registers the runtime implementations used by these components.
