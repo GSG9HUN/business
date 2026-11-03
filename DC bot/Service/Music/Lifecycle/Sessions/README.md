@@ -4,6 +4,8 @@ Coordinates guild player generations, exclusive control, track attempts, and lif
 
 ## Overview
 
+- `RememberRecoveryChannels`, `GetRecoveryChannels`, and `ForgetRecoveryChannels` manage process-local voice/text destinations under the guild state lock. Only the current generation may remember targets. Player replacement retains destinations; explicit leave removes them before cleanup.
+
 - Own shared session synchronization and invalidate stale operations before cleanup.
 - Keep transport draining, database admission, and attempt correlation under the same coordinator.
 

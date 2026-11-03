@@ -15,7 +15,8 @@ enum class PlaylistArtworkTheme {
          * Provides the from name operation for companion.
          */
         fun fromName(name: String): PlaylistArtworkTheme {
-            val words = Regex("\\p{L}+").findAll(name.lowercase())
+            val words = Regex(pattern = "\\p{L}+")
+                .findAll(input = name.lowercase())
                 .map { wordMatch -> wordMatch.value }
                 .toSet()
             return when {

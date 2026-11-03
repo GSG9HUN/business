@@ -86,7 +86,10 @@ public static class MusicSearchResultMapper
             var length = Number(info, "length");
             var count = Number(metadata, "totalTracks");
             var isStream = Property(info, "isStream").ValueKind == JsonValueKind.True;
-            var duration = !playlist && !isStream && length is >= 0 && length / 1000 <= int.MaxValue ? (int? )(length / 1000) : null;
+            var duration = !playlist
+                && !isStream
+                && length is >= 0
+                && length / 1000 <= int.MaxValue ? (int? )(length / 1000) : null;
             var enqueue = canEnqueue && canonicalUrl is not null;
             results.Add(new MusicSearchResultResponse(id, provider.Id, kind, Text(info, playlist ? "name" : "title") ?? "Untitled", Text(metadata, "author"), Artwork(Text(metadata, "artworkUrl")), duration, playlist && count is >= 0 and <= int.MaxValue ? (int? )count : null, canonicalUrl, enqueue, enqueue ? null : canonicalUrl is null ? "CanonicalUrlUnavailable" : "EnqueueUnavailable"));
 
@@ -127,7 +130,8 @@ public static class MusicSearchResultMapper
     /// <param name="element">The element value for this operation.</param>
     /// <param name="name">The name value for this operation.</param>
     /// <returns>The computed property result.</returns>
-    internal static JsonElement Property(JsonElement element, string name) => element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var value) ? value : default;
+    internal static JsonElement Property(JsonElement element, string name) => element.ValueKind == JsonValueKind.Object
+        && element.TryGetProperty(name, out var value) ? value : default;
 
     /// <summary>
     /// Reads a nonempty JSON string property or returns null.
@@ -138,7 +142,8 @@ public static class MusicSearchResultMapper
     private static string? Text(JsonElement element, string name)
     {
         var value = Property(element, name);
-        return value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()) ? value.GetString() : null;
+        return value.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(value.GetString()) ? value.GetString() : null;
     }
 
     /// <summary>
@@ -150,7 +155,8 @@ public static class MusicSearchResultMapper
     private static long? Number(JsonElement element, string name)
     {
         var value = Property(element, name);
-        return value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var number) ? number : null;
+        return value.ValueKind == JsonValueKind.Number
+            && value.TryGetInt64(out var number) ? number : null;
     }
 
     /// <summary>

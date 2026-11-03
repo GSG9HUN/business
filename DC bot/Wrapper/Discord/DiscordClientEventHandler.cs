@@ -3,7 +3,6 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Recovery;
 using DSharpPlus;
 using DSharpPlus.Entities;

@@ -48,6 +48,7 @@ fun MManualInput(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterStart
                 ) {
+
                     if (value.isBlank()) {
                         MText(
                             text = placeholder,

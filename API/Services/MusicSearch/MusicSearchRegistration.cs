@@ -34,7 +34,9 @@ public static class MusicSearchRegistration
             options.Password = configuration["LAVALINK_PASSWORD"] ?? options.Password;
         })
             .Validate(o => o.TimeoutSeconds is >= 1 and <= 30 && o.MaxResults is >= 1 and <= 20, "Music search timeout must be 1-30 seconds and MaxResults 1-20.")
-            .Validate(o => Uri.TryCreate(o.BaseAddress, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" && string.IsNullOrEmpty(uri.UserInfo), "Music search requires an HTTP(S) Lavalink base address.")
+            .Validate(o => Uri.TryCreate(o.BaseAddress, UriKind.Absolute, out var uri)
+            && uri.Scheme is "http" or "https"
+            && string.IsNullOrEmpty(uri.UserInfo), "Music search requires an HTTP(S) Lavalink base address.")
             .ValidateOnStart();
         services.AddHttpClient<LavalinkSearchClient>((provider, client) =>
         {

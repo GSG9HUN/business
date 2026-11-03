@@ -8,6 +8,10 @@ Represents the database rows used for current playback state, repeat flags, star
 - Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 - PlaybackBatchEntity and PlaybackBatchItemEntity retain the canonical playback sequence independently of waiting queue order. GuildPlaybackStateEntity also stores operation ownership and remote node binding needed for reconciliation.
 
+**Staging Integration**
+
+PlaybackBatchItemEntity includes IsRemoved for exclusion from future cycles without deleting referenced history, and EnqueueGroupId for the originating display group. Canonical BatchId remains a long foreign key.
+
 ## Classes
 
 ### GuildPlaybackStateEntity

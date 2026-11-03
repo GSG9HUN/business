@@ -135,8 +135,7 @@ fun PlaylistsScreen(
             )
 
             else -> LazyVerticalGrid(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .weight(weight = 1f),
                 columns = GridCells.Fixed(count = 2),
                 contentPadding = PaddingValues(

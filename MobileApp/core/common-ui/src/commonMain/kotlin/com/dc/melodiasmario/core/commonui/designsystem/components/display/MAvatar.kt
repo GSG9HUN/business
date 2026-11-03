@@ -40,6 +40,7 @@ fun MAvatar(
         color = backgroundColor,
         onClick = avatarOnClick
     ) {
+
         if (!imageUrl.isNullOrBlank()) {
             SubcomposeAsyncImage(
                 model = imageUrl,

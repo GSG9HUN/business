@@ -7,6 +7,10 @@ Defines client-facing output for ordered queue entries, canonical batches, condi
 - Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
 - Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 
+**Staging Integration**
+
+The public batchId identifies the display enqueue group, distinct from internal canonical playback batch keys. Existing queue occurrence IDs and waiting-only command indices are preserved through staging reconciliation.
+
 ## Models and Results
 
 ### QueueResponse

@@ -26,7 +26,7 @@ fun createHttpClient(): HttpClient {
 internal fun HttpClientConfig<*>.configureMelodiasHttpClient(
     logger: Logger = Logger.DEFAULT
 ): Unit {
-    install(ContentNegotiation) {
+    install(plugin = ContentNegotiation) {
         json(
             json = Json {
                 ignoreUnknownKeys = true
@@ -34,7 +34,7 @@ internal fun HttpClientConfig<*>.configureMelodiasHttpClient(
             }
         )
     }
-    install(Logging) {
+    install(plugin = Logging) {
         this.logger = logger
         level = LogLevel.HEADERS
 

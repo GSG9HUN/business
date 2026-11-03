@@ -7,6 +7,10 @@ Carries inputs, statuses, and results for the playlist service use cases.
 - Implementations live under Service/Music/PlaylistService; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 
+**Status Declaration Files**
+
+Each result and its status enumeration now has a separate source file: `ListPlaylistsStatus.cs`, `LoadPlaylistStatus.cs`, and `ViewPlaylistStatus.cs`. The enumeration namespaces and values remain unchanged.
+
 ## Models and Results
 
 ### AddSongResult

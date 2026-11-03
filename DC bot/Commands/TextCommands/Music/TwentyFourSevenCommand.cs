@@ -6,7 +6,6 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Persistence.Models.Guilds;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
 using Microsoft.Extensions.Logging;
 

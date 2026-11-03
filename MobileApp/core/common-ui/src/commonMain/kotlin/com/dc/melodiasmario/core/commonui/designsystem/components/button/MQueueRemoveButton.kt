@@ -27,8 +27,7 @@ fun MQueueRemoveButton(
     enabled: Boolean = true
 ): Unit {
     Surface(
-        modifier = modifier
-            .size(size = 36.dp)
+        modifier = modifier.size(size = 36.dp)
             .semantics { this.contentDescription = contentDescription },
         shape = RoundedCornerShape(size = 9.dp),
         color = MaterialTheme.colorScheme.errorContainer,

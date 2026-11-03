@@ -1,7 +1,6 @@
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Tracks;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using Lavalink4NET.Rest.Entities.Tracks;
 

@@ -57,7 +57,10 @@ public class MobileAppSessionRepository(IDbContextFactory<BotDbContext> dbContex
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(ct);
         var now = DateTimeOffset.UtcNow;
-        var affectedRows = await db.MobileAppSessions.Where(x => x.SessionId == sessionId && x.RefreshTokenHash == currentRefreshTokenHash && x.RevokedAtUtc == null && x.RefreshTokenExpiresAtUtc > now)
+        var affectedRows = await db.MobileAppSessions.Where(x => x.SessionId == sessionId
+            && x.RefreshTokenHash == currentRefreshTokenHash
+            && x.RevokedAtUtc == null
+            && x.RefreshTokenExpiresAtUtc > now)
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.RefreshTokenHash, newRefreshTokenHash)
                 .SetProperty(x => x.RefreshTokenExpiresAtUtc, expiresAtUtc)
                 .SetProperty(x => x.LastRefreshedAtUtc, now), ct);

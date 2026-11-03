@@ -17,4 +17,21 @@ public sealed record QueueTrackResponse(
     int Duration,
     string TrackUri,
     string? ArtworkUri,
-    string? RequestedBy);
+    string? RequestedBy)
+{
+
+    /// <summary>Identifies this queue occurrence independently of its source URL.</summary>
+    public string? QueueItemId { get; init; }
+
+    /// <summary>Identifies the originating enqueue operation.</summary>
+    public string? BatchId { get; init; }
+
+    /// <summary>Gets the original zero-based order within the batch.</summary>
+    public int BatchPosition { get; init; }
+
+    /// <summary>Gets Queued, Playing, Played, or Skipped for this occurrence.</summary>
+    public string State { get; init; } = "Queued";
+
+    /// <summary>Gets the timestamp used to order played and skipped occurrences in a saved snapshot.</summary>
+    public DateTimeOffset? CompletedAtUtc { get; init; }
+}

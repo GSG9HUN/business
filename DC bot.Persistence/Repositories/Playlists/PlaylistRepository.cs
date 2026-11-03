@@ -16,6 +16,60 @@ namespace DC_bot.Repositories.Playlists;
 public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory) : IPlaylistRepository
 {
 
+    /// <inheritdoc />
+    public async Task<long?> CreateSnapshotAsync(
+        ulong guildId,
+        string playlistName,
+        IReadOnlyList<PlaylistTrackCreateRecord> tracks,
+        int maxPlaylists,
+        int maxTracks,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(tracks);
+        var snapshot = tracks.ToArray();
+
+        if (snapshot.Length > Math.Max(1, maxTracks))
+        {
+            throw new ArgumentException("The playlist track limit was exceeded.", nameof(tracks));
+        }
+
+        try
+        {
+            return await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync<long?>(
+                dbContextFactory,
+                async (dbContext, ct) =>
+                {
+                    await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, ct);
+                    var count = await dbContext.Playlists.CountAsync(item => item.GuildId == guildId, ct);
+
+                    if (count >= Math.Max(1, maxPlaylists))
+                    {
+                        return null;
+                    }
+
+                    var playlist = new PlaylistEntity { GuildId = guildId, Name = playlistName };
+                    dbContext.Playlists.Add(playlist);
+                    await dbContext.SaveChangesAsync(ct);
+                    var entities = snapshot.Select((track, index) => new PlaylistTrackEntity
+                    {
+                        PlaylistId = playlist.Id,
+                        OrderNumber = index + 1,
+                        Source = track.Source,
+                        TrackIdentifier = track.TrackIdentifier,
+                        TrackUri = track.TrackUri
+                    });
+                    dbContext.PlaylistTracks.AddRange(entities);
+                    await dbContext.SaveChangesAsync(ct);
+                    return playlist.Id;
+                },
+                cancellationToken);
+        }
+        catch (Exception exception) when (PostgreSqlConcurrencyHelper.IsUniqueViolation(exception))
+        {
+            throw new UniqueConstraintConflictException("The playlist name is already in use.", exception);
+        }
+    }
+
     /// <inheritdoc/>
     public async Task<PlaylistRecord?> GetByGuildAndNameAsync(
         ulong guildId,
@@ -46,7 +100,12 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         return await dbContext.Playlists.AsNoTracking()
             .Where(playlist => playlist.GuildId == guildId)
             .OrderBy(playlist => playlist.Name)
-            .Select(playlist => new PlaylistSummaryRecord(playlist.Id, playlist.GuildId, playlist.Name, playlist.Tracks.Count))
+            .Select(playlist => new PlaylistSummaryRecord(
+                playlist.Id,
+                playlist.GuildId,
+                playlist.Name,
+                playlist.Tracks.Count,
+                playlist.ArtworkUri))
             .ToListAsync(cancellationToken);
     }
 
@@ -142,6 +201,17 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         return playlist.Id;
     }
 
+    /// <inheritdoc />
+    public async Task<bool> SetArtworkAsync(long playlistId, string? artworkUri, CancellationToken cancellationToken)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var affectedRows = await dbContext.Playlists.Where(playlist => playlist.Id == playlistId)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(playlist => playlist.ArtworkUri, artworkUri),
+                cancellationToken);
+        return affectedRows > 0;
+    }
+
     /// <summary>
     /// Copies persisted entity values into an immutable storage contract without exposing EF tracking.
     /// </summary>
@@ -149,6 +219,10 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
     /// <returns>The mapped, normalized, or configured value described above.</returns>
     private static PlaylistRecord MapToRecord(PlaylistEntity entity)
     {
-        return new PlaylistRecord(entity.Id, entity.GuildId, entity.Name);
+        return new PlaylistRecord(
+            entity.Id,
+            entity.GuildId,
+            entity.Name,
+            entity.ArtworkUri);
     }
 }

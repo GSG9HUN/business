@@ -47,4 +47,8 @@
     <string name="m_add_music_reason_enqueue_unavailable">Queueing from this provider is disabled.</string>
     <string name="m_add_music_reason_deployment_verification_required">This provider needs deployment verification before it can be enabled.</string>
     <string name="m_add_music_reason_search_support_unverified">Search support for this provider has not been verified yet.</string>
+    <string name="queue_batch_label">Batch %1$d</string>
+    <string name="queue_state_playing">Now playing</string>
+    <string name="queue_state_played">Played</string>
+    <string name="queue_state_skipped">Skipped</string>
 </resources>

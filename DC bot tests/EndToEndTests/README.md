@@ -42,3 +42,7 @@ Commonly required values include:
 - `Commands/TextCommands/Playlist/` - local text command handler pipeline for playlist command flows, including load and remove-song routing
 - `Commands/SlashCommands/` - local slash adapter -> executor -> text command pipeline, split by Music/Queue/Playlist/Utility command domains
 - `Wrapper/` - DSharpPlus wrapper behavior against real Discord objects
+
+## Playlist Cancellation
+
+Playlist command mocks use the cancellation-aware import and add-song service signatures; existing Discord command scenarios retain default cancellation.

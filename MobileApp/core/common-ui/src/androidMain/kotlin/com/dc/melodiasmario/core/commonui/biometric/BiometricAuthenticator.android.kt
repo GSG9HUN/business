@@ -40,6 +40,7 @@ actual class BiometricAuthenticator(
                 object : BiometricPrompt.AuthenticationCallback() {
 
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+
                         if (continuation.isActive) {
                             continuation.resume(
                                 value = BiometricResult.Success
@@ -48,6 +49,7 @@ actual class BiometricAuthenticator(
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+
                         if (continuation.isActive) {
                             continuation.resume(value = BiometricResult.NotAuthenticated)
                         }
@@ -73,8 +75,7 @@ actual class BiometricAuthenticator(
             }
 
             val promptInfo =
-                BiometricPrompt.PromptInfo
-                    .Builder()
+                BiometricPrompt.PromptInfo.Builder()
                     .setTitle(title)
                     .setSubtitle(reason)
                     .setAllowedAuthenticators(authenticators)

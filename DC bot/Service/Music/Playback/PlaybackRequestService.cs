@@ -7,7 +7,6 @@ using DC_bot.Interface.Service.Music.Lifecycle;
 using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Presentation;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using Lavalink4NET;
 using Lavalink4NET.Rest.Entities.Tracks;

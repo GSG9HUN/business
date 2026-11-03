@@ -7,6 +7,19 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 - PlaybackRequestService resolves user input. TrackPlaybackService claims and starts a queue item; PlaybackControlService handles pause, resume, skip, previous, and leave under session ownership.
 - Previous selects within the active canonical batch. A remote start with an uncertain outcome is reconciled before retrying; do not blindly issue another PlayAsync and risk duplicate playback.
 
+**Recovery Start and Explicit Leave**
+
+**Purpose:** Keep replacement playback inside the existing queue-claim, node-binding, attempt-correlation, and commit workflow.
+
+- `StartExistingAsync` accepts optional `PlaybackResumeOptions`; normal next-track starts pass no recovery checkpoint.
+- Recovery uses `PlaybackStartReason.Recovery` and the existing queue-item ID instead of adding a new batch item.
+- Paused recovery sends the track, position, and pause in one remote update. Ordinary recovery uses `TrackPlayProperties.StartPosition`.
+- `CommitKnownStartAsync` forwards position and pause state to the transactional queue commit.
+- Now-playing notifications use the restored starting position.
+- `LeaveVoiceChannel` delegates to `PersistentVoiceLeaveService` and continues observing late cleanup faults after its caller-facing deadline.
+
+---
+
 ## Classes
 
 ### CurrentTrackService
@@ -207,19 +220,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 var result = await trackPlaybackService.TryPlayNextTrackAsync(session, textChannel, reason, reservation, cancellationToken);
 ```
-
----
-
-## Recovery Start and Explicit Leave
-
-**Purpose:** Keep replacement playback inside the existing queue-claim, node-binding, attempt-correlation, and commit workflow.
-
-- `StartExistingAsync` accepts optional `PlaybackResumeOptions`; normal next-track starts pass no recovery checkpoint.
-- Recovery uses `PlaybackStartReason.Recovery` and the existing queue-item ID instead of adding a new batch item.
-- Paused recovery sends the track, position, and pause in one remote update. Ordinary recovery uses `TrackPlayProperties.StartPosition`.
-- `CommitKnownStartAsync` forwards position and pause state to the transactional queue commit.
-- Now-playing notifications use the restored starting position.
-- `LeaveVoiceChannel` delegates to `PersistentVoiceLeaveService` and continues observing late cleanup faults after its caller-facing deadline.
 
 ---
 

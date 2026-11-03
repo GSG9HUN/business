@@ -8,6 +8,41 @@ Implements shared storage operations for guild defaults, premium state, and the 
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - GuildDataBootstrapper initializes required guild rows. GuildPremiumAuditEntity is mapped in the model, but this folder does not implement a dedicated premium-audit repository.
 
+**Twenty-Four-Seven Preferences**
+
+**Methods:**
+
+```csharp
+Task<TwentyFourSevenSettingsRecord> GetTwentyFourSevenSettingsAsync(
+    ulong guildId,
+    CancellationToken cancellationToken = default);
+
+Task SetTwentyFourSevenSettingsAsync(
+    ulong guildId,
+    bool enabled,
+    ulong? voiceChannelId,
+    ulong? textChannelId,
+    CancellationToken cancellationToken = default);
+```
+
+**Usage:**
+
+```csharp
+await guildDataRepository.SetTwentyFourSevenSettingsAsync(guildId, true, voiceChannelId, textChannelId, cancellationToken);
+var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId, cancellationToken);
+```
+
+**Validation Checks:**
+
+- Reject guild identifier zero and enabling without nonzero voice and text channel identifiers.
+- Return disabled defaults when the guild has not been stored.
+- Ensure the guild exists using the existing unique-conflict insertion policy before updating preferences.
+- Load the tracked guild entity, assign the relevant properties, and save through `SaveChangesAsync`.
+- Disabling preserves preferred channels; preference updates preserve premium fields.
+- Forward caller cancellation through database operations.
+
+---
+
 ## Classes
 
 ### GuildDataBootstrapper
@@ -73,41 +108,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 await guildDataRepository.EnsureGuildExistsAsync(guildId, cancellationToken);
 ```
-
----
-
-## Twenty-Four-Seven Preferences
-
-**Methods:**
-
-```csharp
-Task<TwentyFourSevenSettingsRecord> GetTwentyFourSevenSettingsAsync(
-    ulong guildId,
-    CancellationToken cancellationToken = default);
-
-Task SetTwentyFourSevenSettingsAsync(
-    ulong guildId,
-    bool enabled,
-    ulong? voiceChannelId,
-    ulong? textChannelId,
-    CancellationToken cancellationToken = default);
-```
-
-**Usage:**
-
-```csharp
-await guildDataRepository.SetTwentyFourSevenSettingsAsync(guildId, true, voiceChannelId, textChannelId, cancellationToken);
-var settings = await guildDataRepository.GetTwentyFourSevenSettingsAsync(guildId, cancellationToken);
-```
-
-**Validation Checks:**
-
-- Reject guild identifier zero and enabling without nonzero voice and text channel identifiers.
-- Return disabled defaults when the guild has not been stored.
-- Ensure the guild exists using the existing unique-conflict insertion policy before updating preferences.
-- Load the tracked guild entity, assign the relevant properties, and save through `SaveChangesAsync`.
-- Disabling preserves preferred channels; preference updates preserve premium fields.
-- Forward caller cancellation through database operations.
 
 ---
 

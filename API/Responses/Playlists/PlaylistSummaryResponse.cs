@@ -1,10 +1,14 @@
 namespace API.Responses.Playlists;
 
-/// <summary>
-/// Carries the playlist summary payload returned to HTTP and mobile clients.
-/// </summary>
-/// <param name="Id">The id value for this operation.</param>
-/// <param name="Name">The name value for this operation.</param>
-/// <param name="SongCount">The song count value for this operation.</param>
-/// <param name="Duration">The duration value for this operation.</param>
-public sealed record PlaylistSummaryResponse(string Id, string Name, int SongCount, int Duration);
+/// <summary>Describes a saved playlist in a guild playlist listing.</summary>
+/// <param name="Id">The playlist identifier.</param>
+/// <param name="Name">The playlist name.</param>
+/// <param name="SongCount">The saved track count.</param>
+/// <param name="Duration">The total duration in seconds.</param>
+/// <param name="ArtworkUri">The custom cover URL, first available track artwork, or null.</param>
+public sealed record PlaylistSummaryResponse(
+    string Id,
+    string Name,
+    int SongCount,
+    int Duration,
+    string? ArtworkUri = null);

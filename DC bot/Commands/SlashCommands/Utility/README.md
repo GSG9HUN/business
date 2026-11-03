@@ -7,6 +7,18 @@ Exposes help, language selection, latency checks, and user tagging through slash
 - DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
 - Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 
+## Subfolders
+
+### Models/
+
+Contains the SDK choice model consumed by `LanguageSlashCommand`.
+
+**Files:** `Models/SlashLanguage.cs`.
+
+**Purpose:** Separate the language choice declaration from command execution. English and Hungarian retain the `en` and `hu` display names and existing namespace.
+
+---
+
 ## Classes
 
 ### HelpSlashCommand

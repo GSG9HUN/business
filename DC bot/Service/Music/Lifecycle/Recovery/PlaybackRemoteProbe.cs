@@ -69,9 +69,11 @@ public sealed class PlaybackRemoteProbe(IHttpClientFactory httpClientFactory, IO
         }
 
         // Older responses may omit channelId. If present, it must match.
+
         if (voice.TryGetProperty("channelId", out var channel))
         {
-            return channel.ValueKind == JsonValueKind.String && channel.GetString() == voiceChannelId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return channel.ValueKind == JsonValueKind.String
+                && channel.GetString() == voiceChannelId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         return true;
@@ -135,7 +137,10 @@ public sealed class PlaybackRemoteProbe(IHttpClientFactory httpClientFactory, IO
 
         // Require a Lavalink error body for this exact resource.
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-        return json.RootElement.TryGetProperty("status", out var status) && status.GetInt32() == 404 && json.RootElement.TryGetProperty("path", out var path) && path.GetString() == $"/v4/sessions/{sessionId}/players";
+        return json.RootElement.TryGetProperty("status", out var status)
+            && status.GetInt32() == 404
+            && json.RootElement.TryGetProperty("path", out var path)
+            && path.GetString() == $"/v4/sessions/{sessionId}/players";
     }
 
     /// <summary>
@@ -162,7 +167,12 @@ public sealed class PlaybackRemoteProbe(IHttpClientFactory httpClientFactory, IO
 
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
         var root = json.RootElement;
-        return root.TryGetProperty("guildId", out var guild) && guild.GetString() == guildId.ToString(System.Globalization.CultureInfo.InvariantCulture) && root.TryGetProperty("track", out var track) && track.ValueKind == JsonValueKind.Object && track.TryGetProperty("encoded", out var encoded) && encoded.GetString() == encodedTrack;
+        return root.TryGetProperty("guildId", out var guild)
+            && guild.GetString() == guildId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            && root.TryGetProperty("track", out var track)
+            && track.ValueKind == JsonValueKind.Object
+            && track.TryGetProperty("encoded", out var encoded)
+            && encoded.GetString() == encodedTrack;
     }
 
     /// <summary>

@@ -72,14 +72,16 @@ class PlaylistsRemoteDataSourceImpl(
         accessToken: String,
         guildId: String,
         playlistName: String,
-        trackUrls: List<String>
+        trackUrls: List<String>,
+        queueItemIds: List<String>
     ): Playlist {
         return playlistsApiService.createPlaylistFromTracks(
             accessToken = accessToken,
             guildId = guildId,
             request = CreatePlaylistFromTracksRequestDto(
                 playlistName = playlistName,
-                trackUrls = trackUrls
+                trackUrls = trackUrls,
+                queueItemIds = queueItemIds
             )
         )
             .toDomain()

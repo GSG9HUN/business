@@ -52,6 +52,7 @@ public sealed class PersistentVoiceLeaveService(
                     persistenceDeadline.Token);
             }
 
+            sessions.ForgetRecoveryChannels(guildId);
             var result = await sessions.LeaveAsync(
                 guildId,
                 player => cleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: false));

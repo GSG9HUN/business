@@ -164,6 +164,79 @@ class LoginViewModelTest {
 - A meglévő, helyes dokumentációt őrizd meg. Csak az érintett szekciókat frissítsd; a teljes README-t ne írd újra szükségtelenül.
 - Ne hozz létre üres, nem releváns szekciókat. Kerüld az emojikat és a fölösleges díszítést.
 
+### Elvárt README-formátum
+
+A README fájloknak az alábbi mintastruktúrát kell követniük:
+
+````markdown
+# DirectoryName
+
+Short description of the directory's responsibility.
+
+## Overview
+
+Reusable components that:
+
+- Provide reusable functionality
+- Reduce code duplication
+- Simplify maintenance
+
+## Subfolders
+
+### SubfolderName/
+
+Description of the subfolder.
+
+**Files:**
+
+- `ExampleUseCase.kt`
+- `ExampleClass.kt`
+
+**Purpose:** Description of the subfolder's responsibility.
+
+---
+
+## Component Category
+
+### ExampleClass
+
+**Purpose:** Description of the class.
+
+**Properties:**
+
+```kotlin
+public val isValid: Boolean
+public val errorKey: String
+```
+
+**Usage:**
+
+```kotlin
+val result = service.validateAsync()
+
+if (!result.isValid) {
+    return
+}
+```
+
+**Validation Checks:**
+
+- First validation rule
+- Second validation rule
+
+---
+
+## Related Components
+
+- `Service/` - Related service implementations
+- `Interface/` - Related interface contracts
+
+````
+Ez a mintastruktúra biztosítja, hogy a README fájlok egységesek, áttekinthetők és könnyen karbantarthatók legyenek a projekt során.
+A mintastruktúra kötött és nem lehet pluszba hozzáadni szekciót vagy levonni belőle.
+Ha a meglévő readme struktúrája nem felel a mintának, akkor a readme-t át kell írni a mintának megfelelően, a meglévő információk megtartásával.
+
+
 ### Kötelező szerkezet, ahol releváns
 
 - `# MappaNeve`: a könyvtár neve, alatta 1–2 mondat a céljáról.

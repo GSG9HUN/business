@@ -104,23 +104,26 @@ class LoginViewModel(
     }
 
     private suspend fun onDiscordLoginClicked() {
-        startDiscordLoginUseCase().collect { result ->
-            when (result) {
-                is Resource.Loading -> setLoading()
+        startDiscordLoginUseCase()
+            .collect { result ->
+                when (result) {
+                    is Resource.Loading -> setLoading()
 
-                is Resource.Success -> onDiscordLoginClickedSuccess(authorizeUrl = result.data.authorizeUrl)
+                    is Resource.Success -> onDiscordLoginClickedSuccess(authorizeUrl = result.data.authorizeUrl)
 
-                is Resource.Error -> setError(error = result.error)
+                    is Resource.Error -> setError(error = result.error)
+                }
             }
-        }
     }
 
     private fun startStatusPolling() {
+
         if (pollingJob?.isActive == true) {
             return
         }
 
         pollingJob = viewModelScope.launch {
+
             while (isActive) {
                 checkApiStatus()
                 delay(duration = PollingIntervalMs.milliseconds)
@@ -134,45 +137,47 @@ class LoginViewModel(
     }
 
     private suspend fun checkApiStatus() {
-        checkApiStatusUseCase().collect { status ->
-            when (status) {
-                is Resource.Loading -> {
-                    _uiState.update { currentState ->
-                        currentState.copy(isLoading = true)
+        checkApiStatusUseCase()
+            .collect { status ->
+                when (status) {
+                    is Resource.Loading -> {
+                        _uiState.update { currentState ->
+                            currentState.copy(isLoading = true)
+                        }
                     }
-                }
 
-                is Resource.Success -> {
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            isLoading = false,
-                            apiConnectionStatus = status.data
-                        )
+                    is Resource.Success -> {
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                isLoading = false,
+                                apiConnectionStatus = status.data
+                            )
+                        }
                     }
-                }
 
-                is Resource.Error -> {
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            apiConnectionStatus = ApiConnectionStatus.Offline,
-                            isLoading = false,
-                            errorMessage = status.error.message
-                        )
+                    is Resource.Error -> {
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                apiConnectionStatus = ApiConnectionStatus.Offline,
+                                isLoading = false,
+                                errorMessage = status.error.message
+                            )
+                        }
                     }
                 }
             }
-        }
     }
 
     private suspend fun onAuthTicketReceived(ticket: String) {
-        exchangeAuthTicketUseCase(ticket = ticket).collect { result ->
-            when (result) {
-                is Resource.Loading -> setLoading()
-                is Resource.Success -> authTicketReceivedSuccess()
+        exchangeAuthTicketUseCase(ticket = ticket)
+            .collect { result ->
+                when (result) {
+                    is Resource.Loading -> setLoading()
+                    is Resource.Success -> authTicketReceivedSuccess()
 
-                is Resource.Error -> setError(error = result.error)
+                    is Resource.Error -> setError(error = result.error)
+                }
             }
-        }
     }
 
     private suspend fun onDiscordLoginClickedSuccess(authorizeUrl: String) {

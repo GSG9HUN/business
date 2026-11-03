@@ -3,6 +3,7 @@ using API.Mapping;
 using API.Requests.Playlists;
 using API.Responses.Playlists;
 using DC_bot.BotControl;
+using DC_bot.Configuration;
 using DC_bot.BotControl.Payloads;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.Exceptions;
@@ -10,6 +11,7 @@ using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Validation;
+using Microsoft.Extensions.Options;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers.Playlists;
@@ -54,7 +56,13 @@ public static class PlaylistHandlers
         foreach (var playlist in playlists)
         {
             tracksByPlaylistId.TryGetValue(playlist.Id, out var tracks);
-            response.Add(new PlaylistSummaryResponse(playlist.Id.ToString(), playlist.Name, playlist.TrackCount, TrackResponseMapper.SumDurations(tracks ?? [])));
+            response.Add(new PlaylistSummaryResponse(
+                playlist.Id.ToString(),
+                playlist.Name,
+                playlist.TrackCount,
+                TrackResponseMapper.SumDurations(tracks ?? []),
+                playlist.ArtworkUri ?? TrackResponseMapper.FindPlaylistArtworkUri(tracks ?? [])));
+
         }
 
         return HttpResults.Ok(response);
@@ -96,6 +104,7 @@ public static class PlaylistHandlers
     /// <param name="request">The client request to validate and process.</param>
     /// <param name="userRepository">The injected persistence contract used by this operation.</param>
     /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
+    /// <param name="playlistOptions">The shared saved-playlist limits applied during creation.</param>
     /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
     /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> CreateAsync(
@@ -103,6 +112,7 @@ public static class PlaylistHandlers
         CreatePlaylistRequest request,
         IMobileAppUserRepository userRepository,
         IPlaylistRepository playlistRepository,
+        IOptions<PlaylistOptions> playlistOptions,
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
@@ -132,8 +142,27 @@ public static class PlaylistHandlers
 
         try
         {
-            var playlistId = await playlistRepository.CreatePlaylistAsync(guildId, playlistName, cancellationToken);
-            return HttpResults.Created($"/api/playlists/{playlistId}", new PlaylistSummaryResponse(playlistId.ToString(), playlistName, 0, 0));
+            var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken);
+
+            if (playlists.Count >= Math.Max(1, playlistOptions.Value.MaxPlaylistsPerGuild))
+            {
+                return HttpResults.Conflict(new { ErrorMessage = "Playlist limit reached.", ErrorCode = "PlaylistLimitReached" });
+            }
+
+            var playlistId = await playlistRepository.CreateSnapshotAsync(
+                guildId, playlistName, [], playlistOptions.Value.MaxPlaylistsPerGuild,
+                playlistOptions.Value.MaxTracksPerPlaylist, cancellationToken);
+
+            if (playlistId is null)
+            {
+                return HttpResults.Conflict(new { ErrorMessage = "Playlist limit reached.", ErrorCode = "PlaylistLimitReached" });
+            }
+
+            return HttpResults.Created(
+                $"/api/playlists/{playlistId}",
+                new PlaylistSummaryResponse(playlistId.Value.ToString(), playlistName, 0, 0));
+
+
         }
         catch (UniqueConstraintConflictException)
         {
@@ -151,6 +180,45 @@ public static class PlaylistHandlers
     /// <param name="playlistRepository">The injected persistence contract used by this operation.</param>
     /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
     /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
+    public static async Task<IResult> SetArtworkAsync(
+        long playlistId,
+        SetPlaylistArtworkRequest request,
+        HttpContext httpContext,
+        IMobileAppUserRepository userRepository,
+        IPlaylistRepository playlistRepository,
+        CancellationToken cancellationToken)
+    {
+        var (playlist, accessError) = await RequirePlaylistAccessAsync(
+            playlistId,
+            httpContext,
+            userRepository,
+            playlistRepository,
+            cancellationToken);
+
+        if (accessError is not null)
+        {
+            return accessError;
+        }
+
+        var artworkUri = request.ArtworkUri?.Trim();
+
+        if (artworkUri is not null
+            && (artworkUri.Length == 0
+                || artworkUri.Length > 2048
+                || !Uri.TryCreate(artworkUri, UriKind.Absolute, out var uri)
+                || (uri.Scheme != Uri.UriSchemeHttps
+                    && uri.Scheme != Uri.UriSchemeHttp)
+                || string.IsNullOrWhiteSpace(uri.Host)
+                || !string.IsNullOrEmpty(uri.UserInfo)))
+        {
+            return HttpResults.BadRequest(new { ErrorMessage = "Artwork must be an absolute HTTP or HTTPS URL of at most 2048 characters, or null." });
+        }
+
+        var updated = await playlistRepository.SetArtworkAsync(playlist!.Id, artworkUri, cancellationToken);
+        return updated ? HttpResults.NoContent() : HttpResults.NotFound(new { ErrorMessage = "Playlist was not found." });
+    }
+
+    /// <summary>Renames an authorized playlist after validating its name and checking guild name uniqueness.</summary>
     public static async Task<IResult> RenameAsync(
         long playlistId,
         RenamePlaylistRequest request,
@@ -416,6 +484,14 @@ public static class PlaylistHandlers
             .Where(track => track is not null)
             .Cast<PlaylistTrackResponse>()
             .ToList();
-        return new PlaylistDetailResponse(playlist.Id.ToString(), playlist.GuildId.ToString(), playlist.Name, tracks.Count, TrackResponseMapper.SumDurations(tracks), responseTracks);
+
+        return new PlaylistDetailResponse(
+            playlist.Id.ToString(),
+            playlist.GuildId.ToString(),
+            playlist.Name,
+            tracks.Count,
+            TrackResponseMapper.SumDurations(tracks),
+            responseTracks,
+            playlist.ArtworkUri ?? TrackResponseMapper.FindPlaylistArtworkUri(tracks));
     }
 }

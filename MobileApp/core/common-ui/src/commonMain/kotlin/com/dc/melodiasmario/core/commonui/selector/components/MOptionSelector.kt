@@ -48,8 +48,7 @@ fun <T> MOptionSelector(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 12.dp)
     ) {
@@ -75,8 +74,7 @@ fun <T> MOptionSelector(
                 val selected = option.value == selectedValue
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .clickable { onOptionSelected(option.value) }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,

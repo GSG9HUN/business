@@ -49,6 +49,7 @@ fun MToastHost(
     LaunchedEffect(key1 = hostState) {
         hostState.toasts.collectLatest { toast ->
             try {
+
                 if (!currentIsAppForeground()) {
                     return@collectLatest
                 }

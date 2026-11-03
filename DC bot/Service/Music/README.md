@@ -39,11 +39,11 @@ Owns connection operations for the Lavalink audio node.
 
 Coordinates player connections, session ownership, cleanup, and recovery through dedicated subfolders.
 
-**Files and folders:**
+**Files:**
 
-- `Connections/PlayerConnectionService.cs`
-- `Connections/PlayerConnectionRetryPolicy.cs`
-- `Sessions/GuildPlaybackSessions.cs`
+- `Lifecycle/Connections/PlayerConnectionService.cs`
+- `Lifecycle/Connections/PlayerConnectionRetryPolicy.cs`
+- `Lifecycle/Sessions/GuildPlaybackSessions.cs`
 - `Cleanup/`
 - `Recovery/`
 - `PersistentVoice/`

@@ -8,5 +8,6 @@ import com.dc.melodiasmario.core.model.currenttrack.Track
  * @property tracks Tracks.
  */
 data class CurrentTrackQueueUiState(
-    val tracks: List<Track> = emptyList()
+    val tracks: List<Track> = emptyList(),
+    val displayTracks: List<Track> = emptyList()
 )

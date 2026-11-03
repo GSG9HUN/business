@@ -41,6 +41,7 @@ public static class CoreServiceCollectionExtensions
             .AddSingleton<DiscordClientEventHandler>()
             .AddSingleton<BotService>()
             .AddSingleton<IBotControlCommandDispatcher, BotControlCommandDispatcher>()
+            .AddSingleton<PlaylistBotControlHandler>()
             .AddSingleton<IBotControlContextResolver, BotControlContextResolver>()
             .AddSingleton<IBotControlResultFactory, BotControlResultFactory>()
             .AddSingleton<IBotControlDiscordResponseService, BotControlDiscordResponseService>()

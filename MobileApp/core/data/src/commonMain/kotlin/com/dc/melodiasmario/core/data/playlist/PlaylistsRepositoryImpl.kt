@@ -70,7 +70,8 @@ class PlaylistsRepositoryImpl(
     override suspend fun createPlaylistFromTracks(
         guildId: String,
         playlistName: String,
-        trackUrls: List<String>
+        trackUrls: List<String>,
+        queueItemIds: List<String>
     ): Playlist {
         val accessToken = authorizedSessionProvider.getValidSession()
 
@@ -78,7 +79,8 @@ class PlaylistsRepositoryImpl(
             accessToken = accessToken,
             guildId = guildId,
             playlistName = playlistName,
-            trackUrls = trackUrls
+            trackUrls = trackUrls,
+            queueItemIds = queueItemIds
         )
     }
 }

@@ -55,12 +55,12 @@ fun ReorderDragContainer(
     }
 
     Box(
-        modifier = modifier
-            .clipToBounds()
+        modifier = modifier.clipToBounds()
             .onSizeChanged { layoutSize ->
                 viewportHeightPx = layoutSize.height.toFloat()
             }
             .pointerInput(listState, itemKeys, enabled) {
+
                 if (!enabled) {
                     return@pointerInput
                 }
@@ -130,6 +130,7 @@ fun ReorderDragContainer(
                                 }
                             }
                         }
+
                     } finally {
                         draggedItem = null
                     }
@@ -150,13 +151,12 @@ fun ReorderDragContainer(
 
         draggedItem?.let { item ->
             Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            x = 0,
-                            y = (item.pointerY - item.grabOffsetY).roundToInt()
-                        )
-                    }
+                modifier = Modifier.offset {
+                    IntOffset(
+                        x = 0,
+                        y = (item.pointerY - item.grabOffsetY).roundToInt()
+                    )
+                }
                     .fillMaxWidth()
                     .padding(horizontal = horizontalContentPadding)
                     .clearAndSetSemantics {}
@@ -180,17 +180,16 @@ private fun calculateTargetIndex(
                 draggedItem.heightPx / 2f +
                 layout.viewportStartOffset
 
-    val visibleQueueItems = layout.visibleItemsInfo
-        .mapNotNull { item ->
-            val queueIndex = indexByKey[item.key]
-                ?: return@mapNotNull null
+    val visibleQueueItems = layout.visibleItemsInfo.mapNotNull { item ->
+        val queueIndex = indexByKey[item.key]
+            ?: return@mapNotNull null
 
-            if (queueIndex == draggedItem.fromIndex) {
-                return@mapNotNull null
-            }
-
-            queueIndex to (item.offset + item.size / 2f)
+        if (queueIndex == draggedItem.fromIndex) {
+            return@mapNotNull null
         }
+
+        queueIndex to (item.offset + item.size / 2f)
+    }
         .sortedBy { indexedItem -> indexedItem.first }
 
     if (visibleQueueItems.isEmpty()) {
@@ -207,10 +206,9 @@ private fun calculateTargetIndex(
         }
     }
 
-    val insertionIndex = visibleQueueItems
-        .firstOrNull { (_, centerY) ->
-            draggedCenterY < centerY
-        }
+    val insertionIndex = visibleQueueItems.firstOrNull { (_, centerY) ->
+        draggedCenterY < centerY
+    }
         ?.first
         ?: (visibleQueueItems.last().first + 1)
 
@@ -220,5 +218,5 @@ private fun calculateTargetIndex(
         insertionIndex
     }
 
-    return targetIndex.coerceIn(0, itemCount - 1)
+    return targetIndex.coerceIn(minimumValue = 0, maximumValue = itemCount - 1)
 }

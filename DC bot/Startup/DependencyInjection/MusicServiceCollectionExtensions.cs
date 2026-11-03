@@ -13,7 +13,6 @@ using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.Events;
 using DC_bot.Service.Music.Lavalink;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
 using DC_bot.Service.Music.Lifecycle.Connections;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
@@ -49,8 +48,10 @@ public static class MusicServiceCollectionExtensions
             options.JoinDeadline = TimeSpan.Parse(Environment.GetEnvironmentVariable("MUSIC_JOIN_DEADLINE") ?? throw new InvalidOperationException("MUSIC_JOIN_DEADLINE is required."), System.Globalization.CultureInfo.InvariantCulture);
             options.LeaveDeadline = TimeSpan.Parse(Environment.GetEnvironmentVariable("MUSIC_LEAVE_DEADLINE") ?? throw new InvalidOperationException("MUSIC_LEAVE_DEADLINE is required."), System.Globalization.CultureInfo.InvariantCulture);
         })
-            .Validate(options => options.JoinDeadline > TimeSpan.Zero && options.JoinDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Join deadline must be a positive supported timer duration.")
-            .Validate(options => options.LeaveDeadline > TimeSpan.Zero && options.LeaveDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Leave deadline must be a positive supported timer duration.")
+            .Validate(options => options.JoinDeadline > TimeSpan.Zero
+            && options.JoinDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Join deadline must be a positive supported timer duration.")
+            .Validate(options => options.LeaveDeadline > TimeSpan.Zero
+            && options.LeaveDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Leave deadline must be a positive supported timer duration.")
             .ValidateOnStart();
         services.AddHttpClient("PlaybackRecovery", client =>
         {

@@ -9,7 +9,6 @@ using DC_bot.Interface.Service.Music.Repeat;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DC_bot.Wrapper.Lavalink;

@@ -4,6 +4,8 @@ Coordinates saved twenty-four-seven preferences, periodic connection recovery, a
 
 ## Overview
 
+- With 24/7 disabled, the worker also restores voice while a confirmed playing occurrence, waiting track, or nonempty repeated canonical batch remains. Voice/text destinations are remembered in process-local session state after a successful join; they survive player replacement but require a fresh join after application restart. Explicit leave clears this intent under the shared guild gate. Failed health probes permit bounded cleanup and replacement instead of indefinitely retrying a disposed player. With no playing checkpoint, recovery starts the waiting queue or atomically refills an enabled repeated batch. Unknown starts remain fenced for reconciliation.
+
 - Serialize settings, automatic recovery, and explicit leave through one guild gate.
 - Restore the same confirmed queue occurrence and checkpoint without requiring a human listener.
 - Disable persistent voice before explicit leave so the recovery worker does not reverse the request.
@@ -83,7 +85,7 @@ await persistentVoiceRecovery.RunAsync(stoppingToken);
 - Allow ten seconds of failed health validation on a still-registered owned player before replacement.
 - Defer new playback while a pending start requires reconciliation.
 - Cleanup invalidates and drains the old generation; a failed cleanup remains quarantined.
-- Restore only the retained guild queue item still marked `Playing`; no duplicate canonical item is enqueued.
+- Restore the retained guild queue item still marked `Playing`; otherwise start queued music or atomically refill an enabled canonical repeat batch.
 - Seekable tracks resume at the stored source position, while non-seekable tracks restart without seeking.
 - Save position and pause state only for a ready, correlated queue attempt under a control reservation.
 - Busy operations defer for five seconds; other failures defer for thirty seconds. Each pass uses the configured join plus leave deadlines.

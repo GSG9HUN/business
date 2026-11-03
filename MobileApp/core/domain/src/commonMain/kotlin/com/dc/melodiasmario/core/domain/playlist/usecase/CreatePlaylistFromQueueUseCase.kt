@@ -15,23 +15,20 @@ class CreatePlaylistFromQueueUseCase(
     suspend operator fun invoke(
         guildId: String,
         name: String,
-        trackUrls: List<String>
+        trackUrls: List<String>,
+        queueItemIds: List<String>
     ): Playlist {
         require(value = name.isNotBlank() && trackUrls.isNotEmpty())
-        require(
-            value = trackUrls.all { trackUrl -> trackUrl.startsWith(
-                prefix = "https://"
-            ) || trackUrl.startsWith(
-                prefix = "http://"
-            ) }
-        ) {
+        require(value = queueItemIds.size == trackUrls.size && queueItemIds.all { queueItemId -> queueItemId.isNotBlank() })
+        require(value = trackUrls.all { trackUrl -> trackUrl.startsWith(prefix = "https://") || trackUrl.startsWith(prefix = "http://") }) {
             "Some queue tracks have no usable URL."
         }
 
         return playlistsRepository.createPlaylistFromTracks(
             guildId = guildId,
             playlistName = name.trim(),
-            trackUrls = trackUrls
+            trackUrls = trackUrls,
+            queueItemIds = queueItemIds
         )
     }
 }

@@ -56,7 +56,8 @@ class SecureAuthSessionStorageImpl(
         runCatching {
             cipher.decrypt(encryptedPayload = encryptedSession)
                 .toAuthSession()
-        }.getOrNull()
+        }
+            .getOrNull()
     }
 
     override suspend fun clearSession(): Unit = withContext(context = Dispatchers.IO) {

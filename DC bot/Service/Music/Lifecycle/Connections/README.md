@@ -4,6 +4,8 @@ Joins or resolves Lavalink players and waits for validated voice readiness.
 
 ## Overview
 
+- Successful new and reused-player joins record voice/text recovery destinations through `GuildPlaybackSessions`. These allow the periodic recovery worker to reconnect for remaining music even with 24/7 disabled.
+
 - Keep the existing join deadline, late-completion observation, and failed-join cleanup policy.
 - Validate registered player identity and voice readiness before exposing the joined session.
 

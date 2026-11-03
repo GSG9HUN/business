@@ -34,16 +34,12 @@ class PlaylistsApiService(
     /**
      * Retrieves the playlists belonging to the requested guild.
      */
-    suspend fun getPlaylists(accessToken: String, guildId: String, artworkUri: String?): List<PlaylistDto> {
-        return httpClient.get(urlString = "$baseUrl/guilds/${guildId}/playlists") {
-            header(key = "Authorization", value = "Bearer $accessToken")
-            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
-            setBody(body = SetPlaylistArtworkRequestDto(artworkUri = artworkUri))
-        }.also{ response ->
-            check(value = response.status.value in 200..299){
-                "Saving playlist artwork failed. (Http ${response.status.value})"
-            }
-        }.body()
+    suspend fun getPlaylists(accessToken: String, guildId: String): List<PlaylistDto> {
+        return httpClient.get(urlString = "$baseUrl/guilds/$guildId/playlists") {
+            expectSuccess = true
+            header(key = HttpHeaders.Authorization, value = "Bearer $accessToken")
+        }
+            .body()
     }
 
     /**
@@ -109,17 +105,19 @@ class PlaylistsApiService(
     }
 
     /**
-     * Placeholder for creating a playlist and saving its ordered track list in one request.
-     * No HTTP request is sent until the backend endpoint and response contract are available.
+     * Creates an ordered queue snapshot atomically in one request.
      */
-    @Suppress("UNUSED_PARAMETER")
     suspend fun createPlaylistFromTracks(
         accessToken: String,
         guildId: String,
         request: CreatePlaylistFromTracksRequestDto
     ): PlaylistDto {
-        // TODO: Replace this intentional failure with the bulk playlist endpoint call.
-        throw NullPointerException("The bulk playlist API endpoint is not implemented yet.")
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playlists/from-queue") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(body = request)
+        }
+            .body()
     }
 
 }

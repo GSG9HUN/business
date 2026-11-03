@@ -84,6 +84,7 @@ internal static class PostgreSqlConcurrencyHelper
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), cancellationToken);
             }
         }
+
     }
 
     /// <summary>
@@ -199,6 +200,7 @@ internal static class PostgreSqlConcurrencyHelper
         {
             entry.State = EntityState.Detached;
         }
+
     }
 
     /// <summary>

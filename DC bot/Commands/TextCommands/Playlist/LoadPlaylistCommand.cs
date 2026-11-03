@@ -16,7 +16,6 @@ using DC_bot.Interface.Service.Music.Queue.Models;
 using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using Microsoft.Extensions.Logging;

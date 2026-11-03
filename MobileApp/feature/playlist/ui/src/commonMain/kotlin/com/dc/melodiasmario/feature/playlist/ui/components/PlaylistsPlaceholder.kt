@@ -31,16 +31,14 @@ fun PlaylistsPlaceholder(
     modifier: Modifier = Modifier
 ): Unit {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(paddingValues = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp)),
         shape = RoundedCornerShape(size = 12.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .padding(all = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(space = 12.dp)

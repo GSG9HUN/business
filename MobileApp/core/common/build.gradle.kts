@@ -58,17 +58,17 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.jetbrains.navigation3.ui)
-                implementation(libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.jetbrains.navigation3.ui)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
 
-                api(libs.kotlinx.coroutines.core)
+                api(dependencyNotation = libs.kotlinx.coroutines.core)
             }
         }
 
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlin.test)
             }
         }
 
@@ -82,9 +82,9 @@ kotlin {
 
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
 

@@ -62,6 +62,7 @@ public class SavePlaylistCommand(
         var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.SavePlaylistAsync(guildId, playlistName, playlistUrl, default);
+
         switch (result)
         {
             case SavePlaylistResult.Saved:

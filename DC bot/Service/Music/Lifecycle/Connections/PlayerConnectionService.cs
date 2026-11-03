@@ -86,6 +86,7 @@ public sealed class PlayerConnectionService(
         {
             await disconnectedPlayerCleanupService.ReconcileBeforeJoinAsync(guildId, deadline.Token);
             // A failed startup recovery must block only this guild's join.
+
             if (!await playbackRecoveryService.RecoverBeforeJoinAsync(guildId, deadline.Token))
             {
                 logger.LogWarning(
@@ -114,6 +115,7 @@ public sealed class PlayerConnectionService(
 
                         if (checkedPlayer.isValid)
                         {
+                            sessions.RememberRecoveryChannels(captured, channel.Id, message.Channel.Id);
                             return checkedPlayer;
                         }
                     }
@@ -150,6 +152,7 @@ public sealed class PlayerConnectionService(
                     {
                         throw new InvalidOperationException("Joined player is not valid.");
                     }
+
                 },
                 cleanupFailedJoin: (player, joinInvoked) =>
                     playbackCleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: !joinInvoked));
@@ -201,6 +204,7 @@ public sealed class PlayerConnectionService(
             }
 
             gatewayRecovery.Remember(session, channel.Id);
+            sessions.RememberRecoveryChannels(session, channel.Id, message.Channel.Id);
             return (session.Player, channel, guildId, true);
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)

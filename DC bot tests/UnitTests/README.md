@@ -28,6 +28,7 @@ These tests verify that client creation is independent from event handler constr
 
 ## Production Refactor Coverage
 
+- `Api/PlaylistArtworkTests.cs` covers playlist list/detail covers, per-track artwork, empty playlists, missing artwork, and invalid encoded tracks.
 - `Service/Core/CommandRegistryTests.cs` covers command registry lookup, single command-list materialization, and duplicate command names.
 - `Service/Core/CommandValidationServiceTests.cs` covers missing and whitespace-only command arguments.
 - `Service/Music/MusicQueueServiceTests.cs` verifies `ITrackSerializer` is used for queue persistence boundaries.
@@ -44,3 +45,11 @@ These tests verify that client creation is independent from event handler constr
 - `Service/ReactionHandler/` covers reaction context creation, action dispatch, control message publishing, and `ReactionHandlerService` registration/dispatch/error paths. Split files include `ReactionHandlerServiceTestBase.cs`, `ReactionHandlerServiceRegistrationTests.cs`, `ReactionHandlerServiceDispatchTests.cs`, `ReactionHandlerServiceExceptionLoggingTests.cs`, `ReactionHandlerServiceControlMessageTests.cs`, `ReactionActionDispatcherTests.cs`, `ReactionContextFactoryTests.cs`, `ReactionContextTests.cs`, `ReactionControlMessageServiceTests.cs`, and `ReactionControlEmojisTests.cs`.
 - `Wrapper/SlashInteractionContextFactoryTests.cs` covers slash context wrapper creation.
 - `Model/PlaylistModelTests.cs` protects playlist DTO, record, enum, and entity contracts.
+
+## Playlist Command Execution
+
+The new `PlaylistCreationTests` and `PlaylistBotControlHandlerTests` contain test scaffolds only. All scenarios are explicitly skipped with implementation pending; they do not provide behavior coverage.
+
+## Queue Snapshot Playlist Saving
+
+API/QueuePlaylistSnapshotTests.cs contains skipped queue snapshot save scenarios, including immutable ordering and rejection of invalid occurrences.

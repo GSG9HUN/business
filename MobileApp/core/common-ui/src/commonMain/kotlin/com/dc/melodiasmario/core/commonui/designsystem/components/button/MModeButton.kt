@@ -17,6 +17,7 @@ fun MModeButton(
     selected: Boolean,
     onClick: () -> Unit
 ): Unit {
+
     if (selected) {
         Button(modifier = modifier, onClick = onClick) {
             MText(text = text, color = MaterialTheme.colorScheme.onPrimary)

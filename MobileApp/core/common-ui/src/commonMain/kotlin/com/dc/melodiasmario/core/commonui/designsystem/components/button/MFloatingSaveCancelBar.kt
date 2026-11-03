@@ -31,8 +31,7 @@ fun MFloatingSaveCancelBar(
     enabled: Boolean = true
 ): Unit {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         shape = RoundedCornerShape(size = 18.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -40,8 +39,7 @@ fun MFloatingSaveCancelBar(
         shadowElevation = 8.dp
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .padding(all = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
             verticalAlignment = Alignment.CenterVertically

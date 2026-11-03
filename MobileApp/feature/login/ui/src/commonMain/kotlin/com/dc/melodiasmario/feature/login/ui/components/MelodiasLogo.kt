@@ -25,11 +25,10 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MelodiasLogo(modifier: Modifier = Modifier): Unit {
     Box(
-        modifier = modifier
-            .size(size = 86.dp)
+        modifier = modifier.size(size = 86.dp)
             .clip(shape = RoundedCornerShape(size = 24.dp))
             .background(
-                Brush.linearGradient(
+                brush = Brush.linearGradient(
                     colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
                 )
             ),

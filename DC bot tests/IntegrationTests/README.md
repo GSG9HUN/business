@@ -58,3 +58,15 @@ Covered PostgreSQL-backed areas include:
 ## Localization
 
 `Service/Localization/LocalizationJsonIntegrationTests.cs` reads the real `localization/eng.json` and `localization/hu.json` files and verifies key command and slash fallback strings are present in both languages.
+
+## Queue Repeat Synchronization
+
+Persistence/QueueRepeatListSynchronizationTests.cs contains explicitly skipped PostgreSQL scenario scaffolds for queue/repeat synchronization and atomic rollback. Implementation is pending; the scaffolds do not establish runtime coverage.
+
+## Queue Batches and History
+
+Persistence/QueueBatchPersistenceTests.cs contains skipped batch/history scenarios only; implementation and runtime verification are pending.
+
+## Queue Snapshot Playlist Saving
+
+Persistence/PlaylistSnapshotTransactionTests.cs contains explicitly skipped PostgreSQL scenarios for all-or-nothing playlist creation and concurrent snapshot cap enforcement.

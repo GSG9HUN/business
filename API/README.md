@@ -9,7 +9,7 @@ This ASP.NET Core minimal API exposes mobile authentication, guild and profile r
 - Coordinate OAuth, profile and guild reads, music search, and durable bot commands.
 - Map shared repository values into HTTP and realtime payloads.
 
-## Runtime Flow
+**Runtime Flow**
 
 ```text
 Mobile HTTP request
@@ -24,7 +24,7 @@ Durable bot command -> bot worker -> command result and playback state
 
 HTTP acceptance of a bot command means the request was stored, not that audio has already changed. Clients can poll its status and subscribe to realtime progress. Profile, playlist metadata, and explicit repeat-mode operations also have direct persistence paths; not every write is a worker command.
 
-## Run Locally
+**Run Locally**
 
 From the repository root, with the .NET 9 SDK and the intended database available:
 
@@ -48,35 +48,29 @@ dotnet run --project "API/API.csproj"
 
 The API registers persistence but does not apply migrations in its current startup path. Use bot startup or the documented [migration workflow](../DC%20bot.Persistence/Migrations/README.md) before relying on a new schema.
 
-## Application Entry Point
-
-### Program.cs
-
-**Purpose:** Loads configuration, registers services, builds authentication and middleware, and maps the HTTP and SignalR endpoints.
-
-**Configuration helper:**
-
-```csharp
-static string GetRequiredEnvironmentVariable(string name);
-```
-
-**Validation Checks:** Missing required environment values fail before the application is built. Typed authentication and music-search options are validated during startup.
-
----
-
-## Authentication and Authorization
+**Authentication and Authorization**
 
 The login flow creates cached OAuth state, redirects the browser to Discord, synchronizes the returned user and guild metadata, and redirects to the mobile URI with a short-lived ticket. The mobile exchange creates a persisted session and returns a 15-minute access token plus an opaque refresh token. Only the refresh-token hash is stored; refresh uses conditional rotation of that hash.
 
 OAuth state and login tickets use process-local memory cache. A deployment with multiple API instances needs shared state or consistent routing for that login flow. The bearer token identifies the mobile user; handlers still check persisted guild access before exposing guild data or accepting controls.
 
-## HTTP and Realtime Boundaries
+**HTTP and Realtime Boundaries**
 
 Endpoint groups are mounted under `/api`; the authenticated SignalR hub is `/hubs/mobile`. OpenAPI is mapped only in the development environment. [Endpoints](Endpoints/README.md) links to the route registrations, which are the source of truth for paths, filters, and handler bindings.
 
 Handlers coordinate requests, [Mapping](Mapping/README.md) converts results and records, and [Responses](Responses/README.md) defines client payloads. Shared [playback snapshots](Snapshots/Playback/README.md) keep REST and realtime read models aligned. Snapshots describe persisted state; they do not independently certify a live voice connection.
 
 The PostgreSQL realtime listener treats notifications as invalidation signals and reloads current state. Guild publishers resolve authorized subscribers before sending. Request cancellation reaches repository and HTTP calls; hub subscription operations use the connection token, while disconnect cleanup removes memberships independently of that aborted token.
+
+**Deployment and Verification**
+
+The root Compose stack builds the `discord-api` service from `API/Dockerfile`, supplies the root `.env`, and configures the container to listen on port 8080. Host mapping and network addresses are defined in [docker-compose.yaml](../docker-compose.yaml), separately from local launch profiles.
+
+Use the [test project](../DC%20bot%20tests/README.md) for focused auth and cancellation tests. Live authentication redirects, voice playback, and mobile subscriptions require their configured external environment. Shared protocol changes must stay compatible with [Contracts](../DC%20bot.Contracts/README.md), [Persistence](../DC%20bot.Persistence/README.md), and the [bot worker](../DC%20bot/Service/BotControl/README.md).
+
+**Source Convention Review**
+
+The November 2026 review aligns source formatting and XML documentation and separates top-level declarations where applicable. Existing contract namespaces and enum values are preserved. SDK-defined signatures and independently owned cleanup operations retain their cancellation contracts.
 
 ## Subfolders
 
@@ -253,11 +247,21 @@ Checks route identifiers, command aliases, and provider-aware enqueue input befo
 
 ---
 
-## Deployment and Verification
+## Application Entry Point
 
-The root Compose stack builds the `discord-api` service from `API/Dockerfile`, supplies the root `.env`, and configures the container to listen on port 8080. Host mapping and network addresses are defined in [docker-compose.yaml](../docker-compose.yaml), separately from local launch profiles.
+### Program.cs
 
-Use the [test project](../DC%20bot%20tests/README.md) for focused auth and cancellation tests. Live authentication redirects, voice playback, and mobile subscriptions require their configured external environment. Shared protocol changes must stay compatible with [Contracts](../DC%20bot.Contracts/README.md), [Persistence](../DC%20bot.Persistence/README.md), and the [bot worker](../DC%20bot/Service/BotControl/README.md).
+**Purpose:** Loads configuration, registers services, builds authentication and middleware, and maps the HTTP and SignalR endpoints.
+
+**Configuration helper:**
+
+```csharp
+static string GetRequiredEnvironmentVariable(string name);
+```
+
+**Validation Checks:** Missing required environment values fail before the application is built. Typed authentication and music-search options are validated during startup.
+
+---
 
 ## Related Components
 

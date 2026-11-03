@@ -44,7 +44,11 @@ internal static class QueueBatchStore
             state.ActiveBatchId = null;
         }
 
-        var legacy = await db.GuildQueueItems.Where(x => x.GuildId == guildId && x.BatchId == null && (x.State == QueueItemState.Queued || x.State == QueueItemState.Playing || x.State == QueueItemState.Starting))
+        var legacy = await db.GuildQueueItems.Where(x => x.GuildId == guildId
+            && x.BatchId == null
+            && (x.State == QueueItemState.Queued
+            || x.State == QueueItemState.Playing
+            || x.State == QueueItemState.Starting))
             .OrderBy(x => x.Position)
             .ThenBy(x => x.Id)
             .ToListAsync(ct);
@@ -124,7 +128,10 @@ internal static class QueueBatchStore
     /// <param name = "batchId">The canonical playback batch identifier.</param>
     /// <param name = "ct">Cancels supported database work and retry backoff; owned rollback uses its own deadline.</param>
     /// <returns>True when the documented check or conditional mutation succeeds; otherwise false.</returns>
-    internal static Task<bool> HasActiveItemsAsync(BotDbContext db, long batchId, CancellationToken ct) => db.GuildQueueItems.AnyAsync(x => x.BatchId == batchId && (x.State == QueueItemState.Queued || x.State == QueueItemState.Playing || x.State == QueueItemState.Starting), ct);
+    internal static Task<bool> HasActiveItemsAsync(BotDbContext db, long batchId, CancellationToken ct) => db.GuildQueueItems.AnyAsync(x => x.BatchId == batchId
+        && (x.State == QueueItemState.Queued
+        || x.State == QueueItemState.Playing
+        || x.State == QueueItemState.Starting), ct);
 
     /// <summary>
     /// Closes an idle or explicitly left batch according to the caller&apos;s ownership and active-item policy.
@@ -155,7 +162,10 @@ internal static class QueueBatchStore
 
         if (explicitLeave)
         {
-            var active = await db.GuildQueueItems.Where(x => x.BatchId == batch.Id && (x.State == QueueItemState.Queued || x.State == QueueItemState.Playing || x.State == QueueItemState.Starting))
+            var active = await db.GuildQueueItems.Where(x => x.BatchId == batch.Id
+                && (x.State == QueueItemState.Queued
+                || x.State == QueueItemState.Playing
+                || x.State == QueueItemState.Starting))
                 .ToListAsync(ct);
 
             if (active.Any(x => x.State == QueueItemState.Starting))

@@ -49,6 +49,7 @@ class BotCommandCoordinator(
      * Starts bot command coordinator for the supplied configuration.
      */
     fun start(guildId: String): Unit {
+
         if (this.guildId == guildId) {
             return
         }
@@ -85,10 +86,11 @@ class BotCommandCoordinator(
         pending[command.commandId] = waiter
 
         try {
-            return withTimeoutOrNull(timeoutMillis.milliseconds) {
+            return withTimeoutOrNull(timeout = timeoutMillis.milliseconds) {
                 waiter.await()
             } ?: BotCommandResult.TimedOut
         } finally {
+
             if (commandGeneration == generation
                 && pending[command.commandId] === waiter) {
                 pending.remove(key = command.commandId)
@@ -120,6 +122,7 @@ class BotCommandCoordinator(
     }
 
     private fun onTerminal(event: BotControlCommandRealtimeEvent, result: BotCommandResult) {
+
         if (event.guildId != guildId || !matchesUser(event = event)) {
             return
         }
@@ -127,7 +130,7 @@ class BotCommandCoordinator(
         val waiter = pending[event.commandId]
 
         if (waiter != null) {
-            waiter.complete(result)
+            waiter.complete(value = result)
         } else {
             completed[event.commandId] = TerminalEvent(event = event, result = result)
 

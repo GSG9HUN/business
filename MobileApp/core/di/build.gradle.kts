@@ -26,26 +26,26 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                api(project(":core:common"))
-                api(project(":core:model"))
-                api(project(":core:network"))
-                api(project(":core:datastore"))
-                api(project(":core:domain"))
-                api(project(":core:data"))
+                api(dependencyNotation = project(":core:common"))
+                api(dependencyNotation = project(":core:model"))
+                api(dependencyNotation = project(":core:network"))
+                api(dependencyNotation = project(":core:datastore"))
+                api(dependencyNotation = project(":core:domain"))
+                api(dependencyNotation = project(":core:data"))
 
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.koin.core)
-                implementation(libs.koin.annotations)
-                implementation(libs.ktor.client.core)
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.annotations)
+                implementation(dependencyNotation = libs.ktor.client.core)
             }
         }
 
-        commonTest { dependencies { implementation(libs.kotlin.test) } }
+        commonTest { dependencies { implementation(dependencyNotation = libs.kotlin.test) } }
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

@@ -4,6 +4,8 @@ Separates saved-playlist queries, metadata changes, track loading, and track mut
 
 ## Overview
 
+- Empty playlist creation and imports use `IPlaylistRepository.CreateSnapshotAsync`, the same serializable count-and-insert transaction used by HTTP creation. Preflight count checks are advisory; the transactional result decides whether creation succeeds. A null result maps to `PlaylistLimitReached`. Imported metadata and ordered tracks commit together; cancellation or persistence failure rolls back without deleting a playlist by name afterward.
+
 - Query helpers map stored tracks; mutation helpers validate limits and uniqueness; the loader resolves Lavalink content before persistence.
 - Saved playlists are distinct from a live playback batch. Name validation is shared with the API, and owned rollback must still run when a request is cancelled.
 

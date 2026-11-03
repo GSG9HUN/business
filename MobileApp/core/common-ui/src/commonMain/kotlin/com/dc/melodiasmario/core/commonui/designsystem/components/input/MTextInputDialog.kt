@@ -75,14 +75,14 @@ fun MTextInputDialog(
                     singleLine = true,
                     textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
                     interactionSource = remember { MutableInteractionSource() },
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 13.dp),
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.CenterStart
                         ) {
+
                             if (value.isBlank()) {
                                 MText(
                                     text = placeholder,

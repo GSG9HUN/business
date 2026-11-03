@@ -24,21 +24,24 @@ class MusicSearchReducer {
      * Provides the query changed operation for music search reducer.
      */
     fun queryChanged(mAddMusicSheetState: MAddMusicSheetState, query: String): MAddMusicSheetState {
-        return clearResults(mAddMusicSheetState = mAddMusicSheetState).copy(query = query)
+        return clearResults(mAddMusicSheetState = mAddMusicSheetState)
+            .copy(query = query)
     }
 
     /**
      * Provides the provider changed operation for music search reducer.
      */
     fun providerChanged(mAddMusicSheetState: MAddMusicSheetState, providerId: String): MAddMusicSheetState {
-        return clearResults(mAddMusicSheetState = mAddMusicSheetState).copy(selectedProviderId = providerId)
+        return clearResults(mAddMusicSheetState = mAddMusicSheetState)
+            .copy(selectedProviderId = providerId)
     }
 
     /**
      * Provides the kind changed operation for music search reducer.
      */
     fun kindChanged(mAddMusicSheetState: MAddMusicSheetState, kind: MMusicSearchKind): MAddMusicSheetState {
-        return clearResults(mAddMusicSheetState = mAddMusicSheetState).copy(selectedKind = kind)
+        return clearResults(mAddMusicSheetState = mAddMusicSheetState)
+            .copy(selectedKind = kind)
     }
 
     /**
@@ -80,8 +83,7 @@ class MusicSearchReducer {
                 providers.any { provider -> provider.id == selectedId }
             } ?: providers.firstOrNull { provider ->
                 provider.canEnqueue
-            }?.id
-                .orEmpty()
+            }?.id.orEmpty()
 
         return mAddMusicSheetState.copy(
             providers = providers,

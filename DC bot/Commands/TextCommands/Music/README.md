@@ -8,6 +8,41 @@ Exposes voice join/leave and playback controls through text commands.
 - Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 - Repeated previous commands navigate only the active canonical batch. The command reports when no earlier eligible item exists; history is a separate read-only command.
 
+**Persistent Voice Command**
+
+**TwentyFourSevenCommand**
+
+**File:** `TwentyFourSevenCommand.cs`
+
+**Purpose:** Displays or changes the guild's saved twenty-four-seven voice preferences.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(IDiscordMessage message);
+```
+
+**Usage:**
+
+```text
+!24-7
+!24-7 true
+!24-7 false
+```
+
+The first form displays the saved mode. Enabling validates the caller's voice membership and establishes or validates a player before saving its channel. Disabling only changes the saved flag and retains preferred channels.
+
+**Validation Checks:**
+
+- Ignore bot authors and reject non-guild messages.
+- Accept only one boolean argument when changing the mode.
+- Status and disable operations do not require voice membership.
+- Join validation failures use the existing validation response; unexpected failures produce a localized error.
+- The separate persistent voice worker monitors enabled guilds and restores confirmed playback checkpoints without requiring another listener.
+- `leave` routes through `PersistentVoiceLeaveService`: save disabled mode first, then complete owned cleanup and close the batch. Cancelling the command wait does not abandon admitted leave.
+
+---
+
 ## Classes
 
 ### JoinCommand
@@ -252,41 +287,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 await skipCommand.ExecuteAsync(message);
 ```
-
----
-
-## Persistent Voice Command
-
-### TwentyFourSevenCommand
-
-**File:** `TwentyFourSevenCommand.cs`
-
-**Purpose:** Displays or changes the guild's saved twenty-four-seven voice preferences.
-
-**Methods:**
-
-```csharp
-public Task ExecuteAsync(IDiscordMessage message);
-```
-
-**Usage:**
-
-```text
-!24-7
-!24-7 true
-!24-7 false
-```
-
-The first form displays the saved mode. Enabling validates the caller's voice membership and establishes or validates a player before saving its channel. Disabling only changes the saved flag and retains preferred channels.
-
-**Validation Checks:**
-
-- Ignore bot authors and reject non-guild messages.
-- Accept only one boolean argument when changing the mode.
-- Status and disable operations do not require voice membership.
-- Join validation failures use the existing validation response; unexpected failures produce a localized error.
-- The separate persistent voice worker monitors enabled guilds and restores confirmed playback checkpoints without requiring another listener.
-- `leave` routes through `PersistentVoiceLeaveService`: save disabled mode first, then complete owned cleanup and close the batch. Cancelling the command wait does not abandon admitted leave.
 
 ---
 

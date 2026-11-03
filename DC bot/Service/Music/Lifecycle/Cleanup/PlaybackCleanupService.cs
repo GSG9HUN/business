@@ -7,6 +7,7 @@ using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Recovery;
+using DC_bot.Service.Music.Lifecycle.Sessions;
 using Lavalink4NET;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,7 @@ namespace DC_bot.Service.Music.Lifecycle.Cleanup;
 /// <param name="guildBotStatusRepository">The guild bot status repository dependency used by this boundary.</param>
 /// <param name="options">The configured typed options consumed by this boundary.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="sessions">Retains confirmed checkpoints for process-local music recovery until explicit leave.</param>
 public sealed class PlaybackCleanupService(
     IAudioService audioService,
     IPlaybackEventHandlerService eventHandlers,
@@ -36,7 +38,8 @@ public sealed class PlaybackCleanupService(
     IPlaybackStateRepository playbackStateRepository,
     IGuildBotStatusRepository guildBotStatusRepository,
     IOptions<PlaybackLifecycleOptions> options,
-    ILogger<PlaybackCleanupService> logger)
+    ILogger<PlaybackCleanupService> logger,
+    GuildPlaybackSessions? sessions = null)
 {
     // Only invoke as a GuildPlaybackSessions.LeaveAsync cleanup callback.
     // LeaveAsync has already invalidated and drained the old generation.
@@ -46,7 +49,7 @@ public sealed class PlaybackCleanupService(
     /// </summary>
     /// <remarks>
     /// Invoke through leave after invalidating ownership and draining transports. Unknown remote effects remain fenced.
-    /// Enabled persistent voice retains current track, position, and pause state; explicit leave disables it first.
+    /// Persistent voice or remembered music recovery retains the checkpoint; explicit leave cancels both first.
     /// </remarks>
     /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
     /// <param name="player">The lavalink player? dependency used by this boundary.</param>
@@ -88,6 +91,7 @@ public sealed class PlaybackCleanupService(
 
         // A missing managed player does not prove absence. A dead, durably
         // identified old node session can provide that proof instead.
+
         if (
             remote is
             not (LeavePhaseState.Succeeded or LeavePhaseState.NotApplicable))
@@ -103,6 +107,7 @@ public sealed class PlaybackCleanupService(
                     remote = LeavePhaseState.Succeeded;
                     return;
                 }
+
                 var pending = await queueRepository.GetPendingStartsAsync(guildId, ct);
 
                 if (pending.Count == 0)
@@ -141,7 +146,11 @@ public sealed class PlaybackCleanupService(
 
                 foreach (var item in pending)
                 {
-                    var matchingConfirmedDisconnect = item.TransportConfirmed && player is not null && item.NodeAddress == probe.NodeAddress && item.NodeSessionId == disconnectedSessionId && player.SessionId == disconnectedSessionId;
+                    var matchingConfirmedDisconnect = item.TransportConfirmed
+                        && player is not null
+                        && item.NodeAddress == probe.NodeAddress
+                        && item.NodeSessionId == disconnectedSessionId
+                        && player.SessionId == disconnectedSessionId;
 
                     if (!matchingConfirmedDisconnect)
                     {
@@ -168,7 +177,21 @@ public sealed class PlaybackCleanupService(
                     guildId,
                     ct);
 
-                if (!settings.IsEnabled)
+                var preserveMusicCheckpoint = false;
+
+                if (!settings.IsEnabled
+                    && sessions?.GetRecoveryChannels(guildId) is not null)
+                {
+                    var state = await playbackStateRepository.GetOrCreateAsync(guildId, ct);
+                    var item = state.QueueItemId is { } id
+                        ? await queueRepository.GetByIdAsync(id, ct)
+                        : null;
+                    preserveMusicCheckpoint = item is not null
+                        && item.GuildId == guildId
+                        && item.State == DC_bot.Interface.Service.Persistence.Models.Queue.QueueItemState.Playing;
+                }
+
+                if (!settings.IsEnabled && !preserveMusicCheckpoint)
                 {
                     await playbackStateRepository.SetCurrentTrackAsync(
                         guildId,
@@ -177,6 +200,7 @@ public sealed class PlaybackCleanupService(
                         MobileRealtimeEventNames.PlaybackStopped,
                         ct);
                 }
+
             });
         }
 

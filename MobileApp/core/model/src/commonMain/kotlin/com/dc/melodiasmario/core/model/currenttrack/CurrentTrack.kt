@@ -27,6 +27,7 @@ data class CurrentTrack(
     val guildBotStatus: BotStatus? = null,
     val currentTrack: Track? = null,
     val queuedTracks: List<Track> = emptyList(),
+    val displayTracks: List<Track> = emptyList(),
     val isPlaying: Boolean = false,
     val isPaused: Boolean = false,
     val positionSeconds: Int = 0,
