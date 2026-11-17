@@ -395,12 +395,15 @@ public class PlaybackControlService(
             reservation = sessions.ReserveControl(session, operationName);
             // Check the track after acquiring the shared reservation.
 
-            if (connection.CurrentTrack is null)
+            var currentTrack = connection.CurrentTrack;
+
+            if (currentTrack is null)
             {
                 await trackNotificationService.SendSafeAsync(channel, localizationService.Get(guildId, noTrackLocalizationKey), $"{operationName}.NoTrack", cancellationToken);
                 return PlaybackControlResult.Failed(localizationService.Get(guildId, noTrackLocalizationKey), noTrackErrorCode);
             }
 
+            var trackDisplayName = $"{currentTrack.Author} - {currentTrack.Title}";
             await sessions.RunTransportAsync(session, async () =>
             {
                 await transportOperation(connection);
@@ -417,7 +420,8 @@ public class PlaybackControlService(
             }
 
             sessions.ValidateControl(session, reservation);
-            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, successLocalizationKey));
+            return PlaybackControlResult.Succeeded(localizationService.Get(guildId, successLocalizationKey, trackDisplayName))
+                with { TrackDisplayName = trackDisplayName };
         }
         catch (PlaybackSessionExpiredException)
         {

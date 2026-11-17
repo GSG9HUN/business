@@ -4,6 +4,8 @@ Contains the English and Hungarian message catalogs selected by LocalizationServ
 
 ## Overview
 
+- The existing pause_command_response and resume_command_response keys contain a {0} placeholder in both English and Hungarian. Pause and resume responses supply the captured track author and title through LocalizationService and ResponseBuilder.
+
 - Both `en.json` and `hu.json` define `queue_capacity_exceeded`. The existing `LocalizationService` resolves the queue-full outcome in the guild language without introducing a separate message provider.
 
 - Both catalogs define matching `twenty_four_seven_command_*` keys for the command description, mode status, invalid argument, and update failure.

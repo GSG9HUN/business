@@ -4,6 +4,8 @@ Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
 
+- BotControlContextResolver uses GuildPlaybackSessions.GetRecoveryChannels to prefer the remembered music response channel for mobile commands. If unavailable, an explicitly supplied text channel is considered next, followed by the requesting user voice chat. Each candidate is resolved within the same guild and must support messages. Channel memory remains process-local and is cleared by explicit leave.
+
 - Playback and playlist command results map `QueueFull` to a known failure stating that no tracks were added, without requesting uncertain-outcome reconciliation.
 
 - Idle-player playlist loads inspect `PlaybackStartResult`: only `Started` completes successfully. Other outcomes fail the command with `playbackStatus`, `operationId`, `queueItemId`, and `requiresReconciliation` metadata. Uncertain starts are not retried or re-enqueued; their messages warn against reloading the playlist. Loading into an already playing player still succeeds after enqueueing.
@@ -81,6 +83,17 @@ var result = await botControlContextResolver.ResolveAsync(command, channelContex
 **Purpose:** Finds usable voice and response channels for mobile commands.
 
 **Methods:**
+
+- `SelectResponseChannelAsync` - Returns the first usable remembered, requested, or user voice channel, skipping duplicate destinations and forwarding cancellation.
+
+```csharp
+internal static Task<ulong?> SelectResponseChannelAsync(
+    ulong? rememberedChannelId,
+    ulong? requestedChannelId,
+    ulong? voiceChannelId,
+    Func<ulong, CancellationToken, Task<bool>> isUsableAsync,
+    CancellationToken cancellationToken = default);
+```
 
 - `TryGetGuildAsync` — Attempts to resolve an available guild for the operation.
 

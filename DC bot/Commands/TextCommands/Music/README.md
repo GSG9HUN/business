@@ -4,6 +4,8 @@ Exposes voice join/leave and playback controls through text commands.
 
 ## Overview
 
+- PauseCommand and ResumeCommand pass the successfully targeted track author and title to their existing localized responses. Prefix and slash adapters using this command share the same response.
+
 - CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
 - Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 - Repeated previous commands navigate only the active canonical batch. The command reports when no earlier eligible item exists; history is a separate read-only command.

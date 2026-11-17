@@ -57,7 +57,7 @@ public class ResumeCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ResumeCommandResponse);
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ResumeCommandResponse, result.TrackDisplayName ?? string.Empty);
         logger.CommandExecuted(Name);
     }
 }

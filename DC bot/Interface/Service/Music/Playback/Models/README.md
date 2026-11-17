@@ -4,6 +4,8 @@ Carries inputs, statuses, and results for the playback use cases.
 
 ## Overview
 
+- PlaybackControlResult.TrackDisplayName carries the author and title captured from the track targeted by a successful pause or resume operation. Failed results leave this optional property unset.
+
 - `PlaybackStartStatus.QueueFull` identifies a known free-guild capacity rejection with no newly enqueued tracks. It is distinct from `Unknown`, which requires outcome reconciliation.
 
 - Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.

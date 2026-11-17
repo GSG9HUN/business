@@ -4,6 +4,10 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
+- Mobile commands prefer the guild music response channel remembered by GuildPlaybackSessions. If it is missing or unavailable, an explicit request text channel can be used, then the user voice chat. No persistent channel setting is introduced.
+
+- Repeat-list responses show at most ten tracks without limiting repeated playback. Pause and resume responses include the affected author and title in the guild language. The mobile API already resolves automatic playlist covers from the first available track artwork in saved order, with explicit custom artwork taking precedence.
+
 - Active premium guilds bypass waiting queue, playlist count, playlist track, import, and legacy repeat-list count caps. Free-guild overflow returns a localized `QueueFull` playback outcome. Startup waits through bounded transient PostgreSQL connection failures before applying migrations.
 
 - Voice recovery continues while music remains even without 24/7: the periodic worker restores a confirmed playing checkpoint, starts the waiting queue, or refills an enabled repeat batch. Targets are process-local and captured on successful join; explicit leave suppresses recovery. Unknown playback starts require reconciliation before another dispatch.

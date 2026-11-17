@@ -4,6 +4,8 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 
 ## Overview
 
+- PlaybackControlService captures the targeted track author and title while holding the control reservation, before pause or resume transport. PlaybackControlResult.TrackDisplayName carries that identity to response presentation; the localized pause result includes the same identity.
+
 - `TrackPlaybackService` maps `QueueCapacityExceededException` to `QueueFull` and logs an expected rejection instead of a persistence error. `PlaybackRequestService` sends the existing localized outcome once through `queue_capacity_exceeded`.
 
 - PlaybackRequestService resolves user input. TrackPlaybackService claims and starts a queue item; PlaybackControlService handles pause, resume, skip, previous, and leave under session ownership.

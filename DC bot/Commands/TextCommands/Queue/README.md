@@ -4,6 +4,8 @@ Exposes queue display, repetition, ordering, and recent batch history through te
 
 ## Overview
 
+- Repeat-list enable and disable responses display at most ten tracks. This presentation limit does not truncate the persisted queue or the batch being repeated.
+
 - CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
 - Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 - The history command lists recent batches without changing playback. Repeat-list targets the active batch, including tracks played earlier in that batch; it does not select arbitrary older history for replay.
