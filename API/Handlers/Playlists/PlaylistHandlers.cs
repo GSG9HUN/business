@@ -142,13 +142,6 @@ public static class PlaylistHandlers
 
         try
         {
-            var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken);
-
-            if (playlists.Count >= Math.Max(1, playlistOptions.Value.MaxPlaylistsPerGuild))
-            {
-                return HttpResults.Conflict(new { ErrorMessage = "Playlist limit reached.", ErrorCode = "PlaylistLimitReached" });
-            }
-
             var playlistId = await playlistRepository.CreateSnapshotAsync(
                 guildId, playlistName, [], playlistOptions.Value.MaxPlaylistsPerGuild,
                 playlistOptions.Value.MaxTracksPerPlaylist, cancellationToken);

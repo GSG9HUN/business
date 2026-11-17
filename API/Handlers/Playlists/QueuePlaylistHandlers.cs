@@ -52,11 +52,6 @@ public static class QueuePlaylistHandlers
             return HttpResults.BadRequest(new { ErrorCode = "InvalidQueueSnapshot" });
         }
 
-        if (urls.Length > Math.Max(1, options.Value.MaxTracksPerPlaylist))
-        {
-            return HttpResults.BadRequest(new { ErrorCode = "TrackLimitExceeded" });
-        }
-
         var parsedIds = new List<long>(ids.Length);
 
         foreach (var id in ids)

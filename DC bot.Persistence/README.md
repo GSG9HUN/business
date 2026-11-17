@@ -4,6 +4,8 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 
 ## Overview
 
+- Active premium bypasses queue, saved-playlist, playlist-track, and legacy repeat-list count limits. Transactional checks share the enabled-and-unexpired guild predicate. Startup connection readiness retries transient failures before migration execution.
+
 - `GuildDataRepository` saves twenty-four-seven preferences through tracked entity changes and `SaveChangesAsync`, preserving preferred channels when disabled and leaving premium settings intact. Apply `AddTwentyFourSevenSettings` before using these operations.
 - Entity member documentation identifies stored keys, nullable lifecycle timestamps, navigation relationships, and playback start ownership; BotDbContext documents each entity set.
 - Implement repository contracts with short-lived EF contexts and PostgreSQL.

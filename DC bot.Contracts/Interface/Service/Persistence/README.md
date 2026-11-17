@@ -4,6 +4,8 @@ Defines the shared storage vocabulary for guild data, commands, queues, playback
 
 ## Overview
 
+- `Exceptions/QueueCapacityExceededException.cs` distinguishes a known queue capacity rejection from an uncertain persistence outcome and carries the rejected operation counts.
+
 - API handlers and bot services depend on these interfaces while persistence registrations select the implementations.
 - Storage operations expose records and results, not tracked EF entities. Cancellation is forwarded through ordinary I/O; required ownership cleanup can use an independent lifetime.
 

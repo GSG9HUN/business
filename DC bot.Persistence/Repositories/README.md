@@ -4,6 +4,8 @@ Implements shared storage contracts with EF Core and PostgreSQL-specific concurr
 
 ## Overview
 
+- Queue, playlist snapshot, and legacy repeat-list capacity checks use the current transaction and the shared guild premium predicate. Active premium bypasses product count limits; disabled, expired, and missing premium entitlement retains free-guild limits.
+
 - Repositories open short-lived contexts, map entities to contract records, and publish change signals where required. Feature folders separate command, playback, queue, profile, and playlist storage.
 - Services consume contracts rather than tracked entities. Serializable retries and rollback cleanup are shared infrastructure concerns, not command-handler logic.
 

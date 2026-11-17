@@ -4,6 +4,8 @@ Groups process lifecycle, localization, command orchestration, music, reactions,
 
 ## Overview
 
+- Music capacity checks use the existing guild repository premium query. Queue rejection uses the existing localization and notification services; no separate premium message service is introduced.
+
 - BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows.
 - Services receive dependencies from Startup. Persistence implementations remain in DC bot.Persistence, and SDK-specific object adaptation remains in Wrapper.
 

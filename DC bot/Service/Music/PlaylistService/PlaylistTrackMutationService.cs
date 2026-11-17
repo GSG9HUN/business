@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Music.Search;
 using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Interface.Service.Persistence.Exceptions;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.Models.Playlists;
 using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Validation;
@@ -21,6 +22,7 @@ namespace DC_bot.Service.Music.PlaylistService;
 /// <param name="trackSerializer">The track serializer dependency used by this boundary.</param>
 /// <param name="trackLoader">The track loader supplied for this operation.</param>
 /// <param name="options">The options supplied for this operation.</param>
+/// <param name="guildDataRepository">Checks active guild premium entitlement.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 internal sealed class PlaylistTrackMutationService(
     IPlaylistRepository playlistRepository,
@@ -29,7 +31,8 @@ internal sealed class PlaylistTrackMutationService(
     ITrackSerializer trackSerializer,
     PlaylistTrackLoader trackLoader,
     PlaylistOptions options,
-    ILogger<PlaylistService> logger)
+    ILogger<PlaylistService> logger,
+    IGuildDataRepository guildDataRepository)
 {
 
     /// <summary>
@@ -96,7 +99,8 @@ internal sealed class PlaylistTrackMutationService(
             var maxImportedTracks = GetMaxImportedTracks();
             var trackLimit = GetMaxTracksPerPlaylist();
 
-            if (tracks.Count > maxImportedTracks || tracks.Count > trackLimit)
+            if ((tracks.Count > maxImportedTracks || tracks.Count > trackLimit)
+                && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
             {
                 logger.LogWarning("Playlist {PlaylistName} for guild {GuildId} has {TrackCount} tracks, exceeding limits. MaxImportedTracks: {MaxImportedTracks}, MaxTracksPerPlaylist: {MaxTracksPerPlaylist}", playlistName, guildId, tracks.Count, maxImportedTracks, trackLimit);
                 return SavePlaylistResult.TrackLimitExceeded;
@@ -181,7 +185,8 @@ internal sealed class PlaylistTrackMutationService(
 
             var existingTracks = await playlistTrackRepository.GetByPlaylistIdOrderedAsync(playlist.Id, cancellationToken);
 
-            if (existingTracks.Count >= GetMaxTracksPerPlaylist())
+            if (existingTracks.Count >= GetMaxTracksPerPlaylist()
+                && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
             {
                 logger.LogWarning("Playlist {PlaylistName} in guild {GuildId} has reached the track limit {TrackLimit}", playlistName, guildId, options.MaxTracksPerPlaylist);
                 return AddSongResult.TrackLimitReached;
@@ -306,6 +311,12 @@ internal sealed class PlaylistTrackMutationService(
     private async Task<bool> IsPlaylistLimitReachedAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
+        {
+            return false;
+        }
+
         var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
         var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken: cancellationToken);
         return playlists.Count >= maxPlaylists;

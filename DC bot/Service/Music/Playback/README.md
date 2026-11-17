@@ -4,6 +4,8 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 
 ## Overview
 
+- `TrackPlaybackService` maps `QueueCapacityExceededException` to `QueueFull` and logs an expected rejection instead of a persistence error. `PlaybackRequestService` sends the existing localized outcome once through `queue_capacity_exceeded`.
+
 - PlaybackRequestService resolves user input. TrackPlaybackService claims and starts a queue item; PlaybackControlService handles pause, resume, skip, previous, and leave under session ownership.
 - Previous selects within the active canonical batch. A remote start with an uncertain outcome is reconciled before retrying; do not blindly issue another PlayAsync and risk duplicate playback.
 

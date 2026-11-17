@@ -4,9 +4,12 @@ This class library defines the shared language used by the Discord bot, mobile A
 
 ## Overview
 
+- `QueueCapacityExceededException` exposes free-guild capacity rejection independently of Npgsql, including the limit, queued count, and requested count.
+
 - `TwentyFourSevenSettingsRecord` and `IGuildDataRepository` expose persistent voice preferences independently of observed connection status.
 - Public member documentation defines persisted queue and command states, supported settings values, bot command type identifiers, and realtime protocol event names.
 - Define repository operations and immutable storage models.
+- `Configuration/PlaylistOptions.cs` documents free-guild playlist, saved-track, and import count limits; consumers bypass them for active premium while retaining other validation.
 - Share bot-command payloads, identifiers, and event names across processes.
 - Reuse provider URL rules and playlist-name validation without SDK or database dependencies.
 

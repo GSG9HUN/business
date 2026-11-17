@@ -85,8 +85,20 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<PlaylistTrackLoader>()
             .AddSingleton<PlaylistTrackDisplayMapper>()
             .AddSingleton(provider => new PlaylistQueryService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(), provider.GetRequiredService<PlaylistTrackDisplayMapper>(), provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
-            .AddSingleton(provider => new PlaylistMutationService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value, provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
-            .AddSingleton(provider => new PlaylistTrackMutationService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(), provider.GetRequiredService<ITrackSearchResolverService>(), provider.GetRequiredService<ITrackSerializer>(), provider.GetRequiredService<PlaylistTrackLoader>(), provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value, provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
+            .AddSingleton(provider => new PlaylistMutationService(
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(),
+                provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value,
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Guilds.IGuildDataRepository>()))
+            .AddSingleton(provider => new PlaylistTrackMutationService(
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(),
+                provider.GetRequiredService<ITrackSearchResolverService>(),
+                provider.GetRequiredService<ITrackSerializer>(),
+                provider.GetRequiredService<PlaylistTrackLoader>(),
+                provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value,
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Guilds.IGuildDataRepository>()))
             .AddSingleton<IPlaylistService>(provider => new PlaylistService(provider.GetRequiredService<PlaylistQueryService>(), provider.GetRequiredService<PlaylistMutationService>(), provider.GetRequiredService<PlaylistTrackMutationService>()))
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>();
     }

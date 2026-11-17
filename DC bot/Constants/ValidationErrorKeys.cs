@@ -40,4 +40,7 @@ public static class ValidationErrorKeys
     /// The localization lookup key <c>playback_busy</c> used for playback busy.
     /// </summary>
     public const string PlaybackBusy = "playback_busy";
+
+    /// <summary>The localization key for an enqueue rejected by the free guild queue capacity.</summary>
+    public const string QueueCapacityExceeded = "queue_capacity_exceeded";
 }

@@ -151,5 +151,6 @@
   "playback_state_pending": "Playback started, but saving its state could not be confirmed. Do not submit the same request again.",
   "playback_outcome_unknown": "The playback start outcome is not yet known. Do not submit the same request again.",
   "playback_superseded": "A newer connection or leave operation superseded this music operation.",
-  "playback_busy": "A previous music operation still needs reconciliation; no new playback was started."
+  "playback_busy": "A previous music operation still needs reconciliation; no new playback was started.",
+  "queue_capacity_exceeded": "The queue is full. No tracks were added. Premium servers have no track count limit."
 }

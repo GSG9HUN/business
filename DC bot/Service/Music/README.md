@@ -4,6 +4,8 @@ Coordinates music requests through a facade and specialized playback components.
 
 ## Overview
 
+- Active premium bypasses queue, saved-playlist, track, import, and legacy repeat snapshot count caps. Expected queue overflow is reported as `PlaybackStartStatus.QueueFull`, preserving uncertain persistence outcomes for actual uncertainty.
+
 - `Lifecycle/TwentyFourSevenService` changes saved preferences under a shared guild gate. `PersistentVoiceRecoveryService` runs periodic recovery; `PersistentVoiceLeaveService` disables the preference before disconnecting and closing the batch.
 - LavaLinkService connects commands to request, lifecycle, control, queue, and track-playback services. TrackSearchResolverService interprets source prefixes and provider URLs.
 - The concrete components are organized into Events, Lavalink, Lifecycle, Playback, PlaylistService, Presentation, Queue, Repeat, and Tracks. There is no MusicServices or ProgressiveTimer implementation folder in the current layout.

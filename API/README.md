@@ -4,6 +4,8 @@ This ASP.NET Core minimal API exposes mobile authentication, guild and profile r
 
 ## Overview
 
+- Guild-scoped HTTP operations require persisted user membership and active guild premium. Non-premium members receive HTTP 403 with `errorCode: PremiumRequired` and `errorMessage: not premium member`. Global authentication, profile, guild discovery, and health routes remain available. API dependencies remain limited to the shared Contracts and Persistence projects.
+
 - Request, response, and options members document accepted input, OAuth values, search capabilities, and machine-readable error outcomes in their source XML comments.
 - Expose authenticated mobile HTTP endpoints and SignalR subscriptions.
 - Coordinate OAuth, profile and guild reads, music search, and durable bot commands.

@@ -4,6 +4,8 @@ Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
 
+- Playback and playlist command results map `QueueFull` to a known failure stating that no tracks were added, without requesting uncertain-outcome reconciliation.
+
 - Idle-player playlist loads inspect `PlaybackStartResult`: only `Started` completes successfully. Other outcomes fail the command with `playbackStatus`, `operationId`, `queueItemId`, and `requiresReconciliation` metadata. Uncertain starts are not retried or re-enqueued; their messages warn against reloading the playlist. Loading into an already playing player still succeeds after enqueueing.
 
 - BotControlWorker claims work, resolves Discord context, dispatches allowed commands, and persists result or failure metadata. Adapter values make mobile requests compatible with existing bot boundaries.

@@ -4,6 +4,8 @@ Contains the English and Hungarian message catalogs selected by LocalizationServ
 
 ## Overview
 
+- Both `en.json` and `hu.json` define `queue_capacity_exceeded`. The existing `LocalizationService` resolves the queue-full outcome in the guild language without introducing a separate message provider.
+
 - Both catalogs define matching `twenty_four_seven_command_*` keys for the command description, mode status, invalid argument, and update failure.
 - Constants identify translation keys; ResponseBuilder and commands format the selected text using guild preferences and fallback lookup.
 - Add matching keys and compatible formatting placeholders across catalogs. Translating visible text does not change command identifiers or repository contracts.

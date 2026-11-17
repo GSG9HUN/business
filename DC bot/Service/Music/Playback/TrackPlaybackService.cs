@@ -1,4 +1,5 @@
 using DC_bot.Constants;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
@@ -91,6 +92,13 @@ public sealed class TrackPlaybackService(
         catch (PlaybackSessionExpiredException)
         {
             return new(PlaybackStartStatus.Superseded, operationId);
+        }
+        catch (QueueCapacityExceededException ex)
+        {
+            logger.LogInformation(
+                "Playback enqueue rejected by capacity. Guild={GuildId} Limit={Limit} Queued={Queued} Requested={Requested}",
+                session.GuildId, ex.Limit, ex.QueuedCount, ex.RequestedCount);
+            return new(PlaybackStartStatus.QueueFull, operationId);
         }
         catch (Exception ex)
         {

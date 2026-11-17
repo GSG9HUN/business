@@ -4,6 +4,8 @@ Centralizes identifiers used to select localized messages and validation errors.
 
 ## Overview
 
+- `ValidationErrorKeys.QueueCapacityExceeded` selects `queue_capacity_exceeded` for a known queue-capacity rejection through the existing localized playback outcome path.
+
 - `LocalizationKeys.TwentyFourSevenCommand*` identifies the description, enabled/disabled status, invalid boolean argument, and settings failure responses.
 - Commands and services pass these keys to LocalizationService and ResponseBuilder instead of duplicating translation strings.
 - When adding a visible message, update the required keys in both English and Hungarian translation files. Keys identify messages; they are not the translated text.

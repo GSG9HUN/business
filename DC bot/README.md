@@ -4,6 +4,8 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
+- Active premium guilds bypass waiting queue, playlist count, playlist track, import, and legacy repeat-list count caps. Free-guild overflow returns a localized `QueueFull` playback outcome. Startup waits through bounded transient PostgreSQL connection failures before applying migrations.
+
 - Voice recovery continues while music remains even without 24/7: the periodic worker restores a confirmed playing checkpoint, starts the waiting queue, or refills an enabled repeat batch. Targets are process-local and captured on successful join; explicit leave suppresses recovery. Unknown playback starts require reconciliation before another dispatch.
 
 - Discord playlist creation and playlist imports enforce the guild playlist cap through the same transactional snapshot creation used by the API. Imports persist metadata and tracks atomically and report `PlaylistLimitReached` when a concurrent creation fills the final slot.

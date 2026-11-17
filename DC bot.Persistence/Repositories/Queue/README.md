@@ -4,6 +4,8 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
+- `EnqueueManyAsync` permits active premium guilds to exceed 50 waiting tracks. Free guild overflow throws `QueueCapacityExceededException` before inserting incoming items; the transaction preserves atomic rejection.
+
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - QueueRepository delegates atomic start ownership to QueueClaimService and canonical repeat/history to QueueBatchRepository. QueueBatchStore coordinates active batch state inside transactions; QueueRealtimeNotifier signals readers after relevant changes.

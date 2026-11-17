@@ -2,6 +2,7 @@ using DC_bot.BotControl;
 using DC_bot.Interface.Service.Music.Queue;
 using DC_bot.Interface.Service.Music.Queue.Models;
 using DC_bot.Interface.Service.Music.Tracks;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -14,11 +15,13 @@ namespace DC_bot.Service.Music.Queue;
 /// Restores durable queue entries and applies queue edits and canonical batch-repeat operations.
 /// </summary>
 /// <param name="queueRepository">The queue repository dependency used by this boundary.</param>
+/// <param name="guildDataRepository">Checks active guild premium entitlement.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 /// <param name="trackSerializer">The track serializer dependency used by this boundary.</param>
 public class MusicQueueService(
     IQueueRepository queueRepository,
     ITrackSerializer trackSerializer,
+    IGuildDataRepository guildDataRepository,
     ILogger<MusicQueueService>? logger = null) : IMusicQueueService
 {
     private const int MaxQueueSize = 50;
@@ -321,7 +324,8 @@ public class MusicQueueService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (shuffledQueue.Count > MaxQueueSize)
+        if (shuffledQueue.Count > MaxQueueSize
+            && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
         {
             _logger.LogWarning("Queue reorder rejected for guild {GuildId}. Requested count {RequestedCount} exceeds max {MaxQueueSize}.", guildId, shuffledQueue.Count, MaxQueueSize);
             throw new InvalidOperationException($"Queue cannot contain more than {MaxQueueSize} tracks.");

@@ -197,6 +197,7 @@ public sealed class PlaylistBotControlHandler(
             PlaybackStartStatus.Busy =>
                 "Playlist enqueued; a previous playback operation needs reconciliation. Do not reload the playlist.",
             PlaybackStartStatus.Superseded => "A newer session or leave operation superseded playlist playback.",
+            PlaybackStartStatus.QueueFull => "Queue capacity exceeded; no tracks were added.",
             PlaybackStartStatus.Empty => "No queued track is available to start playlist playback.",
             _ => "Playlist enqueued, but playback did not start."
         };

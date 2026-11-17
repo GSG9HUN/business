@@ -4,6 +4,8 @@ Maps track requests to durable queue items and batch-aware queue operations.
 
 ## Overview
 
+- `MusicQueueService` checks active guild premium before rejecting a reorder above 50 tracks, allowing premium shuffle and move operations on larger queues. Enqueue capacity remains authoritative in the repository.
+
 - MusicQueueService uses ITrackSerializer and IQueueRepository for enqueue, reads, removal, shuffle, move, repetition, and history-related state.
 - An active canonical batch includes tracks appended before it closes. Queue order and canonical batch order serve different purposes; changing waiting positions must not silently redefine history.
 

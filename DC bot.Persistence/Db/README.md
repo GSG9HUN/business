@@ -4,6 +4,8 @@ Owns the EF Core context, design-time creation, and startup migration runner.
 
 ## Overview
 
+- `DatabaseMigrationRunner` probes connection readiness up to eight times before checking migrations, with cancellable delays of 1, 2, 4, 8, 16, 30, and 30 seconds. It recognizes transient Npgsql errors and EF-wrapped transient errors, logs retries, and propagates permanent or exhausted failures. Migration statements are not replayed by this startup retry.
+
 - Runtime repositories receive IDbContextFactory<BotDbContext>. BotDbContext applies feature configurations; DatabaseMigrationRunner applies pending migrations when called by bot startup.
 - BotDbContextFactory reads process environment for EF tooling; it does not load a .env file itself. The API registers persistence but does not call the migration runner in its current Program.cs.
 

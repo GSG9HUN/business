@@ -4,6 +4,8 @@ Provides authorized playlist reads, creation, rename, deletion, and track operat
 
 ## Overview
 
+- Guild-scoped and playlist-ID operations require active premium after membership authorization. Premium creation and queue snapshot saving reach `CreateSnapshotAsync` without unconditional free-tier prechecks; the repository evaluates current entitlement and capacity atomically.
+
 - Metadata operations use playlist repositories. Track resolution, URL imports, and loading into playback are queued as durable bot commands.
 - Names use the shared validator. Uniqueness conflicts become HTTP Conflict responses; repository entities do not cross the API response boundary.
 
@@ -13,11 +15,11 @@ Provides authorized playlist reads, creation, rename, deletion, and track operat
 
 **Playlist Command Execution**
 
-CreateAsync validates the shared PlaylistOptions limit before creating a playlist. A full guild receives 409 with errorCode PlaylistLimitReached. AddTrackAsync, ImportAsync, and LoadAsync enqueue supported worker commands; 202 confirms admission, and the persisted command result reports execution success or failure.
+CreateAsync requires active guild premium before creating a playlist. CreateSnapshotAsync applies the shared PlaylistOptions limits only to free guilds in its transaction. AddTrackAsync, ImportAsync, and LoadAsync enqueue supported worker commands; 202 confirms admission, and the persisted command result reports execution success or failure.
 
 **Queue Snapshot Playlist Saving**
 
-QueuePlaylistHandlers validates the captured ordered occurrence IDs and URL pairs within the authorized guild. Every ID must exist and its decoded source URL must match. The handler preserves duplicates and request order, validates configured limits and storage lengths, then calls CreateSnapshotAsync. Failures never leave an empty or partially populated playlist. Standard empty playlist creation also uses the atomic repository operation for its final limit check.
+QueuePlaylistHandlers validates the captured ordered occurrence IDs and URL pairs within the authorized guild. Every ID must exist and its decoded source URL must match. The handler preserves duplicates and request order, validates storage lengths and delegates premium-aware capacity checks to persistence, then calls CreateSnapshotAsync. Failures never leave an empty or partially populated playlist. Standard empty playlist creation also uses the atomic repository operation for its final limit check.
 
 **Staging Integration**
 

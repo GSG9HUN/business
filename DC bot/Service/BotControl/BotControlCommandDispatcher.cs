@@ -186,6 +186,7 @@ public sealed class BotControlCommandDispatcher(
             PlaybackStartStatus.Unknown => "Request submitted; playback outcome is not confirmed. Do not resubmit.",
             PlaybackStartStatus.Busy => "A previous playback operation needs reconciliation; no new playback was started.",
             PlaybackStartStatus.Superseded => "A newer session or leave operation superseded this request.",
+            PlaybackStartStatus.QueueFull => "Queue capacity exceeded; no tracks were added.",
             PlaybackStartStatus.Empty => "No queued track is available.",
             _ => "Playback did not start."
         };

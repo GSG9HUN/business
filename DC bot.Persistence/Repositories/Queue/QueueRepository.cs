@@ -1,4 +1,5 @@
 using DC_bot.Db;
+using DC_bot.Interface.Service.Persistence.Exceptions;
 using DC_bot.Entities.Queue;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
@@ -317,9 +318,10 @@ public class QueueRepository : IQueueRepository
         await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
         var queuedItemCount = await dbContext.GuildQueueItems.CountAsync(item => item.GuildId == guildId && item.State == QueueItemState.Queued, cancellationToken);
 
-        if (queuedItemCount + queueItems.Count > MaxQueuedItemsPerGuild)
+        if ((long)queuedItemCount + queueItems.Count > MaxQueuedItemsPerGuild
+            && !await GuildPremiumQuery.IsActiveAsync(dbContext, guildId, cancellationToken))
         {
-            throw new InvalidOperationException($"Queue cannot contain more than {MaxQueuedItemsPerGuild} queued tracks.");
+            throw new QueueCapacityExceededException(MaxQueuedItemsPerGuild, queuedItemCount, queueItems.Count);
         }
 
         var batch = await QueueBatchStore.GetActiveAsync(dbContext, guildId, create: true, cancellationToken) ?? throw new InvalidOperationException("Could not create a playback batch.");

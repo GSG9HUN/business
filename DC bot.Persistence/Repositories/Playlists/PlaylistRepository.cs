@@ -28,11 +28,6 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
         ArgumentNullException.ThrowIfNull(tracks);
         var snapshot = tracks.ToArray();
 
-        if (snapshot.Length > Math.Max(1, maxTracks))
-        {
-            throw new ArgumentException("The playlist track limit was exceeded.", nameof(tracks));
-        }
-
         try
         {
             return await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync<long?>(
@@ -40,9 +35,16 @@ public class PlaylistRepository(IDbContextFactory<BotDbContext> dbContextFactory
                 async (dbContext, ct) =>
                 {
                     await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, ct);
+                    var isPremium = await GuildPremiumQuery.IsActiveAsync(dbContext, guildId, ct);
+
+                    if (!isPremium && snapshot.Length > Math.Max(1, maxTracks))
+                    {
+                        throw new ArgumentException("The playlist track limit was exceeded.", nameof(tracks));
+                    }
+
                     var count = await dbContext.Playlists.CountAsync(item => item.GuildId == guildId, ct);
 
-                    if (count >= Math.Max(1, maxPlaylists))
+                    if (!isPremium && count >= Math.Max(1, maxPlaylists))
                     {
                         return null;
                     }

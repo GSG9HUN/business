@@ -4,6 +4,8 @@ Implements shared storage operations for guild defaults, premium state, and the 
 
 ## Overview
 
+- `GuildPremiumQuery.IsActiveAsync` centralizes the predicate used by `GuildDataRepository.IsPremiumAsync` and transactional capacity checks: premium must be enabled, with no expiry or a future expiry.
+
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - GuildDataBootstrapper initializes required guild rows. GuildPremiumAuditEntity is mapped in the model, but this folder does not implement a dedicated premium-audit repository.

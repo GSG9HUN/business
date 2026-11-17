@@ -4,6 +4,8 @@ Registers command, core, Discord, Lavalink, logging, and music dependencies at t
 
 ## Overview
 
+- `MusicServiceCollectionExtensions` injects the existing `IGuildDataRepository` into queue and playlist mutation helpers so all service-level capacity checks respect active premium.
+
 - BotServiceProviderFactory invokes these modules and AddPersistenceServices. Discord builder callbacks route gateway, message, reaction, and voice events to injected handlers.
 - Keep concrete construction and factory wiring here. MUSIC_JOIN_DEADLINE and MUSIC_LEAVE_DEADLINE must be positive supported TimeSpan values; they are validated before runtime work.
 

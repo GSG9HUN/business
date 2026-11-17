@@ -4,6 +4,8 @@ Carries inputs, statuses, and results for the playback use cases.
 
 ## Overview
 
+- `PlaybackStartStatus.QueueFull` identifies a known free-guild capacity rejection with no newly enqueued tracks. It is distinct from `Unknown`, which requires outcome reconciliation.
+
 - Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 
@@ -117,7 +119,9 @@ public enum PlaybackStartStatus
     // A newer operation replaced this playback attempt.
     Superseded,
     // Another operation currently owns the required playback state.
-    Busy
+    Busy,
+    // Free guild queue capacity rejected the enqueue; no incoming tracks were added.
+    QueueFull
 }
 ```
 

@@ -77,6 +77,14 @@ public static class GuildHandler
             return HttpResults.NotFound(new { ErrorMessage = "Guild not found." });
         }
 
+        var (_, accessError) = await ApiUserContext.RequireGuildAccessAsync(
+            httpContext, repository, guildId, cancellationToken);
+
+        if (accessError is not null)
+        {
+            return accessError;
+        }
+
         var botStatuses = await botStatusRepository.GetByGuildIdsAsync([guildId], cancellationToken);
         return HttpResults.Ok(GuildResponseMapper.MapGuild(guild, botStatuses.GetValueOrDefault(guildId)));
     }

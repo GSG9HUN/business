@@ -151,5 +151,6 @@
   "playback_state_pending": "A lejátszás elindult, de az állapot mentését nem sikerült megerősíteni. Ne indítsd újra ugyanazt a kérést.",
   "playback_outcome_unknown": "A lejátszás indításának eredménye még nem állapítható meg. Ne indítsd újra ugyanazt a kérést.",
   "playback_superseded": "A zenei műveletet egy újabb kapcsolódás vagy kilépés érvénytelenítette.",
-  "playback_busy": "Egy korábbi zenei művelet eredménye még rendezésre vár; új indítás nem történt."
+  "playback_busy": "Egy korábbi zenei művelet eredménye még rendezésre vár; új indítás nem történt.",
+  "queue_capacity_exceeded": "A várólista megtelt. Nem adtunk hozzá számokat. Prémium szerveren nincs darabszámkorlát."
 }

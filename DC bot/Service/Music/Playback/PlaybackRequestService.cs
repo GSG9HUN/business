@@ -181,6 +181,7 @@ public sealed class PlaybackRequestService(
         cancellationToken.ThrowIfCancellationRequested();
         var key = result.Status switch
         {
+            PlaybackStartStatus.QueueFull => ValidationErrorKeys.QueueCapacityExceeded,
             PlaybackStartStatus.StartedStatePending => ValidationErrorKeys.PlaybackStatePending,
             PlaybackStartStatus.Unknown => ValidationErrorKeys.PlaybackOutcomeUnknown,
             PlaybackStartStatus.Superseded => ValidationErrorKeys.PlaybackSuperseded,
