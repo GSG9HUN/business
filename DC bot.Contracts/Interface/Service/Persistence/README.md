@@ -4,14 +4,9 @@ Defines the shared storage vocabulary for guild data, commands, queues, playback
 
 ## Overview
 
-- Filters/ adds IFilterPresetRepository for guild-shared preset definitions; Models/Filters adds FilterPresetRecord. All operations include guild scope, and existing names require explicit overwrite.
-
-- Discovery/ exposes IFavoriteRepository and IDiscoverySettingsRepository; Models/Discovery contains FavoriteTrackRecord. User IDs are explicit authorization scope for favorite operations.
-
-- `Exceptions/QueueCapacityExceededException.cs` distinguishes a known queue capacity rejection from an uncertain persistence outcome and carries the rejected operation counts.
-
-- API handlers and bot services depend on these interfaces while persistence registrations select the implementations.
-- Storage operations expose records and results, not tracked EF entities. Cancellation is forwarded through ordinary I/O; required ownership cleanup can use an independent lifetime.
+- Defines repository operations for guild, playback, queue, playlist and mobile application state.
+- Carries caller cancellation and explicit ownership scope across the storage boundary.
+- Exchanges immutable records instead of EF entities or live player objects.
 
 ## Subfolders
 
@@ -19,7 +14,9 @@ Defines the shared storage vocabulary for guild data, commands, queues, playback
 
 Stores default-disabled vote skip and an optional DJ role independently of 24/7, autoplay and presets. GetAsync returns disabled/null defaults; SetVoteSkipAsync and SetDjRoleAsync update only their own field.
 
-**Files:** `IGuildMusicControlSettingsRepository.cs`.
+**Files:**
+
+- `IGuildMusicControlSettingsRepository.cs`
 
 **Purpose:** Stores default-disabled vote skip and an optional DJ role independently of 24/7, autoplay and presets. GetAsync returns disabled/null defaults; SetVoteSkipAsync and SetDjRoleAsync update only their own field.
 
@@ -29,7 +26,9 @@ Stores default-disabled vote skip and an optional DJ role independently of 24/7,
 
 Contains the dedicated saved filter preset contracts.
 
-**Files:** `IFilterPresetRepository.cs`.
+**Files:**
+
+- `IFilterPresetRepository.cs`
 
 **Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
 
@@ -39,7 +38,10 @@ Contains the dedicated saved filter preset contracts.
 
 Contains the dedicated music discovery contracts and data.
 
-**Files:** `IFavoriteRepository.cs`, `IDiscoverySettingsRepository.cs`.
+**Files:**
+
+- `IFavoriteRepository.cs`
+- `IDiscoverySettingsRepository.cs`
 
 **Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
 

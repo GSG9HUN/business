@@ -36,8 +36,10 @@ Contains the English and Hungarian message catalogs selected by LocalizationServ
 
 **Validation Checks:**
 
+- Status embed titles and footers use matching `response_*_title` and `response_*_footer` keys in both catalogs. The usage footer receives the configured prefix for its help command.
 - Every command and alias defines `{commandName}_command_usage`; `{0}` receives the configured prefix from `ResponseBuilder`.
 - Description keys are selected through `ICommand.DescriptionKey`.
+- `pagination_*` keys translate navigation, page/item counts, list titles and interaction failures; labels and errors use the requesting guild's language.
 - Playback responses distinguish confirmed changes, rejection and reconciliation; output volume and internal filter gain are separate values.
 - Pause/resume placeholders receive the captured track author and title.
 - The `music_config_usage` alias remains available for callers using that identifier.

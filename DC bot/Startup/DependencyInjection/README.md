@@ -42,6 +42,10 @@ var result = services.AddCommandServices();
 
 **Purpose:** Registers the core runtime dependencies at the composition root.
 
+Registers `DiscordPaginationService` as a singleton alongside the response builder and localization service.
+
+Supplies the shared `IResponseBuilder` to command routing, reaction presentation and durable-command notifications, including the explicit reaction-message factory.
+
 Registers routing, durable commands, localization and response presentation. `Options.Create(botSettings)` supplies the same prefix to usage rendering and message dispatch.
 
 **Methods:**
@@ -67,6 +71,8 @@ var result = services.AddCoreBotServices(botSettings);
 **File:** `DC bot/Startup/DependencyInjection/DiscordServiceCollectionExtensions.cs`
 
 **Purpose:** Registers the discord runtime dependencies at the composition root.
+
+Component events reach both pagination and search-picker handlers; each accepts only its own component ID prefix.
 
 Wires gateway, message, reaction, voice and component-interaction callbacks to injected handlers, including music-search selection.
 

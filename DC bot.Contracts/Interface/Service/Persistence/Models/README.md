@@ -4,12 +4,8 @@ Groups immutable records and state enums passed across repository boundaries.
 
 ## Overview
 
-- Filters/FilterPresetRecord carries versioned guild-local effect JSON and saving administrator/UTC timestamp; runtime output percentage is excluded.
-
-- Discovery/FavoriteTrackRecord carries stable favorite ID, serialized track, title and author after owner-scoped lookup.
-
-- Repositories map their EF entities into these records; services and API mappers use them without knowing table mappings.
-- Models describe storage use cases rather than HTTP serialization or live SDK state. Input records, snapshot records, and conditional mutation results have different roles.
+- Defines immutable repository inputs, snapshots and conditional mutation results.
+- Describes storage use cases independently of HTTP serialization and live SDK state.
 
 ## Subfolders
 
@@ -17,7 +13,9 @@ Groups immutable records and state enums passed across repository boundaries.
 
 Carries immutable VoteSkipEnabled and DjRoleId values across the shared persistence boundary without Discord SDK dependencies.
 
-**Files:** `GuildMusicControlSettingsRecord.cs`.
+**Files:**
+
+- `GuildMusicControlSettingsRecord.cs`
 
 **Purpose:** Carries immutable VoteSkipEnabled and DjRoleId values across the shared persistence boundary without Discord SDK dependencies.
 
@@ -27,7 +25,9 @@ Carries immutable VoteSkipEnabled and DjRoleId values across the shared persiste
 
 Contains the dedicated saved filter preset contracts.
 
-**Files:** `FilterPresetRecord.cs`.
+**Files:**
+
+- `FilterPresetRecord.cs`
 
 **Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
 
@@ -37,7 +37,9 @@ Contains the dedicated saved filter preset contracts.
 
 Contains the dedicated music discovery contracts and data.
 
-**Files:** `FavoriteTrackRecord.cs`.
+**Files:**
+
+- `FavoriteTrackRecord.cs`
 
 **Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
 

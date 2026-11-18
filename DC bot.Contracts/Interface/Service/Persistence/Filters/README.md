@@ -11,7 +11,7 @@ Defines SDK-independent storage contracts for versioned guild-shared effect pres
 
 ### IFilterPresetRepository
 
-**Purpose:** SaveAsync inserts a name or explicitly overwrites it, returning false for an existing name without overwrite. GetAsync, ListAsync and DeleteAsync retain guild scope. List pages contain ten entries; saved capacity is not capped.
+**Purpose:** SaveAsync inserts a name or explicitly overwrites it, returning false for an existing name without overwrite. GetAsync, ListAsync and DeleteAsync retain guild scope. CountAsync returns the owning guild's total for navigation. List pages contain ten entries; saved capacity is not capped.
 
 **Validation Checks:** The bot validates names, schema version and bounded built-in filter values before saving/applying. Manage Guild authorization belongs to PlaybackFilterService.
 

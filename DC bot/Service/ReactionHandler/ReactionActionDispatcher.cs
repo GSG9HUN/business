@@ -1,7 +1,9 @@
+using DSharpPlus.Entities;
 using DC_bot.Constants;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
+using DC_bot.Interface.Service.Presentation;
 
 namespace DC_bot.Service.ReactionHandler;
 
@@ -10,7 +12,11 @@ namespace DC_bot.Service.ReactionHandler;
 /// </summary>
 /// <param name="lavaLinkService">The lava link service dependency used by this boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
-public sealed class ReactionActionDispatcher(ILavaLinkService lavaLinkService, ILocalizationService localizationService)
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
+public sealed class ReactionActionDispatcher(
+    ILavaLinkService lavaLinkService,
+    ILocalizationService localizationService,
+    IResponseBuilder responseBuilder)
 {
 
     /// <summary>
@@ -40,7 +46,9 @@ public sealed class ReactionActionDispatcher(ILavaLinkService lavaLinkService, I
                 await lavaLinkService.SkipAsync(message, member, cancellationToken);
                 break;
             case ReactionControlEmojis.RepeatEmojiName:
-                await message.RespondAsync(localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOn))
+                await message.RespondAsync(responseBuilder.CreateEmbed(message.Channel.Guild.Id,
+                    localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOn),
+                    DiscordColor.Green, LocalizationKeys.ResponseSuccessTitle))
                     .WaitAsync(cancellationToken);
                 break;
         }
@@ -73,7 +81,9 @@ public sealed class ReactionActionDispatcher(ILavaLinkService lavaLinkService, I
                 await lavaLinkService.SkipAsync(message, member, cancellationToken);
                 break;
             case ReactionControlEmojis.RepeatEmojiName:
-                await message.RespondAsync(localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOff))
+                await message.RespondAsync(responseBuilder.CreateEmbed(message.Channel.Guild.Id,
+                    localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOff),
+                    DiscordColor.Green, LocalizationKeys.ResponseSuccessTitle))
                     .WaitAsync(cancellationToken);
                 break;
         }

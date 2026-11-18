@@ -1,3 +1,4 @@
+using DSharpPlus.Entities;
 using DC_bot.Interface.Discord;
 
 namespace DC_bot.Interface.Service.Presentation;
@@ -7,6 +8,21 @@ namespace DC_bot.Interface.Service.Presentation;
 /// </summary>
 public interface IResponseBuilder
 {
+
+    /// <summary>Creates a bounded, guild-localized embed for channel notifications and interaction responses.</summary>
+    /// <param name="guildId">The guild language scope, or null for the default catalog.</param>
+    /// <param name="description">The formatted response text.</param>
+    /// <param name="color">The status color; omitted values use Azure.</param>
+    /// <param name="titleKey">The localized title key; omitted values use the informational title.</param>
+    /// <param name="footerKey">The optional localized footer key.</param>
+    /// <returns>An embed within Discord text limits.</returns>
+    DiscordEmbed CreateEmbed(
+        ulong? guildId,
+        string description,
+        DiscordColor? color = null,
+        string? titleKey = null,
+        string? footerKey = null);
+
 
     /// <summary>
     /// Sends a localized user-validation error for the command message.

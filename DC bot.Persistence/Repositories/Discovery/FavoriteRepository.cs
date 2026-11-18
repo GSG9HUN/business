@@ -13,6 +13,13 @@ public sealed class FavoriteRepository(IDbContextFactory<BotDbContext> factory) 
 {
 
     /// <inheritdoc />
+    public async Task<int> CountAsync(ulong userId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(cancellationToken);
+        return await db.FavoriteTracks.CountAsync(item => item.UserId == userId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<FavoriteTrackRecord> AddAsync(
         ulong userId,
         string trackKey,

@@ -12,7 +12,7 @@ Implements personal favorite and discovery preference persistence using DbContex
 
 ### FavoriteRepository
 
-**Purpose:** `AddAsync` returns the existing user/source favorite or inserts one; `GetAsync` and `RemoveAsync` include both user ID and favorite ID; `ListAsync` returns ten entries per page ordered by stable ID. No saved-favorite count cap is introduced.
+**Purpose:** `AddAsync` returns the existing user/source favorite or inserts one; `GetAsync` and `RemoveAsync` include both user ID and favorite ID; `ListAsync` returns ten entries per page ordered by stable ID. `CountAsync` returns the owner-scoped total without loading track records. No saved-favorite count cap is introduced.
 
 **Validation Checks:** Favorite IDs alone never authorize another user's record. The unique source key and transaction retry handle concurrent duplicate saves.
 

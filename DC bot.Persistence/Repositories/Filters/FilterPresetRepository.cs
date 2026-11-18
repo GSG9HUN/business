@@ -13,6 +13,13 @@ public sealed class FilterPresetRepository(IDbContextFactory<BotDbContext> facto
 {
 
     /// <inheritdoc />
+    public async Task<int> CountAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(cancellationToken);
+        return await db.FilterPresets.CountAsync(item => item.GuildId == guildId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<bool> SaveAsync(
         ulong guildId,
         string name,

@@ -1,3 +1,4 @@
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Logging;
 using DSharpPlus.Entities;
@@ -31,6 +32,7 @@ public class DiscordMessageWrapper(
     Func<DiscordMessageBuilder, Task<DiscordMessage>> modifyAsync,
     ILogger<DiscordMessageWrapper>? logger = null) : IDiscordMessage
 {
+    private const int MaxDiscordMessageLength = 2000;
     private readonly ILogger<DiscordMessageWrapper> _logger = logger ?? NullLogger<DiscordMessageWrapper>.Instance;
 
     /// <inheritdoc />
@@ -62,6 +64,10 @@ public class DiscordMessageWrapper(
         {
             await responseAsync(message);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.RespondAsync(string)");
@@ -79,9 +85,14 @@ public class DiscordMessageWrapper(
         {
             await responseEmbedAsync(embed);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.RespondAsync(embed)");
+            await RespondWithTextFallbackAsync(embed);
         }
     }
 
@@ -101,4 +112,29 @@ public class DiscordMessageWrapper(
             _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.ModifyAsync(builder)");
         }
     }
+
+    /// <summary>Falls back after embed delivery fails at the native Discord adapter boundary.</summary>
+    private async Task RespondWithTextFallbackAsync(DiscordEmbed embed)
+    {
+        var text = string.IsNullOrWhiteSpace(embed.Description) ? embed.Title : embed.Description;
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        try
+        {
+            await responseAsync(DiscordTextSanitizer.Truncate(text, MaxDiscordMessageLength));
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.ResponseSendFailed(exception, "DiscordMessageWrapper.RespondAsync(embed).Fallback");
+        }
+    }
+
 }

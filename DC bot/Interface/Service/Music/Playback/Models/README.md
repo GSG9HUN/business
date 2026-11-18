@@ -15,7 +15,7 @@ Carries inputs, statuses, and results for the playback use cases.
 
 **Purpose:** Carries the success state and response details of a playback control.
 
-`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes.
+`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes. Optional `Pagination` carries a read-only page loader and starting content for Discord list presentation; the ordinary message remains available to other callers.
 
 **Record declaration:**
 

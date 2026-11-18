@@ -63,11 +63,12 @@ Coordinates music requests through a facade and specialized playback components.
 
 ### Presentation/
 
-Builds Discord success, warning, error, and validation replies from localization keys.
+Builds localized Discord replies and owns expiring navigation for long read-only lists.
 
 **Files:**
 
 - `ResponseBuilder.cs`
+- `DiscordPaginationService.cs`
 
 **Purpose:** ResponseBuilder retrieves the guild language, formats arguments, and sends through IDiscordMessage.
 

@@ -14,7 +14,7 @@ Implements Discord lyrics, personal favorites, provider recommendations, bounded
 
 **Purpose:** Reads the configured LavaLyrics plugin through the authenticated MusicDiscovery HTTP client. This uses the existing node/plugin and configured HTTP pipeline.
 
-**Methods:** `ExecuteAsync` accepts an optional query and `--page N`; it returns at most 1,600 characters per page, up to 100 pages. A query resolves one track; playlists are rejected. Null text can fall back to provider line objects. Missing/provider failures return a localized unavailable result.
+**Methods:** `ExecuteAsync` accepts an optional query and `--page N`; it returns line-aware pages of at most 1,600 characters with Discord navigation metadata. Buttons reuse the loaded text, and `--page N` selects the initial page. A query resolves one track; playlists are rejected. Null text can fall back to provider line objects. Missing/provider failures return a localized unavailable result.
 
 **Usage:**
 
@@ -34,7 +34,7 @@ Implements Discord lyrics, personal favorites, provider recommendations, bounded
 
 Favorite playback records the authenticated caller as a canonical Discord mention, allowing requester skip checks to use stable identity rather than a display name. Favorites and opt-in preferences are durable; autoplay history and chain budgets are process-local.
 
-**Methods:** `ExecuteAsync` handles add, list, remove and play. Add without a query captures the current track; a query uses its first single-track result. IDs are stable, duplicate source identities reuse an ID, and list pages contain at most ten entries. Pagination is a presentation bound, not a saved-track capacity limit.
+**Methods:** `ExecuteAsync` handles add, list, remove and play. Add without a query captures the current track; a query uses its first single-track result. IDs are stable, duplicate source identities reuse an ID, and list pages contain at most ten entries. `CountAsync` supplies owner-scoped totals; page callbacks clamp the requested page and load only its ten records. Pagination metadata accompanies the ordinary localized message and does not change saved-track capacity.
 
 **Usage:**
 
@@ -67,6 +67,8 @@ Favorite playback records the authenticated caller as a canonical Discord mentio
 ### SearchPickerHandler
 
 **Purpose:** Owns single-use, 45-second Discord select menus and cancellation buttons.
+
+Waiting, prompt, selected/closed and denial messages use embeds. The prompt retains its five-result menu and cancel button; denials stay ephemeral. If the prompt embed is rejected, bounded text is retried with the same menu and cancel button. Closing the picker removes active controls and also supports text fallback. Cancellation after sending still retains the message for cleanup.
 
 **Methods:** `ConfigureAsync` handles personal on/off/status; `SelectAsync` returns the first result when disabled and offers up to five real results when enabled; `CancelPending` supersedes a user's old request; `OnComponentInteractionAsync` validates component submissions.
 

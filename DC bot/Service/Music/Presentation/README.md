@@ -43,6 +43,8 @@ var result = await trackFormatterService.FormatCurrentTrackListAsync(guildId, ca
 
 **Purpose:** Builds playback notifications and contains Discord delivery failures at the presentation boundary.
 
+`SendSafeAsync` formats notification text with the shared informational embed factory before channel delivery. Queue-empty and load-error notifications use this route; now-playing retains its artwork, metadata and event subscribers.
+
 **Implements / inherits:** `ITrackNotificationService`.
 
 **Methods:**

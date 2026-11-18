@@ -1,11 +1,13 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Persistence.Discovery;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DSharpPlus;
@@ -22,11 +24,13 @@ namespace DC_bot.Service.Music.Discovery;
 /// <param name="sessions">Validates playback ownership after a delayed selection.</param>
 /// <param name="localization">Formats all menu text through existing catalogs.</param>
 /// <param name="logger">Records failed Discord presentation or interaction acknowledgement.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 public sealed class SearchPickerHandler(
     IDiscoverySettingsRepository settings,
     GuildPlaybackSessions sessions,
     ILocalizationService localization,
-    ILogger<SearchPickerHandler> logger) : ISearchPickerHandler
+    ILogger<SearchPickerHandler> logger,
+    IResponseBuilder responseBuilder) : ISearchPickerHandler
 {
     private const string Prefix = "music-search:";
     private readonly ConcurrentDictionary<string, PendingChoice> _pending = new();
@@ -123,13 +127,34 @@ public sealed class SearchPickerHandler(
                 localization.Get(guildId, LocalizationKeys.SearchPickerPlaceholder), options);
             var cancel = new DiscordButtonComponent(DiscordButtonStyle.Secondary, Prefix + nonce + ":cancel",
                 localization.Get(guildId, LocalizationKeys.SearchPickerCancel));
-            await message.RespondAsync(localization.Get(guildId, LocalizationKeys.SearchPickerWaiting))
+            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SearchPickerWaiting, token)
                 .WaitAsync(token);
-            pending.Message = await message.Channel.ToDiscordChannel().SendMessageAsync(new DiscordMessageBuilder()
-                .WithContent(localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention))
-                .AddActionRowComponent(menu)
-                .AddActionRowComponent([cancel]))
-                .WaitAsync(token);
+            var prompt = localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention);
+            var channel = message.Channel.ToDiscordChannel();
+            token.ThrowIfCancellationRequested();
+
+            try
+            {
+                pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
+                    .AddEmbed(responseBuilder.CreateEmbed(guildId, prompt))
+                    .AddActionRowComponent(menu)
+                    .AddActionRowComponent([cancel]));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                token.ThrowIfCancellationRequested();
+                logger.LogDebug(exception, "Picker embed failed; retrying with text. Guild={GuildId}", guildId);
+                pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithContent(DiscordTextSanitizer.Truncate(prompt, 2000))
+                    .AddActionRowComponent(menu)
+                    .AddActionRowComponent([cancel]));
+            }
+
+            token.ThrowIfCancellationRequested();
 
             if (_latest.GetValueOrDefault(key) != nonce)
             {
@@ -170,9 +195,20 @@ public sealed class SearchPickerHandler(
             {
                 try
                 {
-                    await pending.Message.ModifyAsync(new DiscordMessageBuilder()
-                        .WithContent(localization.Get(guildId,
-                            selected ? LocalizationKeys.SearchPickerSelected : LocalizationKeys.SearchPickerClosed)));
+                    var closed = localization.Get(guildId,
+                        selected ? LocalizationKeys.SearchPickerSelected : LocalizationKeys.SearchPickerClosed);
+
+                    try
+                    {
+                        await pending.Message.ModifyAsync(new DiscordMessageBuilder()
+                            .AddEmbed(responseBuilder.CreateEmbed(guildId, closed)));
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException)
+                    {
+                        logger.LogDebug(exception, "Picker cleanup embed failed; retrying with text. Guild={GuildId}", guildId);
+                        await pending.Message.ModifyAsync(new DiscordMessageBuilder()
+                            .WithContent(DiscordTextSanitizer.Truncate(closed, 2000)));
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -202,7 +238,9 @@ public sealed class SearchPickerHandler(
         {
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
-                    .WithContent(localization.Get(args.Guild?.Id ?? 0, LocalizationKeys.SearchPickerDenied))
+                    .AddEmbed(responseBuilder.CreateEmbed(args.Guild?.Id,
+                        localization.Get(args.Guild?.Id ?? 0, LocalizationKeys.SearchPickerDenied),
+                        DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                     .AsEphemeral());
             return;
         }
@@ -213,7 +251,9 @@ public sealed class SearchPickerHandler(
         {
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
-                    .WithContent(localization.Get(args.Guild.Id, LocalizationKeys.PlaybackWrongVoiceChannel))
+                    .AddEmbed(responseBuilder.CreateEmbed(args.Guild.Id,
+                        localization.Get(args.Guild.Id, LocalizationKeys.PlaybackWrongVoiceChannel),
+                        DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                     .AsEphemeral());
             return;
         }

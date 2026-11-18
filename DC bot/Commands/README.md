@@ -30,7 +30,7 @@ Implements commands selected by the configured message prefix and ICommandRegist
 
 - `README.md` — Folder overview and navigation to its source components.
 
-**Purpose:** CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services.
+**Purpose:** CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services. Long queue, playlist, help, favorite, lyrics and custom-preset responses use the shared caller-bound button pagination.
 
 ---
 

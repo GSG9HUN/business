@@ -9,6 +9,14 @@ namespace DC_bot.Interface.Service.SlashCommands;
 public interface ISlashInteractionContext
 {
 
+    /// <summary>Sends an interactive response through the interaction acknowledgement lifecycle.</summary>
+    /// <param name="builder">The embed and component layout.</param>
+    /// <returns>The actual initial or follow-up Discord message.</returns>
+    Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
+    {
+        throw new NotSupportedException("This interaction adapter does not support components.");
+    }
+
     /// <summary>
     /// The Discord guild identifier, or null outside a guild.
     /// </summary>

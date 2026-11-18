@@ -1,3 +1,5 @@
+using DC_bot.Helper;
+using DSharpPlus.Entities;
 using DC_bot.Constants;
 using DC_bot.Configuration;
 using DC_bot.Interface.Discord;
@@ -21,6 +23,11 @@ public class ResponseBuilder(
     ILogger<ResponseBuilder>? logger = null,
     IOptions<BotSettings>? botSettings = null) : IResponseBuilder
 {
+    private const int MaxEmbedTitleLength = 256;
+    private const int MaxEmbedDescriptionLength = 4096;
+    private const int MaxEmbedFooterLength = 2048;
+    private const int MaxEmbedTotalLength = 6000;
+    private const int MaxDiscordMessageLength = 2000;
     private const string ErrorPrefixKey = "response_error_prefix";
     private const string WarningPrefixKey = "response_warning_prefix";
     private readonly ILogger<ResponseBuilder> _logger = logger ?? NullLogger<ResponseBuilder>.Instance;
@@ -50,7 +57,9 @@ public class ResponseBuilder(
             return;
         }
 
-        await SafeRespondAsync(message, GetForMessage(message, errorKey), "SendValidationErrorAsync", cancellationToken);
+        await SafeRespondAsync(message, BuildEmbed(message, LocalizationKeys.ResponseErrorTitle,
+            GetForMessage(message, errorKey), DiscordColor.Red, LocalizationKeys.ResponseValidationFooter),
+            "SendValidationErrorAsync", cancellationToken);
 
         if (errorKey is LocalizationKeys.VolumeCommandInvalid
             or LocalizationKeys.SeekCommandInvalid
@@ -84,7 +93,9 @@ public class ResponseBuilder(
     public async Task SendUsageAsync(IDiscordMessage message, string commandName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_usage", botSettings?.Value.Prefix ?? "!"), "SendUsageAsync", cancellationToken);
+        await SafeRespondAsync(message, BuildEmbed(message, LocalizationKeys.ResponseUsageTitle,
+            GetForMessage(message, $"{commandName}_command_usage", botSettings?.Value.Prefix ?? "!"),
+            DiscordColor.Azure, LocalizationKeys.ResponseUsageFooter), "SendUsageAsync", cancellationToken);
     }
 
     /// <summary>
@@ -102,7 +113,9 @@ public class ResponseBuilder(
         params object[] args)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await SafeRespondAsync(message, GetForMessage(message, localizationKey, args), "SendSuccessAsync", cancellationToken);
+        await SafeRespondAsync(message, BuildEmbed(message, LocalizationKeys.ResponseSuccessTitle,
+            GetForMessage(message, localizationKey, args), DiscordColor.Green, LocalizationKeys.ResponseSuccessFooter),
+            "SendSuccessAsync", cancellationToken);
     }
 
     /// <summary>
@@ -130,7 +143,8 @@ public class ResponseBuilder(
     {
         cancellationToken.ThrowIfCancellationRequested();
         var text = GetForMessage(message, localizationKey, args);
-        await SafeRespondAsync(message, FormatWithPrefix(message, WarningPrefixKey, text), "SendWarningAsync", cancellationToken);
+        await SafeRespondAsync(message, BuildEmbed(message, LocalizationKeys.ResponseWarningTitle,
+            text, DiscordColor.Gold, LocalizationKeys.ResponseWarningFooter), "SendWarningAsync", cancellationToken);
     }
 
     /// <summary>
@@ -158,7 +172,8 @@ public class ResponseBuilder(
     {
         cancellationToken.ThrowIfCancellationRequested();
         var text = GetForMessage(message, localizationKey, args);
-        await SafeRespondAsync(message, FormatWithPrefix(message, ErrorPrefixKey, text), "SendErrorAsync", cancellationToken);
+        await SafeRespondAsync(message, BuildEmbed(message, LocalizationKeys.ResponseErrorTitle,
+            text, DiscordColor.Red, LocalizationKeys.ResponseErrorFooter), "SendErrorAsync", cancellationToken);
     }
 
     /// <summary>
@@ -194,6 +209,83 @@ public class ResponseBuilder(
     {
         var prefix = GetForMessage(message, prefixKey);
         return prefix == prefixKey ? text : $"{prefix}{text}";
+    }
+
+    /// <summary>Builds a localized status embed within individual and aggregate Discord text limits.</summary>
+    private DiscordEmbed BuildEmbed(
+        IDiscordMessage message,
+        string titleKey,
+        string description,
+        DiscordColor color,
+        string footerKey)
+    {
+        return CreateEmbed(message.Channel.Guild?.Id, description, color, titleKey, footerKey);
+    }
+
+    /// <inheritdoc />
+    public DiscordEmbed CreateEmbed(
+        ulong? guildId,
+        string description,
+        DiscordColor? color = null,
+        string? titleKey = null,
+        string? footerKey = null)
+    {
+        var title = DiscordTextSanitizer.Truncate(
+            GetForGuild(guildId, titleKey ?? LocalizationKeys.ResponseUsageTitle), MaxEmbedTitleLength);
+        var body = DiscordTextSanitizer.Truncate(description, MaxEmbedDescriptionLength);
+        var footerLimit = Math.Min(MaxEmbedFooterLength, MaxEmbedTotalLength - title.Length - body.Length);
+        var footer = footerKey is null ? null : DiscordTextSanitizer.Truncate(
+            GetForGuild(guildId, footerKey, botSettings?.Value.Prefix ?? "!"), footerLimit);
+        return new DiscordEmbedBuilder
+        {
+            Title = title,
+            Description = body,
+            Color = color ?? DiscordColor.Azure,
+            Footer = footer is null ? null : new DiscordEmbedBuilder.EmbedFooter { Text = footer }
+        }.Build();
+    }
+
+    /// <summary>Resolves presentation labels using the selected guild or default language.</summary>
+    private string GetForGuild(ulong? guildId, string key, params object[] args)
+    {
+        return guildId.HasValue ? localization.Get(guildId.Value, key, args) : localization.Get(key, args);
+    }
+
+    /// <summary>Attempts embed delivery and falls back to bounded plain text after a non-cancellation failure.</summary>
+    private async Task SafeRespondAsync(
+        IDiscordMessage message,
+        DiscordEmbed embed,
+        string operation,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            await message.RespondAsync(embed).WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.ResponseSendFailed(exception, operation);
+            var fallback = string.IsNullOrWhiteSpace(embed.Description) ? embed.Title ?? string.Empty : embed.Description;
+
+            if (string.IsNullOrWhiteSpace(fallback))
+            {
+                return;
+            }
+
+            fallback = operation switch
+            {
+                "SendWarningAsync" => FormatWithPrefix(message, WarningPrefixKey, fallback),
+                "SendErrorAsync" or "SendValidationErrorAsync" => FormatWithPrefix(message, ErrorPrefixKey, fallback),
+                _ => fallback
+            };
+            await SafeRespondAsync(message, DiscordTextSanitizer.Truncate(fallback, MaxDiscordMessageLength),
+                operation + ".Fallback", cancellationToken);
+        }
     }
 
     /// <summary>

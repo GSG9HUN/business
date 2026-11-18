@@ -1,11 +1,27 @@
 # Presentation
 
-Defines localized success, warning, error, and validation responses.
+Defines localized success, warning, error, validation and usage responses.
 
 ## Overview
 
-- ResponseBuilder formats translated text into Discord responses and supports caller cancellation where the underlying boundary allows it.
+- ResponseBuilder presents translated messages as status-colored Discord embeds, with bounded plain-text fallback on delivery failure.
+- Caller cancellation is supported where the underlying boundary allows it.
 - Keep localization arguments separate from cancellation tokens. Playback side effects belong to music services, not response formatting.
+
+## Subfolders
+
+### Models/
+
+Carries read-only pagination requests and formatted page content.
+
+**Files:**
+
+- `PaginationPage.cs`
+- `PaginationRequest.cs`
+
+**Purpose:** Separates page values and cancellable loaders from Discord interaction ownership.
+
+---
 
 ## Interfaces
 
@@ -14,6 +30,19 @@ Defines localized success, warning, error, and validation responses.
 **File:** `DC bot/Interface/Service/Presentation/IResponseBuilder.cs`
 
 **Purpose:** Defines the response builder boundary so callers are independent of its concrete implementation.
+
+**Methods:**
+
+```csharp
+DiscordEmbed CreateEmbed(
+    ulong? guildId,
+    string description,
+    DiscordColor? color = null,
+    string? titleKey = null,
+    string? footerKey = null);
+```
+
+Creates presentation for callers that own a channel send, interaction response or component message. The caller retains delivery, acknowledgement and cancellation ownership.
 
 **Methods:**
 

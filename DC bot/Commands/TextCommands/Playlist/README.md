@@ -124,6 +124,8 @@ await deletePlaylistCommand.ExecuteAsync(message);
 
 **Purpose:** Handles the list playlists text command through validation, service, and localized response boundaries.
 
+Lists saved playlists with track counts in numbered snapshot pages, at most ten items per page. Navigation edits the same embed and is restricted to the requesting user.
+
 **Implements / inherits:** `ICommand`.
 
 **Command identifier:** `listPlaylists`. Message routing applies the configured prefix.
@@ -303,6 +305,8 @@ await savePlaylistCommand.ExecuteAsync(message);
 **File:** `DC bot/Commands/TextCommands/Playlist/ViewPlaylistCommand.cs`
 
 **Purpose:** Handles the view playlist text command through validation, service, and localized response boundaries.
+
+Displays every saved track through snapshot pages instead of truncating after ten tracks. Playlist order, author/title and duration are retained; the playlist name remains the embed title.
 
 **Implements / inherits:** `ICommand`.
 

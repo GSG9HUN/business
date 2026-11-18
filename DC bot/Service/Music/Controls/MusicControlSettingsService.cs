@@ -1,3 +1,4 @@
+using DC_bot.Helper;
 using System.Collections.Concurrent;
 using System.Globalization;
 using DC_bot.Constants;
@@ -8,6 +9,7 @@ using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.MusicControl;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.BotControl;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
@@ -29,6 +31,7 @@ namespace DC_bot.Service.Music.Controls;
 /// <param name="leave">Executes the established full leave path.</param>
 /// <param name="localization">Resolves all user-visible text.</param>
 /// <param name="logger">Records background control and notification failures.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 public sealed class MusicControlSettingsService(
     IGuildMusicControlSettingsRepository settings,
     IGuildDataRepository guildSettings,
@@ -38,7 +41,8 @@ public sealed class MusicControlSettingsService(
     DiscordClient client,
     PersistentVoiceLeaveService leave,
     ILocalizationService localization,
-    ILogger<MusicControlSettingsService> logger)
+    ILogger<MusicControlSettingsService> logger,
+    IResponseBuilder responseBuilder)
 {
     private readonly ConcurrentDictionary<ulong, VoteState> _votes = new();
     private readonly ConcurrentDictionary<ulong, (long Generation, DateTimeOffset Since)> _empty = new();
@@ -335,8 +339,8 @@ public sealed class MusicControlSettingsService(
                     if (result.FullySucceeded && channels is { } remembered)
                     {
                         var channel = await client.GetChannelAsync(remembered.TextChannelId).WaitAsync(cancellationToken);
-                        await channel.SendMessageAsync(localization.Get(guildId, LocalizationKeys.MusicEmptyLeave))
-                            .WaitAsync(cancellationToken);
+                        await SendNotificationAsync(channel, guildId,
+                            localization.Get(guildId, LocalizationKeys.MusicEmptyLeave), false, cancellationToken);
                     }
 
                     return;
@@ -381,7 +385,33 @@ public sealed class MusicControlSettingsService(
 
         if (outcome.Success)
         {
-            await text.SendMessageAsync(outcome.Message).WaitAsync(cancellationToken);
+            await SendNotificationAsync(text, guildId, outcome.Message, true, cancellationToken);
+        }
+    }
+
+    /// <summary>Sends a background status embed with a bounded text fallback when embed delivery is unavailable.</summary>
+    private async Task SendNotificationAsync(
+        DiscordChannel channel,
+        ulong guildId,
+        string text,
+        bool success,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await channel.SendMessageAsync(responseBuilder.CreateEmbed(guildId, text,
+                success ? DiscordColor.Green : DiscordColor.Azure,
+                success ? LocalizationKeys.ResponseSuccessTitle : LocalizationKeys.ResponseUsageTitle))
+                .WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(exception, "Background embed delivery failed; trying text. Guild={GuildId}", guildId);
+            await channel.SendMessageAsync(DiscordTextSanitizer.Truncate(text, 2000)).WaitAsync(cancellationToken);
         }
     }
 

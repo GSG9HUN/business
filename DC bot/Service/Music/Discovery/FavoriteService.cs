@@ -12,6 +12,7 @@ using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Search;
 using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Interface.Service.Persistence.Discovery;
+using DC_bot.Interface.Service.Presentation.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DC_bot.Wrapper.Lavalink;
 using Lavalink4NET;
@@ -66,11 +67,24 @@ public sealed class FavoriteService(
                 return Fail(guildId, LocalizationKeys.DiscoveryInvalid);
             }
 
-            var items = await repository.ListAsync(userId, page, cancellationToken);
-            var lines = string.Join("\n", items.Select(item =>
-                $"{item.Id}. {Bound(item.Author)} - {Bound(item.Title)}"));
+            var request = new PaginationRequest(async (number, token) =>
+            {
+                var total = await repository.CountAsync(userId, token);
+                var pages = Math.Max(1, (int)Math.Ceiling(total / 10d));
+                var selected = Math.Clamp(number, 1, pages);
+                var items = await repository.ListAsync(userId, selected, token);
+                var lines = string.Join("\n", items.Select(item =>
+                    $"{item.Id}. {Bound(item.Author)} - {Bound(item.Title)}"));
+                return new PaginationPage(localization.Get(guildId, LocalizationKeys.PaginationFavoritesTitle),
+                    lines, selected, pages, total);
+            }, page);
+            var initial = await request.LoadPageAsync(page, cancellationToken);
             return PlaybackControlResult.Succeeded(localization.Get(guildId,
-                items.Count == 0 ? LocalizationKeys.FavoriteEmpty : LocalizationKeys.FavoriteList, page, lines));
+                initial.TotalItems == 0 ? LocalizationKeys.FavoriteEmpty : LocalizationKeys.FavoriteList,
+                initial.Number, initial.Description)) with
+            {
+                Pagination = request with { InitialContent = initial }
+            };
         }
 
         if (operation == "add")

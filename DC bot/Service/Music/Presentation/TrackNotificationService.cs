@@ -4,6 +4,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Presentation;
 using DC_bot.Interface.Service.Music.Tracks;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
@@ -15,9 +16,11 @@ namespace DC_bot.Service.Music.Presentation;
 /// </summary>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 internal class TrackNotificationService(
     ILocalizationService localizationService,
-    ILogger<TrackNotificationService> logger) : ITrackNotificationService
+    ILogger<TrackNotificationService> logger,
+    IResponseBuilder responseBuilder) : ITrackNotificationService
 {
 
     /// <inheritdoc />
@@ -101,7 +104,7 @@ internal class TrackNotificationService(
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            await channel.SendMessageAsync(message)
+            await channel.SendMessageAsync(responseBuilder.CreateEmbed(channel.Guild.Id, message))
                 .WaitAsync(cancellationToken);
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)

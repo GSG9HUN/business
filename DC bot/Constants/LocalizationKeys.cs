@@ -6,6 +6,71 @@ namespace DC_bot.Constants;
 public static class LocalizationKeys
 {
 
+    /// <summary>Identifies the localized pagination expired text.</summary>
+    public const string PaginationExpired = "pagination_expired";
+
+    /// <summary>Identifies the localized pagination denied text.</summary>
+    public const string PaginationDenied = "pagination_denied";
+
+    /// <summary>Identifies the localized pagination error text.</summary>
+    public const string PaginationError = "pagination_error";
+
+    /// <summary>Identifies the localized pagination footer text.</summary>
+    public const string PaginationFooter = "pagination_footer";
+
+    /// <summary>Identifies the localized pagination text footer text.</summary>
+    public const string PaginationTextFooter = "pagination_text_footer";
+
+    /// <summary>Identifies the localized pagination empty text.</summary>
+    public const string PaginationEmpty = "pagination_empty";
+
+    /// <summary>Identifies the localized pagination previous text.</summary>
+    public const string PaginationPrevious = "pagination_previous";
+
+    /// <summary>Identifies the localized pagination next text.</summary>
+    public const string PaginationNext = "pagination_next";
+
+    /// <summary>Identifies the localized pagination help title text.</summary>
+    public const string PaginationHelpTitle = "pagination_help_title";
+
+    /// <summary>Identifies the localized pagination favorites title text.</summary>
+    public const string PaginationFavoritesTitle = "pagination_favorites_title";
+
+    /// <summary>Identifies the localized pagination presets title text.</summary>
+    public const string PaginationPresetsTitle = "pagination_presets_title";
+
+    /// <summary>Identifies the localized pagination playlists title text.</summary>
+    public const string PaginationPlaylistsTitle = "pagination_playlists_title";
+
+
+    /// <summary>Identifies the localized response success title.</summary>
+    public const string ResponseSuccessTitle = "response_success_title";
+
+    /// <summary>Identifies the localized response warning title.</summary>
+    public const string ResponseWarningTitle = "response_warning_title";
+
+    /// <summary>Identifies the localized response error title.</summary>
+    public const string ResponseErrorTitle = "response_error_title";
+
+    /// <summary>Identifies the localized response usage title.</summary>
+    public const string ResponseUsageTitle = "response_usage_title";
+
+    /// <summary>Identifies the localized response validation footer.</summary>
+    public const string ResponseValidationFooter = "response_validation_footer";
+
+    /// <summary>Identifies the localized response usage footer.</summary>
+    public const string ResponseUsageFooter = "response_usage_footer";
+
+    /// <summary>Identifies the localized response success footer.</summary>
+    public const string ResponseSuccessFooter = "response_success_footer";
+
+    /// <summary>Identifies the localized response warning footer.</summary>
+    public const string ResponseWarningFooter = "response_warning_footer";
+
+    /// <summary>Identifies the localized response error footer.</summary>
+    public const string ResponseErrorFooter = "response_error_footer";
+
+
     /// <summary>Formats a command name and guild-localized description.</summary>
     public const string HelpCommandDetails = "help_command_details";
 
