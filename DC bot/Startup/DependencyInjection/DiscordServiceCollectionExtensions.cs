@@ -1,5 +1,6 @@
 using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Service.Core;
+using DC_bot.Service.Presentation;
 using DC_bot.Service.ReactionHandler;
 using DC_bot.Wrapper.Discord;
 using DSharpPlus;
@@ -43,8 +44,13 @@ public static class DiscordServiceCollectionExtensions
                 .OnVoiceServerUpdated(client, args));
             builder.HandleUnknownEvent((client, args) => client.ServiceProvider.GetRequiredService<DiscordClientEventHandler>()
                 .OnUnknownEvent(client, args));
-            builder.HandleComponentInteractionCreated((client, args) => client.ServiceProvider.GetRequiredService<ISearchPickerHandler>()
-                .OnComponentInteractionAsync(client, args));
+            builder.HandleComponentInteractionCreated(async (client, args) =>
+            {
+                await client.ServiceProvider.GetRequiredService<DiscordPaginationService>()
+                    .OnComponentInteractionAsync(client, args);
+                await client.ServiceProvider.GetRequiredService<ISearchPickerHandler>()
+                    .OnComponentInteractionAsync(client, args);
+            });
             builder.HandleMessageCreated((client, args) => client.ServiceProvider.GetRequiredService<CommandHandlerService>()
                 .HandleEventAsync(client, args));
             builder.HandleMessageReactionAdded((client, args) => client.ServiceProvider.GetRequiredService<ReactionHandlerService>()

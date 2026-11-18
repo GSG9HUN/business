@@ -1,8 +1,7 @@
-using System.Text;
-using DSharpPlus.Entities;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using DC_bot.BotControl;
 using DC_bot.Constants;
@@ -14,9 +13,11 @@ using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Persistence.Filters;
 using DC_bot.Interface.Service.Persistence.Playback;
+using DC_bot.Interface.Service.Presentation.Models;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DC_bot.Service.Music.Playback.Models;
+using DSharpPlus.Entities;
 using Lavalink4NET.Filters;
 using Lavalink4NET.Players;
 using Lavalink4NET.Protocol.Models.Filters;
@@ -856,9 +857,21 @@ public sealed class PlaybackFilterService(
                 return Reject(guildId, LocalizationKeys.FilterPresetInvalid);
             }
 
-            var presets = await presetRepository.ListAsync(guildId, page, token);
+            var request = new PaginationRequest(async (number, cancellation) =>
+            {
+                var total = await presetRepository.CountAsync(guildId, cancellation);
+                var pages = Math.Max(1, (int)Math.Ceiling(total / 10d));
+                var selected = Math.Clamp(number, 1, pages);
+                var presets = await presetRepository.ListAsync(guildId, selected, cancellation);
+                return new PaginationPage(localizationService.Get(guildId, LocalizationKeys.PaginationPresetsTitle),
+                    string.Join("\n", presets.Select(preset => preset.Name)), selected, pages, total);
+            }, page);
+            var initial = await request.LoadPageAsync(page, token);
             return PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.FilterPresetList,
-                page, string.Join(", ", presets.Select(preset => preset.Name))));
+                initial.Number, initial.Description)) with
+            {
+                Pagination = request with { InitialContent = initial }
+            };
         }
 
         if (arguments.Length is < 2 or > 3

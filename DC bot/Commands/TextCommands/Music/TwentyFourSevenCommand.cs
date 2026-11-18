@@ -54,8 +54,7 @@ public sealed class TwentyFourSevenCommand(
 
         if (message.Channel?.Guild is not { Id: > 0 } guild)
         {
-            await message.RespondAsync(
-                localizationService.Get(LocalizationKeys.SlashCommandGuildOnly));
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.SlashCommandGuildOnly, CancellationToken.None);
 
             return;
         }

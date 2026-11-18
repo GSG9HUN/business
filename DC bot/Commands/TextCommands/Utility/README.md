@@ -19,7 +19,8 @@ Exposes help, language selection, latency checks, and user tagging through text 
 
 - Resolve command descriptions in the guild language through `DescriptionKey`.
 - Accept `help [command]`; detailed lookup ignores case and preserves alias-specific usage.
-- Split sorted listings into blocks of at most 1600 characters before localized headers.
+- Present sorted listings as a single paginated embed with at most ten commands per page and bounded text length.
+- Keep detailed `help <command>` descriptions and usage independent of list navigation.
 - Return localized guidance for unknown commands or extra arguments.
 
 **Usage:**

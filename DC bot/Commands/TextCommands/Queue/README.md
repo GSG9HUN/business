@@ -252,6 +252,8 @@ await shuffleCommand.ExecuteAsync(message);
 
 **Purpose:** Handles the view queue text command through validation, service, and localized response boundaries.
 
+Displays the complete waiting queue in stable snapshot pages with numbered tracks. Pages contain at most ten items and share Previous/Next buttons, page/item counts and a five-minute lifetime; one-page results omit buttons. Text and slash entry points use the same panel.
+
 **Implements / inherits:** `ICommand`.
 
 **Command identifier:** `viewList`. Message routing applies the configured prefix.

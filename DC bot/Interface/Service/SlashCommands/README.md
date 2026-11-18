@@ -39,6 +39,8 @@ await slashCommandExecutor.ExecuteAsync(request, cancellationToken);
 
 **Purpose:** Defines the slash interaction context boundary so callers are independent of its concrete implementation.
 
+`RespondWithComponentsAsync` returns the actual initial or follow-up Discord message while preserving deferred acknowledgement. Component-aware adapters implement this capability; unsupported adapters reject it explicitly.
+
 **Properties:**
 
 ```csharp

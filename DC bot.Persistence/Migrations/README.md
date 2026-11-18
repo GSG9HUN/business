@@ -4,47 +4,43 @@ This folder contains EF Core schema migrations, their generated metadata, and th
 
 ## Overview
 
-- 20261118092853_AddGuildMusicControlSettings creates guild_music_control_settings with a guild primary key, default-disabled voting and nullable DJ role. The generated migration is not applied to a live database by this delivery.
-
-- 20261117144346_AddFilterPresets creates filter_preset with a guild/name composite key, schema version, jsonb definition and saving administrator/UTC timestamp. The model snapshot was updated. No live database application was performed in this delivery.
-
-- 20261117135456_AddMusicDiscovery creates favorite_track, user_music_settings and guild_music_settings, adds the unique personal source key, and updates the model snapshot. Both opt-in booleans default false. The migration was generated and checked for model consistency; it was not applied to a live database in this delivery.
-
-Convention maintenance removes compiler-reported unused imports and documents the artwork target-model override. Migration operations, identifiers, and generated target-model expressions are unchanged.
-
-- Preserve the chronological schema transitions required by the current database model.
-- Keep each migration operation file together with its matching generated designer file.
-- Apply pending schema changes through bot startup or an explicit EF tooling command.
-
-**Schema Change Checks**
-
-- Review the generated operations and snapshot against the entity/configuration change.
-- Apply schema changes to the intended database environment.
-- Add a new migration for a new schema transition instead of rewriting previously deployed history.
-- Documentation, DI, XML, and cancellation-only changes do not need a migration unless the model also changes.
-
-**Persistent Voice Schema**
-
-**AddTwentyFourSevenSettings**
-
-**Files:**
-
-- `20261023110102_AddTwentyFourSevenSettings.cs`
-- `20261023110102_AddTwentyFourSevenSettings.Designer.cs`
-
-**Purpose:** Adds `is_twenty_four_seven_enabled` (default false), `preferred_voice_channel_id`, and `preferred_text_channel_id` to `guild_data`. The channel identifiers are nullable `numeric(20,0)` values. Apply this migration before using preference reads and writes; it changes storage only.
-
----
-
-**Staging Integration**
-
-The regenerated AddQueueBatches migration adds enqueue_group_id to queue and canonical rows, batch_position to queue rows, and is_removed to canonical items. It preserves the existing bigint batch_id foreign keys. Legacy occurrences receive deterministic separate display groups. AddPlaylistArtwork metadata includes the staging canonical batch model. These migrations were generated and checked without applying them to a running database.
+- Records EF Core schema transitions and their generated target-model metadata.
+- Keeps timestamped migration operations and the current model snapshot together.
+- Supports applying schema changes during startup or with EF tooling.
 
 ## Migration Components
 
+### AddGuildMusicControlSettings
+
+**Purpose:** Creates `guild_music_control_settings` with a guild primary key, default-disabled voting and nullable numeric DJ role ID.
+
+**Files:**
+
+- `20261118092853_AddGuildMusicControlSettings.cs`
+- `20261118092853_AddGuildMusicControlSettings.Designer.cs`
+
+**Methods:** `Up` creates the table; `Down` drops it.
+
+---
+
+### AddFilterPresets
+
+**Purpose:** Creates `filter_preset` with a composite guild/name primary key, schema version, JSONB definition, saving administrator and UTC timestamp.
+
+**Files:**
+
+- `20261117144346_AddFilterPresets.cs`
+- `20261117144346_AddFilterPresets.Designer.cs`
+
+**Methods:** `Up` creates the table; `Down` drops it.
+
+---
+
 ### AddMusicDiscovery
 
-**Files:** `20261117135456_AddMusicDiscovery.cs`, its designer metadata and `BotDbContextModelSnapshot.cs`.
+**Files:**
+
+- `20261117135456_AddMusicDiscovery.cs`, its designer metadata and `BotDbContextModelSnapshot.cs`
 
 **Purpose:** Creates personal favorites with a unique user/source identity and independent disabled-by-default user picker/guild autoplay settings. No existing rows are rewritten.
 
@@ -91,7 +87,9 @@ To inspect unapplied migrations without changing the database, run `dotnet ef mi
 
 **Purpose:** Adds canonical playback batch and item storage and links queue/playback state to that batch model.
 
-**Behavior:** This migration is already present. Enabling the existing batch behavior does not require generating a duplicate migration. Inspect `Up` and `Down` for the exact columns, indexes, relationships, and tables involved.
+Queue/canonical rows retain `bigint` batch keys. `enqueue_group_id` separates display grouping, `batch_position` records position and `is_removed` excludes canonical occurrences from repeats. Legacy occurrences receive deterministic display groups.
+
+**Behavior:** `Up` defines batch tables, occurrence metadata, indexes and relationships; `Down` reverses that schema transition.
 
 ---
 

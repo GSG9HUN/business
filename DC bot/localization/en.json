@@ -1,4 +1,16 @@
 {
+  "pagination_expired": "This list has expired. Run the command again.",
+  "pagination_denied": "Only the person who requested this list can change its page.",
+  "pagination_error": "Could not load this page. Please try again.",
+  "pagination_footer": "Page {0}/{1} | {2} items",
+  "pagination_text_footer": "Page {0}/{1}",
+  "pagination_empty": "There are no items to display.",
+  "pagination_previous": "Previous",
+  "pagination_next": "Next",
+  "pagination_help_title": "Commands",
+  "pagination_favorites_title": "Favorites",
+  "pagination_presets_title": "Custom filter presets",
+  "pagination_playlists_title": "Saved playlists",
   "history_command_description": "View recent playback batches.",
   "history_command_empty": "There is no playback history yet.",
   "history_command_title": "Playback history",
@@ -326,5 +338,14 @@
   "help_command_usage": "Usage: {0}help [command]",
   "ping_command_usage": "Usage: {0}ping",
   "help_command_details": "{0}: {1}",
-  "help_command_unknown": "Unknown command: {0}."
+  "help_command_unknown": "Unknown command: {0}.",
+  "response_success_title": "Success",
+  "response_warning_title": "Warning",
+  "response_error_title": "Error",
+  "response_usage_title": "Info",
+  "response_validation_footer": "Command validation",
+  "response_usage_footer": "Check {0}help for commands",
+  "response_success_footer": "Operation successful",
+  "response_warning_footer": "Warning",
+  "response_error_footer": "Something went wrong"
 }

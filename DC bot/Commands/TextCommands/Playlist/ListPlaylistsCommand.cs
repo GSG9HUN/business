@@ -8,6 +8,7 @@ using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Service.Presentation;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Playlist;
@@ -21,13 +22,15 @@ namespace DC_bot.Commands.TextCommands.Playlist;
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="playlistService">The playlist service dependency used by this boundary.</param>
 /// <param name="commandHelper">The command helper dependency used by this boundary.</param>
+/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
 public class ListPlaylistsCommand(
     ILogger<ListPlaylistsCommand> logger,
     IUserValidationService userValidation,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
     IPlaylistService playlistService,
-    ICommandHelper commandHelper) : ICommand
+    ICommandHelper commandHelper,
+    DiscordPaginationService pagination) : ICommand
 {
 
     /// <inheritdoc />
@@ -65,7 +68,12 @@ public class ListPlaylistsCommand(
         switch (result.Status)
         {
             case ListPlaylistsStatus.Listed:
-                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ListPlaylistsCommandResponse, FormatPlaylists(guildId, result.Playlists));
+                var items = result.Playlists.Select((playlist, index) => localizationService.Get(guildId,
+                        LocalizationKeys.ListPlaylistsCommandItem, index + 1,
+                        DiscordTextSanitizer.EscapeMentions(playlist.Name), playlist.TrackCount))
+                    .ToArray();
+                await pagination.SendAsync(message, DiscordPaginationService.FromItems(
+                    localizationService.Get(guildId, LocalizationKeys.PaginationPlaylistsTitle), items));
                 break;
             case ListPlaylistsStatus.NoPlaylists:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ListPlaylistsCommandNoPlaylists);
@@ -78,16 +86,5 @@ public class ListPlaylistsCommand(
         }
 
         logger.CommandExecuted(Name);
-    }
-
-    /// <summary>
-    /// Formats playlist names and track counts for a Discord response.
-    /// </summary>
-    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
-    /// <param name="playlists">The playlists supplied for this operation.</param>
-    /// <returns>The formatted, serialized, or resolved text value.</returns>
-    private string FormatPlaylists(ulong guildId, IReadOnlyList<PlaylistSummaryDto> playlists)
-    {
-        return string.Join(Environment.NewLine, playlists.Select((playlist, index) => localizationService.Get(guildId, LocalizationKeys.ListPlaylistsCommandItem, index + 1, DiscordTextSanitizer.EscapeMentions(playlist.Name), playlist.TrackCount)));
     }
 }

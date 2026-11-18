@@ -72,6 +72,8 @@ Exposes queue display, repetition, ordering, and recent batch history through sl
 
 **Purpose:** Adapts the clear slash command to shared command execution and interaction acknowledgement.
 
+The confirmation-required response is a localized warning embed; confirmation and command execution rules remain the same.
+
 **Methods:**
 
 - `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.

@@ -73,6 +73,7 @@
       <Folder Include="IntegrationTests\Service\Localization\" />
       <Folder Include="IntegrationTests\Service\Music\" />
       <Folder Include="IntegrationTests\Service\ReactionHandler\" />
+      <Folder Include="TestHelperFiles\" />
       <Folder Include="UnitTests\API\" />
       <Folder Include="UnitTests\Commands\SlashCommands\Music\" />
       <Folder Include="UnitTests\Commands\SlashCommands\Playlist\" />
@@ -96,6 +97,7 @@
       <Folder Include="UnitTests\Service\Core\" />
       <Folder Include="UnitTests\Service\Localization\" />
       <Folder Include="UnitTests\Service\Music\PlaybackControl\" />
+      <Folder Include="UnitTests\Service\Music\PlayerConnection\" />
       <Folder Include="UnitTests\Service\Music\Playlist\" />
       <Folder Include="UnitTests\Service\Music\ProgressiveTimer\" />
       <Folder Include="UnitTests\Service\Presentation\" />

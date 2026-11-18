@@ -1,4 +1,16 @@
 {
+  "pagination_expired": "Ez a lista lejárt. Futtasd újra a parancsot.",
+  "pagination_denied": "Csak a lista lekérője lapozhat.",
+  "pagination_error": "Nem sikerült betölteni az oldalt. Próbáld újra.",
+  "pagination_footer": "{0}/{1}. oldal | {2} elem",
+  "pagination_text_footer": "{0}/{1}. oldal",
+  "pagination_empty": "Nincs megjeleníthető elem.",
+  "pagination_previous": "Előző",
+  "pagination_next": "Következő",
+  "pagination_help_title": "Parancsok",
+  "pagination_favorites_title": "Kedvencek",
+  "pagination_presets_title": "Saját filtersablonok",
+  "pagination_playlists_title": "Mentett lejátszási listák",
   "history_command_description": "A legutóbbi lejátszási listák előzményei.",
   "history_command_empty": "Még nincs lejátszási előzmény.",
   "history_command_title": "Lejátszási előzmények",
@@ -326,5 +338,14 @@
   "help_command_usage": "Használat: {0}help [parancs]",
   "ping_command_usage": "Használat: {0}ping",
   "help_command_details": "{0}: {1}",
-  "help_command_unknown": "Ismeretlen parancs: {0}."
+  "help_command_unknown": "Ismeretlen parancs: {0}.",
+  "response_success_title": "Siker",
+  "response_warning_title": "Figyelmeztetés",
+  "response_error_title": "Hiba",
+  "response_usage_title": "Info",
+  "response_validation_footer": "Parancs validáció",
+  "response_usage_footer": "Parancslista: {0}help",
+  "response_success_footer": "A művelet sikeres",
+  "response_warning_footer": "Figyelmeztetés",
+  "response_error_footer": "Hiba történt"
 }

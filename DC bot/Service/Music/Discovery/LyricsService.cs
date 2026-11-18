@@ -8,6 +8,7 @@ using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Search;
 using DC_bot.Service.Music.Lifecycle.Sessions;
+using DC_bot.Service.Presentation;
 using Lavalink4NET;
 using Lavalink4NET.Tracks;
 using Microsoft.Extensions.Logging;
@@ -102,18 +103,19 @@ public sealed class LyricsService(
                 return Fail(guildId, LocalizationKeys.LyricsUnavailable);
             }
 
-            const int PageSize = 1600;
-            var total = Math.Min(100, (int)Math.Ceiling(text.Length / (double)PageSize));
+            var request = DiscordPaginationService.FromText(track.Title, text, page);
+            var initial = await request.LoadPageAsync(page, cancellationToken);
 
-            if (page > total)
+            if (page > initial.PageCount)
             {
                 return Fail(guildId, LocalizationKeys.DiscoveryInvalid);
             }
 
-            var start = (page - 1) * PageSize;
-            var contentPage = text.Substring(start, Math.Min(PageSize, text.Length - start));
             return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.LyricsPage,
-                track.Title, page, total, contentPage));
+                track.Title, initial.Number, initial.PageCount, initial.Description)) with
+            {
+                Pagination = request with { InitialContent = initial }
+            };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

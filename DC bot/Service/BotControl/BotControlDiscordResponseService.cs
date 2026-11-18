@@ -1,5 +1,9 @@
+using DC_bot.Helper;
+using DC_bot.Constants;
+using DSharpPlus.Entities;
 using DC_bot.Interface.Service.BotControl;
 using DC_bot.Interface.Service.BotControl.Models;
+using DC_bot.Interface.Service.Presentation;
 using DSharpPlus;
 using Microsoft.Extensions.Logging;
 
@@ -10,9 +14,11 @@ namespace DC_bot.Service.BotControl;
 /// </summary>
 /// <param name="discordClient">The discord client supplied for this operation.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 public class BotControlDiscordResponseService(
     DiscordClient discordClient,
-    ILogger<BotControlDiscordResponseService> logger) : IBotControlDiscordResponseService
+    ILogger<BotControlDiscordResponseService> logger,
+    IResponseBuilder responseBuilder) : IBotControlDiscordResponseService
 {
 
     /// <summary>
@@ -56,7 +62,9 @@ public class BotControlDiscordResponseService(
 
         try
         {
-            await channel.SendMessageAsync(result.Message)
+            await channel.SendMessageAsync(responseBuilder.CreateEmbed(result.GuildId, result.Message,
+                result.Success ? DiscordColor.Green : DiscordColor.Red,
+                result.Success ? LocalizationKeys.ResponseSuccessTitle : LocalizationKeys.ResponseErrorTitle))
                 .WaitAsync(cancellationToken);
             return true;
         }
@@ -67,7 +75,21 @@ public class BotControlDiscordResponseService(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to send bot control Discord response. GuildId: {GuildId}, TextChannelId: {TextChannelId}", result.GuildId, result.TextChannelId);
-            return false;
+            try
+            {
+                await channel.SendMessageAsync(DiscordTextSanitizer.Truncate(result.Message, 2000))
+                    .WaitAsync(cancellationToken);
+                return true;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception fallbackException)
+            {
+                logger.LogWarning(fallbackException, "Bot control text fallback failed. GuildId={GuildId}", result.GuildId);
+                return false;
+            }
         }
     }
 }

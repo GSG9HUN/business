@@ -8,6 +8,14 @@ namespace DC_bot.Interface.Discord;
 public interface IDiscordMessage
 {
 
+    /// <summary>Sends an interactive response and returns its actual Discord message for later edits.</summary>
+    /// <param name="builder">The embed and component layout.</param>
+    /// <returns>The sent response.</returns>
+    Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
+    {
+        return Channel.ToDiscordChannel().SendMessageAsync(builder);
+    }
+
     /// <summary>
     /// The Discord identifier of this object.
     /// </summary>

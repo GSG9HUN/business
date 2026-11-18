@@ -4,12 +4,8 @@ Groups contracts consumed across project boundaries.
 
 ## Overview
 
-- Service/Persistence/Filters defines saved guild preset operations; Models/Filters carries immutable definitions without bot executable dependencies.
-
-- Service/Persistence/Discovery provides SDK-independent favorites/settings storage contracts and Models/Discovery carries immutable favorite data.
-
-- The Service/Persistence tree defines operations implemented by DC bot.Persistence and used by the bot and API.
-- Keep concrete repositories, SDK wrappers, and HTTP request or response DTOs in their owning projects.
+- Defines shared repository and external-facing operation contracts.
+- Separates consumer boundaries from persistence and bot runtime implementations.
 
 ## Subfolders
 

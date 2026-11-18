@@ -1,44 +1,124 @@
-# DC Bot Repository
+# business
 
-This repository contains a .NET 9 Discord music bot, its test project, Docker/Lavalink support files, and project documentation.
+Contains the .NET Discord music bot, mobile API, Kotlin mobile application, shared storage projects, tests and runtime configuration.
 
-## Projects
+## Overview
 
-- `DC bot/` - bot application source
-- `DC bot tests/` - unit, integration, and E2E tests
-- `lavalink-server/` - Lavalink server configuration
-- `docker-compose.yaml` - local runtime stack
-- `readme_required_tests.md` - required verification matrix and test policy
+- Contains the Discord music bot, authenticated mobile API, shared contracts and PostgreSQL persistence.
+- Includes a Kotlin multiplatform mobile application and the supporting Lavalink/Docker configuration.
+- Separates runtime projects, automated tests and technical documentation.
 
-## Start Here
+## Subfolders
 
-- Music-backed voice recovery now operates independently of the gateway recovery window and 24/7 preference, using remembered join destinations until explicit leave or application restart. Confirmed checkpoints and canonical repeat ownership are preserved during player replacement.
+### DC bot/
 
-- Playlist imports and Discord creation share the API transactional count-and-insert operation, preventing concurrent requests from exceeding the guild cap. Import metadata and tracks commit atomically.
+Runs the Discord music bot, command pipeline, and playback lifecycle.
 
-- Mobile playlist load commands now check the idle-player playback outcome. Failed or uncertain starts return terminal command failures with correlation metadata; already playing queues still accept playlist additions.
+**Files:**
 
-The READMEs in `API`, `DC bot`, `DC bot.Persistence`, and `DC bot.Contracts` follow the root `AGENTS.md` documentation structure: overview, relevant subfolders, component categories, and related components.
+- `DC bot.csproj`
+- `Program.cs`
 
-- `DC bot/README.md` - application architecture and setup
-- `DC bot/PROGRAM_CS_README.md` - process entry point and startup flow
-- `DC bot/Startup/README.md` - runtime composition, DI, migrations, DSharpPlus event wiring, and handler activation
-- `DC bot/Startup/DependencyInjection/README.md` - domain-specific service registration map
-- `DC bot tests/README.md` - test layout and commands
-- `lavalink-server/README.md` - Lavalink configuration
+**Purpose:** Runs the Discord music bot, command pipeline, and playback lifecycle. Discord replies and channel notifications use localized embeds; long queue, playlist, help, favorite, lyrics and custom-preset results use caller-bound navigation buttons. Plain text is reserved for supported delivery fallbacks.
 
-## Build
+---
+
+### API/
+
+Exposes authenticated mobile HTTP and realtime operations through shared storage contracts.
+
+**Files:**
+
+- `API.csproj`
+- `Program.cs`
+
+**Purpose:** Exposes authenticated mobile HTTP and realtime operations through shared storage contracts. Guild-scoped requests require membership and active premium; denials return HTTP 403 with `PremiumRequired` and `not premium member`.
+
+---
+
+### DC bot.Contracts/
+
+Defines shared persistence and mobile command contracts.
+
+**Files:**
+
+- `DC bot.Contracts.csproj`
+- `README.md`
+
+**Purpose:** Defines shared persistence and mobile command contracts.
+
+---
+
+### DC bot.Persistence/
+
+Implements PostgreSQL repositories, EF mappings, and migrations.
+
+**Files:**
+
+- `DC bot.Persistence.csproj`
+- `Db/BotDbContext.cs`
+
+**Purpose:** Implements PostgreSQL repositories, EF mappings, and migrations.
+
+---
+
+### DC bot tests/
+
+Contains unit, integration, and E2E test projects and scenarios.
+
+**Files:**
+
+- `DC bot tests.csproj`
+- `README.md`
+
+**Purpose:** Contains unit, integration, and E2E test projects and scenarios.
+
+---
+
+### MobileApp/
+
+Contains the Kotlin multiplatform client and platform applications.
+
+**Files:**
+
+- `settings.gradle.kts`
+- `build.gradle.kts`
+
+**Purpose:** Authenticates users, displays guild/player state and submits commands to the API.
+
+---
+
+### lavalink-server/
+
+Configures the external Lavalink audio server.
+
+**Files:**
+
+- `application.yaml`
+- `README.md`
+
+**Purpose:** Configures the external Lavalink audio server.
+
+---
+
+## Development and Runtime
+
+### Build
 
 ```bash
 dotnet restore "DC bot.sln"
 dotnet build "DC bot.sln"
 ```
 
-## Docker Compose
+---
+
+### Docker Compose
 
 Docker Compose builds the bot from `DC bot/Dockerfile`, reads local secrets from the repository-root `.env` file, and passes them to the container as environment variables. PostgreSQL and Lavalink host ports are bound to `127.0.0.1`; inside the Compose network the bot reaches them as `postgres` and `lavalink`. Lavalink configuration is sourced from `lavalink-server/application.yaml`.
 
-## Test
+---
+
+### Test
 
 ```bash
 dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Unit"
@@ -46,15 +126,19 @@ dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Integration"
 dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category!=E2E"
 ```
 
-E2E tests require real Discord/Lavalink configuration and are excluded from the normal non-E2E verification command.
+External E2E tests require real Discord/Lavalink configuration. Local pipeline E2E tests use isolated dependencies; the non-E2E command excludes both categories.
 
-## Repository Hygiene
+---
+
+### Repository Hygiene
 
 Do not commit local secrets, IDE state, build output, test result artifacts, coverage output, or scratch notes. The root `.gitignore` covers `.env`, `.env.*`, `bin/`, `obj/`, `TestResults/`, coverage files, IDE folders, and local Docker Compose overrides. `.dockerignore` keeps the same local artifacts out of Docker build context. Keep `.env.example`, source files, migrations, localization files, workflow files, and README files tracked.
 
-## Startup Refactor Notes
+---
 
-`Program.cs` is now a thin entry point. Runtime startup responsibilities live under `DC bot/Startup/`:
+### Application Startup
+
+`Program.cs` delegates application startup to the runtime composition layer. Runtime startup responsibilities live under `DC bot/Startup/`:
 
 - configuration loading
 - service provider creation
@@ -65,6 +149,19 @@ Do not commit local secrets, IDE state, build output, test result artifacts, cov
 
 `DiscordClientEventHandler` receives dependencies directly through constructor injection. `CommandHandlerService` and `HelpCommand` use `ICommandRegistry` instead of command service-location. `BotServiceProviderFactory` composes focused DI modules under `Startup/DependencyInjection/`; `AddDiscordRuntime` wires Discord socket/session/guild/voice/message/reaction callbacks through DSharpPlus 5 builder APIs, while `BotHandlerRegistrar` enables the text command and reaction handlers after the service graph is built. Track identity persistence is centralized behind `ITrackSerializer`; queue item states use the explicit `QueueItemState` enum; saved playlists are persisted through playlist repository records and EF Core playlist entities.
 
-## Staging Integration
+---
 
-The playlist feature is reconciled with staging playback ownership and canonical batches. Canonical BatchId/BatchItemId remain long database keys; separate EnqueueGroupId values retain frontend grouping. Queue edits update canonical repeat items by stable ID, preserving history and duplicate tracks. Queue snapshot saving, cover artwork, limits, and mobile history remain available.
+### Queue and Playlist Model
+
+Playlists use guild playback ownership and canonical batches. Canonical BatchId/BatchItemId remain long database keys; separate EnqueueGroupId values retain frontend grouping. Queue edits update canonical repeat items by stable ID, preserving history and duplicate tracks. Queue snapshot saving, cover artwork, limits, and mobile history remain available.
+
+---
+
+## Related Components
+
+- `docs/plans/music-command-roadmap.md` - Bot feature proposals and deployment verification backlog.
+- `docs/plans/mobile-music-parity-roadmap.md` - API, command bridge and Android/iOS integration backlog.
+- `docker-compose.yaml` - Local runtime stack.
+- `readme_required_tests.md` - Required verification matrix and test policy.
+- `DC bot/Startup/README.md` - Runtime composition and database migration startup.
+- `DC bot tests/README.md` - Test layout and verification commands.

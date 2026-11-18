@@ -11,7 +11,7 @@ Defines SDK-independent persistence contracts for personal music favorites and o
 
 ### IFavoriteRepository
 
-**Purpose:** Provides AddAsync, ListAsync, GetAsync and RemoveAsync. Add deduplicates user/source identity; read/delete require the user ID as well as favorite ID. Listing uses ten-entry pages without limiting saved capacity.
+**Purpose:** Provides AddAsync, CountAsync, ListAsync, GetAsync and RemoveAsync. CountAsync counts only the requesting user's records for pagination totals. Add deduplicates user/source identity; read/delete require the user ID as well as favorite ID. Listing uses ten-entry pages without limiting saved capacity.
 
 ---
 

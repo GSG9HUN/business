@@ -6,6 +6,7 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Service.Presentation;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Music;
@@ -17,13 +18,15 @@ namespace DC_bot.Commands.TextCommands.Music;
 /// <param name="responseBuilder">Sends localized results and validation failures.</param>
 /// <param name="localizationService">Resolves the command description.</param>
 /// <param name="commandHelper">Runs the existing voice-user validation flow.</param>
+/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
 public sealed class FiltersCommand(
     ILavaLinkService lavaLinkService,
     IUserValidationService userValidation,
     ILogger<FiltersCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
-    ICommandHelper commandHelper) : ICommand
+    ICommandHelper commandHelper,
+    DiscordPaginationService pagination) : ICommand
 {
 
     /// <inheritdoc />
@@ -71,6 +74,13 @@ public sealed class FiltersCommand(
         {
             await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError, default);
 
+            return;
+        }
+
+        if (result.Pagination is { } pages)
+        {
+            await pagination.SendAsync(message, pages);
+            logger.CommandExecuted(Name);
             return;
         }
 

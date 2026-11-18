@@ -6,6 +6,9 @@ namespace DC_bot.Interface.Service.Persistence.Filters;
 public interface IFilterPresetRepository
 {
 
+    /// <summary>Counts saved items within the requesting owner scope.</summary>
+    Task<int> CountAsync(ulong guildId, CancellationToken cancellationToken = default);
+
     /// <summary>Saves a definition; existing names require an explicit overwrite request.</summary>
     Task<bool> SaveAsync(
         ulong guildId,

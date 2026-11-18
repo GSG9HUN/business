@@ -12,7 +12,7 @@ Persists guild-local custom presets using EF contexts and existing transaction r
 
 ### FilterPresetRepository
 
-**Purpose:** SaveAsync uses a serializable transaction and unique/serialization conflict retry to insert or explicitly overwrite a definition. Existing names return false without overwrite. GetAsync and DeleteAsync include GuildId and Name; ListAsync orders ten-entry pages by name without imposing a saved-preset capacity cap.
+**Purpose:** SaveAsync uses a serializable transaction and unique/serialization conflict retry to insert or explicitly overwrite a definition. Existing names return false without overwrite. GetAsync and DeleteAsync include GuildId and Name; ListAsync orders ten-entry pages by name without imposing a saved-preset capacity cap. CountAsync obtains a guild-scoped total directly from the database.
 
 **Validation Checks:** PlaybackFilterService enforces normalized names, schema compatibility, numeric bounds and management permissions. Integration against PostgreSQL is still required to validate transaction behavior; EF InMemory coverage verifies guild-scoped queries and deletes only.
 

@@ -229,6 +229,8 @@ await botControlDiscordMessage.ModifyAsync(builder);
 
 **Purpose:** Publishes mobile-command outcomes to the selected Discord channel when requested.
 
+Publishes stored result text inside a guild-localized green success or red failure embed. An unavailable embed send falls back to bounded plain text and preserves delivery success/failure reporting. HTTP payloads and stored result schemas are independent of this Discord presentation.
+
 **Implements / inherits:** `IBotControlDiscordResponseService`.
 
 **Methods:**

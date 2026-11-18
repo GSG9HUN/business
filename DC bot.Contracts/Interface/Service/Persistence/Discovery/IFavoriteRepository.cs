@@ -6,6 +6,9 @@ namespace DC_bot.Interface.Service.Persistence.Discovery;
 public interface IFavoriteRepository
 {
 
+    /// <summary>Counts saved items within the requesting owner scope.</summary>
+    Task<int> CountAsync(ulong userId, CancellationToken cancellationToken = default);
+
     /// <summary>Adds or returns the existing favorite for the user's source identity.</summary>
     Task<FavoriteTrackRecord> AddAsync(
         ulong userId,

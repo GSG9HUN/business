@@ -35,7 +35,7 @@ Contains SDK-dependent playback data separated from behavior.
 
 Reads node state, synchronizes the SDK cache, composes the complete filter map and reconciles uncertain updates under a control reservation. Individual controls retain unrelated built-in/plugin values; presets replace the map, and reset retains output volume.
 
-Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit.
+Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit. Custom preset listing returns lazy ten-entry guild-scoped pages with totals; Discord adapters present the same navigation used by other list commands.
 
 **Methods:**
 

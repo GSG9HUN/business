@@ -15,6 +15,8 @@ Handles text command routing, registry snapshots, argument parsing, and user/pla
 
 **Purpose:** Dispatches prefixed Discord messages through the registry and contains command execution failures.
 
+Unknown-command responses use warning embeds localized for the guild, or the default language outside a guild.
+
 **Implements / inherits:** `IEventHandler<MessageCreatedEventArgs>`.
 
 **Methods:**

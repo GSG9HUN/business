@@ -1,3 +1,4 @@
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Wrapper.Discord;
@@ -73,7 +74,7 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <returns>A task representing completion of this operation.</returns>
     public async Task RespondAsync(string message)
     {
-        if (IsDeferred)
+        if (IsDeferred && !HasResponded)
         {
             await _context.EditResponseAsync(message);
         }
@@ -96,20 +97,48 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <returns>A task representing completion of this operation.</returns>
     public async Task RespondAsync(DiscordEmbed embed)
     {
-        if (IsDeferred)
+        try
         {
-            await _context.EditResponseAsync(embed);
+            if (IsDeferred && !HasResponded)
+            {
+                await _context.EditResponseAsync(embed);
+            }
+            else if (!HasResponded)
+            {
+                await _context.RespondAsync(embed);
+            }
+            else
+            {
+                await _context.FollowupAsync(embed);
+            }
+
         }
-        else if (!HasResponded)
+        catch (OperationCanceledException)
         {
-            await _context.RespondAsync(embed);
+            throw;
         }
-        else
+        catch (Exception)
         {
-            await _context.FollowupAsync(embed);
+            var text = string.IsNullOrWhiteSpace(embed.Description) ? embed.Title : embed.Description;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw;
+            }
+
+            await RespondAsync(DiscordTextSanitizer.Truncate(text, 2000));
+            return;
         }
 
         HasResponded = true;
+    }
+
+    /// <inheritdoc />
+    public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
+    {
+        var response = await _context.RespondWithComponentsAsync(builder, IsDeferred && !HasResponded, HasResponded);
+        HasResponded = true;
+        return response;
     }
 
     /// <summary>
@@ -129,6 +158,26 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <param name="context">The context supplied for this operation.</param>
     private sealed class DSharpPlusSlashCommandContextAdapter(CommandContext context) : ISlashCommandContextAdapter
     {
+        /// <inheritdoc />
+        public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder, bool edit, bool followup)
+        {
+            if (edit)
+            {
+                await context.EditResponseAsync(builder);
+                return await context.GetResponseAsync()
+                ?? throw new InvalidOperationException("Discord did not return the sent response.");
+            }
+
+            if (followup)
+            {
+                return await context.FollowupAsync(builder);
+            }
+
+            await context.RespondAsync(builder);
+            return await context.GetResponseAsync()
+                ?? throw new InvalidOperationException("Discord did not return the sent response.");
+        }
+
         public DiscordGuild? Guild => context.Guild;
         public DiscordChannel Channel => context.Channel;
         public DiscordUser User => context.User;

@@ -19,7 +19,7 @@ Groups prefix-based text commands and slash command adapters.
 
 - `README.md` — Overview and navigation to feature-specific source files.
 
-**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor.
+**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor. Queue, playlist, help, favorite, lyrics and custom-preset listings share localized embed pagination; one-page results omit navigation.
 
 ---
 
@@ -158,7 +158,7 @@ Groups process lifecycle, localization, command orchestration, music, reactions,
 - `BotService.cs`
 - `LocalizationService.cs`
 
-**Purpose:** BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows.
+**Purpose:** BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows. Localized command, notification and interaction responses use shared status embeds and bounded text fallback.
 
 ---
 

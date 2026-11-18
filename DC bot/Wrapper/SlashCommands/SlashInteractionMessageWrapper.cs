@@ -13,6 +13,12 @@ public class SlashInteractionMessageWrapper(string content, ISlashInteractionCon
 {
 
     /// <inheritdoc />
+    public Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
+    {
+        return context.RespondWithComponentsAsync(builder);
+    }
+
+    /// <inheritdoc />
     public ulong Id { get; set; }
 
     /// <inheritdoc />

@@ -15,6 +15,8 @@ Wraps messages, users, guilds, channels, members, and voice state and handles Di
 
 **Purpose:** Adapts discord channel data and operations to the bot's Discord boundary.
 
+Failed embed sends try bounded plain text using the embed description or title. Text fallback is limited to 2000 characters, cancellation propagates, and delivery failures are logged.
+
 **Implements / inherits:** `IDiscordChannel`.
 
 **Properties:**
@@ -247,6 +249,8 @@ var result = discordMemberWrapper.ToDiscordMember();
 **File:** `DC bot/Wrapper/Discord/DiscordMessageWrapper.cs`
 
 **Purpose:** Adapts discord message data and operations to the bot's Discord boundary.
+
+When embed delivery fails, the adapter attempts its description (or title when the description is empty) as plain text, bounded to 2000 characters. It logs failed embed/fallback attempts and propagates cancellation exceptions. Successful embeds do not produce a second text response.
 
 **Implements / inherits:** `IDiscordMessage`.
 

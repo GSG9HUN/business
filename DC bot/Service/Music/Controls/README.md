@@ -14,6 +14,8 @@ Coordinates durable guild settings, current-attempt voting, five-minute empty-ch
 
 **Purpose:** Coordinates durable guild settings, current-attempt voting, five-minute empty-channel cleanup and read-only music status through existing session, repository, localization and leave boundaries.
 
+Automatic empty-channel leave and background vote completion publish localized status embeds. Failed embed delivery falls back to plain text bounded to 2000 characters.
+
 **Files:**
 
 - `MusicControlSettingsService.cs`

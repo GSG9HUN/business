@@ -4,40 +4,9 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
-- EnqueueAutoplayIfEmptyAsync performs the empty waiting/pending check and canonical enqueue in one serializable transaction; false means no insert. The bot reserves a chain slot before a potentially uncertain database commit.
-
-- Stage 3 serializable operations atomically insert next occurrences and move captured occurrence IDs. Play-next retains canonical append order; explicit move synchronizes canonical repeat order. Skip-to validates the full waiting ID/order snapshot, tags provisionally skipped prefix occurrences with the selected start operation, and preserves canonical membership. Pre-dispatch release restores the prefix. Confirmed completion clears provisional metadata; disconnected-start reconciliation retains skips when transport was confirmed and otherwise restores the prefix. No migration or new entity is introduced.
-
-- `EnqueueManyAsync` permits active premium guilds to exceed 50 waiting tracks. Free guild overflow throws `QueueCapacityExceededException` before inserting incoming items; the transaction preserves atomic rejection.
-
-- Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
-- Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
-- QueueRepository delegates atomic start ownership to QueueClaimService and canonical repeat/history to QueueBatchRepository. QueueBatchStore coordinates active batch state inside transactions; QueueRealtimeNotifier signals readers after relevant changes.
-
-**Recovery Commit**
-
-**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
-
-**Methods:**
-
-```csharp
-Task<bool> CompleteStartAsync(
-    ulong guildId,
-    long queueItemId,
-    Guid operationId,
-    string trackIdentifier,
-    string realtimeEventName,
-    bool clearSourceMetadata = false,
-    TimeSpan? initialPosition = null,
-    bool initiallyPaused = false,
-    CancellationToken cancellationToken = default);
-```
-
----
-
-**Staging Integration**
-
-QueueRepeatListRepository now edits PlaybackBatchItems, the canonical source used by RestartAsync. Remove marks the exact BatchItemId as excluded; reorder/shuffle persist canonical order using temporary unique positions; clear excludes the active canonical batch. Existing rows and foreign-key history remain intact. Restart ignores excluded items and assigns fresh display groups while preserving canonical identity. GetDisplayItemsAsync groups by EnqueueGroupId and includes Starting items as active. Snapshot reads remain independent of live playback state.
+- Implements transactional queue, playback-start claim and canonical batch operations.
+- Preserves occurrence identity, repeat membership and history while changing waiting order.
+- Maps stored state to shared records and publishes queue-change notifications.
 
 ## Classes
 
@@ -251,6 +220,13 @@ await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(dbContext, guildId, eventNam
 **File:** `DC bot.Persistence/Repositories/Queue/QueueRepository.cs`
 
 **Purpose:** Exposes durable queue edits, canonical batch history, and fenced playback-start operations through injected persistence helpers.
+
+**Validation Checks:**
+
+- Non-premium overflow is rejected before insertion with `QueueCapacityExceededException`; active premium guilds bypass the waiting cap.
+- Play-next retains canonical append order; explicit moves synchronize repeat order by occurrence ID.
+- Skip-to validates the waiting ID/order snapshot and tags provisional skips with the selected start operation. Pre-dispatch release restores the prefix; confirmed transport retains skips.
+- `EnqueueAutoplayIfEmptyAsync` checks waiting/pending state and inserts canonical membership in one serializable transaction; false means no insertion.
 
 **Implements / inherits:** `IQueueRepository`.
 

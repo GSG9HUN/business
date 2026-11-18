@@ -61,6 +61,8 @@ Exposes voice join/leave and playback controls through text commands.
 
 **Purpose:** Routes `lyrics [query] [--page N]` to the shared discovery service and localized result boundary.
 
+Renders continuous lyrics as line-aware pages in one embed. `--page N` chooses the starting page; buttons reuse the loaded lyrics without repeating the provider request.
+
 **Methods:** `ExecuteAsync` handles the Discord message and its arguments.
 
 **Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
@@ -75,6 +77,8 @@ Exposes voice join/leave and playback controls through text commands.
 
 **Purpose:** Routes `favorite add/list/remove/play` to the shared discovery service and localized result boundary.
 
+List results use caller-owned buttons and lazy ten-entry database pages. `favorite list N` chooses the starting page; add/remove/play keep their ordinary localized result embeds.
+
 **Methods:** `ExecuteAsync` handles the Discord message and its arguments.
 
 **Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
@@ -88,6 +92,8 @@ Exposes voice join/leave and playback controls through text commands.
 - `FavouriteCommand.cs`
 
 **Purpose:** Routes `favourite add/list/remove/play` to the shared discovery service and localized result boundary.
+
+Uses the same paginated personal list as `favorite`, including the optional initial page argument.
 
 **Methods:** `ExecuteAsync` handles the Discord message and its arguments.
 
@@ -158,6 +164,8 @@ Exposes voice join/leave and playback controls through text commands.
 - `FiltersCommand.cs`
 
 **Purpose:** Inspects confirmed settings, lists supported presets, selects a preset, or resets effects.
+
+`filters custom list [page]` uses lazy ten-entry guild-scoped database pages. Inspecting or applying filters retains the existing result presentation.
 
 **Usage:** `filters [show|list|reset|preset <name>]`, `filters advanced help`, `filters advanced <effect> [values|off]`, and `filters custom save <name> [overwrite]|list [page]|apply <name>|delete <name>`.
 

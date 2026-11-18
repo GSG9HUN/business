@@ -43,6 +43,8 @@ Carries user, player, and connection validation outcomes without requiring excep
 
 **Purpose:** Escapes user-controlled text that could trigger unintended Discord mentions.
 
+`Truncate(string? text, int maxLength)` bounds Discord text, includes an ellipsis in the length budget and keeps UTF-16 surrogate pairs intact. The minimum supported bound is three characters; null input becomes an empty string. Embed presentation and native-wrapper fallbacks share this formatter.
+
 **Methods:**
 
 - `EscapeMentions` — Escapes mention syntax in user-controlled text before Discord presentation.

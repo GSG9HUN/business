@@ -5,6 +5,7 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Service.Presentation;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Music;
@@ -14,11 +15,13 @@ namespace DC_bot.Commands.TextCommands.Music;
 /// <param name="localization">Resolves the command description.</param>
 /// <param name="responses">Presents localized success and validation results.</param>
 /// <param name="logger">Records command invocation and completion.</param>
+/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
 public sealed class FavoriteCommand(
     IFavoriteService service,
     ILocalizationService localization,
     IResponseBuilder responses,
-    ILogger<FavoriteCommand> logger) : ICommand
+    ILogger<FavoriteCommand> logger,
+    DiscordPaginationService pagination) : ICommand
 {
 
     /// <inheritdoc />
@@ -41,6 +44,13 @@ public sealed class FavoriteCommand(
         {
             await responses.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError, default);
 
+            return;
+        }
+
+        if (result.Pagination is { } pages)
+        {
+            await pagination.SendAsync(message, pages);
+            logger.CommandExecuted(Name);
             return;
         }
 

@@ -16,7 +16,9 @@ Centralizes identifiers used to select localized messages and validation errors.
 
 **Purpose:** Contains all localization keys used throughout the application.
 
-Keys cover help/usage, playback, filters, queues, playlists, discovery, voting, music status and 24/7. `HelpCommandDetails` and `HelpCommandUnknown` support detailed help; `MusicConfigUsage` selects `music-config_command_usage`. Language catalogs use matching placeholders.
+`ResponseSuccessTitle`, `ResponseWarningTitle`, `ResponseErrorTitle` and `ResponseUsageTitle` identify status embed titles. Response footers distinguish validation, usage, success, warning and error contexts.
+
+Keys cover help/usage, playback, filters, queues, playlists, discovery, voting, music status and 24/7. `HelpCommandDetails` and `HelpCommandUnknown` support detailed help; `MusicConfigUsage` selects `music-config_command_usage`. Language catalogs use matching placeholders. `Pagination*` keys cover navigation labels, result titles, page/item counts, expiry, ownership denials and page-load failures.
 
 ---
 

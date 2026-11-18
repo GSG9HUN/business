@@ -5,6 +5,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Service.Presentation;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Utility;
@@ -17,12 +18,14 @@ namespace DC_bot.Commands.TextCommands.Utility;
 /// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="commandRegistry">The command registry dependency used by this boundary.</param>
+/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
 public class HelpCommand(
     IUserValidationService userValidation,
     ILogger<HelpCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
-    ICommandRegistry commandRegistry) : ICommand
+    ICommandRegistry commandRegistry,
+    DiscordPaginationService pagination) : ICommand
 {
 
     /// <inheritdoc />
@@ -77,27 +80,11 @@ public class HelpCommand(
             return;
         }
 
-        var response = new System.Text.StringBuilder();
-
-        foreach (var command in commandRegistry.Commands.OrderBy(command => command.Name, StringComparer.OrdinalIgnoreCase))
-        {
-            var line = $"{command.Name}: {localizationService.Get(guildId, command.DescriptionKey)}\n";
-
-            if (response.Length + line.Length > 1600)
-            {
-                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response.ToString());
-                response.Clear();
-            }
-
-            response.Append(line);
-        }
-
-        if (response.Length > 0)
-        {
-            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response.ToString());
-        }
-
-        await responseBuilder.SendUsageAsync(message, Name);
+        var items = commandRegistry.Commands.OrderBy(command => command.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(command => $"**{command.Name}**: {localizationService.Get(guildId, command.DescriptionKey)}")
+            .ToArray();
+        await pagination.SendAsync(message, DiscordPaginationService.FromItems(
+            localizationService.Get(guildId, LocalizationKeys.PaginationHelpTitle), items));
         logger.CommandExecuted(Name);
     }
 }
