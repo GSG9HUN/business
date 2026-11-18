@@ -4,8 +4,9 @@ Defines command and adapter boundaries used inside the bot executable.
 
 ## Overview
 
-- ICommand is the common entry point for registered text commands. Subfolders contain core validation, Discord wrappers, and service contracts.
-- Cross-process repository contracts live in DC bot.Contracts instead. Keep concrete DSharpPlus and persistence implementations out of this contract tree.
+- Defines command, validation, Discord-adapter and bot-service contracts.
+- Separates application consumers from concrete SDK and service implementations.
+- Keeps cross-process persistence contracts in `DC bot.Contracts`.
 
 ## Subfolders
 
@@ -61,6 +62,8 @@ Groups bot use-case contracts independently of their concrete runtime implementa
 **File:** `DC bot/Interface/ICommand.cs`
 
 **Purpose:** Defines the command boundary so callers are independent of its concrete implementation.
+
+`Name` identifies a command; `DescriptionKey` selects its localized description. Help resolves the key using the requesting guild language, while `Description` provides a resolved value for callers. Each command and alias has a `{commandName}_command_usage` entry.
 
 **Properties:**
 

@@ -4,6 +4,12 @@ This class library defines the shared language used by the Discord bot, mobile A
 
 ## Overview
 
+- MusicControl contracts contain the immutable GuildMusicControlSettingsRecord and IGuildMusicControlSettingsRepository, independent of Discord SDK/runtime players.
+
+- Filters persistence contracts add versioned, guild-scoped custom presets without SDK/player dependencies. The record includes normalized name, JSON definition and audit metadata.
+
+- Discovery storage contracts add owner-scoped personal favorites and independent picker/autoplay preference operations. FavoriteTrackRecord carries saved data without SDK or bot executable dependencies.
+
 - `QueueCapacityExceededException` exposes free-guild capacity rejection independently of Npgsql, including the limit, queued count, and requested count.
 
 - `TwentyFourSevenSettingsRecord` and `IGuildDataRepository` expose persistent voice preferences independently of observed connection status.

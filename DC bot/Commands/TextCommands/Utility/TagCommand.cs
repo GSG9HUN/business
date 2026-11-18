@@ -29,7 +29,10 @@ public class TagCommand(
     public string Name => "tag";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.TagCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.TagCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

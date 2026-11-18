@@ -34,7 +34,10 @@ public class DeletePlaylistCommand(
     public string Name => "deletePlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.DeletePlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.DeletePlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

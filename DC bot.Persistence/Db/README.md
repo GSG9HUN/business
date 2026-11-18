@@ -4,6 +4,12 @@ Owns the EF Core context, design-time creation, and startup migration runner.
 
 ## Overview
 
+- GuildMusicControlSettings and GuildMusicControlSettingsConfiguration map default-disabled voting and an optional guild DJ role independently of other preferences.
+
+- BotDbContext exposes FilterPresets and applies FilterPresetConfiguration. Durable definitions are separate from runtime selected audio state; explicit leave never deletes saved definitions.
+
+- BotDbContext exposes FavoriteTracks, UserMusicSettings and GuildMusicSettings and applies their dedicated Discovery configurations. Runtime player/menu objects and automatic-chain history remain outside the database.
+
 - `DatabaseMigrationRunner` probes connection readiness up to eight times before checking migrations, with cancellable delays of 1, 2, 4, 8, 16, 30, and 30 seconds. It recognizes transient Npgsql errors and EF-wrapped transient errors, logs retries, and propagates permanent or exhausted failures. Migration statements are not replayed by this startup retry.
 
 - Runtime repositories receive IDbContextFactory<BotDbContext>. BotDbContext applies feature configurations; DatabaseMigrationRunner applies pending migrations when called by bot startup.

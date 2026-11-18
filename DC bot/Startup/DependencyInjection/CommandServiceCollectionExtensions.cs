@@ -47,11 +47,35 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, HelpCommand>()
             .AddSingleton<ICommand, PlayCommand>()
             .AddSingleton<ICommand, SkipCommand>()
+            .AddSingleton<ICommand, MusicConfigCommand>()
+            .AddSingleton<ICommand, MusicStatusCommand>()
             .AddSingleton<ICommand, PreviousCommand>()
             .AddSingleton<ICommand, ClearCommand>()
             .AddSingleton<ICommand, LeaveCommand>()
             .AddSingleton<ICommand, PauseCommand>()
             .AddSingleton<ICommand, ResumeCommand>()
+            .AddSingleton<ICommand, NowPlayingCommand>()
+            .AddSingleton<ICommand, VolumeCommand>()
+            .AddSingleton<ICommand, SeekCommand>()
+            .AddSingleton<ICommand, ForwardCommand>()
+            .AddSingleton<ICommand, RewindCommand>()
+            .AddSingleton<ICommand, RestartCommand>()
+            .AddSingleton<ICommand, FiltersCommand>()
+            .AddSingleton<ICommand, BassBoostCommand>()
+            .AddSingleton<ICommand, SpeedCommand>()
+            .AddSingleton<ICommand, RemoveCommand>()
+            .AddSingleton<ICommand, MoveCommand>()
+            .AddSingleton<ICommand, SkipToCommand>()
+            .AddSingleton<ICommand, QueueFindCommand>()
+            .AddSingleton<ICommand, PlayNextCommand>()
+            .AddSingleton<ICommand, LyricsCommand>()
+            .AddSingleton<ICommand, FavoriteCommand>()
+            .AddSingleton<ICommand, FavouriteCommand>()
+            .AddSingleton<ICommand, RecommendationsCommand>()
+            .AddSingleton<ICommand, AutoplayCommand>()
+            .AddSingleton<ICommand, SearchPickerCommand>()
+            .AddSingleton<ICommand, KaraokeCommand>()
+            .AddSingleton<ICommand, PitchCommand>()
             .AddSingleton<ICommand, RepeatCommand>()
             .AddSingleton<ICommand, ShuffleCommand>()
             .AddSingleton<ICommand, LanguageCommand>()
@@ -85,9 +109,33 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<JoinSlashCommand>()
             .AddTransient<PlaySlashCommand>()
             .AddTransient<SkipSlashCommand>()
+            .AddTransient<MusicConfigSlashCommand>()
+            .AddTransient<MusicStatusSlashCommand>()
             .AddTransient<PreviousSlashCommand>()
             .AddTransient<PauseSlashCommand>()
             .AddTransient<ResumeSlashCommand>()
+            .AddTransient<NowPlayingSlashCommand>()
+            .AddTransient<VolumeSlashCommand>()
+            .AddTransient<SeekSlashCommand>()
+            .AddTransient<ForwardSlashCommand>()
+            .AddTransient<RewindSlashCommand>()
+            .AddTransient<RestartSlashCommand>()
+            .AddTransient<FiltersSlashCommand>()
+            .AddTransient<BassBoostSlashCommand>()
+            .AddTransient<SpeedSlashCommand>()
+            .AddTransient<RemoveSlashCommand>()
+            .AddTransient<MoveSlashCommand>()
+            .AddTransient<SkipToSlashCommand>()
+            .AddTransient<QueueFindSlashCommand>()
+            .AddTransient<PlayNextSlashCommand>()
+            .AddTransient<LyricsSlashCommand>()
+            .AddTransient<FavoriteSlashCommand>()
+            .AddTransient<FavouriteSlashCommand>()
+            .AddTransient<RecommendationsSlashCommand>()
+            .AddTransient<AutoplaySlashCommand>()
+            .AddTransient<SearchPickerSlashCommand>()
+            .AddTransient<KaraokeSlashCommand>()
+            .AddTransient<PitchSlashCommand>()
             .AddTransient<LeaveSlashCommand>()
             .AddTransient<QueueSlashCommand>()
             .AddTransient<HistorySlashCommand>()
@@ -110,8 +158,25 @@ public static class CommandServiceCollectionExtensions
         {
             extension.AddCommands([
                 typeof(PingSlashCommand), typeof(HelpSlashCommand), typeof(TagSlashCommand), typeof(JoinSlashCommand),
-                typeof(PlaySlashCommand), typeof(SkipSlashCommand), typeof(PreviousSlashCommand),
+                typeof(PlaySlashCommand), typeof(SkipSlashCommand),
+            typeof(MusicConfigSlashCommand),
+            typeof(MusicStatusSlashCommand), typeof(PreviousSlashCommand),
                 typeof(PauseSlashCommand), typeof(ResumeSlashCommand), typeof(LeaveSlashCommand),
+                typeof(NowPlayingSlashCommand), typeof(VolumeSlashCommand), typeof(SeekSlashCommand),
+                typeof(ForwardSlashCommand), typeof(RewindSlashCommand), typeof(RestartSlashCommand),
+                typeof(FiltersSlashCommand), typeof(BassBoostSlashCommand), typeof(SpeedSlashCommand), typeof(RemoveSlashCommand),
+            typeof(MoveSlashCommand),
+            typeof(SkipToSlashCommand),
+            typeof(QueueFindSlashCommand),
+            typeof(PlayNextSlashCommand),
+            typeof(LyricsSlashCommand),
+            typeof(FavoriteSlashCommand),
+            typeof(FavouriteSlashCommand),
+            typeof(RecommendationsSlashCommand),
+            typeof(AutoplaySlashCommand),
+            typeof(SearchPickerSlashCommand),
+            typeof(KaraokeSlashCommand),
+            typeof(PitchSlashCommand),
                 typeof(QueueSlashCommand), typeof(HistorySlashCommand), typeof(ShuffleSlashCommand),
                 typeof(RepeatSlashCommand), typeof(LanguageSlashCommand), typeof(ClearSlashCommand),
                 typeof(PlaylistSlashCommand), typeof(TwentyFourSevenSlashCommand)

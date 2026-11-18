@@ -1,9 +1,12 @@
+using DC_bot.Constants;
+using DC_bot.Configuration;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace DC_bot.Service.Presentation;
 
@@ -11,8 +14,12 @@ namespace DC_bot.Service.Presentation;
 /// Builds localized usage, success, warning, validation, and error responses.
 /// </summary>
 /// <param name="localization">The localization service dependency used by this boundary.</param>
+/// <param name="botSettings">Provides the configured text-command prefix for localized usage examples.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
-public class ResponseBuilder(ILocalizationService localization, ILogger<ResponseBuilder>? logger = null) : IResponseBuilder
+public class ResponseBuilder(
+    ILocalizationService localization,
+    ILogger<ResponseBuilder>? logger = null,
+    IOptions<BotSettings>? botSettings = null) : IResponseBuilder
 {
     private const string ErrorPrefixKey = "response_error_prefix";
     private const string WarningPrefixKey = "response_warning_prefix";
@@ -37,7 +44,34 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
             return;
         }
 
+        if (errorKey.EndsWith("_command_usage", StringComparison.Ordinal))
+        {
+            await SendUsageAsync(message, errorKey[..^"_command_usage".Length], cancellationToken);
+            return;
+        }
+
         await SafeRespondAsync(message, GetForMessage(message, errorKey), "SendValidationErrorAsync", cancellationToken);
+
+        if (errorKey is LocalizationKeys.VolumeCommandInvalid
+            or LocalizationKeys.SeekCommandInvalid
+            or LocalizationKeys.FiltersCommandInvalid
+            or LocalizationKeys.BassBoostCommandInvalid
+            or LocalizationKeys.FiltersParameterInvalid
+            or LocalizationKeys.QueueCommandInvalid
+            or LocalizationKeys.DiscoveryInvalid
+            or LocalizationKeys.FiltersAdvancedInvalid
+            or LocalizationKeys.FilterPresetInvalid)
+        {
+            var token = (message.Content ?? string.Empty).Split((char[]?)null, 2, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault();
+            var prefix = botSettings?.Value.Prefix ?? "!";
+
+            if (token is not null)
+            {
+                var name = token.StartsWith(prefix, StringComparison.Ordinal) ? token[prefix.Length..] : token;
+                await SendUsageAsync(message, name, cancellationToken);
+            }
+        }
     }
 
     /// <summary>
@@ -50,7 +84,7 @@ public class ResponseBuilder(ILocalizationService localization, ILogger<Response
     public async Task SendUsageAsync(IDiscordMessage message, string commandName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_usage"), "SendUsageAsync", cancellationToken);
+        await SafeRespondAsync(message, GetForMessage(message, $"{commandName}_command_usage", botSettings?.Value.Prefix ?? "!"), "SendUsageAsync", cancellationToken);
     }
 
     /// <summary>

@@ -4,6 +4,10 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
+- EnqueueAutoplayIfEmptyAsync performs the empty waiting/pending check and canonical enqueue in one serializable transaction; false means no insert. The bot reserves a chain slot before a potentially uncertain database commit.
+
+- Stage 3 serializable operations atomically insert next occurrences and move captured occurrence IDs. Play-next retains canonical append order; explicit move synchronizes canonical repeat order. Skip-to validates the full waiting ID/order snapshot, tags provisionally skipped prefix occurrences with the selected start operation, and preserves canonical membership. Pre-dispatch release restores the prefix. Confirmed completion clears provisional metadata; disconnected-start reconciliation retains skips when transport was confirmed and otherwise restores the prefix. No migration or new entity is introduced.
+
 - `EnqueueManyAsync` permits active premium guilds to exceed 50 waiting tracks. Free guild overflow throws `QueueCapacityExceededException` before inserting incoming items; the transaction preserves atomic rejection.
 
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.

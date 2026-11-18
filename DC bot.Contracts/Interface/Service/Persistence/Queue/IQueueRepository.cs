@@ -282,4 +282,31 @@ public interface IQueueRepository
         long queueItemId,
         Guid operationId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Atomically appends canonical items and places their new occurrences at the front of the waiting queue.</summary>
+    Task EnqueueNextAsync(ulong guildId, IReadOnlyList<QueueItemToEnqueue> items, CancellationToken cancellationToken = default);
+
+    /// <summary>Moves one captured occurrence only if the complete waiting identity/order snapshot still matches.</summary>
+    Task<bool> MoveQueuedItemAsync(
+        ulong guildId,
+        IReadOnlyList<long> expectedIds,
+        int fromIndex,
+        int toIndex,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Claims a captured waiting target and provisionally skips preceding occurrences under the same operation fence.</summary>
+    Task<QueueClaimResult> ClaimForSkipToAsync(
+        ulong guildId,
+        Guid operationId,
+        long targetId,
+        IReadOnlyList<long> expectedIds,
+        CancellationToken cancellationToken = default);
+
+
+    /// <summary>Atomically adds an automatic recommendation only if no waiting or pending-start occurrence exists.</summary>
+    Task<bool> EnqueueAutoplayIfEmptyAsync(
+        ulong guildId,
+        QueueItemToEnqueue item,
+        CancellationToken cancellationToken = default);
+
 }

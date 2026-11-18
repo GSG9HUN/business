@@ -1,3 +1,9 @@
+using DC_bot.Interface.Service.Persistence.MusicControl;
+using DC_bot.Repositories.MusicControl;
+using DC_bot.Interface.Service.Persistence.Filters;
+using DC_bot.Repositories.Filters;
+using DC_bot.Interface.Service.Persistence.Discovery;
+using DC_bot.Repositories.Discovery;
 using DC_bot.Db;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
@@ -38,6 +44,10 @@ public static class PersistenceServiceCollectionExtensions
     public static IServiceCollection AddPersistenceServices(this IServiceCollection services, string postgresConnectionString)
     {
         return services.AddDbContextFactory<BotDbContext>(options => options.UseNpgsql(postgresConnectionString))
+            .AddSingleton<IFilterPresetRepository, FilterPresetRepository>()
+            .AddSingleton<IFavoriteRepository, FavoriteRepository>()
+            .AddSingleton<IDiscoverySettingsRepository, DiscoverySettingsRepository>()
+            .AddSingleton<IGuildMusicControlSettingsRepository, GuildMusicControlSettingsRepository>()
             .AddSingleton<IGuildDataRepository, GuildDataRepository>()
             .AddSingleton<IPlaybackStateRepository, PlaybackStateRepository>()
             .AddSingleton<QueueClaimService>()

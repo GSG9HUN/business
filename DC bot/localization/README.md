@@ -4,18 +4,43 @@ Contains the English and Hungarian message catalogs selected by LocalizationServ
 
 ## Overview
 
-- The existing pause_command_response and resume_command_response keys contain a {0} placeholder in both English and Hungarian. Pause and resume responses supply the captured track author and title through LocalizationService and ResponseBuilder.
-
-- Both `en.json` and `hu.json` define `queue_capacity_exceeded`. The existing `LocalizationService` resolves the queue-full outcome in the guild language without introducing a separate message provider.
-
-- Both catalogs define matching `twenty_four_seven_command_*` keys for the command description, mode status, invalid argument, and update failure.
-- Constants identify translation keys; ResponseBuilder and commands format the selected text using guild preferences and fallback lookup.
-- Add matching keys and compatible formatting placeholders across catalogs. Translating visible text does not change command identifiers or repository contracts.
+- Provides English and Hungarian command descriptions, usage, validation messages and operation results.
+- Uses matching keys and formatting placeholders across both catalogs.
+- Resolves guild language preferences through `LocalizationService`.
 
 ## Translation Catalogs
 
-- `en.json` — Default English messages.
-- `hu.json` — Hungarian messages.
+### en.json
+
+**Purpose:** Supplies default English command descriptions, usage, validation and operation messages.
+
+**Files:**
+
+- `en.json`
+
+---
+
+### hu.json
+
+**Purpose:** Supplies Hungarian translations with keys and formatting placeholders matching the English catalog.
+
+**Files:**
+
+- `hu.json`
+
+---
+
+### Catalog Formatting
+
+**Purpose:** Resolves visible messages using the selected guild language.
+
+**Validation Checks:**
+
+- Every command and alias defines `{commandName}_command_usage`; `{0}` receives the configured prefix from `ResponseBuilder`.
+- Description keys are selected through `ICommand.DescriptionKey`.
+- Playback responses distinguish confirmed changes, rejection and reconciliation; output volume and internal filter gain are separate values.
+- Pause/resume placeholders receive the captured track author and title.
+- The `music_config_usage` alias remains available for callers using that identifier.
 
 **Usage:**
 

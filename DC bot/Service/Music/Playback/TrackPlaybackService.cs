@@ -261,14 +261,33 @@ public sealed class TrackPlaybackService(
         PlaybackResumeOptions? resume,
         CancellationToken cancellationToken = default)
     {
+        return await StartCoreAsync(session, channel, requestedQueueItemId, reason, replacement,
+            reservation, operationId, resume, null, cancellationToken);
+    }
+
+    /// <summary>Executes a normal or snapshot-fenced replacement through the same transport and reconciliation path.</summary>
+    private async Task<PlaybackStartResult> StartCoreAsync(
+        PlaybackSession session,
+        IDiscordChannel channel,
+        long? requestedQueueItemId,
+        PlaybackStartReason reason,
+        ILavaLinkTrack? replacement,
+        ControlReservation reservation,
+        Guid operationId,
+        PlaybackResumeOptions? resume,
+        IReadOnlyList<long>? expectedIds,
+        CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         QueueStartClaim? claim = null;
         var dispatched = false;
         var started = false;
         try
         {
-            sessions.BeginAttempt(session, operationId, reservation, replace: reason == PlaybackStartReason.Previous);
-            var selection = await sessions.MutateAsync(session, () => queueRepository.ClaimForStartAsync(session.GuildId, operationId, requestedQueueItemId, cancellationToken: cancellationToken));
+            sessions.BeginAttempt(session, operationId, reservation, replace: reason is PlaybackStartReason.Previous or PlaybackStartReason.SkipTo);
+            var selection = await sessions.MutateAsync(session, () => expectedIds is null
+                ? queueRepository.ClaimForStartAsync(session.GuildId, operationId, requestedQueueItemId, cancellationToken)
+                : queueRepository.ClaimForSkipToAsync(session.GuildId, operationId, requestedQueueItemId!.Value, expectedIds, cancellationToken));
 
             if (selection.Status != QueueClaimStatus.Claimed)
             {
@@ -424,4 +443,101 @@ public sealed class TrackPlaybackService(
             return new(ex is PlaybackSessionExpiredException ? PlaybackStartStatus.Superseded : PlaybackStartStatus.NotStarted, operationId, claim?.Item.Id);
         }
     }
+
+    /// <inheritdoc />
+    public Task<PlaybackStartResult> StartQueueSelectionAsync(
+        PlaybackSession session,
+        IDiscordChannel channel,
+        long targetId,
+        IReadOnlyList<long> expectedIds,
+        ControlReservation reservation,
+        CancellationToken cancellationToken = default)
+    {
+        sessions.ValidateControl(session, reservation);
+        return StartCoreAsync(session, channel, targetId, PlaybackStartReason.SkipTo, null,
+            reservation, Guid.NewGuid(), null, expectedIds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<PlaybackStartResult> PlayNextLoadedAsync(
+        TrackLoadResult loaded,
+        PlaybackSession session,
+        IDiscordChannel channel,
+        string query,
+        TrackSearchMode searchMode,
+        string requestedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var operationId = Guid.NewGuid();
+        ControlReservation? reservation = null;
+        var tracks = loaded.IsPlaylist ? loaded.Tracks.ToList() : loaded.Track is { } single ? [single] : [];
+
+        if (loaded.IsFailed || tracks.Count == 0)
+        {
+            return new(PlaybackStartStatus.NotStarted, operationId);
+        }
+
+        try
+        {
+            reservation = sessions.ReserveControl(session, "PlayNext");
+            var items = tracks.Select(track => new QueueTrackToEnqueue(
+                    new LavaLinkTrackWrapper(track), loaded.IsPlaylist ? track.Uri?.ToString() : query,
+                    searchMode, requestedBy))
+                .ToList();
+            await sessions.MutateAsync(session, async () =>
+            {
+                await musicQueueService.EnqueueNextAsync(session.GuildId, items, cancellationToken);
+                return true;
+            });
+            sessions.ValidateControl(session, reservation);
+
+            if (session.Player.CurrentTrack is null)
+            {
+                return await TryPlayNextTrackAsync(session, channel, reservation: reservation, cancellationToken: cancellationToken);
+            }
+
+            try
+            {
+                await trackNotificationService.SendSafeAsync(channel,
+                    localizationService.Get(session.GuildId, LocalizationKeys.PlayNextCommandQueued, tracks.Count),
+                    "PlayNext.Queued", cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Play-next queued but notification failed. Guild={GuildId}", session.GuildId);
+            }
+
+            return new(PlaybackStartStatus.Queued, operationId);
+        }
+        catch (QueueCapacityExceededException)
+        {
+            return new(PlaybackStartStatus.QueueFull, operationId);
+        }
+        catch (PlaybackOperationBusyException)
+        {
+            return new(PlaybackStartStatus.Busy, operationId);
+        }
+        catch (PlaybackSessionExpiredException)
+        {
+            return new(PlaybackStartStatus.Superseded, operationId);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Play-next outcome uncertain. Guild={GuildId} OperationId={OperationId}",
+                session.GuildId, operationId);
+            return new(PlaybackStartStatus.Unknown, operationId);
+        }
+        finally
+        {
+            if (reservation is not null)
+            {
+                sessions.ReleaseControl(reservation);
+            }
+        }
+    }
+
 }

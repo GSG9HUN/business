@@ -3,6 +3,7 @@ using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Logging;
+using DC_bot.Service.Music.Controls;
 using DC_bot.Service.Music.Lifecycle.Recovery;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -19,6 +20,7 @@ namespace DC_bot.Wrapper.Discord;
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="lavaLinkService">The lava link service dependency used by this boundary.</param>
 /// <param name="gatewayRecovery">The gateway recovery supplied for this operation.</param>
+/// <param name="musicControls">Observes human listener changes for votes and empty-channel deadlines.</param>
 /// <param name="guildBotStatusRepository">The guild bot status repository dependency used by this boundary.</param>
 public class DiscordClientEventHandler(
     ILogger<DiscordClientEventHandler> logger,
@@ -26,7 +28,8 @@ public class DiscordClientEventHandler(
     ILocalizationService localizationService,
     ILavaLinkService lavaLinkService,
     DiscordPlaybackRecoveryService gatewayRecovery,
-    IGuildBotStatusRepository guildBotStatusRepository)
+    IGuildBotStatusRepository guildBotStatusRepository,
+    MusicControlSettingsService musicControls)
 {
     private readonly DiscordConnectionEventLogger _connectionEventLogger = new(logger);
     private readonly DiscordVoiceEventLogger _voiceEventLogger = new(logger);
@@ -140,6 +143,12 @@ public class DiscordClientEventHandler(
         return HandleEventAsync(nameof(OnVoiceStateUpdated), async () =>
         {
             _voiceEventLogger.LogVoiceStateUpdated(sender, e);
+
+            if (e.GuildId is { } voiceGuildId)
+            {
+                musicControls.OnVoiceStateChanged(voiceGuildId, e.UserId, e.Before?.ChannelId, e.After?.ChannelId);
+            }
+
             await HandleEventAsync("OnVoiceStateUpdated.UpdateGuildBotStatus", () => UpdateGuildBotStatusAsync(sender, e));
 
             if (sender.CurrentUser?.Id == e.UserId && e.GuildId is { } guildId)

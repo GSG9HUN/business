@@ -45,4 +45,14 @@ public interface IPlaybackRequestService
         TrackSearchMode trackSearchMode,
         string? requestedBy = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Loads a query or URL and inserts its tracks immediately after the current track.</summary>
+    Task<PlaybackStartResult> PlayNextAsync(
+        IDiscordChannel voiceStateChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode searchMode,
+        string requestedBy,
+        CancellationToken cancellationToken = default);
+
 }

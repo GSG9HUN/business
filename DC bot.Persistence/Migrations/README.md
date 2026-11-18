@@ -4,6 +4,12 @@ This folder contains EF Core schema migrations, their generated metadata, and th
 
 ## Overview
 
+- 20261118092853_AddGuildMusicControlSettings creates guild_music_control_settings with a guild primary key, default-disabled voting and nullable DJ role. The generated migration is not applied to a live database by this delivery.
+
+- 20261117144346_AddFilterPresets creates filter_preset with a guild/name composite key, schema version, jsonb definition and saving administrator/UTC timestamp. The model snapshot was updated. No live database application was performed in this delivery.
+
+- 20261117135456_AddMusicDiscovery creates favorite_track, user_music_settings and guild_music_settings, adds the unique personal source key, and updates the model snapshot. Both opt-in booleans default false. The migration was generated and checked for model consistency; it was not applied to a live database in this delivery.
+
 Convention maintenance removes compiler-reported unused imports and documents the artwork target-model override. Migration operations, identifiers, and generated target-model expressions are unchanged.
 
 - Preserve the chronological schema transitions required by the current database model.
@@ -35,6 +41,16 @@ Convention maintenance removes compiler-reported unused imports and documents th
 The regenerated AddQueueBatches migration adds enqueue_group_id to queue and canonical rows, batch_position to queue rows, and is_removed to canonical items. It preserves the existing bigint batch_id foreign keys. Legacy occurrences receive deterministic separate display groups. AddPlaylistArtwork metadata includes the staging canonical batch model. These migrations were generated and checked without applying them to a running database.
 
 ## Migration Components
+
+### AddMusicDiscovery
+
+**Files:** `20261117135456_AddMusicDiscovery.cs`, its designer metadata and `BotDbContextModelSnapshot.cs`.
+
+**Purpose:** Creates personal favorites with a unique user/source identity and independent disabled-by-default user picker/guild autoplay settings. No existing rows are rewritten.
+
+**Methods:** `Up` creates three tables and the favorite index; `Down` drops those three tables.
+
+---
 
 ### Timestamped Migration Files
 

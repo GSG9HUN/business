@@ -34,6 +34,7 @@ public static class CoreServiceCollectionExtensions
     public static IServiceCollection AddCoreBotServices(this IServiceCollection services, BotSettings botSettings)
     {
         return services.AddSingleton(botSettings)
+            .AddSingleton(Microsoft.Extensions.Options.Options.Create(botSettings))
             .AddSingleton<Func<IEnumerable<ICommand>>>(provider => () => provider.GetServices<ICommand>())
             .AddSingleton<ICommandRegistry, CommandRegistry>()
             .AddSingleton<IFileSystem, PhysicalFileSystem>()

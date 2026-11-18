@@ -4,6 +4,12 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 
 ## Overview
 
+- GuildMusicControlSettingsRepository persists independent per-guild vote-skip and DJ-role settings with tracked serializable writes; AddGuildMusicControlSettings adds the schema.
+
+- Filters persistence adds versioned guild-shared presets through AddFilterPresets. Definitions are stored independently of runtime output volume and remain available after explicit leave; the application validates permissions and effect bounds.
+
+- Discovery persistence adds owner-scoped personal favorites and independent user picker/guild autoplay settings with an AddMusicDiscovery migration. Favorites do not depend on mobile registration; recent automatic history and counters stay process-local in the bot.
+
 - Active premium bypasses queue, saved-playlist, playlist-track, and legacy repeat-list count limits. Transactional checks share the enabled-and-unexpired guild predicate. Startup connection readiness retries transient failures before migration execution.
 
 - `GuildDataRepository` saves twenty-four-seven preferences through tracked entity changes and `SaveChangesAsync`, preserving preferred channels when disabled and leaving premium settings intact. Apply `AddTwentyFourSevenSettings` before using these operations.

@@ -12,6 +12,7 @@ using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Service.BotControl;
+using DC_bot.Service.Music.Controls;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
@@ -44,6 +45,8 @@ namespace DC_bot.Service.Music.Lifecycle.PersistentVoice;
 /// <param name="cleanupService">Confirms old player termination.</param>
 /// <param name="persistentVoiceGate">Serializes recovery, settings, and explicit leave.</param>
 /// <param name="options">Provides the configured join and cleanup deadlines for each recovery pass.</param>
+/// <param name="musicControls">Maintains votes and empty-channel deadlines.</param>
+/// <param name="playbackControls">Executes approved skips through the shared control path.</param>
 /// <param name="logger">Records recovery failures and results.</param>
 public sealed class PersistentVoiceRecoveryService(
     DiscordClient discordClient,
@@ -59,7 +62,9 @@ public sealed class PersistentVoiceRecoveryService(
     PlaybackCleanupService cleanupService,
     PersistentVoiceGate persistentVoiceGate,
     IOptions<PlaybackLifecycleOptions> options,
-    ILogger<PersistentVoiceRecoveryService> logger)
+    ILogger<PersistentVoiceRecoveryService> logger,
+    MusicControlSettingsService musicControls,
+    IPlaybackControlService playbackControls)
 {
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _disconnectedSince = new();
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _retryAfter = new();
@@ -77,8 +82,28 @@ public sealed class PersistentVoiceRecoveryService(
 
         do
         {
-            var jobs = discordClient.Guilds.Keys.Select(
-                guildId => ReconcileSafelyAsync(guildId, cancellationToken));
+            var jobs = discordClient.Guilds.Keys.Select(async guildId =>
+            {
+                try
+                {
+                    using var maintenanceDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    maintenanceDeadline.CancelAfter(options.Value.JoinDeadline + options.Value.LeaveDeadline);
+                    await musicControls.MaintainAsync(guildId,
+                        (message, member, attempt) => playbackControls.SkipVotedAttemptAsync(
+                            message, member, attempt, maintenanceDeadline.Token),
+                        maintenanceDeadline.Token);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    logger.LogWarning(exception, "Music control maintenance deferred. Guild={GuildId}", guildId);
+                }
+
+                await ReconcileSafelyAsync(guildId, cancellationToken);
+            });
 
             await Task.WhenAll(jobs);
         }

@@ -56,7 +56,10 @@ public class LoadPlaylistCommand(
     public string Name => "loadPlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.LoadPlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.LoadPlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -116,7 +119,7 @@ public class LoadPlaylistCommand(
                     return;
                 }
 
-                var queueItems = tracks.Select(track => new QueueTrackToEnqueue(track, SourceQuery: null, SourceSearchMode: null, RequestedBy: null))
+                var queueItems = tracks.Select(track => new QueueTrackToEnqueue(track, SourceQuery: null, SourceSearchMode: null, RequestedBy: $"<@{message.Author.Id}>"))
                     .ToList();
                 var enqueueSucceeded = await TryEnqueueUnderSessionFenceAsync(session, guildId, queueItems);
 

@@ -4,12 +4,46 @@ Implements shared storage contracts with EF Core and PostgreSQL-specific concurr
 
 ## Overview
 
+- Filters/ persists guild-scoped definitions with serializable save/overwrite handling and stable ten-entry list pages. Permission and numeric validation remain in the bot service.
+
+- Discovery/ implements personal favorite ownership, stable ten-entry pages, duplicate-source insertion and independent setting upserts using the existing EF transaction retry helper.
+
 - Queue, playlist snapshot, and legacy repeat-list capacity checks use the current transaction and the shared guild premium predicate. Active premium bypasses product count limits; disabled, expired, and missing premium entitlement retains free-guild limits.
 
 - Repositories open short-lived contexts, map entities to contract records, and publish change signals where required. Feature folders separate command, playback, queue, profile, and playlist storage.
 - Services consume contracts rather than tracked entities. Serializable retries and rollback cleanup are shared infrastructure concerns, not command-handler logic.
 
 ## Subfolders
+
+### MusicControl/
+
+Reads guild-scoped immutable settings and uses tracked field assignments plus SaveChangesAsync with serializable conflict retries. Changing voting preserves the DJ role, and changing the role preserves voting.
+
+**Files:** `GuildMusicControlSettingsRepository.cs`.
+
+**Purpose:** Reads guild-scoped immutable settings and uses tracked field assignments plus SaveChangesAsync with serializable conflict retries. Changing voting preserves the DJ role, and changing the role preserves voting.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset components.
+
+**Files:** `FilterPresetRepository.cs`.
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery components.
+
+**Files:** `FavoriteRepository.cs`, `DiscoverySettingsRepository.cs`.
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControl/
 

@@ -104,4 +104,18 @@ public interface IMusicQueueService
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
     Task<QueueMoveResult> MoveToIndex(ulong guildId, int trackIndex, int targetIndex, CancellationToken cancellationToken = default);
+
+    /// <summary>Finds up to ten matching waiting tracks while preserving their one-based durable snapshot positions.</summary>
+    Task<IReadOnlyList<KeyValuePair<int, string>>> FindAsync(
+        ulong guildId,
+        string query,
+        CancellationToken cancellationToken = default);
+
+
+    /// <summary>Serializes source metadata and atomically inserts new occurrences at the front of the waiting queue.</summary>
+    Task EnqueueNextAsync(
+        ulong guildId,
+        IReadOnlyCollection<QueueTrackToEnqueue> tracks,
+        CancellationToken cancellationToken = default);
+
 }

@@ -4,6 +4,10 @@ Defines repository operations for ordered queue entries, canonical batches, cond
 
 ## Overview
 
+- EnqueueAutoplayIfEmptyAsync atomically inserts one generated source item only when no queued or pending-start occurrence exists, using the same capacity and canonical enqueue implementation.
+
+- IQueueRepository adds EnqueueNextAsync, snapshot-fenced MoveQueuedItemAsync, and ClaimForSkipToAsync. Expected snapshots contain ordered occurrence IDs rather than encoded tracks, so duplicate songs remain distinct. The existing QueueClaimResult represents a selected start or changed/busy state.
+
 - The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
 - Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 - The active canonical batch includes tracks appended before closure. Previous lookup excludes older batches, and repeat can restore already played canonical items. CloseBatchIfIdleAsync returning false means the caller must reconsider newly appended work.

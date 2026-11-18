@@ -2,6 +2,7 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.Lifecycle;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.Models.Guilds;
+using DC_bot.Service.Music.Controls;
 
 namespace DC_bot.Service.Music.Lifecycle.PersistentVoice;
 
@@ -11,11 +12,13 @@ namespace DC_bot.Service.Music.Lifecycle.PersistentVoice;
 /// <remarks>Shares one guild gate with periodic recovery and explicit leave; this service does not own the worker lifetime.</remarks>
 /// <param name="guildDataRepository">Stores persistent guild preferences.</param>
 /// <param name="persistentVoiceGate">Serializes preference changes with recovery and explicit leave.</param>
+/// <param name="musicControls">Cancels automatic empty-channel leave when 24/7 is enabled.</param>
 /// <param name="playerConnectionService">Joins or validates the existing voice player.</param>
 public sealed class TwentyFourSevenService(
     IGuildDataRepository guildDataRepository,
     PersistentVoiceGate persistentVoiceGate,
-    IPlayerConnectionService playerConnectionService)
+    IPlayerConnectionService playerConnectionService,
+    MusicControlSettingsService musicControls)
 {
 
     /// <summary>
@@ -91,6 +94,8 @@ public sealed class TwentyFourSevenService(
                 channelId,
                 message.Channel.Id,
                 cancellationToken);
+
+            musicControls.CancelEmptyCountdown(guildId);
 
             return new TwentyFourSevenSettingsRecord(
                 true,

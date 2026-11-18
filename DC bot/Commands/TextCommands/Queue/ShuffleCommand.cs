@@ -33,7 +33,10 @@ public class ShuffleCommand(
     public string Name => "shuffle";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.ShuffleCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.ShuffleCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -42,6 +45,12 @@ public class ShuffleCommand(
     /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        if ((message.Content ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length > 1)
+        {
+            await responseBuilder.SendUsageAsync(message, Name);
+            return;
+        }
+
         logger.CommandInvoked(Name);
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 

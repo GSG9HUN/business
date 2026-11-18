@@ -31,7 +31,10 @@ public class LanguageCommand(
     public string Name => "language";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.LanguageCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.LanguageCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

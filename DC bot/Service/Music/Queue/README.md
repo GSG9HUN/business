@@ -4,10 +4,9 @@ Maps track requests to durable queue items and batch-aware queue operations.
 
 ## Overview
 
-- `MusicQueueService` checks active guild premium before rejecting a reorder above 50 tracks, allowing premium shuffle and move operations on larger queues. Enqueue capacity remains authoritative in the repository.
-
-- MusicQueueService uses ITrackSerializer and IQueueRepository for enqueue, reads, removal, shuffle, move, repetition, and history-related state.
-- An active canonical batch includes tracks appended before it closes. Queue order and canonical batch order serve different purposes; changing waiting positions must not silently redefine history.
+- Coordinates queue reads, enqueueing, removal, ordering and repeat-aware operations.
+- Serializes tracks and delegates atomic state changes to queue repositories.
+- Preserves occurrence identity and canonical batch membership.
 
 ## Classes
 
@@ -16,6 +15,8 @@ Maps track requests to durable queue items and batch-aware queue operations.
 **File:** `DC bot/Service/Music/Queue/MusicQueueService.cs`
 
 **Purpose:** Restores durable queue entries and applies queue edits and canonical batch-repeat operations.
+
+`MoveToIndex` uses captured occurrence IDs and atomic repository ordering, preserving duplicates and canonical repeat order. `FindAsync` searches title/artist case-insensitively, returns at most ten matches with original one-based indices and leaves malformed records untouched. `EnqueueNextAsync` uses source-mode serialization and repository capacity checks. Active premium guilds can reorder queues above the non-premium cap; enqueue capacity is authoritative in the repository.
 
 **Implements / inherits:** `IMusicQueueService`.
 

@@ -4,12 +4,8 @@ Carries inputs, statuses, and results for the playback use cases.
 
 ## Overview
 
-- PlaybackControlResult.TrackDisplayName carries the author and title captured from the track targeted by a successful pause or resume operation. Failed results leave this optional property unset.
-
-- `PlaybackStartStatus.QueueFull` identifies a known free-guild capacity rejection with no newly enqueued tracks. It is distinct from `Unknown`, which requires outcome reconciliation.
-
-- Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
-- Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
+- Describes playback outcomes, start reasons and acknowledgement states.
+- Carries presentation and reconciliation data between playback services and command adapters.
 
 ## Models and Results
 
@@ -18,6 +14,8 @@ Carries inputs, statuses, and results for the playback use cases.
 **File:** `DC bot/Interface/Service/Music/Playback/Models/PlaybackControlResult.cs`
 
 **Purpose:** Carries the success state and response details of a playback control.
+
+`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes.
 
 **Record declaration:**
 
@@ -100,6 +98,8 @@ public sealed record PlaybackStartResult(PlaybackStartStatus Status, Guid Operat
 **File:** `DC bot/Interface/Service/Music/Playback/Models/PlaybackStartStatus.cs`
 
 **Purpose:** Names the possible start outcomes, including an accepted start whose durable state still needs reconciliation.
+
+`QueueFull` represents an atomic non-premium capacity rejection with no incoming tracks inserted. `Unknown` requires start reconciliation and must not be treated as a confirmed rollback.
 
 **Values:**
 

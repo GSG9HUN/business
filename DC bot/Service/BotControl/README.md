@@ -4,20 +4,21 @@ Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
 
-- BotControlContextResolver uses GuildPlaybackSessions.GetRecoveryChannels to prefer the remembered music response channel for mobile commands. If unavailable, an explicitly supplied text channel is considered next, followed by the requesting user voice chat. Each candidate is resolved within the same guild and must support messages. Channel memory remains process-local and is cleared by explicit leave.
-
-- Playback and playlist command results map `QueueFull` to a known failure stating that no tracks were added, without requesting uncertain-outcome reconciliation.
-
-- Idle-player playlist loads inspect `PlaybackStartResult`: only `Started` completes successfully. Other outcomes fail the command with `playbackStatus`, `operationId`, `queueItemId`, and `requiresReconciliation` metadata. Uncertain starts are not retried or re-enqueued; their messages warn against reloading the playlist. Loading into an already playing player still succeeds after enqueueing.
-
-- BotControlWorker claims work, resolves Discord context, dispatches allowed commands, and persists result or failure metadata. Adapter values make mobile requests compatible with existing bot boundaries.
-- Execution ownership and cancellation must survive process and request lifetimes. Treat notifications as wake-up hints and use repository state to decide which command can run.
-
-**Staging Integration**
-
-PlaylistBotControlHandler uses staging music interfaces and GuildPlaybackSessions. Playlist loads capture the joined generation, enqueue under its session fence, register correlated events, and start through the current PlaybackSession contract. Add/import and saved playlist artwork remain supported.
+- Executes durable API-originated commands through bot service boundaries.
+- Resolves authenticated Discord context and response destinations.
+- Maps execution outcomes and notifications to stored command results.
 
 ## Classes
+
+### PlaylistBotControlHandler
+
+**Purpose:** Validates saved tracks, records the authenticated requester as a canonical Discord mention, and loads them through the joined session/event pipeline.
+
+**File:** `PlaylistBotControlHandler.cs`.
+
+Idle-player loads succeed only after `Started`; other outcomes retain `playbackStatus`, `operationId`, `queueItemId` and `requiresReconciliation` metadata. Uncertain starts are not blindly retried or enqueued again. Loads into a playing player succeed after enqueueing. `QueueFull` reports no inserted incoming tracks.
+
+---
 
 ### BotControlCommandDispatcher
 
@@ -52,6 +53,8 @@ var result = await botControlCommandDispatcher.DispatchAsync(command, cancellati
 **File:** `DC bot/Service/BotControl/BotControlContextResolver.cs`
 
 **Purpose:** Resolves guild, member, and channel permissions for durable mobile commands.
+
+Response candidates are the remembered music channel, explicit request text channel and requesting user voice chat, in that order. Each must belong to the guild and support messages. Remembered destinations are process-local and cleared by explicit leave.
 
 **Implements / inherits:** `IBotControlContextResolver`.
 

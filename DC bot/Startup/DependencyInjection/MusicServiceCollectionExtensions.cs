@@ -1,3 +1,6 @@
+using DC_bot.Service.Music.Controls;
+using DC_bot.Interface.Service.Music.Discovery;
+using DC_bot.Service.Music.Discovery;
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.Events;
@@ -57,11 +60,16 @@ public static class MusicServiceCollectionExtensions
         {
             client.Timeout = Timeout.InfiniteTimeSpan;
         });
-        return services.AddSingleton<ITrackSerializer, LavalinkTrackSerializer>()
+        return services.AddSingleton<ISearchPickerHandler, SearchPickerHandler>()
+            .AddSingleton<IRecommendationService, RecommendationService>()
+            .AddSingleton<IFavoriteService, FavoriteService>()
+            .AddSingleton<ILyricsService, LyricsService>()
+            .AddSingleton<ITrackSerializer, LavalinkTrackSerializer>()
             .AddSingleton<PlaybackRemoteProbe>()
             .AddSingleton<PlaybackRecoveryService>()
             .AddSingleton<PlaybackCleanupService>()
             .AddSingleton<GuildPlaybackSessions>()
+            .AddSingleton<MusicControlSettingsService>()
             .AddSingleton<IRepeatService, RepeatService>()
             .AddSingleton<ICurrentTrackService, CurrentTrackService>()
             .AddSingleton<ITrackNotificationService, TrackNotificationService>()
@@ -71,6 +79,7 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<ILavalinkNodeConnectionService, LavalinkNodeConnectionService>()
             .AddSingleton<IPlaybackEventHandlerService, PlaybackEventHandlerService>()
             .AddSingleton<IPlaybackControlService, PlaybackControlService>()
+            .AddSingleton<IPlaybackFilterService, PlaybackFilterService>()
             .AddSingleton<IPlaybackRequestService, PlaybackRequestService>()
             .AddSingleton<ITrackPlaybackService, TrackPlaybackService>()
             .AddSingleton<ITrackEndedHandlerService, TrackEndedHandlerService>()

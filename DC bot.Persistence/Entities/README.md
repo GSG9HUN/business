@@ -4,10 +4,44 @@ Groups tracked database entity types by storage feature.
 
 ## Overview
 
+- Filters/ adds FilterPresetEntity, a durable guild-local named effect definition and save audit record.
+
+- Discovery/ adds personal favorite and independent user/guild music setting entities; no mobile registration or live player references are required.
+
 - BotDbContext and feature repositories use these types; Configurations defines their PostgreSQL mapping.
 - Return shared contract records to services and API handlers instead of exposing tracked entities across the persistence boundary.
 
 ## Subfolders
+
+### MusicControl/
+
+Represents one guild-owned settings row with VoteSkipEnabled defaulting to false and an optional DjRoleId.
+
+**Files:** `GuildMusicControlSettingsEntity.cs`.
+
+**Purpose:** Represents one guild-owned settings row with VoteSkipEnabled defaulting to false and an optional DjRoleId.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset components.
+
+**Files:** `FilterPresetEntity.cs`.
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery components.
+
+**Files:** `FavoriteTrackEntity.cs`, `UserMusicSettingsEntity.cs`, `GuildMusicSettingsEntity.cs`.
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControl/
 

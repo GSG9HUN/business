@@ -32,7 +32,10 @@ public class ResumeCommand(
     public string Name => "resume";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.ResumeCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.ResumeCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -41,6 +44,12 @@ public class ResumeCommand(
     /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        if ((message.Content ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length > 1)
+        {
+            await responseBuilder.SendUsageAsync(message, Name);
+            return;
+        }
+
         logger.CommandInvoked(Name);
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 
@@ -54,6 +63,7 @@ public class ResumeCommand(
         if (!result.Success)
         {
             await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError, default);
+
             return;
         }
 

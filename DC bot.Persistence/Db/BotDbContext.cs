@@ -1,3 +1,9 @@
+using DC_bot.Configurations.MusicControl;
+using DC_bot.Entities.MusicControl;
+using DC_bot.Configurations.Filters;
+using DC_bot.Entities.Filters;
+using DC_bot.Configurations.Discovery;
+using DC_bot.Entities.Discovery;
 using DC_bot.Configurations.BotControl;
 using DC_bot.Configurations.GuildBotStatus;
 using DC_bot.Configurations.Guilds;
@@ -24,6 +30,9 @@ namespace DC_bot.Db;
 /// <param name = "options">The options value used by this storage contract.</param>
 public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(options)
 {
+
+    /// <summary>Gets the durable guild vote and DJ settings.</summary>
+    public DbSet<GuildMusicControlSettingsEntity> GuildMusicControlSettings => Set<GuildMusicControlSettingsEntity>();
 
     /// <summary>
     /// The set of persisted Discord guild records.
@@ -105,6 +114,18 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
     /// </summary>
     public DbSet<MobileAppUserSettingsEntity> MobileAppUserSettings => Set<MobileAppUserSettingsEntity>();
 
+    /// <summary>The user-owned favorite tracks.</summary>
+    public DbSet<FavoriteTrackEntity> FavoriteTracks => Set<FavoriteTrackEntity>();
+
+    /// <summary>The personal music discovery preferences.</summary>
+    public DbSet<UserMusicSettingsEntity> UserMusicSettings => Set<UserMusicSettingsEntity>();
+
+    /// <summary>The guild music discovery preferences.</summary>
+    public DbSet<GuildMusicSettingsEntity> GuildMusicSettings => Set<GuildMusicSettingsEntity>();
+
+    /// <summary>The guild-shared versioned filter presets.</summary>
+    public DbSet<FilterPresetEntity> FilterPresets => Set<FilterPresetEntity>();
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,6 +145,11 @@ public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new UserGuildsConfiguration());
         modelBuilder.ApplyConfiguration(new MobileRealtimeGuildMembershipsConfiguration());
         modelBuilder.ApplyConfiguration(new GuildBotStatusConfiguration());
+        modelBuilder.ApplyConfiguration(new FavoriteTrackConfiguration());
+        modelBuilder.ApplyConfiguration(new UserMusicSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new GuildMusicSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new GuildMusicControlSettingsConfiguration());
+        modelBuilder.ApplyConfiguration(new FilterPresetConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -522,6 +522,26 @@ public class QueueRepository : IQueueRepository
                 return false;
             }
 
+            var crossedItems = await db.GuildQueueItems.Where(q => q.GuildId == guildId
+                    && q.Id != queueItemId
+                    && q.PlaybackOperationId == operationId
+                    && q.State == QueueItemState.Skipped
+                    && q.StartPreviousState == QueueItemState.Queued)
+                .ToListAsync(ct);
+
+            foreach (var crossed in crossedItems)
+            {
+                if (!item.PlaybackTransportConfirmed)
+                {
+                    crossed.State = QueueItemState.Queued;
+                    crossed.SkippedAtUtc = null;
+                    crossed.PlaybackOperationId = crossed.StartPreviousOperationId;
+                }
+
+                crossed.StartPreviousState = null;
+                crossed.StartPreviousOperationId = null;
+            }
+
             item.State = QueueItemState.Skipped;
             item.SkippedAtUtc = DateTimeOffset.UtcNow;
             item.StartPreviousState = null;
@@ -677,4 +697,144 @@ public class QueueRepository : IQueueRepository
         var trimmed = sourceSearchMode.Trim();
         return trimmed.Length <= 64 ? trimmed : trimmed[..64];
     }
+
+    /// <inheritdoc />
+    public Task<QueueClaimResult> ClaimForSkipToAsync(
+        ulong guildId,
+        Guid operationId,
+        long targetId,
+        IReadOnlyList<long> expectedIds,
+        CancellationToken cancellationToken = default)
+    {
+        return _queueClaimService.ClaimForSkipToAsync(guildId, operationId, targetId, expectedIds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task EnqueueNextAsync(
+        ulong guildId,
+        IReadOnlyList<QueueItemToEnqueue> items,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            _dbContextFactory, async (db, ct) =>
+            {
+                await EnsureNoPendingStartAsync(db, guildId, ct);
+                var before = await db.GuildQueueItems.Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+                    .OrderBy(item => item.Position)
+                    .ToListAsync(ct);
+                var oldIds = before.Select(item => item.Id)
+                    .ToHashSet();
+                await EnqueueManyAsync(db, guildId, items, ct);
+                var all = await db.GuildQueueItems.Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+                    .OrderBy(item => item.Position)
+                    .ToListAsync(ct);
+                var ordered = all.Where(item => !oldIds.Contains(item.Id))
+                    .Concat(before)
+                    .ToList();
+                await SaveOccurrenceOrderAsync(db, guildId, all, ordered, false, ct);
+            }, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> MoveQueuedItemAsync(
+        ulong guildId,
+        IReadOnlyList<long> expectedIds,
+        int fromIndex,
+        int toIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            _dbContextFactory, async (db, ct) =>
+            {
+                await EnsureNoPendingStartAsync(db, guildId, ct);
+                var items = await db.GuildQueueItems.Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+                    .OrderBy(item => item.Position)
+                    .ThenBy(item => item.Id)
+                    .ToListAsync(ct);
+
+                if (!items.Select(item => item.Id)
+                    .SequenceEqual(expectedIds)
+                    || fromIndex < 0
+                    || toIndex < 0
+                    || fromIndex >= items.Count
+                    || toIndex >= items.Count)
+                {
+                    return false;
+                }
+
+                var ordered = items.ToList();
+                var selected = ordered[fromIndex];
+                ordered.RemoveAt(fromIndex);
+                ordered.Insert(toIndex, selected);
+                await SaveOccurrenceOrderAsync(db, guildId, items, ordered, true, ct);
+                return true;
+            }, cancellationToken);
+    }
+
+    /// <summary>Persists a permutation by occurrence identity using collision-free temporary positions.</summary>
+    private static async Task SaveOccurrenceOrderAsync(
+        BotDbContext db,
+        ulong guildId,
+        IReadOnlyList<GuildQueueItemEntity> before,
+        IReadOnlyList<GuildQueueItemEntity> ordered,
+        bool synchronizeRepeat,
+        CancellationToken token)
+    {
+        var positions = before.Select(item => item.Position)
+            .OrderBy(position => position)
+            .ToArray();
+        var maximum = await db.GuildQueueItems.Where(item => item.GuildId == guildId)
+            .Select(item => (int?)item.Position)
+            .MaxAsync(token) ?? -1;
+
+        for (var index = 0; index < before.Count; index++)
+        {
+            before[index].Position = checked(maximum + index + 1);
+        }
+
+        await db.SaveChangesAsync(token);
+
+        for (var index = 0; index < ordered.Count; index++)
+        {
+            ordered[index].Position = positions[index];
+        }
+
+        await db.SaveChangesAsync(token);
+
+        if (synchronizeRepeat)
+        {
+            await QueueRepeatListRepository.SynchronizeAsync(db, guildId, before, ordered, token);
+        }
+
+        await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(db, guildId, MobileRealtimeEventNames.QueueItemMoved, token);
+    }
+
+
+    /// <inheritdoc />
+    public Task<bool> EnqueueAutoplayIfEmptyAsync(
+        ulong guildId,
+        QueueItemToEnqueue item,
+        CancellationToken cancellationToken = default)
+    {
+        return PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+            _dbContextFactory, async (db, token) =>
+            {
+                if (await db.GuildQueueItems.AnyAsync(value => value.GuildId == guildId
+                    && (value.State == QueueItemState.Queued || value.State == QueueItemState.Starting), token))
+                {
+                    return false;
+                }
+
+                await EnqueueManyAsync(db, guildId, [item], token);
+                return true;
+            }, cancellationToken);
+    }
+
 }

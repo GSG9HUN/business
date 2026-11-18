@@ -30,6 +30,28 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
         long? queueItemId = null,
         CancellationToken cancellationToken = default)
     {
+        return ClaimCoreAsync(guildId, operationId, queueItemId, null, cancellationToken);
+    }
+
+    /// <summary>Claims the selected occurrence only while the captured waiting order is unchanged.</summary>
+    public Task<QueueClaimResult> ClaimForSkipToAsync(
+        ulong guildId,
+        Guid operationId,
+        long targetId,
+        IReadOnlyList<long> expectedIds,
+        CancellationToken cancellationToken)
+    {
+        return ClaimCoreAsync(guildId, operationId, targetId, expectedIds, cancellationToken);
+    }
+
+    /// <summary>Claims a normal start or a snapshot-fenced skip-to inside one serializable transaction.</summary>
+    private Task<QueueClaimResult> ClaimCoreAsync(
+        ulong guildId,
+        Guid operationId,
+        long? queueItemId,
+        IReadOnlyList<long>? expectedIds,
+        CancellationToken cancellationToken)
+    {
         if (operationId == Guid.Empty)
         {
             throw new ArgumentException("Operation ID is required.", nameof(operationId));
@@ -60,6 +82,30 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
             if (item is null)
             {
                 return new QueueClaimResult(QueueClaimStatus.Empty);
+            }
+
+            if (expectedIds is not null)
+            {
+                var waiting = await db.GuildQueueItems.Where(q => q.GuildId == guildId && q.State == QueueItemState.Queued)
+                    .OrderBy(q => q.Position)
+                    .ThenBy(q => q.Id)
+                    .ToListAsync(ct);
+
+                if (item.State != QueueItemState.Queued
+                    || !waiting.Select(q => q.Id)
+                        .SequenceEqual(expectedIds))
+                {
+                    return new QueueClaimResult(QueueClaimStatus.Busy);
+                }
+
+                foreach (var crossed in waiting.TakeWhile(q => q.Id != item.Id))
+                {
+                    crossed.StartPreviousOperationId = crossed.PlaybackOperationId;
+                    crossed.StartPreviousState = crossed.State;
+                    crossed.State = QueueItemState.Skipped;
+                    crossed.PlaybackOperationId = operationId;
+                    crossed.SkippedAtUtc = DateTimeOffset.UtcNow;
+                }
             }
 
             item.StartPreviousState = item.State;
@@ -131,6 +177,19 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
             {
                 old.State = QueueItemState.Skipped;
                 old.SkippedAtUtc = now;
+            }
+
+            var crossedItems = await db.GuildQueueItems.Where(q => q.GuildId == guildId
+                    && q.Id != queueItemId
+                    && q.PlaybackOperationId == operationId
+                    && q.State == QueueItemState.Skipped
+                    && q.StartPreviousState == QueueItemState.Queued)
+                .ToListAsync(ct);
+
+            foreach (var crossed in crossedItems)
+            {
+                crossed.StartPreviousState = null;
+                crossed.StartPreviousOperationId = null;
             }
 
             item.State = QueueItemState.Playing;
@@ -212,6 +271,22 @@ internal sealed class QueueClaimService(IDbContextFactory<BotDbContext> factory)
             if (item is null)
             {
                 return false;
+            }
+
+            var crossedItems = await db.GuildQueueItems.Where(q => q.GuildId == guildId
+                    && q.Id != queueItemId
+                    && q.PlaybackOperationId == operationId
+                    && q.State == QueueItemState.Skipped
+                    && q.StartPreviousState == QueueItemState.Queued)
+                .ToListAsync(ct);
+
+            foreach (var crossed in crossedItems)
+            {
+                crossed.State = QueueItemState.Queued;
+                crossed.SkippedAtUtc = null;
+                crossed.PlaybackOperationId = crossed.StartPreviousOperationId;
+                crossed.StartPreviousState = null;
+                crossed.StartPreviousOperationId = null;
             }
 
             item.State = skip ? QueueItemState.Skipped : item.StartPreviousState ?? QueueItemState.Queued;
