@@ -144,6 +144,7 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
     /// <inheritdoc/>
     public async Task RemoveTrackAsync(long playlistId, int orderNumber, CancellationToken cancellationToken = default)
     {
+
         for (var attempt = 1; attempt <= MaxRetries; attempt++)
         {
             await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -211,7 +212,8 @@ public class PlaylistTrackRepository(IDbContextFactory<BotDbContext> dbContextFa
         int deletedOrderNumber,
         CancellationToken cancellationToken)
     {
-        var tempPlaylistTrackEntities = await dbContext.PlaylistTracks.Where(track => track.PlaylistId == playlistId && track.OrderNumber > deletedOrderNumber)
+        var tempPlaylistTrackEntities = await dbContext.PlaylistTracks.Where(track => track.PlaylistId == playlistId
+            && track.OrderNumber > deletedOrderNumber)
             .OrderBy(track => track.OrderNumber)
             .ToListAsync(cancellationToken);
         tempPlaylistTrackEntities.ForEach(track => track.OrderNumber *= -1);

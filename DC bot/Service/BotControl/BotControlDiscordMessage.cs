@@ -10,11 +10,23 @@ namespace DC_bot.Service.BotControl;
 /// <param name="author">The discord user dependency used by this boundary.</param>
 internal sealed class BotControlDiscordMessage(IDiscordChannel channel, IDiscordUser author) : IDiscordMessage
 {
+
+    /// <inheritdoc />
     public ulong Id { get; set; }
+
+    /// <inheritdoc />
     public string Content { get; set; } = string.Empty;
+
+    /// <inheritdoc />
     public IDiscordChannel Channel { get; set; } = channel;
+
+    /// <inheritdoc />
     public IDiscordUser Author { get; set; } = author;
+
+    /// <inheritdoc />
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <inheritdoc />
     public IReadOnlyList<DiscordEmbed> Embeds { get; set; } = [];
 
     /// <summary>

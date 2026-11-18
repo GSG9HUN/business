@@ -8,6 +8,10 @@ Contains the session identities, control reservations, cleanup outcomes, and rec
 - SDK-dependent models remain in the bot project rather than the shared Contracts project.
 - PlaybackSession and ControlReservation identify ownership; neither creates or restores a player.
 
+**Cleanup Phase Status**
+
+`LeavePhaseState.cs` declares `NotAttempted`, `Succeeded`, `Failed`, `Unknown`, and `NotApplicable` separately from `LeaveResult.cs`. The result continues to report each cleanup phase independently.
+
 ## Lifecycle Models
 
 ### ControlReservation

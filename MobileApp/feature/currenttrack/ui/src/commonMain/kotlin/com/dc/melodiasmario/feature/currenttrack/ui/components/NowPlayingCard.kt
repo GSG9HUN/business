@@ -104,8 +104,7 @@ fun NowPlayingCard(
 
         while (isPlaying && displayedPositionSeconds < track.durationSeconds) {
             delay(duration = 1_000.milliseconds)
-            displayedPositionSeconds = (displayedPositionSeconds + 1)
-                .coerceAtMost(maximumValue = track.durationSeconds)
+            displayedPositionSeconds = (displayedPositionSeconds + 1).coerceAtMost(maximumValue = track.durationSeconds)
         }
     }
 
@@ -113,7 +112,7 @@ fun NowPlayingCard(
         0f
     } else {
         displayedPositionSeconds.toFloat() / track.durationSeconds.toFloat()
-    }.coerceIn(0f, 1f)
+    }.coerceIn(minimumValue = 0f, maximumValue = 1f)
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -133,8 +132,7 @@ fun NowPlayingCard(
             Spacer(modifier = Modifier.height(height = 14.dp))
 
             MText(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .basicMarquee(
                         iterations = Int.MAX_VALUE,
                         initialDelayMillis = TrackTitleMarqueeInitialDelayMillis,
@@ -206,8 +204,7 @@ fun NowPlayingCard(
                     onClick = onPreviousClick
                 )
                 Surface(
-                    modifier = Modifier
-                        .size(size = 48.dp)
+                    modifier = Modifier.size(size = 48.dp)
                         .semantics {
                             playPauseContentDescription?.let { playPauseContentDescription ->
                                 contentDescription = playPauseContentDescription

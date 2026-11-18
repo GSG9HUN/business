@@ -23,6 +23,9 @@ public class PlaylistEntity
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the explicitly configured cover URL, or null to use automatic artwork.</summary>
+    public string? ArtworkUri { get; set; }
+
     /// <summary>
     /// The guild associated with this object.
     /// </summary>

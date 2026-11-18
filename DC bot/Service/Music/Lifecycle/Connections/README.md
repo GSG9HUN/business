@@ -4,8 +4,8 @@ Joins or resolves Lavalink players and waits for validated voice readiness.
 
 ## Overview
 
-- Keep the existing join deadline, late-completion observation, and failed-join cleanup policy.
-- Validate registered player identity and voice readiness before exposing the joined session.
+- Joins or validates guild voice players and establishes usable session ownership.
+- Coordinates bounded retries, readiness checks and confirmed audio restoration.
 
 ## Connection Services
 
@@ -14,6 +14,10 @@ Joins or resolves Lavalink players and waits for validated voice readiness.
 **File:** `DC bot/Service/Music/Lifecycle/Connections/PlayerConnectionService.cs`
 
 **Purpose:** Resolves and validates players while observing late joins and coordinating failed-join cleanup.
+
+Successful fresh or reused-player joins record voice/text recovery destinations in `GuildPlaybackSessions`. Join validation checks registered player identity and voice readiness; deadlines, late completion observation and failed-join cleanup bound the operation. The SDK receives normalized output gain, with 1 representing 100%.
+
+Join validation restores acknowledged output and then confirmed filters before publishing a usable replacement session. Restoration failure follows failed-join cleanup. Fresh joins after explicit leave start at 100% with neutral effects.
 
 **Implements / inherits:** `IPlayerConnectionService`.
 
@@ -47,7 +51,6 @@ var result = await playerConnectionService.TryGetAndValidateExistingPlayerAsync(
 
 **Behavior:** A caller deadline stops waiting but does not prove that the SDK join had no remote effect. Late completion is observed and failed or superseded players are cleaned up through the lifecycle coordinator.
 
-
 ---
 
 ### PlayerConnectionRetryPolicy
@@ -79,7 +82,6 @@ var result = await playerConnectionRetryPolicy.ValidateJoinedPlayerAsync(
     joinedConnection,
     cancellationToken);
 ```
-
 
 ---
 

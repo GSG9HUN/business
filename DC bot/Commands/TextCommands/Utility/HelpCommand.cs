@@ -29,7 +29,10 @@ public class HelpCommand(
     public string Name => "help";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.HelpCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.HelpCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -45,9 +48,56 @@ public class HelpCommand(
             return;
         }
 
-        var commands = commandRegistry.Commands;
-        var response = commands.Aggregate(string.Empty, (current, command) => current + $"{command.Name} : {command.Description}\n");
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response);
+        var arguments = message.Content.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        var guildId = message.Channel.Guild?.Id ?? 0;
+
+        if (arguments.Length > 2
+            || (arguments.Length == 2 && arguments[1].Length > 64))
+        {
+            await responseBuilder.SendUsageAsync(message, Name);
+            return;
+        }
+
+        if (arguments.Length == 2)
+        {
+            var command = commandRegistry.Commands.FirstOrDefault(candidate =>
+                candidate.Name.Equals(arguments[1], StringComparison.OrdinalIgnoreCase));
+
+            if (command is null)
+            {
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.HelpCommandUnknown, arguments[1]);
+                await responseBuilder.SendUsageAsync(message, Name);
+                return;
+            }
+
+            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandDetails,
+                command.Name, localizationService.Get(guildId, command.DescriptionKey));
+            await responseBuilder.SendUsageAsync(message, command.Name);
+            logger.CommandExecuted(Name);
+            return;
+        }
+
+        var response = new System.Text.StringBuilder();
+
+        foreach (var command in commandRegistry.Commands.OrderBy(command => command.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var line = $"{command.Name}: {localizationService.Get(guildId, command.DescriptionKey)}\n";
+
+            if (response.Length + line.Length > 1600)
+            {
+                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response.ToString());
+                response.Clear();
+            }
+
+            response.Append(line);
+        }
+
+        if (response.Length > 0)
+        {
+            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandResponse, response.ToString());
+        }
+
+        await responseBuilder.SendUsageAsync(message, Name);
         logger.CommandExecuted(Name);
     }
 }

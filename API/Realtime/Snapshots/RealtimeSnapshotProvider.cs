@@ -40,8 +40,12 @@ public sealed class RealtimeSnapshotProvider(
     /// <returns>The computed get queue snapshot result.</returns>
     public async Task<QueueResponse> GetQueueSnapshotAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
-        var queueItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
-        return QueueResponseMapper.Map(guildId, queueItems);
+        var queueItems = await queueRepository.GetQueuedItemsAsync(
+            guildId,
+            cancellationToken);
+
+        var displayItems = await queueRepository.GetDisplayItemsAsync(guildId, cancellationToken);
+        return QueueResponseMapper.MapWithHistory(guildId, queueItems, displayItems);
     }
 
     /// <summary>

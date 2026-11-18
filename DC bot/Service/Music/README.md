@@ -4,11 +4,38 @@ Coordinates music requests through a facade and specialized playback components.
 
 ## Overview
 
-- `Lifecycle/TwentyFourSevenService` changes saved preferences under a shared guild gate. `PersistentVoiceRecoveryService` runs periodic recovery; `PersistentVoiceLeaveService` disables the preference before disconnecting and closing the batch.
-- LavaLinkService connects commands to request, lifecycle, control, queue, and track-playback services. TrackSearchResolverService interprets source prefixes and provider URLs.
-- The concrete components are organized into Events, Lavalink, Lifecycle, Playback, PlaylistService, Presentation, Queue, Repeat, and Tracks. There is no MusicServices or ProgressiveTimer implementation folder in the current layout.
+- Coordinates playback, audio effects, queues, playlists, discovery and guild music controls.
+- Uses lifecycle ownership to serialize transport and repository operations.
+- Exposes music operations through `LavaLinkService` and feature-specific services.
 
 ## Subfolders
+
+### Controls/
+
+Coordinates durable guild settings, current-attempt voting, five-minute empty-channel cleanup and read-only music status through existing session, repository, localization and leave boundaries.
+
+**Files:**
+
+- `MusicControlSettingsService.cs`
+
+**Purpose:** Coordinates durable guild settings, current-attempt voting, five-minute empty-channel cleanup and read-only music status through existing session, repository, localization and leave boundaries.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery components.
+
+**Files:**
+
+- `LyricsService.cs`
+- `FavoriteService.cs`
+- `RecommendationService.cs`
+- `SearchPickerHandler.cs`
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### Events/
 
@@ -39,11 +66,11 @@ Owns connection operations for the Lavalink audio node.
 
 Coordinates player connections, session ownership, cleanup, and recovery through dedicated subfolders.
 
-**Files and folders:**
+**Files:**
 
-- `Connections/PlayerConnectionService.cs`
-- `Connections/PlayerConnectionRetryPolicy.cs`
-- `Sessions/GuildPlaybackSessions.cs`
+- `Lifecycle/Connections/PlayerConnectionService.cs`
+- `Lifecycle/Connections/PlayerConnectionRetryPolicy.cs`
+- `Lifecycle/Sessions/GuildPlaybackSessions.cs`
 - `Cleanup/`
 - `Recovery/`
 - `PersistentVoice/`

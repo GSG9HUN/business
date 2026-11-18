@@ -9,6 +9,9 @@ namespace DC_bot.Entities.Queue;
 public class GuildQueueItemEntity
 {
 
+    /// <summary>Identifies one enqueue group within the canonical playback batch.</summary>
+    public Guid EnqueueGroupId { get; set; }
+
     /// <summary>
     /// The identifier of this persisted record.
     /// </summary>
@@ -23,6 +26,9 @@ public class GuildQueueItemEntity
     /// The playback batch identifier, or null for a queue item not yet assigned to a batch.
     /// </summary>
     public long? BatchId { get; set; }
+
+    /// <summary>Gets the original zero-based position within the enqueue operation.</summary>
+    public int BatchPosition { get; set; }
 
     /// <summary>
     /// The canonical playback batch item identifier, or null when no batch item is assigned.

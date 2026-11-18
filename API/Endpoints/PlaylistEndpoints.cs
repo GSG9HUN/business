@@ -22,10 +22,13 @@ public static class PlaylistEndpoints
         guildPlaylists.MapGet("", PlaylistHandlers.ListAsync);
         guildPlaylists.MapPost("", PlaylistHandlers.CreateAsync);
         guildPlaylists.MapPost("/import", PlaylistHandlers.ImportAsync);
+        guildPlaylists.MapPost("/from-queue", QueuePlaylistHandlers.CreateAsync);
+
         var playlists = group.MapGroup("/playlists")
             .RequireAuthorization();
         playlists.MapGet("/{playlistId:long}", PlaylistHandlers.GetAsync);
         playlists.MapPatch("/{playlistId:long}/rename", PlaylistHandlers.RenameAsync);
+        playlists.MapPatch("/{playlistId:long}/artwork", PlaylistHandlers.SetArtworkAsync);
         playlists.MapDelete("/{playlistId:long}", PlaylistHandlers.DeleteAsync);
         playlists.MapPost("/{playlistId:long}/load", PlaylistHandlers.LoadAsync);
         playlists.MapPost("/{playlistId:long}/tracks", PlaylistHandlers.AddTrackAsync);

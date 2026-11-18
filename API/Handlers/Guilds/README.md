@@ -4,6 +4,8 @@ Lists guilds visible to the authenticated mobile user and assembles their bot-pr
 
 ## Overview
 
+- Single-guild requests require membership and active premium through `ApiUserContext`; guild discovery remains available so users can select their servers.
+
 - Memberships come from the mobile user repository; bot voice status is loaded separately and mapped into the guild response.
 - A stored guild membership controls API visibility. Bot voice presence is display state and is not proof that Lavalink is ready to play.
 

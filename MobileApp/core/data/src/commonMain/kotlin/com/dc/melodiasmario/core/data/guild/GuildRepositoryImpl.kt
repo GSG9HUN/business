@@ -17,14 +17,12 @@ class GuildRepositoryImpl(
     override suspend fun getGuilds(): List<Guild> {
         val accessToken = authorizedSessionProvider.getValidSession()
 
-        return guildRemoteDataSource
-            .getGuilds(accessToken = accessToken)
+        return guildRemoteDataSource.getGuilds(accessToken = accessToken)
     }
 
     override suspend fun getSelectedGuild(guildId: String): Guild? {
         val accessToken = authorizedSessionProvider.getValidSession()
 
-        return guildRemoteDataSource
-            .getSelectedGuild(accessToken = accessToken, guildId = guildId)
+        return guildRemoteDataSource.getSelectedGuild(accessToken = accessToken, guildId = guildId)
     }
 }

@@ -34,7 +34,10 @@ public class SavePlaylistCommand(
     public string Name => "savePlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.SavePlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.SavePlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -62,6 +65,7 @@ public class SavePlaylistCommand(
         var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
         var result = await playlistService.SavePlaylistAsync(guildId, playlistName, playlistUrl, default);
+
         switch (result)
         {
             case SavePlaylistResult.Saved:

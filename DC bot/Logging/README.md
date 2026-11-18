@@ -7,7 +7,7 @@ Defines typed log messages and reusable scopes for bot operations.
 - LogExtensions uses source-generated logging methods; LoggingScopes attaches command, guild, channel, and user context where supplied.
 - The configured logging filter controls visibility. Avoid relying on a debug message as the only evidence of a failure, and do not include credentials or voice tokens in new logs.
 
-## Event ID Reference
+**Event ID Reference**
 
 **File:** `EventIdTable.md`
 

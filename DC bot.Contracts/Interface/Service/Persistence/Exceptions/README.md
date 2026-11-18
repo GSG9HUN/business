@@ -4,6 +4,8 @@ Defines the implementation-independent error used for a uniqueness conflict.
 
 ## Overview
 
+- `QueueCapacityExceededException` inherits `InvalidOperationException` and reports a rejected enqueue through `Limit`, `QueuedCount`, and `RequestedCount`; callers can distinguish expected capacity denial from uncertain database failures.
+
 - Repositories translate a provider-specific uniqueness violation into UniqueConstraintConflictException so callers can produce a stable conflict outcome.
 - Do not force callers to inspect Npgsql exception types or constraint codes to recognize an expected duplicate.
 

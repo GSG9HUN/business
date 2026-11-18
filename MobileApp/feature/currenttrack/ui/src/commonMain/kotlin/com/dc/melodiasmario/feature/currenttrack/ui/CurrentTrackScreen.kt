@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import com.dc.melodiasmario.core.commonui.components.queueBatchItems
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -174,18 +174,32 @@ fun CurrentTrackScreen(
                 onClick = { onEvent(CurrentTrackEvent.RefreshClicked) }
             )
 
-            uiState.playback.currentTrack?.currentTrack == null -> CurrentTrackPlaceholder(
-                title = emptyTitle,
-                contentText = emptyMessage
-            )
+            uiState.playback.currentTrack?.currentTrack == null && uiState.queue.tracks.isEmpty() -> {
+
+                if (uiState.queue.displayTracks.isEmpty()) {
+                    CurrentTrackPlaceholder(title = emptyTitle, contentText = emptyMessage)
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                            .weight(weight = 1f),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
+                    ) {
+                        queueBatchItems(
+                            items = emptyList(),
+                            displayTracks = uiState.queue.displayTracks,
+                            key = { index, track -> track.queueItemId?.let { queueItemId -> "queued:$queueItemId" } ?: "${track.id}:$index" }
+                        ) { _, _ -> }
+                    }
+                }
+            }
 
             else -> ReorderDragContainer(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .weight(weight = 1f),
                 listState = listState,
                 itemKeys = uiState.queue.tracks.mapIndexed { index, track ->
-                    "${track.id}:$index"
+                    track.queueItemId?.let { queueItemId -> "queued:$queueItemId" } ?: "${track.id}:$index"
                 },
                 enabled = !uiState.actions.isCommandInFlight,
                 onMove = { fromIndex, toIndex ->
@@ -203,8 +217,7 @@ fun CurrentTrackScreen(
                     val track = uiState.queue.tracks[index]
 
                     MTrackItemRow(
-                        modifier = Modifier
-                            .alpha(alpha = 0.85f)
+                        modifier = Modifier.alpha(alpha = 0.85f)
                             .graphicsLayer {
                                 shadowElevation = 16.dp.toPx()
                             },
@@ -236,8 +249,10 @@ fun CurrentTrackScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
                 ) {
+
+                 if (uiState.playback.currentTrack?.currentTrack != null) {
                     item {
-                        NowPlayingCard(
+                    NowPlayingCard(
                             currentTrack = requireNotNull(value = uiState.playback.currentTrack),
                             isPlaying = uiState.playback.isPlaying,
                             repeatMode = uiState.playback.repeatMode,
@@ -254,6 +269,7 @@ fun CurrentTrackScreen(
                             onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) }
                         )
                     }
+                    }
 
                     item {
                         MText(
@@ -266,18 +282,19 @@ fun CurrentTrackScreen(
                         )
                     }
 
-                    if (uiState.queue.tracks.isEmpty()) {
+                    if (uiState.queue.tracks.isEmpty()
+                        && uiState.queue.displayTracks.isEmpty()) {
                         item {
                             QueueEmptyCard()
                         }
                     } else {
-                        itemsIndexed(
+                        queueBatchItems(
                             items = uiState.queue.tracks,
-                            key = { index, track -> "${track.id}:$index" }
+                            displayTracks = uiState.queue.displayTracks,
+                            key = { index, track -> track.queueItemId?.let { queueItemId -> "queued:$queueItemId" } ?: "${track.id}:$index" }
                         ) { index, track ->
                             MTrackItemRow(
-                                modifier = Modifier
-                                    .animateItem()
+                                modifier = Modifier.animateItem()
                                     .alpha(
                                         alpha = if (index == draggedIndex) 0f else 1f
                                     ),

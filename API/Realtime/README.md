@@ -4,6 +4,8 @@ Hosts authenticated SignalR subscriptions and forwards persisted state changes t
 
 ## Overview
 
+- `MobileUpdatesHub.JoinGuildAsync` checks membership and active guild premium before adding groups or persisting subscriptions. Premium denial raises `HubException` with `PremiumRequired: not premium member`; leave and disconnect cleanup remain available.
+
 - Repositories publish PostgreSQL notifications; the listener loads snapshots and publishers send events to authorized per-user or per-user-guild groups.
 - Subscription operations use Context.ConnectionAborted. Disconnect membership cleanup runs independently of that aborted token. Clients can refresh REST snapshots after reconnecting.
 

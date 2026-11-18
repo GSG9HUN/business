@@ -4,116 +4,10 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
-- Music lifecycle code is organized into Connections, Sessions, Cleanup, Recovery, PersistentVoice, and Models. PlaybackLifecycleOptions belongs to the bot Configuration folder.
-- The registered `24-7` text and slash commands share `TwentyFourSevenService` for initial voice setup and saved guild preferences. `PersistentVoiceRecoveryService` monitors connections and restores confirmed checkpoints; explicit leave disables the preference before owned cleanup.
-- Public contracts document Discord adapter values, playback outcomes, validation results, and configuration; implementations inherit interface documentation where the contract is shared.
-- Validate Discord user and voice context before music operations.
-- Resolve music queries or provider URLs, persist queue entries, and coordinate track starts.
-- Protect per-guild player generations and control reservations during concurrent commands, events, and recovery.
-- Maintain saved playlists separately from the live queue and its canonical playback batch.
-- Execute durable API-originated commands and persist their outcomes.
-- Format English or Hungarian responses using guild language preferences.
-
-Provider availability depends on the deployed Lavalink source managers, plugins, credentials, and rollout configuration. A recognized provider prefix does not guarantee that a source can currently load or play.
-
-## Runtime Flow
-
-```text
-Discord message / slash interaction / reaction
-  -> command or adapter
-  -> injected service
-  -> per-guild playback lifecycle + repository contracts
-  -> Lavalink transport / PostgreSQL / Discord response
-
-API request -> durable command row -> BotControlWorker
-  -> context resolution + dispatch -> the same bot service boundaries
-```
-
-[DC bot.Contracts](../DC%20bot.Contracts/README.md) defines shared storage and command protocol values. [DC bot.Persistence](../DC%20bot.Persistence/README.md) implements the repositories. The bot does not host the mobile HTTP or SignalR endpoints; those belong to [API](../API/README.md).
-
-## Run Locally
-
-Build from the repository root with the .NET 9 SDK, then run from the bot project directory so relative translation paths resolve. Supply the Discord, Lavalink, and PostgreSQL configuration before starting:
-
-```bash
-dotnet restore "DC bot.sln"
-dotnet build "DC bot.sln"
-cd "DC bot"
-dotnet run --project "DC bot.csproj"
-```
-
-`Program.cs` loads an optional `.env` from the current working directory without replacing values already present in the process environment. It also resolves `localization/` and `guildFiles/` relative to that directory. For the project-directory run above, provide process environment values or an optional `.env` in that directory; the bot does not search parent directories for the repository-root `.env`. Compose passes the root `.env` explicitly instead.
-
-### Configuration
-
-| Variable | Requirement or default | Purpose |
-|---|---|---|
-| `DISCORD_TOKEN` | Required | Discord bot authentication. |
-| `BOT_PREFIX` | `!` | Prefix for message commands. |
-| `LAVALINK_HOSTNAME` | Required | Lavalink host reachable from the bot process. |
-| `LAVALINK_PORT` | `2333` | Node port. |
-| `LAVALINK_SECURED` | `false` | Use TLS for node connectivity. |
-| `LAVALINK_PASSWORD` | Empty when absent | Must match the deployed node authentication. |
-| `MUSIC_JOIN_DEADLINE` | Required positive `TimeSpan` | Bound joining and readiness work. |
-| `MUSIC_LEAVE_DEADLINE` | Required positive `TimeSpan` | Bound lifecycle cleanup work. |
-| `POSTGRES_HOST` | `localhost` | Database host. |
-| `POSTGRES_PORT` | `5432` | Database port. |
-| `POSTGRES_DB` | `dc_bot` | Database name. |
-| `POSTGRES_USER` | `postgres` | Database user. |
-| `POSTGRES_PASSWORD` | `postgres` | Local fallback used by the loader; supply deployment credentials explicitly. |
-
-Example deadline values are `00:00:30` and `00:00:15`; they are configuration examples rather than measured production recommendations. Both must fit the supported timer duration. Startup resolves these options before migration or Discord connection.
-
-For local execution against Compose-published services, use the host addresses and ports. Inside the Compose network the service names are `postgres` and `lavalink`. Provider-side credentials and plugins are configured separately in the [Lavalink server](../lavalink-server/README.md).
-
-### Docker Compose
-
-The repository stack builds the bot from this project's Dockerfile:
-
-```bash
-docker compose up -d --build
-```
-
-Compose passes the root `.env` to the bot and waits for PostgreSQL and Lavalink health checks. Updating an existing container's environment requires recreation; `docker compose restart` keeps its current environment.
-
-## Entry Point
-
-### Program
-
-**File:** `DC bot/Program.cs`
-
-**Purpose:** Creates the process cancellation source, loads the optional working-directory environment file, and delegates to BotApplication.
-
-**Method:**
-
-```csharp
-private static async Task Main();
-```
-
-**Behavior:** Console cancellation flows into application startup and the runtime workers. Localization and guild preference paths are relative to the process working directory.
-
----
-
-## Startup and Shutdown
-
-1. `Program` creates the shutdown token and loads the optional environment file.
-2. `BotConfigurationLoader` reads bot, node, and database settings.
-3. `BotServiceProviderFactory` composes logging, Discord, Lavalink, persistence, commands, and music services.
-4. `BotApplication` validates playback deadlines and calls `DatabaseMigrationRunner`.
-5. `BotHandlerRegistrar` enables the command and reaction handlers.
-6. The Discord runtime, mobile command worker, and playback recovery loop run under linked cancellation.
-
-The bot uses a service provider directly. Startup explicitly validates lifecycle options, and shutdown observes worker faults instead of hiding them as ordinary cancellation.
-
-## Playback, Batches, and History
-
-A guild has a live player generation and durable queue state. A start claim records operation ownership before the transport call. If the remote outcome is uncertain, recovery reconciles it before another start is allowed.
-
-The active canonical batch retains its full sequence, including tracks added before the batch closes. Full-list repeat can therefore include already played items. Waiting queue position is separate from canonical batch position. Previous lookup stays within the active batch; the read-only `history` command lists recent batches without replaying them.
-
-Track-end events are accepted only for the current correlated attempt. Skip explicitly completes its accepted attempt after stopping so a delayed SDK stop event cannot advance the queue twice. Cleanup reports local invalidation, transport, subscription, and persistence outcomes separately.
-
-Gateway reconnection, Lavalink node readiness, and Discord voice readiness are separate conditions. Validation may confirm voice readiness using unchanged remote session evidence when the SDK connection flag lags. Persisted bot presence is not itself a readiness lock.
+- Runs Discord text/slash commands, reactions and voice playback.
+- Coordinates per-guild playback, saved playlists, discovery and music-control settings.
+- Executes durable API-originated commands through shared contracts.
+- Persists application data in PostgreSQL and presents English or Hungarian responses.
 
 ## Subfolders
 
@@ -296,13 +190,114 @@ Groups Discord, Lavalink, and slash-interaction implementations of bot-facing co
 
 ---
 
-## Verification and Maintenance
+## Entry Point
+
+### Program
+
+**File:** `DC bot/Program.cs`
+
+**Purpose:** Creates the process cancellation source, loads the optional working-directory environment file, and delegates to BotApplication.
+
+Provider availability depends on the deployed Lavalink source managers, plugins, credentials, and rollout configuration. A recognized provider prefix does not guarantee that a source can currently load or play.
+
+**Runtime Flow**
+
+```text
+Discord message / slash interaction / reaction
+  -> command or adapter
+  -> injected service
+  -> per-guild playback lifecycle + repository contracts
+  -> Lavalink transport / PostgreSQL / Discord response
+
+API request -> durable command row -> BotControlWorker
+  -> context resolution + dispatch -> the same bot service boundaries
+```
+
+[DC bot.Contracts](../DC%20bot.Contracts/README.md) defines shared storage and command protocol values. [DC bot.Persistence](../DC%20bot.Persistence/README.md) implements the repositories. The bot does not host the mobile HTTP or SignalR endpoints; those belong to [API](../API/README.md).
+
+**Run Locally**
+
+Build from the repository root with the .NET 9 SDK, then run from the bot project directory so relative translation paths resolve. Supply the Discord, Lavalink, and PostgreSQL configuration before starting:
+
+```bash
+dotnet restore "DC bot.sln"
+dotnet build "DC bot.sln"
+cd "DC bot"
+dotnet run --project "DC bot.csproj"
+```
+
+`Program.cs` loads an optional `.env` from the current working directory without replacing values already present in the process environment. It also resolves `localization/` and `guildFiles/` relative to that directory. For the project-directory run above, provide process environment values or an optional `.env` in that directory; the bot does not search parent directories for the repository-root `.env`. Compose passes the root `.env` explicitly instead.
+
+**Configuration**
+
+| Variable | Requirement or default | Purpose |
+|---|---|---|
+| `DISCORD_TOKEN` | Required | Discord bot authentication. |
+| `BOT_PREFIX` | `!` | Prefix for message commands. |
+| `LAVALINK_HOSTNAME` | Required | Lavalink host reachable from the bot process. |
+| `LAVALINK_PORT` | `2333` | Node port. |
+| `LAVALINK_SECURED` | `false` | Use TLS for node connectivity. |
+| `LAVALINK_PASSWORD` | Empty when absent | Must match the deployed node authentication. |
+| `MUSIC_JOIN_DEADLINE` | Required positive `TimeSpan` | Bound joining and readiness work. |
+| `MUSIC_LEAVE_DEADLINE` | Required positive `TimeSpan` | Bound lifecycle cleanup work. |
+| `POSTGRES_HOST` | `localhost` | Database host. |
+| `POSTGRES_PORT` | `5432` | Database port. |
+| `POSTGRES_DB` | `dc_bot` | Database name. |
+| `POSTGRES_USER` | `postgres` | Database user. |
+| `POSTGRES_PASSWORD` | `postgres` | Local fallback used by the loader; supply deployment credentials explicitly. |
+
+Example deadline values are `00:00:30` and `00:00:15`; they are configuration examples rather than measured production recommendations. Both must fit the supported timer duration. Startup resolves these options before migration or Discord connection.
+
+For local execution against Compose-published services, use the host addresses and ports. Inside the Compose network the service names are `postgres` and `lavalink`. Provider-side credentials and plugins are configured separately in the [Lavalink server](../lavalink-server/README.md).
+
+**Docker Compose**
+
+The repository stack builds the bot from this project's Dockerfile:
+
+```bash
+docker compose up -d --build
+```
+
+Compose passes the root `.env` to the bot and waits for PostgreSQL and Lavalink health checks. Updating an existing container's environment requires recreation; `docker compose restart` keeps its current environment.
+
+**Startup and Shutdown**
+
+1. `Program` creates the shutdown token and loads the optional environment file.
+2. `BotConfigurationLoader` reads bot, node, and database settings.
+3. `BotServiceProviderFactory` composes logging, Discord, Lavalink, persistence, commands, and music services.
+4. `BotApplication` validates playback deadlines and calls `DatabaseMigrationRunner`.
+5. `BotHandlerRegistrar` enables the command and reaction handlers.
+6. The Discord runtime, mobile command worker, and playback recovery loop run under linked cancellation.
+
+The bot uses a service provider directly. Startup explicitly validates lifecycle options, and shutdown observes worker faults instead of hiding them as ordinary cancellation.
+
+**Playback, Batches, and History**
+
+A guild has a live player generation and durable queue state. A start claim records operation ownership before the transport call. If the remote outcome is uncertain, recovery reconciles it before another start is allowed.
+
+The active canonical batch retains its full sequence, including tracks added before the batch closes. Full-list repeat can therefore include already played items. Waiting queue position is separate from canonical batch position. Previous lookup stays within the active batch; the read-only `history` command lists recent batches without replaying them.
+
+Track-end events are accepted only for the current correlated attempt. Skip explicitly completes its accepted attempt after stopping so a delayed SDK stop event cannot advance the queue twice. Cleanup reports local invalidation, transport, subscription, and persistence outcomes separately.
+
+Gateway reconnection, Lavalink node readiness, and Discord voice readiness are separate conditions. Validation may confirm voice readiness using unchanged remote session evidence when the SDK connection flag lags. Persisted bot presence is not itself a readiness lock.
+
+**Verification and Maintenance**
 
 `Logging/EventIdTable.md` documents application event declarations and their visibility under the configured category filters. Direct lifecycle logs can carry additional operation identifiers outside that catalog.
 
 Build the solution after changing a shared contract. Run relevant behavior tests from the [test project](../DC%20bot%20tests/README.md); methods marked `Skip` remain planned cases rather than implemented coverage. Live Discord/Lavalink tests require their own configured environment.
 
 Use [AGENTS.md](../AGENTS.md) for implementation conventions. Keep folder documentation focused on current responsibilities and behavior. The [audit](../docs/dc-bot-agents-audit-2026-10-21.md) records findings and verification history separately.
+
+**Method:**
+
+```csharp
+private static async Task Main();
+```
+
+**Behavior:** Console cancellation flows into application startup and the runtime workers. Localization and guild preference paths are relative to the process working directory.
+
+---
 
 ## Related Components
 

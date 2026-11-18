@@ -35,7 +35,10 @@ public class PlayCommand(
     public string Name => "play";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.PlayCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.PlayCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

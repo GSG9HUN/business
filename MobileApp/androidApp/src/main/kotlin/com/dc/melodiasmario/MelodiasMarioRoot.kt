@@ -73,24 +73,26 @@ fun MelodiasMarioRoot(
                 }
             ) {
                 LaunchedEffect(key1 = Unit) {
+
                     if (!isAuthBootstrapComplete) {
-                        refreshSessionUseCase().collect { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    backStack.clear()
-                                    backStack.add(element = AppRoute.GuildSelector)
-                                    isAuthBootstrapComplete = true
-                                }
+                        refreshSessionUseCase()
+                            .collect { result ->
+                                when (result) {
+                                    is Resource.Success -> {
+                                        backStack.clear()
+                                        backStack.add(element = AppRoute.GuildSelector)
+                                        isAuthBootstrapComplete = true
+                                    }
 
-                                is Resource.Error -> {
-                                    backStack.clear()
-                                    backStack.add(element = AppRoute.Login)
-                                    isAuthBootstrapComplete = true
-                                }
+                                    is Resource.Error -> {
+                                        backStack.clear()
+                                        backStack.add(element = AppRoute.Login)
+                                        isAuthBootstrapComplete = true
+                                    }
 
-                                Resource.Loading -> Unit
+                                    Resource.Loading -> Unit
+                                }
                             }
-                        }
                     }
                 }
 

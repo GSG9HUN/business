@@ -4,8 +4,8 @@ Carries inputs, statuses, and results for the playback use cases.
 
 ## Overview
 
-- Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
-- Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
+- Describes playback outcomes, start reasons and acknowledgement states.
+- Carries presentation and reconciliation data between playback services and command adapters.
 
 ## Models and Results
 
@@ -14,6 +14,8 @@ Carries inputs, statuses, and results for the playback use cases.
 **File:** `DC bot/Interface/Service/Music/Playback/Models/PlaybackControlResult.cs`
 
 **Purpose:** Carries the success state and response details of a playback control.
+
+`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes.
 
 **Record declaration:**
 
@@ -97,6 +99,8 @@ public sealed record PlaybackStartResult(PlaybackStartStatus Status, Guid Operat
 
 **Purpose:** Names the possible start outcomes, including an accepted start whose durable state still needs reconciliation.
 
+`QueueFull` represents an atomic non-premium capacity rejection with no incoming tracks inserted. `Unknown` requires start reconciliation and must not be treated as a confirmed rollback.
+
 **Values:**
 
 ```csharp
@@ -117,7 +121,9 @@ public enum PlaybackStartStatus
     // A newer operation replaced this playback attempt.
     Superseded,
     // Another operation currently owns the required playback state.
-    Busy
+    Busy,
+    // Free guild queue capacity rejected the enqueue; no incoming tracks were added.
+    QueueFull
 }
 ```
 

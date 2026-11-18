@@ -7,6 +7,7 @@ import com.dc.melodiasmario.core.common.navigation.AppRoute
  * Pushes the supplied destination onto the navigation back stack.
  */
 fun SnapshotStateList<AppRoute>.navigate(route: AppRoute): Unit {
+
     if(lastOrNull() == route) {
         return
     }
@@ -26,6 +27,7 @@ fun SnapshotStateList<AppRoute>.replaceAll(route: AppRoute): Unit {
  * Removes the current destination when back navigation is possible.
  */
 fun SnapshotStateList<AppRoute>.goBack(): Unit {
+
     if (size > 1) {
         removeLastOrNull()
     }

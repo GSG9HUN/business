@@ -53,7 +53,8 @@ class AndroidPlaylistSaveFeedback(
                                 result.errorDetail?.takeIf { textValue ->
                                     textValue.isNotBlank()
                                 }
-                            ).joinToString(separator = "\n")
+                            )
+                                .joinToString(separator = "\n")
                         },
                         type = if (result.succeeded) {
                             MToastType.Success
@@ -73,6 +74,7 @@ class AndroidPlaylistSaveFeedback(
         result: QueuePlaylistSaveResult,
         message: String
     ) {
+
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
@@ -91,8 +93,7 @@ class AndroidPlaylistSaveFeedback(
 
         ensureChannel()
 
-        val launchIntent = context.packageManager
-            .getLaunchIntentForPackage(context.packageName)
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
             ?.apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -143,6 +144,7 @@ class AndroidPlaylistSaveFeedback(
     }
 
     private fun ensureChannel() {
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
@@ -155,9 +157,10 @@ class AndroidPlaylistSaveFeedback(
             CHANNEL_ID,
             context.getString(R.string.playlist_results_channel),
             NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            enableVibration(true)
-        }
+        )
+            .apply {
+                enableVibration(true)
+            }
 
         manager.createNotificationChannel(channel)
     }

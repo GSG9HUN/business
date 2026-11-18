@@ -71,31 +71,33 @@ class GuildSelectorViewModel(
     }
 
     private suspend fun loadCurrentUser() {
-        getCurrentUserUseCase().collect { result ->
-            when (result) {
-                is Resource.Success -> {
-                    _uiState.update { currentUiState ->
-                        currentUiState.copy(currentUser = result.data)
+        getCurrentUserUseCase()
+            .collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _uiState.update { currentUiState ->
+                            currentUiState.copy(currentUser = result.data)
+                        }
                     }
+
+                    is Resource.Error -> Unit
+
+                    Resource.Loading -> Unit
                 }
-
-                is Resource.Error -> Unit
-
-                Resource.Loading -> Unit
             }
-        }
     }
 
     private suspend fun getGuilds() {
-        getGuildUseCase().collect { result ->
-            when (result) {
-                Resource.Loading -> onGetGuildsLoading()
+        getGuildUseCase()
+            .collect { result ->
+                when (result) {
+                    Resource.Loading -> onGetGuildsLoading()
 
-                is Resource.Success -> onGetGuildsSuccess(guilds = result.data)
+                    is Resource.Success -> onGetGuildsSuccess(guilds = result.data)
 
-                is Resource.Error -> onGetGuildsError(error = result.error)
+                    is Resource.Error -> onGetGuildsError(error = result.error)
+                }
             }
-        }
     }
 
     private fun onQueryChange(query: String) {

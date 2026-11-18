@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using DC_bot.Exceptions.Music;
 using DC_bot.Service.Music.Lifecycle.Models;
 using Lavalink4NET.Players;
+using DC_bot.Service.Music.Playback.Models;
 using Lavalink4NET.Tracks;
 
 namespace DC_bot.Service.Music.Lifecycle.Sessions;
@@ -37,9 +38,185 @@ public sealed class GuildPlaybackSessions
         public Task<LeaveResult>? Leave;
         public Guid? ActiveControlOperationId;
         public string? ActiveControlName;
+        public (ulong VoiceChannelId, ulong TextChannelId)? RecoveryChannels;
+        public float? ConfirmedVolume;
+        public PlaybackFilterState? ConfirmedFilters;
+        public PlaybackFilterState? PendingFilters;
     }
 
     private readonly ConcurrentDictionary<ulong, State> _states = new();
+
+    /// <summary>Returns the actual process-local connection phase for read-only diagnostics.</summary>
+    /// <param name="guildId">The guild whose lifecycle is inspected.</param>
+    /// <returns>A catalog suffix describing joining, closing, connected or disconnected state.</returns>
+    public string GetConnectionPhase(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            return state.Closing ? "closing" : state.Joining ? "joining"
+                : state.Player is null ? "disconnected" : "connected";
+        }
+    }
+
+    /// <summary>Reads the ready attempt identity so votes cannot carry into a repeated occurrence.</summary>
+    /// <param name="session">The owned player generation.</param>
+    /// <returns>The ready attempt, or null when playback is not ready.</returns>
+    public Guid? GetReadyAttemptId(PlaybackSession session)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            return Matches(state, session) && state.AttemptReady ? state.Attempt : null;
+        }
+    }
+
+    /// <summary>Reads the last server-confirmed filter snapshot retained for recovery during this process.</summary>
+    /// <param name="guildId">The guild whose process-local filter checkpoint is requested.</param>
+    /// <returns>The confirmed checkpoint, or null before the first observation.</returns>
+    public PlaybackFilterState? GetConfirmedFilters(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            return state.ConfirmedFilters;
+        }
+    }
+
+    /// <summary>Reports whether the current player has a filter update whose remote outcome still needs reconciliation.</summary>
+    /// <param name="session">The current player generation.</param>
+    /// <returns>Whether this generation has an unconfirmed filter update.</returns>
+    public bool HasPendingFilterChange(PlaybackSession session)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            return Matches(state, session) && state.PendingFilters is not null;
+        }
+    }
+
+    /// <summary>Records desired filters before dispatch without publishing them as confirmed.</summary>
+    /// <param name="session">The current player generation owning the operation.</param>
+    /// <param name="filters">The immutable desired snapshot awaiting acknowledgement.</param>
+    public void BeginFilterChange(PlaybackSession session, PlaybackFilterState filters)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            if (!Matches(state, session))
+            {
+                throw new PlaybackSessionExpiredException();
+            }
+
+            state.PendingFilters = filters;
+        }
+    }
+
+    /// <summary>Publishes acknowledged or remotely observed filters and clears pending uncertainty for the current player.</summary>
+    /// <param name="session">The current player generation owning the observation.</param>
+    /// <param name="filters">The immutable acknowledged or observed configuration.</param>
+    public void ConfirmFilters(PlaybackSession session, PlaybackFilterState filters)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            if (!Matches(state, session))
+            {
+                throw new PlaybackSessionExpiredException();
+            }
+
+            state.ConfirmedFilters = filters;
+            state.PendingFilters = null;
+        }
+    }
+
+    /// <summary>Confirms restoration only for the candidate still owned by the active join lifecycle.</summary>
+    /// <param name="player">The candidate retained by the current join lifecycle.</param>
+    /// <param name="filters">The acknowledged recovery configuration.</param>
+    public void ConfirmRecoveredFilters(ILavalinkPlayer player, PlaybackFilterState filters)
+    {
+        var state = Get(player.GuildId);
+        lock (state.Sync)
+        {
+            if (!state.Joining
+                || state.Closing
+                || !ReferenceEquals(state.Player, player))
+            {
+                throw new PlaybackSessionExpiredException();
+            }
+
+            state.ConfirmedFilters = filters;
+            state.PendingFilters = null;
+        }
+    }
+
+    /// <summary>Returns the last acknowledged output level retained for this guild during this process.</summary>
+    /// <param name="guildId">The guild whose acknowledged volume is requested.</param>
+    /// <returns>The normalized SDK level, or null before the first acknowledged change.</returns>
+    public float? GetConfirmedVolume(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            return state.ConfirmedVolume;
+        }
+    }
+
+    /// <summary>Remembers an acknowledged output level only while the owning player generation remains current.</summary>
+    /// <param name="session">The player generation whose volume change was acknowledged.</param>
+    /// <param name="volume">The normalized SDK level, where 1 represents 100 percent.</param>
+    public void RememberConfirmedVolume(PlaybackSession session, float volume)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            if (!Matches(state, session))
+            {
+                throw new PlaybackSessionExpiredException();
+            }
+
+            state.ConfirmedVolume = volume;
+        }
+    }
+
+    /// <summary>Remembers recovery destinations only for the current player generation.</summary>
+    /// <param name="session">The player generation owning the successful join.</param>
+    /// <param name="voiceChannelId">The voice channel to rejoin while music remains.</param>
+    /// <param name="textChannelId">The channel receiving playback notifications.</param>
+    public void RememberRecoveryChannels(PlaybackSession session, ulong voiceChannelId, ulong textChannelId)
+    {
+        var state = Get(session.GuildId);
+        lock (state.Sync)
+        {
+            if (Matches(state, session))
+            {
+                state.RecoveryChannels = (voiceChannelId, textChannelId);
+            }
+        }
+    }
+
+    /// <summary>Reads process-local recovery destinations retained across replacement player generations.</summary>
+    /// <param name="guildId">The guild whose destinations are requested.</param>
+    /// <returns>The most recent joined destinations, or null after explicit leave.</returns>
+    public (ulong VoiceChannelId, ulong TextChannelId)? GetRecoveryChannels(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            return state.RecoveryChannels;
+        }
+    }
+
+    /// <summary>Suppresses automatic music recovery when an explicit leave is admitted.</summary>
+    /// <param name="guildId">The guild whose recovery intent is cancelled.</param>
+    public void ForgetRecoveryChannels(ulong guildId)
+    {
+        var state = Get(guildId);
+        lock (state.Sync)
+        {
+            state.RecoveryChannels = null;
+        }
+    }
 
     /// <summary>
     /// Creates a signal whose continuations execute asynchronously outside the guild lock.
@@ -60,7 +237,9 @@ public sealed class GuildPlaybackSessions
     /// <param name="state">The state supplied for this operation.</param>
     /// <param name="session">The captured player generation whose ownership must remain current.</param>
     /// <returns>Whether the requested check or operation succeeded.</returns>
-    private static bool Matches(State state, PlaybackSession session) => state is { Closing: false, Joining: false } && state.Generation == session.Generation && ReferenceEquals(state.Player, session.Player);
+    private static bool Matches(State state, PlaybackSession session) => state is { Closing: false, Joining: false }
+        && state.Generation == session.Generation
+        && ReferenceEquals(state.Player, session.Player);
 
     /// <summary>
     /// Captures the current player generation, or returns null for a joining, closing, or unregistered player.
@@ -73,7 +252,8 @@ public sealed class GuildPlaybackSessions
         var state = Get(guildId);
         lock (state.Sync)
         {
-            return state is { Closing: false, Joining: false } && ReferenceEquals(state.Player, player) ? new PlaybackSession(guildId, state.Generation, player) : null;
+            return state is { Closing: false, Joining: false }
+                && ReferenceEquals(state.Player, player) ? new PlaybackSession(guildId, state.Generation, player) : null;
         }
     }
 
@@ -476,9 +656,32 @@ public sealed class GuildPlaybackSessions
         Func<ILavalinkPlayer?, Task<LeaveResult>> cleanup,
         Func<Task>? localCleanup = null)
     {
+        return LeaveAsync(guildId, cleanup, localCleanup, resetAudio: false);
+    }
+
+    /// <summary>Admits explicit leave while forgetting temporary effects and output volume before any late confirmation.</summary>
+    public Task<LeaveResult> LeaveWithDefaultAudioAsync(ulong guildId, Func<ILavalinkPlayer?, Task<LeaveResult>> cleanup)
+    {
+        return LeaveAsync(guildId, cleanup, null, resetAudio: true);
+    }
+
+    /// <summary>Invalidates lifecycle ownership and optionally clears temporary audio before sharing or starting cleanup.</summary>
+    private Task<LeaveResult> LeaveAsync(
+        ulong guildId,
+        Func<ILavalinkPlayer?, Task<LeaveResult>> cleanup,
+        Func<Task>? localCleanup,
+        bool resetAudio)
+    {
         var state = Get(guildId);
         lock (state.Sync)
         {
+            if (resetAudio)
+            {
+                state.ConfirmedFilters = null;
+                state.PendingFilters = null;
+                state.ConfirmedVolume = null;
+            }
+
             if (state.Leave is { IsCompleted: false })
             {
                 return state.Leave;
@@ -635,6 +838,7 @@ public sealed class GuildPlaybackSessions
             await changed.WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
+
     }
 
     /// <summary>
@@ -672,6 +876,7 @@ public sealed class GuildPlaybackSessions
 
         // An unresolved start must not be treated as an idle player.
         // A ready attempt, however, is normal ongoing playback.
+
         if (state.PreparingAttempt.HasValue
             || state is { Attempt: not null, AttemptReady: false })
         {
@@ -756,7 +961,13 @@ public sealed class GuildPlaybackSessions
         var state = Get(session.GuildId);
         lock (state.Sync)
         {
-            return Matches(state, session) && reservation.GuildId == session.GuildId && reservation.Generation == session.Generation && state.ActiveControlOperationId == reservation.OperationId && state.Attempt == operationId && state.QueueItemId == queueItemId && state.EncodedTrack == encodedTrack;
+            return Matches(state, session)
+                && reservation.GuildId == session.GuildId
+                && reservation.Generation == session.Generation
+                && state.ActiveControlOperationId == reservation.OperationId
+                && state.Attempt == operationId
+                && state.QueueItemId == queueItemId
+                && state.EncodedTrack == encodedTrack;
         }
     }
 
@@ -896,7 +1107,8 @@ public sealed class GuildPlaybackSessions
             return false;
         }
 
-        return string.Equals(expected.SourceName, received.SourceName, StringComparison.Ordinal) && string.Equals(expected.Identifier, received.Identifier, StringComparison.Ordinal);
+        return string.Equals(expected.SourceName, received.SourceName, StringComparison.Ordinal)
+            && string.Equals(expected.Identifier, received.Identifier, StringComparison.Ordinal);
     }
 
 

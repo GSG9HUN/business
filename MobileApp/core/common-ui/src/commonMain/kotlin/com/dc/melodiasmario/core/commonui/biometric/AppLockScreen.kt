@@ -39,8 +39,7 @@ fun AppLockScreen(
         color = MaterialTheme.colorScheme.background
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .padding(all = 24.dp),
             verticalArrangement = Arrangement.spacedBy(
                 space = 16.dp,

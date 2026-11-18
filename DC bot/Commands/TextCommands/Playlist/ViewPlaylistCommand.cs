@@ -35,7 +35,10 @@ public class ViewPlaylistCommand(
     public string Name => "viewPlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.ViewPlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.ViewPlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

@@ -19,6 +19,8 @@ internal class TrackNotificationService(
     ILocalizationService localizationService,
     ILogger<TrackNotificationService> logger) : ITrackNotificationService
 {
+
+    /// <inheritdoc />
     public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted = (_, _) => Task.CompletedTask;
 
     /// <summary>

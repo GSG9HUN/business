@@ -4,8 +4,9 @@ Registers command, core, Discord, Lavalink, logging, and music dependencies at t
 
 ## Overview
 
-- BotServiceProviderFactory invokes these modules and AddPersistenceServices. Discord builder callbacks route gateway, message, reaction, and voice events to injected handlers.
-- Keep concrete construction and factory wiring here. MUSIC_JOIN_DEADLINE and MUSIC_LEAVE_DEADLINE must be positive supported TimeSpan values; they are validated before runtime work.
+- Composes application services, command adapters and external clients.
+- Defines dependency lifetimes, configuration validation and SDK event wiring.
+- Connects bot runtime modules to shared persistence registrations.
 
 ## Classes
 
@@ -14,6 +15,8 @@ Registers command, core, Discord, Lavalink, logging, and music dependencies at t
 **File:** `DC bot/Startup/DependencyInjection/CommandServiceCollectionExtensions.cs`
 
 **Purpose:** Registers the command runtime dependencies at the composition root.
+
+Registers text `ICommand` implementations as singletons, slash adapters as transients, and slash types in the DSharpPlus inventory. Entry points share validation and localized presentation.
 
 **Methods:**
 
@@ -39,6 +42,8 @@ var result = services.AddCommandServices();
 
 **Purpose:** Registers the core runtime dependencies at the composition root.
 
+Registers routing, durable commands, localization and response presentation. `Options.Create(botSettings)` supplies the same prefix to usage rendering and message dispatch.
+
 **Methods:**
 
 - `AddCoreBotServices` — Registers the core bot services dependencies with the shared service collection.
@@ -63,6 +68,8 @@ var result = services.AddCoreBotServices(botSettings);
 
 **Purpose:** Registers the discord runtime dependencies at the composition root.
 
+Wires gateway, message, reaction, voice and component-interaction callbacks to injected handlers, including music-search selection.
+
 **Methods:**
 
 - `AddDiscordRuntime` — Registers the discord runtime dependencies with the shared service collection.
@@ -86,6 +93,8 @@ var result = services.AddDiscordRuntime(discordToken);
 **File:** `DC bot/Startup/DependencyInjection/LavalinkServiceCollectionExtensions.cs`
 
 **Purpose:** Registers the lavalink runtime dependencies at the composition root.
+
+Configures Lavalink clients and the authenticated `MusicDiscovery` HTTP client for provider-backed discovery.
 
 **Methods:**
 
@@ -135,6 +144,8 @@ var result = services.AddBotLogging();
 
 **Purpose:** Registers the music runtime dependencies at the composition root.
 
+Registers playback, filters, discovery, queues and guild controls. Presets use `IFilterPresetRepository`; queue/playlist limits use active premium. `MUSIC_JOIN_DEADLINE` and `MUSIC_LEAVE_DEADLINE` must be positive supported `TimeSpan` values. `BotApplication.RunAsync` explicitly starts the shared persistent-voice maintenance worker.
+
 **Methods:**
 
 - `AddMusicServices` — Registers the music services dependencies with the shared service collection.
@@ -150,17 +161,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 var result = services.AddMusicServices();
 ```
-
----
-
-## Twenty-Four-Seven Registration
-
-**Purpose:** Connect both Discord command entry points to the same settings workflow.
-
-- `AddTextCommands` registers `TwentyFourSevenCommand` as an `ICommand` singleton.
-- `AddSlashCommandServices` registers `TwentyFourSevenSlashCommand` as transient; `AddSlashCommandProcessor` adds its command type to the extension.
-- `AddMusicServices` registers `TwentyFourSevenService`, `DisconnectedPlayerCleanupService`, `PersistentVoiceGate`, `PersistentVoiceLeaveService`, and `PersistentVoiceRecoveryService` as singletons. `BotApplication.RunAsync` explicitly starts the persistent voice worker alongside the existing workers; this runtime uses a `ServiceProvider`, so registration alone does not start a hosted service.
-- `IGuildDataRepository` remains provided by the persistence registration.
 
 ---
 

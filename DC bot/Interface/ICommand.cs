@@ -18,6 +18,9 @@ public interface ICommand
     /// </summary>
     string Description { get; }
 
+    /// <summary>Gets the catalog key used to resolve this command description in the requesting guild language.</summary>
+    string DescriptionKey => $"{Name}_command_description";
+
     /// <summary>
     /// Executes the registered text command using the supplied message and its response boundary.
     /// </summary>

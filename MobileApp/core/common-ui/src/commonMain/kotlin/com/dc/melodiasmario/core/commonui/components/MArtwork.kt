@@ -40,8 +40,7 @@ fun MArtwork(
     val shape = RoundedCornerShape(size = 14.dp)
     val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
     Box(
-        modifier = modifier
-            .clip(shape = shape)
+        modifier = modifier.clip(shape = shape)
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
@@ -54,6 +53,7 @@ fun MArtwork(
             ),
         contentAlignment = Alignment.Center
     ) {
+
         if (!artworkUrl.isNullOrBlank()) {
             SubcomposeAsyncImage(
                 model = artworkUrl,
@@ -95,6 +95,7 @@ private fun ArtworkFallback(
     iconSize: Dp,
     contentDescription: String?
 ) {
+
     if (image != null) {
         Image(
             painter = painterResource(resource = image),
@@ -121,6 +122,7 @@ private fun String.toHighResolutionArtworkUrl(): String {
 }
 
 private fun String.replaceYoutubeThumbnailQuality(): String {
+
     if (!contains(other = "ytimg.com", ignoreCase = true)) {
         return this
     }
@@ -131,11 +133,12 @@ private fun String.replaceYoutubeThumbnailQuality(): String {
 }
 
 private fun String.replaceDiscordImageSize(): String {
+
     if (!contains(other = "cdn.discordapp.com", ignoreCase = true)) {
         return this
     }
 
-    return replace(regex = Regex("([?&]size=)\\d+")) { match ->
+    return replace(regex = Regex(pattern = "([?&]size=)\\d+")) { match ->
         "${match.groupValues[1]}512"
     }
 }

@@ -4,9 +4,40 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
+- EnqueueAutoplayIfEmptyAsync performs the empty waiting/pending check and canonical enqueue in one serializable transaction; false means no insert. The bot reserves a chain slot before a potentially uncertain database commit.
+
+- Stage 3 serializable operations atomically insert next occurrences and move captured occurrence IDs. Play-next retains canonical append order; explicit move synchronizes canonical repeat order. Skip-to validates the full waiting ID/order snapshot, tags provisionally skipped prefix occurrences with the selected start operation, and preserves canonical membership. Pre-dispatch release restores the prefix. Confirmed completion clears provisional metadata; disconnected-start reconciliation retains skips when transport was confirmed and otherwise restores the prefix. No migration or new entity is introduced.
+
+- `EnqueueManyAsync` permits active premium guilds to exceed 50 waiting tracks. Free guild overflow throws `QueueCapacityExceededException` before inserting incoming items; the transaction preserves atomic rejection.
+
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - QueueRepository delegates atomic start ownership to QueueClaimService and canonical repeat/history to QueueBatchRepository. QueueBatchStore coordinates active batch state inside transactions; QueueRealtimeNotifier signals readers after relevant changes.
+
+**Recovery Commit**
+
+**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
+
+**Methods:**
+
+```csharp
+Task<bool> CompleteStartAsync(
+    ulong guildId,
+    long queueItemId,
+    Guid operationId,
+    string trackIdentifier,
+    string realtimeEventName,
+    bool clearSourceMetadata = false,
+    TimeSpan? initialPosition = null,
+    bool initiallyPaused = false,
+    CancellationToken cancellationToken = default);
+```
+
+---
+
+**Staging Integration**
+
+QueueRepeatListRepository now edits PlaybackBatchItems, the canonical source used by RestartAsync. Remove marks the exact BatchItemId as excluded; reorder/shuffle persist canonical order using temporary unique positions; clear excludes the active canonical batch. Existing rows and foreign-key history remain intact. Restart ignores excluded items and assigns fresh display groups while preserving canonical identity. GetDisplayItemsAsync groups by EnqueueGroupId and includes Starting items as active. Snapshot reads remain independent of live playback state.
 
 ## Classes
 
@@ -278,27 +309,6 @@ The caller supplies the component and argument values used in this example.
 
 ```csharp
 var result = await queueRepository.GetActiveBatchItemsAsync(guildId, cancellationToken);
-```
-
----
-
-## Recovery Commit
-
-**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
-
-**Methods:**
-
-```csharp
-Task<bool> CompleteStartAsync(
-    ulong guildId,
-    long queueItemId,
-    Guid operationId,
-    string trackIdentifier,
-    string realtimeEventName,
-    bool clearSourceMetadata = false,
-    TimeSpan? initialPosition = null,
-    bool initiallyPaused = false,
-    CancellationToken cancellationToken = default);
 ```
 
 ---

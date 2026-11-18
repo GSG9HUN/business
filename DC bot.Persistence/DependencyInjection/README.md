@@ -4,6 +4,12 @@ Registers the shared PostgreSQL context factory, repositories, queue helpers, an
 
 ## Overview
 
+- IGuildMusicControlSettingsRepository resolves to GuildMusicControlSettingsRepository for both consumers of shared persistence; it introduces no dependency on the bot executable.
+
+- AddPersistenceServices registers IFilterPresetRepository/FilterPresetRepository with the shared context factory. The contract contains only guild-scoped JSON definitions and metadata, retaining API/bot dependency separation.
+
+- AddPersistenceServices registers IFavoriteRepository/FavoriteRepository and IDiscoverySettingsRepository/DiscoverySettingsRepository through the existing shared context factory. They remain independent of the bot executable.
+
 - Both executable projects call AddPersistenceServices with their connection string. Singleton repositories create short-lived contexts rather than sharing a tracked DbContext.
 - Resolve QueueRepository through IQueueRepository so its claim and batch dependencies are supplied. Keep runtime registration here and design-time context creation in Db.
 

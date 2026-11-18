@@ -2,6 +2,7 @@ using DC_bot.BotControl;
 using DC_bot.Interface.Service.Music.Queue;
 using DC_bot.Interface.Service.Music.Queue.Models;
 using DC_bot.Interface.Service.Music.Tracks;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Queue;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -14,11 +15,13 @@ namespace DC_bot.Service.Music.Queue;
 /// Restores durable queue entries and applies queue edits and canonical batch-repeat operations.
 /// </summary>
 /// <param name="queueRepository">The queue repository dependency used by this boundary.</param>
+/// <param name="guildDataRepository">Checks active guild premium entitlement.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 /// <param name="trackSerializer">The track serializer dependency used by this boundary.</param>
 public class MusicQueueService(
     IQueueRepository queueRepository,
     ITrackSerializer trackSerializer,
+    IGuildDataRepository guildDataRepository,
     ILogger<MusicQueueService>? logger = null) : IMusicQueueService
 {
     private const int MaxQueueSize = 50;
@@ -282,27 +285,18 @@ public class MusicQueueService(
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var queue = await GetQueue(guildId, cancellationToken);
-        var tracks = queue.ToList();
-
-        if (trackIndex < 0
-            || trackIndex >= tracks.Count
-            || targetIndex < 0
-            || targetIndex >= tracks.Count)
+        var items = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
+        var ids = items.Where(item => item.State == QueueItemState.Queued)
+            .Select(item => item.Id)
+            .ToArray();
+        if (ids.Length > MaxQueueSize
+            && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
         {
-            return new QueueMoveResult(false, trackIndex, targetIndex, tracks.Count);
+            throw new InvalidOperationException("Queue cannot contain more than 50 queued tracks.");
         }
 
-        if (trackIndex == targetIndex)
-        {
-            return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
-        }
-
-        var track = tracks[trackIndex];
-        tracks.RemoveAt(trackIndex);
-        tracks.Insert(targetIndex, track);
-        await SaveQueue(guildId, new Queue<ILavaLinkTrack>(tracks), MobileRealtimeEventNames.QueueItemMoved, cancellationToken);
-        return new QueueMoveResult(true, trackIndex, targetIndex, tracks.Count);
+        var success = await queueRepository.MoveQueuedItemAsync(guildId, ids, trackIndex, targetIndex, cancellationToken);
+        return new QueueMoveResult(success, trackIndex, targetIndex, ids.Length);
     }
 
     /// <summary>
@@ -321,7 +315,8 @@ public class MusicQueueService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (shuffledQueue.Count > MaxQueueSize)
+        if (shuffledQueue.Count > MaxQueueSize
+            && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
         {
             _logger.LogWarning("Queue reorder rejected for guild {GuildId}. Requested count {RequestedCount} exceeds max {MaxQueueSize}.", guildId, shuffledQueue.Count, MaxQueueSize);
             throw new InvalidOperationException($"Queue cannot contain more than {MaxQueueSize} tracks.");
@@ -394,4 +389,63 @@ public class MusicQueueService(
 
         return null;
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<KeyValuePair<int, string>>> FindAsync(
+        ulong guildId,
+        string query,
+        CancellationToken cancellationToken = default)
+    {
+        var items = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
+        var results = new List<KeyValuePair<int, string>>();
+        var index = 0;
+
+        foreach (var item in items)
+        {
+            index++;
+
+            if (item.State != QueueItemState.Queued)
+            {
+                continue;
+            }
+
+            try
+            {
+                var track = _trackSerializer.Deserialize(item.TrackIdentifier, item.Id);
+                var label = $"{track.Author} - {track.Title}";
+
+                if (label.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    var bounded = label.Length > 150 ? label[..147] + "..." : label;
+                    results.Add(new(index, bounded.Replace('\n', ' ').Replace('\r', ' ')));
+                }
+
+                if (results.Count == 10)
+                {
+                    break;
+                }
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                _logger.LogWarning(exception, "Queue search could not parse occurrence {QueueItemId}.", item.Id);
+            }
+        }
+
+        return results;
+    }
+
+
+    /// <inheritdoc />
+    public Task EnqueueNextAsync(
+        ulong guildId,
+        IReadOnlyCollection<QueueTrackToEnqueue> tracks,
+        CancellationToken cancellationToken = default)
+    {
+        var items = tracks.Select(track => new QueueItemToEnqueue(
+                _trackSerializer.Serialize(track.Track), track.SourceQuery,
+                SerializeSearchMode(track.SourceSearchMode), track.RequestedBy))
+            .ToArray();
+        return queueRepository.EnqueueNextAsync(guildId, items, cancellationToken);
+    }
+
 }

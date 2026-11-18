@@ -10,10 +10,20 @@ namespace DC_bot.Service.BotControl;
 /// <param name="responseChannel">The Discord channel used by the operation.</param>
 internal sealed class BotControlDiscordMember(DiscordMember discordMember, IDiscordChannel responseChannel) : IDiscordMember
 {
+
+    /// <inheritdoc />
     public ulong Id => discordMember.Id;
+
+    /// <inheritdoc />
     public bool IsBot => discordMember.IsBot;
+
+    /// <inheritdoc />
     public string Username => discordMember.Username;
+
+    /// <inheritdoc />
     public string Mention => discordMember.Mention;
+
+    /// <inheritdoc />
     public IDiscordVoiceState? VoiceState { get; } = new BotControlDiscordVoiceState(responseChannel);
 
     /// <summary>

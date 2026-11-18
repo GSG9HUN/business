@@ -29,3 +29,7 @@ Reaction handler tests cover context creation, action dispatch, control message 
 ```bash
 dotnet test "DC bot tests/DC bot tests.csproj" --filter "Category=Unit"
 ```
+
+## Playlist Command Execution
+
+The new `PlaylistCreationTests` and `PlaylistBotControlHandlerTests` contain test scaffolds only. All scenarios are explicitly skipped with implementation pending; they do not provide behavior coverage.

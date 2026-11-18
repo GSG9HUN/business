@@ -4,10 +4,21 @@ Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
 
-- BotControlWorker claims work, resolves Discord context, dispatches allowed commands, and persists result or failure metadata. Adapter values make mobile requests compatible with existing bot boundaries.
-- Execution ownership and cancellation must survive process and request lifetimes. Treat notifications as wake-up hints and use repository state to decide which command can run.
+- Executes durable API-originated commands through bot service boundaries.
+- Resolves authenticated Discord context and response destinations.
+- Maps execution outcomes and notifications to stored command results.
 
 ## Classes
+
+### PlaylistBotControlHandler
+
+**Purpose:** Validates saved tracks, records the authenticated requester as a canonical Discord mention, and loads them through the joined session/event pipeline.
+
+**File:** `PlaylistBotControlHandler.cs`.
+
+Idle-player loads succeed only after `Started`; other outcomes retain `playbackStatus`, `operationId`, `queueItemId` and `requiresReconciliation` metadata. Uncertain starts are not blindly retried or enqueued again. Loads into a playing player succeed after enqueueing. `QueueFull` reports no inserted incoming tracks.
+
+---
 
 ### BotControlCommandDispatcher
 
@@ -43,6 +54,8 @@ var result = await botControlCommandDispatcher.DispatchAsync(command, cancellati
 
 **Purpose:** Resolves guild, member, and channel permissions for durable mobile commands.
 
+Response candidates are the remembered music channel, explicit request text channel and requesting user voice chat, in that order. Each must belong to the guild and support messages. Remembered destinations are process-local and cleared by explicit leave.
+
 **Implements / inherits:** `IBotControlContextResolver`.
 
 **Methods:**
@@ -73,6 +86,17 @@ var result = await botControlContextResolver.ResolveAsync(command, channelContex
 **Purpose:** Finds usable voice and response channels for mobile commands.
 
 **Methods:**
+
+- `SelectResponseChannelAsync` - Returns the first usable remembered, requested, or user voice channel, skipping duplicate destinations and forwarding cancellation.
+
+```csharp
+internal static Task<ulong?> SelectResponseChannelAsync(
+    ulong? rememberedChannelId,
+    ulong? requestedChannelId,
+    ulong? voiceChannelId,
+    Func<ulong, CancellationToken, Task<bool>> isUsableAsync,
+    CancellationToken cancellationToken = default);
+```
 
 - `TryGetGuildAsync` — Attempts to resolve an available guild for the operation.
 

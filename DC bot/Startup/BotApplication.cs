@@ -2,7 +2,6 @@ using DC_bot.Configuration;
 using DC_bot.Db;
 using DC_bot.Interface.Service.BotControl;
 using DC_bot.Service;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
 using DC_bot.Service.Music.Lifecycle.Recovery;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +47,7 @@ internal static class BotApplication
         var persistentVoiceRecovery = services.GetRequiredService<PersistentVoiceRecoveryService>();
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // Unit/test startup never contacts a real node for recovery.
+
         if (isTestEnvironment)
         {
             await botService.StartAsync(true, linked.Token);

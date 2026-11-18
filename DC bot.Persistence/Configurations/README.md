@@ -4,10 +4,44 @@ Groups PostgreSQL table, key, index, relationship, and conversion mappings by fe
 
 ## Overview
 
+- Filters/ maps the filter_preset jsonb definition table with a guild/name composite key and existing numeric Discord identifier conversion.
+
+- Discovery/ maps the three music discovery tables with numeric Discord keys, disabled opt-ins and a unique favorite owner/source index.
+
 - BotDbContext applies these IEntityTypeConfiguration implementations when constructing its EF model.
 - Entity shape belongs in Entities; storage behavior belongs in Repositories. A schema-affecting mapping change normally needs a new migration.
 
 ## Subfolders
+
+### MusicControl/
+
+Maps guild_music_control_settings with a numeric(20,0) guild primary key, a default-false vote_skip_enabled column and nullable numeric DJ role.
+
+**Files:** `GuildMusicControlSettingsConfiguration.cs`.
+
+**Purpose:** Maps guild_music_control_settings with a numeric(20,0) guild primary key, a default-false vote_skip_enabled column and nullable numeric DJ role.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset components.
+
+**Files:** `FilterPresetConfiguration.cs`.
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery components.
+
+**Files:** `FavoriteTrackConfiguration.cs`, `UserMusicSettingsConfiguration.cs`, `GuildMusicSettingsConfiguration.cs`.
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControl/
 

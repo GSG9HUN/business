@@ -42,6 +42,7 @@ public sealed class PlayerConnectionRetryPolicy(IValidationService validationSer
         var attempts = 0;
         try
         {
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -66,6 +67,7 @@ public sealed class PlayerConnectionRetryPolicy(IValidationService validationSer
                 await Task.Delay(DelayMs, cancellationToken)
                     .ConfigureAwait(false);
             }
+
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
         {

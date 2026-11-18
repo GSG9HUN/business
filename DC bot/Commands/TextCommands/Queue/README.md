@@ -4,11 +4,67 @@ Exposes queue display, repetition, ordering, and recent batch history through te
 
 ## Overview
 
-- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
-- The history command lists recent batches without changing playback. Repeat-list targets the active batch, including tracks played earlier in that batch; it does not select arbitrary older history for replay.
+- Provides queue inspection, ordering, removal, repeat and batch-history commands.
+- Uses one-based waiting positions and shared playback validation for mutations.
+- Presents localized descriptions, usage, queue results and validation errors.
 
 ## Classes
+
+### RemoveCommand
+
+**Files:**
+
+- `RemoveCommand.cs`
+
+**Purpose:** Exposes `remove 3` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the Discord message.
+
+**Usage:** `<prefix>remove 3`.
+
+---
+
+### MoveCommand
+
+**Files:**
+
+- `MoveCommand.cs`
+
+**Purpose:** Exposes `move 5 2` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the Discord message.
+
+**Usage:** `<prefix>move 5 2`.
+
+---
+
+### SkipToCommand
+
+**Files:**
+
+- `SkipToCommand.cs`
+
+**Purpose:** Exposes `skipto 5` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the Discord message.
+
+**Usage:** `<prefix>skipto 5`.
+
+---
+
+### QueueFindCommand
+
+**Files:**
+
+- `QueueFindCommand.cs`
+
+**Purpose:** Exposes `queuefind artist` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the Discord message.
+
+**Usage:** `<prefix>queuefind artist`.
+
+---
 
 ### ClearCommand
 
@@ -25,6 +81,7 @@ Exposes queue display, repetition, ordering, and recent batch history through te
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -60,6 +117,7 @@ await clearCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -95,6 +153,7 @@ await historyCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -130,6 +189,7 @@ await repeatCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -165,6 +225,7 @@ await repeatListCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -200,6 +261,7 @@ await shuffleCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**

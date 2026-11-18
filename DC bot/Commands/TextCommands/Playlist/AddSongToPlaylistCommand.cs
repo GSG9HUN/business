@@ -34,7 +34,10 @@ public class AddSongToPlaylistCommand(
     public string Name => "addSong";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.AddSongToPlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.AddSongToPlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

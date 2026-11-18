@@ -16,5 +16,9 @@ data class Track(
     val artist: String = "",
     val durationSeconds: Int = 0,
     val thumbnailUrl: String? = null,
-    val requestedBy: String? = null
+    val requestedBy: String? = null,
+    val queueItemId: String? = null,
+    val batchId: String? = null,
+    val batchPosition: Int = 0,
+    val queueState: String = "Queued"
 )

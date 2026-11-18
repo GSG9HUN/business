@@ -4,8 +4,9 @@ Builds Discord success, warning, error, and validation replies from localization
 
 ## Overview
 
-- ResponseBuilder retrieves the guild language, formats arguments, and sends through IDiscordMessage.
-- Compatibility params overloads delegate to token-aware implementations. A CancellationToken must not accidentally become a localization formatting argument.
+- Builds localized success, warning, validation, usage and error replies.
+- Formats messages using the guild language and configured command prefix.
+- Sends responses through Discord adapters with cancellation and delivery-failure handling.
 
 ## Classes
 
@@ -14,6 +15,8 @@ Builds Discord success, warning, error, and validation replies from localization
 **File:** `DC bot/Service/Presentation/ResponseBuilder.cs`
 
 **Purpose:** Builds localized usage, success, warning, validation, and error responses.
+
+`SendUsageAsync` resolves `{commandName}_command_usage` using the configured prefix from `IOptions<BotSettings>`. Canonical usage errors use the same formatter. Argument errors retain their explanation and append usage; empty command context does not invent a usage destination.
 
 **Implements / inherits:** `IResponseBuilder`.
 

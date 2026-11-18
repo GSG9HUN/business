@@ -4,8 +4,8 @@ Exposes help, language selection, latency checks, and user tagging through text 
 
 ## Overview
 
-- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Handles command help, guild language selection, latency checks and user tagging.
+- Resolves descriptions and usage using the guild language and configured command prefix.
 
 ## Classes
 
@@ -14,6 +14,23 @@ Exposes help, language selection, latency checks, and user tagging through text 
 **File:** `DC bot/Commands/TextCommands/Utility/HelpCommand.cs`
 
 **Purpose:** Handles the help text command through validation, service, and localized response boundaries.
+
+**Validation Checks:**
+
+- Resolve command descriptions in the guild language through `DescriptionKey`.
+- Accept `help [command]`; detailed lookup ignores case and preserves alias-specific usage.
+- Split sorted listings into blocks of at most 1600 characters before localized headers.
+- Return localized guidance for unknown commands or extra arguments.
+
+**Usage:**
+
+```text
+!help
+!help volume
+!help music-config
+```
+
+Examples use `!`; runtime usage uses the configured prefix.
 
 **Implements / inherits:** `ICommand`.
 
@@ -24,6 +41,7 @@ Exposes help, language selection, latency checks, and user tagging through text 
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -59,6 +77,7 @@ await helpCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -94,6 +113,7 @@ await languageCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -129,6 +149,7 @@ await pingCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**

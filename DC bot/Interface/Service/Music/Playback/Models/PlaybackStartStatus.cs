@@ -44,5 +44,8 @@ public enum PlaybackStartStatus
     /// <summary>
     /// Another operation currently owns the required playback state.
     /// </summary>
-    Busy
+    Busy,
+
+    /// <summary>The enqueue was rejected because the free guild waiting queue is full; no tracks were added.</summary>
+    QueueFull
 }

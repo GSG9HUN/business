@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.jetbrains.kotlin.serialization)
@@ -45,32 +45,32 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                implementation(project(":core:common"))
-                implementation(project(":core:domain"))
-                implementation(project(":core:model"))
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = project(":core:domain"))
+                implementation(dependencyNotation = project(":core:model"))
 
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.androidx.lifecycle.viewmodelCompose)
-                implementation(libs.koin.core)
-                implementation(libs.koin.annotations)
-                implementation(libs.koin.compose.viewmodel)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.ktor.client.core)
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.core)
+                implementation(dependencyNotation = libs.androidx.lifecycle.viewmodelCompose)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.annotations)
+                implementation(dependencyNotation = libs.koin.compose.viewmodel)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = libs.ktor.client.core)
             }
         }
 
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlin.test)
             }
         }
 
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

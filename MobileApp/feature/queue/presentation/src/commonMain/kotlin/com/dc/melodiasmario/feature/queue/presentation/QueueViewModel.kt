@@ -61,10 +61,9 @@ class QueueViewModel(
     /**
      * Read-only presentation state observed by UI consumers.
      */
-    val uiState: StateFlow<QueueUiState> = _uiState
-        .onStart {
-            playbackMonitorObserver.start()
-        }
+    val uiState: StateFlow<QueueUiState> = _uiState.onStart {
+        playbackMonitorObserver.start()
+    }
         .stateIn(
             scope = viewModelScope,
             started = WhileSubscribed(stopTimeoutMillis = 5_000),
@@ -151,7 +150,9 @@ class QueueViewModel(
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
     fun onEvent(event: QueueEvent): Unit {
+
         if (event.isCommandEvent()) {
+
             if (!startCommandIfIdle()) {
                 return
             }
@@ -197,6 +198,7 @@ class QueueViewModel(
             }
 
             QueueEvent.DialogDismissed -> {
+
                 if (!_uiState.value.isCommandInFlight) {
                     closeDialog()
                 }
@@ -249,6 +251,7 @@ class QueueViewModel(
     }
 
     private suspend fun loadQueue(guildId: String) {
+
         if (currentGuildId != guildId) {
             clearCommandExecution()
             musicSearchController.resetForGuildChange(
@@ -285,21 +288,24 @@ class QueueViewModel(
                 errorMessage = playback.errorMessage,
                 guildName = track?.guildName.orEmpty(),
                 guildIconUrl = track?.guildIconUrl,
-                tracks = track?.queuedTracks.orEmpty()
+                tracks = track?.queuedTracks.orEmpty(),
+                displayTracks = track?.displayTracks.orEmpty()
             )
         }
     }
 
     private suspend fun loadCurrentUser() {
-        getCurrentUserUseCase().collect { result ->
+        getCurrentUserUseCase()
+            .collect { result ->
 
-            if (result is Resource.Success) {
-                currentUserId = result.data.id
+                if (result is Resource.Success) {
+                    currentUserId = result.data.id
+                }
             }
-        }
     }
 
     private suspend fun addMusicClicked() {
+
         if (_uiState.value.isCommandInFlight) {
             return
         }
@@ -309,6 +315,7 @@ class QueueViewModel(
     }
 
     private fun refreshClicked() {
+
         if (_uiState.value.isCommandInFlight) {
             return
         }
@@ -321,7 +328,9 @@ class QueueViewModel(
     }
 
     private fun makePlaylistClicked() {
-        if (_uiState.value.isCommandInFlight || _uiState.value.tracks.isEmpty()) {
+
+        if (_uiState.value.isCommandInFlight ||
+            (_uiState.value.tracks.isEmpty() && _uiState.value.displayTracks.isEmpty())) {
             return
         }
 
@@ -344,6 +353,7 @@ class QueueViewModel(
     }
 
     private suspend fun runCommandIfIdle(action: suspend () -> Unit) {
+
         if (!startCommandIfIdle()) {
             return
         }
@@ -357,6 +367,7 @@ class QueueViewModel(
     }
 
     private fun startCommandIfIdle(): Boolean {
+
         if (currentGuildId == null || _uiState.value.isLoading) {
             return false
         }
@@ -370,6 +381,7 @@ class QueueViewModel(
     }
 
     private fun finishCommand(version: Long) {
+
         if (version == commandVersion) {
             commandLock.finish()
         }

@@ -62,6 +62,7 @@ internal fun PlaylistTrackHeader(
                 enabled = enabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 if (isBusy) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(size = 16.dp),

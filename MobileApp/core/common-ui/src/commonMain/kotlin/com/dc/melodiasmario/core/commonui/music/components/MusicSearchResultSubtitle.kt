@@ -17,5 +17,6 @@ internal fun MMusicSearchResultUi.subtitle(mAddMusicLabels: MAddMusicLabels): St
         kind == MMusicSearchKind.Track -> mAddMusicLabels.unknownDuration
         else -> null
     }
-    return listOfNotNull(creator, providerName, detail).joinToString(separator = " - ")
+    return listOfNotNull(creator, providerName, detail)
+        .joinToString(separator = " - ")
 }

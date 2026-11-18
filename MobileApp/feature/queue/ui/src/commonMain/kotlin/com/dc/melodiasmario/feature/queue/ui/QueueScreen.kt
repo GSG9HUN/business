@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import com.dc.melodiasmario.core.commonui.components.queueBatchItems
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -151,8 +151,7 @@ fun QueueScreen(
         HorizontalDivider()
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .padding(
                     horizontal = 12.dp,
                     vertical = 8.dp
@@ -231,7 +230,7 @@ fun QueueScreen(
                 onClick = { onEvent(QueueEvent.RefreshClicked) }
             )
 
-            uiState.tracks.isEmpty() -> QueueEmptyContent(
+            uiState.tracks.isEmpty() && uiState.displayTracks.isEmpty() -> QueueEmptyContent(
                 modifier = Modifier.fillMaxWidth()
                     .weight(weight = 1f),
                 title = stringResource(resource = Res.string.queue_empty_title),
@@ -239,12 +238,11 @@ fun QueueScreen(
             )
 
             else -> ReorderDragContainer(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .weight(weight = 1f),
                 listState = listState,
                 itemKeys = uiState.tracks.mapIndexed { index, track ->
-                    "${track.id}:$index"
+                    track.queueItemId?.let { queueItemId -> "queued:$queueItemId" } ?: "${track.id}:$index"
                 },
                 enabled = !uiState.isCommandInFlight,
                 onMove = { fromIndex, toIndex ->
@@ -262,8 +260,7 @@ fun QueueScreen(
                     val track = uiState.tracks[index]
 
                     MTrackItemRow(
-                        modifier = Modifier
-                            .alpha(alpha = 0.85f)
+                        modifier = Modifier.alpha(alpha = 0.85f)
                             .graphicsLayer {
                                 shadowElevation = 16.dp.toPx()
                             },
@@ -295,13 +292,13 @@ fun QueueScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
                 ) {
-                    itemsIndexed(
+                    queueBatchItems(
                         items = uiState.tracks,
-                        key = { index, track -> "${track.id}:$index" }
+                        displayTracks = uiState.displayTracks,
+                        key = { index, track -> track.queueItemId?.let { queueItemId -> "queued:$queueItemId" } ?: "${track.id}:$index" }
                     ) { index, track ->
                         MTrackItemRow(
-                            modifier = Modifier
-                                .animateItem()
+                            modifier = Modifier.animateItem()
                                 .alpha(
                                     alpha = if (index == draggedIndex) 0f else 1f
                                 ),
@@ -353,8 +350,7 @@ fun QueueScreen(
 
         if (!uiState.isLoading && uiState.errorMessage == null) {
             QueueEditModeCard(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 14.dp),
                 title = stringResource(
                     resource = if (uiState.isCommandInFlight) Res.string.queue_processing else Res.string.queue_edit_mode_label
@@ -401,7 +397,7 @@ fun QueueScreen(
                     onClick = {
                         onEvent(QueueEvent.MakePlaylistFromQueueClicked)
                     },
-                    enabled = canModifyQueue && uiState.tracks.isNotEmpty()
+                    enabled = canModifyQueue && (uiState.tracks.isNotEmpty() || uiState.displayTracks.isNotEmpty())
                 )
             ),
             onDismiss = { onEvent(QueueEvent.DialogDismissed) }
@@ -419,7 +415,8 @@ fun QueueScreen(
             confirmText = stringResource(resource = Res.string.queue_save),
             dismissText = stringResource(resource = Res.string.queue_cancel),
             enabled = !uiState.isCommandInFlight,
-            canConfirm = uiState.playlistNameDraft.isNotBlank() && uiState.tracks.isNotEmpty()
+            canConfirm = uiState.playlistNameDraft.isNotBlank() &&
+                (uiState.tracks.isNotEmpty() || uiState.displayTracks.isNotEmpty())
         )
     }
 }

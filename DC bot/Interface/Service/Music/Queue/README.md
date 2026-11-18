@@ -4,8 +4,8 @@ Defines the queue boundary used by the bot music pipeline.
 
 ## Overview
 
-- Implementations live under Service/Music/Queue; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
-- Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
+- Defines queue reads and mutations independently of repository and transport details.
+- Exchanges stable occurrence identities, serialized tracks and mutation results.
 
 ## Subfolders
 

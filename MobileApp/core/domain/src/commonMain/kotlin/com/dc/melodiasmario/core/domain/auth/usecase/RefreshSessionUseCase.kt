@@ -26,8 +26,7 @@ class RefreshSessionUseCase(
         try {
             val session = secureAuthSessionStorage.getSession()
             val refreshToken = session?.refreshToken ?: throw Exception("No refresh token found")
-            val newRefreshToken = authRepository
-                .refreshSession(refreshToken = refreshToken)
+            val newRefreshToken = authRepository.refreshSession(refreshToken = refreshToken)
             emit(value = Resource.Success(data = newRefreshToken))
         } catch (error: CancellationException) {
             throw error

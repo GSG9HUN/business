@@ -61,8 +61,7 @@ fun MSearchBar(
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(space = 10.dp)
@@ -77,6 +76,7 @@ fun MSearchBar(
                         modifier = Modifier.weight(weight = 1f),
                         contentAlignment = Alignment.CenterStart
                     ) {
+
                         if (query.isBlank()) {
                             MText(
                                 text = placeholder,

@@ -29,4 +29,12 @@ public sealed record QueueItemRecord(
     long? BatchItemId,
     DateTimeOffset AddedAtUtc,
     DateTimeOffset? PlayedAtUtc,
-    DateTimeOffset? SkippedAtUtc);
+    DateTimeOffset? SkippedAtUtc)
+{
+
+    /// <summary>Identifies the originating enqueue operation.</summary>
+    public Guid EnqueueGroupId { get; init; }
+
+    /// <summary>Gets the original position within the batch.</summary>
+    public int BatchPosition { get; init; }
+}

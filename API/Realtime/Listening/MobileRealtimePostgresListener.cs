@@ -30,6 +30,7 @@ public sealed class MobileRealtimePostgresListener(
     /// <returns>A task that completes when the operation and its required side effects finish.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -46,6 +47,7 @@ public sealed class MobileRealtimePostgresListener(
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
+
     }
 
     /// <summary>
@@ -73,7 +75,9 @@ public sealed class MobileRealtimePostgresListener(
             {
                 await HandleNotificationAsync(notification, cancellationToken);
             }
+
         }
+
     }
 
     /// <summary>
@@ -84,12 +88,14 @@ public sealed class MobileRealtimePostgresListener(
     /// <returns>A task that completes when the operation and its required side effects finish.</returns>
     private static async Task ListenToChannelsAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
     {
+
         foreach (var channel in ListenedChannels)
         {
             await using var command = connection.CreateCommand();
             command.CommandText = $"LISTEN {channel};";
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
+
     }
 
     /// <summary>
@@ -211,6 +217,7 @@ public sealed class MobileRealtimePostgresListener(
 
         id = payload[..separatorIndex].Trim();
         eventName = payload[(separatorIndex + 1)..].Trim();
-        return !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(eventName);
+        return !string.IsNullOrWhiteSpace(id)
+            && !string.IsNullOrWhiteSpace(eventName);
     }
 }

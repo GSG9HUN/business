@@ -50,6 +50,7 @@ class MusicSearchController<State, Effect>(
      * Clears search state when the selected guild changes.
      */
     fun resetForGuildChange(newGuildId: String, currentGuildId: String?): Unit {
+
         if (newGuildId == currentGuildId) {
             return
         }
@@ -63,9 +64,10 @@ class MusicSearchController<State, Effect>(
     suspend fun loadCapabilities(): Unit {
         val guildId = currentGuildIdProvider() ?: return
 
-        getCapabilities(guildId).filter {
-            currentGuildIdProvider() == guildId
-        }
+        getCapabilities(guildId)
+            .filter {
+                currentGuildIdProvider() == guildId
+            }
             .runAction(
                 uiState = uiState,
                 effects = effects,
@@ -237,6 +239,7 @@ class MusicSearchController<State, Effect>(
         }
 
         searchJob = coroutineScope.launch {
+
             if (debounce) {
                 delay(duration = SEARCH_DEBOUNCE_MILLIS.milliseconds)
             }
@@ -251,6 +254,7 @@ class MusicSearchController<State, Effect>(
     }
 
     private fun canSearch(search: MAddMusicSheetState): Boolean {
+
         if (search.isCapabilitiesLoading
             || search.query.trim().length < MIN_SEARCH_QUERY_LENGTH) {
             return false
@@ -286,9 +290,10 @@ class MusicSearchController<State, Effect>(
             } else {
                 null
             }
-        ).filter {
-            requestKey == searchRequestKey && currentGuildIdProvider() == guildId
-        }
+        )
+            .filter {
+                requestKey == searchRequestKey && currentGuildIdProvider() == guildId
+            }
             .runAction(
                 uiState = uiState,
                 effects = effects,

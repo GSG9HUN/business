@@ -26,8 +26,7 @@ fun MQueueDragHandle(
     val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
-        modifier = modifier
-            .size(size = 36.dp)
+        modifier = modifier.size(size = 36.dp)
             .semantics { this.contentDescription = contentDescription },
         shape = RoundedCornerShape(size = 9.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -38,15 +37,16 @@ fun MQueueDragHandle(
                 .padding(horizontal = 9.dp, vertical = 10.dp)
         ) {
             val strokeWidth = 2.dp.toPx()
-            listOf(2f, size.height / 2f, size.height - 2f).forEach { y ->
-                drawLine(
-                    color = lineColor,
-                    start = Offset(x = 0f, y = y),
-                    end = Offset(x = size.width, y = y),
-                    strokeWidth = strokeWidth,
-                    cap = StrokeCap.Round
-                )
-            }
+            listOf(2f, size.height / 2f, size.height - 2f)
+                .forEach { y ->
+                    drawLine(
+                        color = lineColor,
+                        start = Offset(x = 0f, y = y),
+                        end = Offset(x = size.width, y = y),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round
+                    )
+                }
         }
     }
 }

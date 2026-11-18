@@ -33,6 +33,7 @@ class TopBarController {
      * Clears the state and resources owned by TopBarController.
      */
     internal fun clear(owner: TopBarOwner): Unit {
+
         if (this.owner === owner) {
             this.owner = null
             config = null

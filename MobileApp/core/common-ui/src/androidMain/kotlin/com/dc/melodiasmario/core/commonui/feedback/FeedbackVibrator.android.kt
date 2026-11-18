@@ -18,8 +18,7 @@ actual class FeedbackVibrator(
     @Suppress("DEPRECATION")
     private val vibrator: Vibrator? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            applicationContext
-                .getSystemService(VibratorManager::class.java)
+            applicationContext.getSystemService(VibratorManager::class.java)
                 ?.defaultVibrator
         } else {
             applicationContext.getSystemService(
@@ -61,11 +60,13 @@ actual class FeedbackVibrator(
         )
 
         try {
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator.vibrate(VibrationEffect.createWaveform(timings, -1), audioAttributes)
             } else {
                 vibrator.vibrate(timings, -1, audioAttributes)
             }
+
         } catch (_: SecurityException) {
         }
     }

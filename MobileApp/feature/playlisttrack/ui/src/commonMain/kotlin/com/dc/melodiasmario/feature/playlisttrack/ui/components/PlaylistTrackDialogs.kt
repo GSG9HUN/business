@@ -48,7 +48,10 @@ internal fun PlaylistTrackDialogs(
                 MMoreAction(
                     text = stringResource(resource = Res.string.playlisttrack_refresh),
                     enabled = !uiState.isCommandInFlight && !uiState.isRefreshing,
-                    onClick = { onEvent(PlaylistTrackEvent.Refresh); dismiss() }
+                    onClick = {
+                        onEvent(PlaylistTrackEvent.Refresh)
+                        dismiss()
+                    }
                 )
             ),
             onDismiss = dismiss,
@@ -86,6 +89,7 @@ internal fun PlaylistTrackDialogs(
             onDismissRequest = { if (!uiState.isCommandInFlight) {
                 dismiss()
             } },
+
             title = { MText(
                 text = stringResource(resource = Res.string.playlisttrack_remove),
                 color = MaterialTheme.colorScheme.onSurface

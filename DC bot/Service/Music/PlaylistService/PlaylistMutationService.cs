@@ -1,6 +1,7 @@
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Persistence.Exceptions;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.Playlists;
 using DC_bot.Validation;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,13 @@ namespace DC_bot.Service.Music.PlaylistService;
 /// </summary>
 /// <param name="playlistRepository">The playlist repository dependency used by this boundary.</param>
 /// <param name="options">The options supplied for this operation.</param>
+/// <param name="guildDataRepository">Checks active guild premium entitlement.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 internal sealed class PlaylistMutationService(
     IPlaylistRepository playlistRepository,
     PlaylistOptions options,
-    ILogger<PlaylistService> logger)
+    ILogger<PlaylistService> logger,
+    IGuildDataRepository guildDataRepository)
 {
 
     /// <summary>
@@ -164,7 +167,19 @@ internal sealed class PlaylistMutationService(
                 return CreatePlaylistResult.PlaylistLimitReached;
             }
 
-            await playlistRepository.CreatePlaylistAsync(guildId, playlistName, cancellationToken: cancellationToken);
+            var playlistId = await playlistRepository.CreateSnapshotAsync(
+                guildId,
+                playlistName,
+                [],
+                options.MaxPlaylistsPerGuild,
+                options.MaxTracksPerPlaylist,
+                cancellationToken);
+
+            if (playlistId is null)
+            {
+                return CreatePlaylistResult.PlaylistLimitReached;
+            }
+
             logger.LogInformation("Created new playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
             return CreatePlaylistResult.Created;
         }
@@ -193,6 +208,12 @@ internal sealed class PlaylistMutationService(
     private async Task<bool> IsPlaylistLimitReachedAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
+        {
+            return false;
+        }
+
         var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
         var playlists = await playlistRepository.GetByGuildAsync(guildId, cancellationToken: cancellationToken);
         return playlists.Count >= maxPlaylists;

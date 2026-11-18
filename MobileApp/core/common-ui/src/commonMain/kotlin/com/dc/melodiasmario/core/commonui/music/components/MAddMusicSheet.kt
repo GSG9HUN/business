@@ -50,13 +50,14 @@ fun MAddMusicSheet(
 ): Unit {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val density = LocalDensity.current
-    val imeBottom = WindowInsets.ime.getBottom(density)
+    val imeBottom = WindowInsets.ime.getBottom(density = density)
 
     LaunchedEffect(key1 = Unit) {
         sheetState.expand()
     }
 
     LaunchedEffect(key1 = imeBottom) {
+
         if (imeBottom > 0) {
             sheetState.expand()
         }
@@ -67,8 +68,7 @@ fun MAddMusicSheet(
         sheetState = sheetState
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .fillMaxHeight(fraction = 0.92f)
                 .heightIn(max = 720.dp)
                 .imePadding()

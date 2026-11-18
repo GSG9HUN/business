@@ -26,6 +26,7 @@ data class QueueUiState(
     val guildName: String = "",
     val guildIconUrl: String? = null,
     override val tracks: List<Track> = emptyList(),
+    val displayTracks: List<Track> = emptyList(),
     override val isCommandInFlight: Boolean = false,
     val dialog: QueueDialog = QueueDialog.None,
     val playlistNameDraft: String = "",

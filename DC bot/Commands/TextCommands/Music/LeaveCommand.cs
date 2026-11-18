@@ -32,7 +32,10 @@ public class LeaveCommand(
     public string Name => "leave";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.LeaveCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.LeaveCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -41,6 +44,12 @@ public class LeaveCommand(
     /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        if ((message.Content ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length > 1)
+        {
+            await responseBuilder.SendUsageAsync(message, Name);
+            return;
+        }
+
         logger.CommandInvoked(Name);
         var validationResult = await commandHelper.TryValidateUserAsync(userValidation, responseBuilder, message, default);
 

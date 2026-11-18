@@ -16,5 +16,5 @@ val localAppLockController: ProvidableCompositionLocal<AppLockController> = stat
  */
 val localBiometricAuthenticator: ProvidableCompositionLocal<BiometricAuthenticator> =
     staticCompositionLocalOf<BiometricAuthenticator> {
-    error(message = "BiometricAuthenticator was not provided.")
+                error(message = "BiometricAuthenticator was not provided.")
 }

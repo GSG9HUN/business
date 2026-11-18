@@ -4,8 +4,9 @@ Groups process lifecycle, localization, command orchestration, music, reactions,
 
 ## Overview
 
-- BotService runs the Discord client; LocalizationService handles translations and guild language files. Feature folders own the larger workflows.
-- Services receive dependencies from Startup. Persistence implementations remain in DC bot.Persistence, and SDK-specific object adaptation remains in Wrapper.
+- Coordinates bot runtime, command execution and application workflows.
+- Groups music, durable-command, localization and presentation responsibilities.
+- Keeps orchestration separate from Discord adapters and persistence implementations.
 
 ## Subfolders
 

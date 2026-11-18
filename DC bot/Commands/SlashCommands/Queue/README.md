@@ -4,10 +4,67 @@ Exposes queue display, repetition, ordering, and recent batch history through sl
 
 ## Overview
 
-- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Exposes queue inspection, ordering, removal, repeat and history as slash commands.
+- Maps interaction options to shared text-command requests with guild validation.
+- Uses one-based waiting positions for queue edits.
 
 ## Classes
+
+### RemoveSlashCommand
+
+**Files:**
+
+- `RemoveSlashCommand.cs`
+
+**Purpose:** Exposes `remove 3` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the adapted interaction; the attributed command method binds typed Discord options.
+
+**Usage:** `/remove 3`.
+
+---
+
+### MoveSlashCommand
+
+**Files:**
+
+- `MoveSlashCommand.cs`
+
+**Purpose:** Exposes `move 5 2` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the adapted interaction; the attributed command method binds typed Discord options.
+
+**Usage:** `/move 5 2`.
+
+---
+
+### SkipToSlashCommand
+
+**Files:**
+
+- `SkipToSlashCommand.cs`
+
+**Purpose:** Exposes `skipto 5` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the adapted interaction; the attributed command method binds typed Discord options.
+
+**Usage:** `/skipto 5`.
+
+---
+
+### QueueFindSlashCommand
+
+**Files:**
+
+- `QueueFindSlashCommand.cs`
+
+**Purpose:** Exposes `queuefind artist` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the adapted interaction; the attributed command method binds typed Discord options.
+
+**Usage:** `/queuefind artist`.
+
+---
 
 ### ClearSlashCommand
 

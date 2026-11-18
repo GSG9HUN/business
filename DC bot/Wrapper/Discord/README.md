@@ -4,8 +4,8 @@ Wraps messages, users, guilds, channels, members, and voice state and handles Di
 
 ## Overview
 
-- DiscordClientEventHandler routes connection and voice events to status persistence and playback recovery. Separate loggers keep event diagnostics focused.
-- Voice event payloads and cached member/channel values can be incomplete. Gateway reconnection and voice transport recovery are separate lifecycle concerns.
+- Adapts DSharpPlus messages, channels, users, members and interactions to application contracts.
+- Routes gateway and voice events to runtime services while containing callback failures.
 
 ## Classes
 
@@ -60,6 +60,8 @@ await discordChannelWrapper.SendMessageAsync(embed);
 **File:** `DC bot/Wrapper/Discord/DiscordClientEventHandler.cs`
 
 **Purpose:** Isolates event failures while maintaining gateway recovery and persisted bot voice state.
+
+Forwards voice membership changes to guild controls: returning humans cancel the empty-channel countdown, and departed listeners lose skip votes.
 
 **Methods:**
 

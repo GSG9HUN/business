@@ -9,6 +9,9 @@ namespace DC_bot.Interface.Service.Music.Playback.Models;
 public sealed record PlaybackControlResult(bool Success, string Message, string? ErrorCode = null)
 {
 
+    /// <summary>Gets the author and title captured from the track targeted by a successful control operation.</summary>
+    public string? TrackDisplayName { get; init; }
+
     /// <summary>
     /// Creates a successful playback-control result.
     /// </summary>

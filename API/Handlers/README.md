@@ -4,6 +4,8 @@ Coordinates HTTP input, authenticated user context, persistence contracts, and A
 
 ## Overview
 
+- `ApiUserContext.RequireGuildAccessAsync` checks authentication, guild membership, then `IGuildDataRepository.IsPremiumAsync`. Every guild handler, including playlist-ID and command-ID operations, uses this boundary; premium denial returns HTTP 403 with `PremiumRequired` and `not premium member`.
+
 - ApiUserContext resolves the JWT subject and checks stored guild access before feature handlers read or change guild data.
 - Handlers use shared repository contracts rather than opening EF contexts. Mutating playback commands are persisted for the bot worker instead of executed by the API.
 

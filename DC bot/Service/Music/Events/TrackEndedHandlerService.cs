@@ -1,6 +1,7 @@
 using DC_bot.BotControl;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Music.Events;
 using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Playback.Models;
@@ -9,7 +10,6 @@ using DC_bot.Interface.Service.Music.Repeat;
 using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DC_bot.Wrapper.Lavalink;
@@ -32,6 +32,7 @@ namespace DC_bot.Service.Music.Events;
 /// <param name="queueRepository">The queue repository dependency used by this boundary.</param>
 /// <param name="playbackStateRepository">The playback state repository dependency used by this boundary.</param>
 /// <param name="sessions">The sessions supplied for this operation.</param>
+/// <param name="recommendations">Provides bounded continuation only after the explicit queue and repeat are exhausted.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 public sealed class TrackEndedHandlerService(
     IAudioService audioService,
@@ -42,7 +43,8 @@ public sealed class TrackEndedHandlerService(
     IQueueRepository queueRepository,
     IPlaybackStateRepository playbackStateRepository,
     GuildPlaybackSessions sessions,
-    ILogger<TrackEndedHandlerService> logger) : ITrackEndedHandlerService
+    ILogger<TrackEndedHandlerService> logger,
+    IRecommendationService recommendations) : ITrackEndedHandlerService
 {
 
     /// <summary>
@@ -84,6 +86,8 @@ public sealed class TrackEndedHandlerService(
                 return;
             }
 
+            recommendations.ObserveEnded(session.GuildId, endedItem);
+
             if (args.Reason == TrackEndReason.LoadFailed)
             {
                 var reload = await TryReloadFailedTrackAsync(session, textChannel, endedItem, reservation);
@@ -119,12 +123,38 @@ public sealed class TrackEndedHandlerService(
                 return;
             }
 
-            await sessions.MutateAsync(session, async () =>
+            if (args.Reason == TrackEndReason.Finished)
             {
-                await queueRepository.CloseBatchIfIdleAsync(session.GuildId);
+                await recommendations.TryEnqueueAsync(session, endedItem);
+                // A manual append may have arrived while provider I/O was in flight.
+                var continuation = await trackPlaybackService.TryPlayNextTrackAsync(
+                    session, textChannel, reservation: reservation);
+
+                if (continuation.Status != PlaybackStartStatus.Empty)
+                {
+                    LogNonSuccess(continuation, session.GuildId);
+                    return;
+                }
+            }
+
+            var closed = await sessions.MutateAsync(session, async () =>
+            {
+                if (!await queueRepository.CloseBatchIfIdleAsync(session.GuildId))
+                {
+                    return false;
+                }
+
                 await currentTrackService.SetCurrentTrackAsync(session.GuildId, null, MobileRealtimeEventNames.PlaybackStopped);
                 return true;
             });
+
+            if (!closed)
+            {
+                var appended = await trackPlaybackService.TryPlayNextTrackAsync(
+                    session, textChannel, reservation: reservation);
+                LogNonSuccess(appended, session.GuildId);
+                return;
+            }
 
             if (sessions.IsCurrent(session))
             {

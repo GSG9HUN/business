@@ -4,11 +4,24 @@ Coordinates guild player ownership, voice connections, cleanup, and playback rec
 
 ## Overview
 
+- The periodic voice worker also reconnects with 24/7 disabled while confirmed playing, queued, or repeated canonical music remains. It uses process-local destinations captured at join, preserves confirmed checkpoints during replacement, and honors explicit leave by clearing recovery intent first.
+
 - `Connections` joins and validates players; `Sessions` owns generations, transport draining, and attempt correlation.
 - `Cleanup` settles local, remote, and persistence outcomes; `Recovery` handles gateway and uncertain-start evidence.
 - `PersistentVoice` shares a guild gate between saved settings, periodic recovery, and explicit leave.
 - `Models` contains lifecycle data owned by the bot, including SDK-dependent session identities.
 - Join and cleanup deadlines are configured by `DC bot/Configuration/PlaybackLifecycleOptions.cs`.
+
+**Ownership and Recovery Rules**
+
+- A session is valid only while its player reference and generation remain current.
+- Every acquired control reservation or persistent voice semaphore must be released exactly once.
+- Leave invalidates ownership before draining admitted transports and database work.
+- A cancelled caller may stop waiting; lifecycle-owned cleanup must continue and its outcome must remain observed.
+- A missing SDK player does not prove that remote playback stopped. Uncertain starts stay fenced until evidence settles them.
+- Enabled persistent voice retains the current-track checkpoint during cleanup. Explicit leave persists disabled mode first and closes the batch after successful cleanup.
+- The persistent voice worker checks every five seconds. Restoration uses the last confirmed position and is approximate; non-seekable sources restart without seeking.
+- The application explicitly starts workers in `BotApplication.RunAsync`; DI registration alone does not start them.
 
 ## Subfolders
 
@@ -101,17 +114,6 @@ Share session identities, reservations, cleanup results, and recovery inputs wit
 **Purpose:** Share session identities, reservations, cleanup results, and recovery inputs without mixing them with service implementations.
 
 ---
-
-## Ownership and Recovery Rules
-
-- A session is valid only while its player reference and generation remain current.
-- Every acquired control reservation or persistent voice semaphore must be released exactly once.
-- Leave invalidates ownership before draining admitted transports and database work.
-- A cancelled caller may stop waiting; lifecycle-owned cleanup must continue and its outcome must remain observed.
-- A missing SDK player does not prove that remote playback stopped. Uncertain starts stay fenced until evidence settles them.
-- Enabled persistent voice retains the current-track checkpoint during cleanup. Explicit leave persists disabled mode first and closes the batch after successful cleanup.
-- The persistent voice worker checks every five seconds. Restoration uses the last confirmed position and is approximate; non-seekable sources restart without seeking.
-- The application explicitly starts workers in `BotApplication.RunAsync`; DI registration alone does not start them.
 
 ## Related Components
 

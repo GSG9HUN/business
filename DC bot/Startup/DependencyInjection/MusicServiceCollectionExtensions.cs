@@ -1,3 +1,6 @@
+using DC_bot.Service.Music.Controls;
+using DC_bot.Interface.Service.Music.Discovery;
+using DC_bot.Service.Music.Discovery;
 using DC_bot.Configuration;
 using DC_bot.Interface.Service.Music;
 using DC_bot.Interface.Service.Music.Events;
@@ -13,7 +16,6 @@ using DC_bot.Interface.Service.Music.Tracks;
 using DC_bot.Service.Music;
 using DC_bot.Service.Music.Events;
 using DC_bot.Service.Music.Lavalink;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
 using DC_bot.Service.Music.Lifecycle.Connections;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
@@ -49,18 +51,25 @@ public static class MusicServiceCollectionExtensions
             options.JoinDeadline = TimeSpan.Parse(Environment.GetEnvironmentVariable("MUSIC_JOIN_DEADLINE") ?? throw new InvalidOperationException("MUSIC_JOIN_DEADLINE is required."), System.Globalization.CultureInfo.InvariantCulture);
             options.LeaveDeadline = TimeSpan.Parse(Environment.GetEnvironmentVariable("MUSIC_LEAVE_DEADLINE") ?? throw new InvalidOperationException("MUSIC_LEAVE_DEADLINE is required."), System.Globalization.CultureInfo.InvariantCulture);
         })
-            .Validate(options => options.JoinDeadline > TimeSpan.Zero && options.JoinDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Join deadline must be a positive supported timer duration.")
-            .Validate(options => options.LeaveDeadline > TimeSpan.Zero && options.LeaveDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Leave deadline must be a positive supported timer duration.")
+            .Validate(options => options.JoinDeadline > TimeSpan.Zero
+            && options.JoinDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Join deadline must be a positive supported timer duration.")
+            .Validate(options => options.LeaveDeadline > TimeSpan.Zero
+            && options.LeaveDeadline.TotalMilliseconds <= uint.MaxValue - 1, "Leave deadline must be a positive supported timer duration.")
             .ValidateOnStart();
         services.AddHttpClient("PlaybackRecovery", client =>
         {
             client.Timeout = Timeout.InfiniteTimeSpan;
         });
-        return services.AddSingleton<ITrackSerializer, LavalinkTrackSerializer>()
+        return services.AddSingleton<ISearchPickerHandler, SearchPickerHandler>()
+            .AddSingleton<IRecommendationService, RecommendationService>()
+            .AddSingleton<IFavoriteService, FavoriteService>()
+            .AddSingleton<ILyricsService, LyricsService>()
+            .AddSingleton<ITrackSerializer, LavalinkTrackSerializer>()
             .AddSingleton<PlaybackRemoteProbe>()
             .AddSingleton<PlaybackRecoveryService>()
             .AddSingleton<PlaybackCleanupService>()
             .AddSingleton<GuildPlaybackSessions>()
+            .AddSingleton<MusicControlSettingsService>()
             .AddSingleton<IRepeatService, RepeatService>()
             .AddSingleton<ICurrentTrackService, CurrentTrackService>()
             .AddSingleton<ITrackNotificationService, TrackNotificationService>()
@@ -70,6 +79,7 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<ILavalinkNodeConnectionService, LavalinkNodeConnectionService>()
             .AddSingleton<IPlaybackEventHandlerService, PlaybackEventHandlerService>()
             .AddSingleton<IPlaybackControlService, PlaybackControlService>()
+            .AddSingleton<IPlaybackFilterService, PlaybackFilterService>()
             .AddSingleton<IPlaybackRequestService, PlaybackRequestService>()
             .AddSingleton<ITrackPlaybackService, TrackPlaybackService>()
             .AddSingleton<ITrackEndedHandlerService, TrackEndedHandlerService>()
@@ -84,8 +94,20 @@ public static class MusicServiceCollectionExtensions
             .AddSingleton<PlaylistTrackLoader>()
             .AddSingleton<PlaylistTrackDisplayMapper>()
             .AddSingleton(provider => new PlaylistQueryService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(), provider.GetRequiredService<PlaylistTrackDisplayMapper>(), provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
-            .AddSingleton(provider => new PlaylistMutationService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value, provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
-            .AddSingleton(provider => new PlaylistTrackMutationService(provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(), provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(), provider.GetRequiredService<ITrackSearchResolverService>(), provider.GetRequiredService<ITrackSerializer>(), provider.GetRequiredService<PlaylistTrackLoader>(), provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value, provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>()))
+            .AddSingleton(provider => new PlaylistMutationService(
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(),
+                provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value,
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Guilds.IGuildDataRepository>()))
+            .AddSingleton(provider => new PlaylistTrackMutationService(
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistRepository>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Playlists.IPlaylistTrackRepository>(),
+                provider.GetRequiredService<ITrackSearchResolverService>(),
+                provider.GetRequiredService<ITrackSerializer>(),
+                provider.GetRequiredService<PlaylistTrackLoader>(),
+                provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<PlaylistOptions>>().Value,
+                provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PlaylistService>>(),
+                provider.GetRequiredService<DC_bot.Interface.Service.Persistence.Guilds.IGuildDataRepository>()))
             .AddSingleton<IPlaylistService>(provider => new PlaylistService(provider.GetRequiredService<PlaylistQueryService>(), provider.GetRequiredService<PlaylistMutationService>(), provider.GetRequiredService<PlaylistTrackMutationService>()))
             .AddSingleton<ITrackSearchResolverService, TrackSearchResolverService>();
     }

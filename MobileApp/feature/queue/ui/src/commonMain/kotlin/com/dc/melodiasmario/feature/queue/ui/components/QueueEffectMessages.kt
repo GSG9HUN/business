@@ -65,7 +65,8 @@ internal data class QueueEffectMessages(
                 message = listOfNotNull(
                     playlistSaveFailed,
                     effect.detail?.takeIf { textValue -> textValue.isNotBlank() }
-                ).joinToString(separator = "\n"),
+                )
+                    .joinToString(separator = "\n"),
                 type = MToastType.Error,
                 durationMillis = 10_000
             )

@@ -34,7 +34,7 @@ internal sealed class PlaylistTrackLoader(IAudioService audioService, ILogger<Pl
             return await audioService.Tracks.LoadTracksAsync(trackReference, searchMode, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }

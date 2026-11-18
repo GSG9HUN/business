@@ -4,8 +4,22 @@ Exposes help, language selection, latency checks, and user tagging through slash
 
 ## Overview
 
-- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Exposes help, language selection, latency checks and user tagging as slash commands.
+- Forwards typed options to shared command handlers and localized responses.
+
+## Subfolders
+
+### Models/
+
+Contains the SDK choice model consumed by `LanguageSlashCommand`.
+
+**Files:**
+
+- `Models/SlashLanguage.cs`
+
+**Purpose:** Separate the language choice declaration from command execution. English and Hungarian retain the `en` and `hu` display names and existing namespace.
+
+---
 
 ## Classes
 
@@ -15,18 +29,20 @@ Exposes help, language selection, latency checks, and user tagging through slash
 
 **Purpose:** Adapts the help slash command to shared command execution and interaction acknowledgement.
 
+**Usage:** `/help` lists commands; `/help command:volume` displays a localized description and usage. The optional command name is forwarded through `ISlashCommandExecutor`.
+
 **Methods:**
 
 - `ExecuteAsync` — Routes the slash interaction through the shared command executor and acknowledgement policy.
 
 ```csharp
-public Task ExecuteAsync(ISlashInteractionContext context);
+public Task ExecuteAsync(ISlashInteractionContext context, string? command = null);
 ```
 
 - `Help` — Adapts the help slash route to its shared handler and interaction response policy.
 
 ```csharp
-public Task Help(SlashCommandContext context);
+public Task Help(SlashCommandContext context, string? command = null);
 ```
 
 **Usage:**

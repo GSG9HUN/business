@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -10,12 +11,14 @@ namespace API.Realtime;
 /// </summary>
 /// <param name="mobileAppUserRepository">The injected persistence contract used by this operation.</param>
 /// <param name="mobileRealtimeMembershipRepository">The injected persistence contract used by this operation.</param>
+/// <param name="guildDataRepository">Checks active premium before guild subscriptions.</param>
 /// <param name="logger">The logger for lifecycle and failure diagnostics.</param>
 [Authorize]
 public sealed class MobileUpdatesHub(
     IMobileAppUserRepository mobileAppUserRepository,
     IMobileRealtimeMembershipRepository mobileRealtimeMembershipRepository,
-    ILogger<MobileUpdatesHub> logger) : Hub
+    ILogger<MobileUpdatesHub> logger,
+    IGuildDataRepository guildDataRepository) : Hub
 {
 
     /// <summary>
@@ -82,6 +85,11 @@ public sealed class MobileUpdatesHub(
         {
             logger.LogWarning("Mobile realtime guild join rejected because the user has no guild access. ConnectionId: {ConnectionId}, UserId: {UserId}, GuildId: {GuildId}", Context.ConnectionId, userId, parsedGuildId);
             throw new HubException("Guild access denied.");
+        }
+
+        if (!await guildDataRepository.IsPremiumAsync(parsedGuildId, Context.ConnectionAborted))
+        {
+            throw new HubException("PremiumRequired: not premium member");
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, MobileUpdateGroups.UserGuild(parsedGuildId, userId), Context.ConnectionAborted);

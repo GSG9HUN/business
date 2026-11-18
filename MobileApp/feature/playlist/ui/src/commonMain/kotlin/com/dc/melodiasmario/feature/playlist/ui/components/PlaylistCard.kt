@@ -78,8 +78,7 @@ fun PlaylistCard(
             ) {
                 MPlaylistArtwork(
                     playlistName = playlist.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .aspectRatio(ratio = 1f)
                         .background(
                             color = MaterialTheme.colorScheme.primary,
@@ -110,8 +109,7 @@ fun PlaylistCard(
             }
 
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
                     .padding(all = 6.dp),
                 contentAlignment = Alignment.TopEnd
             ) {
@@ -177,12 +175,14 @@ private fun Int.toDurationString(): String {
     val seconds = this % 60
 
     return if (hours > 0) {
+
         if (minutes == 0) {
             return stringResource(resource = Res.string.playlist_duration_hours, formatArgs = arrayOf<Any>(hours))
         }
 
         stringResource(resource = Res.string.playlist_duration_hours_minutes, formatArgs = arrayOf<Any>(hours, minutes))
     } else if (minutes > 0) {
+
         if (seconds == 0) {
             return stringResource(resource = Res.string.playlist_duration_minutes, formatArgs = arrayOf<Any>(minutes))
         }

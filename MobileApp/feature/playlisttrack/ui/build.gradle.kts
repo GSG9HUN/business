@@ -53,48 +53,48 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":feature:playlisttrack:presentation"))
-                implementation(project(":core:common"))
-                implementation(project(":core:common-ui"))
-                implementation(project(":core:domain"))
-                implementation(project(":core:model"))
+                implementation(dependencyNotation = project(":feature:playlisttrack:presentation"))
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = project(":core:common-ui"))
+                implementation(dependencyNotation = project(":core:domain"))
+                implementation(dependencyNotation = project(":core:model"))
 
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.compose.runtime)
-                implementation(libs.compose.foundation)
-                implementation(libs.compose.material3)
-                implementation(libs.compose.ui)
-                implementation(libs.compose.components.resources)
-                implementation(libs.compose.uiToolingPreview)
-                implementation(libs.androidx.lifecycle.viewmodelCompose)
-                implementation(libs.androidx.lifecycle.runtimeCompose)
-                implementation(libs.jetbrains.navigation3.ui)
-                implementation(libs.koin.core)
-                implementation(libs.koin.compose)
-                implementation(libs.koin.compose.viewmodel)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.ktor.client.core)
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.core)
+                implementation(dependencyNotation = libs.compose.runtime)
+                implementation(dependencyNotation = libs.compose.foundation)
+                implementation(dependencyNotation = libs.compose.material3)
+                implementation(dependencyNotation = libs.compose.ui)
+                implementation(dependencyNotation = libs.compose.components.resources)
+                implementation(dependencyNotation = libs.compose.uiToolingPreview)
+                implementation(dependencyNotation = libs.androidx.lifecycle.viewmodelCompose)
+                implementation(dependencyNotation = libs.androidx.lifecycle.runtimeCompose)
+                implementation(dependencyNotation = libs.jetbrains.navigation3.ui)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.compose)
+                implementation(dependencyNotation = libs.koin.compose.viewmodel)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = libs.ktor.client.core)
             }
         }
 
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlin.test)
             }
         }
 
         androidMain {
             dependencies {
-                implementation(libs.compose.uiTooling)
+                implementation(dependencyNotation = libs.compose.uiTooling)
             }
         }
 
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
     }

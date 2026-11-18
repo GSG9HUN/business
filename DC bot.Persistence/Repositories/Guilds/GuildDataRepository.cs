@@ -33,8 +33,7 @@ public class GuildDataRepository(IDbContextFactory<BotDbContext> dbContextFactor
     public async Task<bool> IsPremiumAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var now = DateTimeOffset.UtcNow;
-        return await dbContext.GuildData.AnyAsync(g => g.GuildId == guildId && g.IsPremium && (g.PremiumUntilUtc == null || g.PremiumUntilUtc > now), cancellationToken);
+        return await GuildPremiumQuery.IsActiveAsync(dbContext, guildId, cancellationToken);
     }
 
     /// <inheritdoc/>

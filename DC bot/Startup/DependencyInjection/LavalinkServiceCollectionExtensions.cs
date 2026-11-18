@@ -18,6 +18,13 @@ public static class LavalinkServiceCollectionExtensions
     /// <returns>The service collection with these registrations, allowing further composition.</returns>
     public static IServiceCollection AddLavalinkRuntime(this IServiceCollection services, LavalinkSettings lavalinkSettings)
     {
+        services.AddHttpClient("MusicDiscovery", client =>
+        {
+            var scheme = lavalinkSettings.Secured ? "https" : "http";
+            client.BaseAddress = new Uri($"{scheme}://{lavalinkSettings.Hostname}:{lavalinkSettings.Port}/");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", lavalinkSettings.Password);
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
         return services.ConfigureLavalink(options =>
         {
             var httpScheme = lavalinkSettings.Secured ? "https" : "http";
