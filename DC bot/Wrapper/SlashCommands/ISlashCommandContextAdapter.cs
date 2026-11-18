@@ -8,6 +8,9 @@ namespace DC_bot.Wrapper.SlashCommands;
 internal interface ISlashCommandContextAdapter
 {
 
+    /// <summary>Gets whether Discord accepted a response, independently of subsequent message lookup.</summary>
+    bool HasResponded => false;
+
     /// <summary>Sends a component layout as an initial, deferred edit or follow-up response.</summary>
     Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder, bool edit, bool followup)
     {

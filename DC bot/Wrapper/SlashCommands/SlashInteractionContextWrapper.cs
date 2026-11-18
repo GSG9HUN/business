@@ -13,6 +13,7 @@ namespace DC_bot.Wrapper.SlashCommands;
 public class SlashInteractionContextWrapper : ISlashInteractionContext
 {
     private readonly ISlashCommandContextAdapter _context;
+    private bool _hasResponded;
 
     /// <summary>
     /// Initializes SlashInteractionContextWrapper with the supplied dependencies and settings.
@@ -50,7 +51,11 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     public bool IsDeferred { get; private set; }
 
     /// <inheritdoc />
-    public bool HasResponded { get; private set; }
+    public bool HasResponded
+    {
+        get => _hasResponded || _context.HasResponded;
+        private set => _hasResponded = value;
+    }
 
     /// <summary>
     /// Acknowledges an interaction so its response can be completed after command execution.
@@ -136,9 +141,17 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <inheritdoc />
     public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
     {
-        var response = await _context.RespondWithComponentsAsync(builder, IsDeferred && !HasResponded, HasResponded);
-        HasResponded = true;
-        return response;
+        try
+        {
+            var response = await _context.RespondWithComponentsAsync(builder, IsDeferred && !HasResponded, HasResponded);
+            HasResponded = true;
+            return response;
+        }
+        finally
+        {
+            // A successful send remains acknowledged even if retrieving its message fails.
+            HasResponded |= _context.HasResponded;
+        }
     }
 
     /// <summary>
@@ -159,23 +172,54 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     private sealed class DSharpPlusSlashCommandContextAdapter(CommandContext context) : ISlashCommandContextAdapter
     {
         /// <inheritdoc />
+        public bool HasResponded { get; private set; }
+
+        /// <inheritdoc />
         public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder, bool edit, bool followup)
         {
+            if (followup)
+            {
+                var response = await context.FollowupAsync(builder);
+                HasResponded = true;
+                return response;
+            }
+
             if (edit)
             {
                 await context.EditResponseAsync(builder);
-                return await context.GetResponseAsync()
-                ?? throw new InvalidOperationException("Discord did not return the sent response.");
             }
-
-            if (followup)
+            else
             {
-                return await context.FollowupAsync(builder);
+                await context.RespondAsync(builder);
             }
 
-            await context.RespondAsync(builder);
-            return await context.GetResponseAsync()
-                ?? throw new InvalidOperationException("Discord did not return the sent response.");
+            HasResponded = true;
+            return await GetComponentResponseAsync(builder);
+        }
+
+        /// <summary>Retrieves an accepted response and removes orphaned controls if its message cannot be resolved.</summary>
+        private async Task<DiscordMessage> GetComponentResponseAsync(DiscordMessageBuilder builder)
+        {
+            try
+            {
+                return await context.GetResponseAsync()
+                    ?? throw new InvalidOperationException("Discord did not return the sent response.");
+            }
+            catch (Exception lookupException)
+            {
+                try
+                {
+                    // Editing the known interaction response does not require its channel message ID.
+                    builder.ClearComponents();
+                    await context.EditResponseAsync(builder);
+                }
+                catch (Exception cleanupException)
+                {
+                    lookupException.Data["ComponentCleanupException"] = cleanupException;
+                }
+
+                throw;
+            }
         }
 
         public DiscordGuild? Guild => context.Guild;

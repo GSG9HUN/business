@@ -19,7 +19,7 @@ Groups prefix-based text commands and slash command adapters.
 
 - `README.md` — Overview and navigation to feature-specific source files.
 
-**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor. Queue, playlist, help, favorite, lyrics and custom-preset listings share localized embed pagination; one-page results omit navigation.
+**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor. Queue, playlist, help, favorite, lyrics and custom-preset listings share localized embed pagination; one-page results omit navigation. Rejected interactive embeds fall back to bounded text; search selection retains its menu and cancel control.
 
 ---
 

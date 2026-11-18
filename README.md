@@ -19,7 +19,7 @@ Runs the Discord music bot, command pipeline, and playback lifecycle.
 - `DC bot.csproj`
 - `Program.cs`
 
-**Purpose:** Runs the Discord music bot, command pipeline, and playback lifecycle. Discord replies and channel notifications use localized embeds; long queue, playlist, help, favorite, lyrics and custom-preset results use caller-bound navigation buttons. Plain text is reserved for supported delivery fallbacks.
+**Purpose:** Runs the Discord music bot, command pipeline, and playback lifecycle. Discord replies and channel notifications use localized embeds; long queue, playlist, help, favorite, lyrics and custom-preset results use caller-bound navigation buttons. Rejected embeds use bounded text fallbacks, including unknown commands and long lists; search selection preserves its menu and cancel button.
 
 ---
 

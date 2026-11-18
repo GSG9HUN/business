@@ -248,7 +248,7 @@ var result = discordMemberWrapper.ToDiscordMember();
 
 **File:** `DC bot/Wrapper/Discord/DiscordMessageWrapper.cs`
 
-**Purpose:** Adapts discord message data and operations to the bot's Discord boundary.
+**Purpose:** Adapts discord message data and operations to the bot's Discord boundary. Plain-text and embed response cancellation propagates to callers, including pagination fallback delivery.
 
 When embed delivery fails, the adapter attempts its description (or title when the description is empty) as plain text, bounded to 2000 characters. It logs failed embed/fallback attempts and propagates cancellation exceptions. Successful embeds do not produce a second text response.
 

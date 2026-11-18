@@ -18,7 +18,7 @@ Translates DSharpPlus interaction context and response state into bot-facing mes
 
 `ISlashCommandContextAdapter.cs` contains the internal SDK context adapter contract. `SlashInteractionContextWrapper.cs` retains interaction response ownership and SDK method signatures.
 
-The first reply after deferral edits the pending response; subsequent replies use follow-ups. Embed failures try bounded text on the same response path. Cancellation does not trigger fallback, and acknowledgement state changes only after successful delivery. `RespondWithComponentsAsync` follows the same initial/edit/follow-up path and returns the sent Discord message so pagination updates the existing response.
+The first reply after deferral edits the pending response; subsequent replies use follow-ups. Embed failures try bounded text on the same response path. Cancellation does not trigger fallback, and acknowledgement state changes only after successful delivery. `RespondWithComponentsAsync` follows the same initial/edit/follow-up path and returns the sent Discord message so pagination updates the existing response. The SDK adapter records acceptance immediately after sending, independently of message lookup. Lookup failure or a missing message retains acknowledgement state and attempts to remove controls through the known interaction response; fallback delivery then uses a follow-up instead of another initial response.
 
 **Implements / inherits:** `ISlashInteractionContext`.
 

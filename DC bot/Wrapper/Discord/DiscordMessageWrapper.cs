@@ -64,6 +64,10 @@ public class DiscordMessageWrapper(
         {
             await responseAsync(message);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.ResponseSendFailed(ex, "DiscordMessageWrapper.RespondAsync(string)");

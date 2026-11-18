@@ -124,6 +124,7 @@ await pagination.SendAsync(message, DiscordPaginationService.FromItems(title, ro
 
 - Previous/Next edits the existing embed; a footer shows page/total and item count for lists.
 - One-page results omit buttons; boundary buttons are disabled.
+- Failed initial component sends retire the panel and retry its requested page as plain text bounded to 2000 characters, including title and page/item totals. Cancellation propagates without retrying delivery.
 - Controls bind the requesting user, guild, channel and sent message. Rejections are localized and ephemeral.
 - A new multi-page result replaces the same user's previous panel in that guild; at most 512 panels retain callbacks.
 - Controls expire after five minutes, and expired/replaced messages have their buttons disabled.

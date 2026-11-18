@@ -190,13 +190,28 @@ public sealed class DiscordPaginationService(
             if (cancellationToken.IsCancellationRequested)
             {
                 Retire(panel);
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
-        catch
+        catch (OperationCanceledException)
+        {
+            Retire(panel);
+
+            if (panel.Message is null)
+            {
+                panel.LifetimeToken.Dispose();
+            }
+
+            throw;
+        }
+        catch (Exception exception)
         {
             Retire(panel);
             panel.LifetimeToken.Dispose();
-            throw;
+            cancellationToken.ThrowIfCancellationRequested();
+            logger.LogDebug(exception, "Pagination embed failed; returning bounded text. Guild={GuildId}", guild);
+            await context.RespondAsync(BuildTextFallback(guild, page)).WaitAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 
@@ -301,6 +316,20 @@ public sealed class DiscordPaginationService(
             .WithTitle(DiscordTextSanitizer.Truncate(page.Title, 256))
             .WithFooter(footer)
             .Build();
+    }
+
+    /// <summary>Preserves the initial page and navigation totals within Discord's plain-text message limit.</summary>
+    private string BuildTextFallback(ulong guild, PaginationPage page)
+    {
+        var title = DiscordTextSanitizer.Truncate(page.Title, 256);
+        var footer = page.TotalItems.HasValue
+            ? localization.Get(guild, LocalizationKeys.PaginationFooter, page.Number, page.PageCount, page.TotalItems.Value)
+            : localization.Get(guild, LocalizationKeys.PaginationTextFooter, page.Number, page.PageCount);
+        footer = DiscordTextSanitizer.Truncate(footer, 200);
+        var description = string.IsNullOrEmpty(page.Description)
+            ? localization.Get(guild, LocalizationKeys.PaginationEmpty) : page.Description;
+        return title + "\n" + DiscordTextSanitizer.Truncate(description, 2000 - title.Length - footer.Length - 2)
+            + "\n" + footer;
     }
 
     /// <summary>Builds the same navigation layout for active and expired pages.</summary>

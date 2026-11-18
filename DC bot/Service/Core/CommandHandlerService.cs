@@ -135,7 +135,8 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
             }
             else
             {
-                await args.Channel.SendMessageAsync(_responseBuilder.CreateEmbed(guildId == 0 ? null : guildId,
+                var response = _messageFactory.Create(args.Message, args.Channel, args.Author, guild: args.Guild);
+                await response.RespondAsync(_responseBuilder.CreateEmbed(guildId == 0 ? null : guildId,
                     guildId == 0 ? _localizationService.Get(LocalizationKeys.UnknownCommandError)
                         : _localizationService.Get(guildId, LocalizationKeys.UnknownCommandError),
                     DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle));

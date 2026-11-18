@@ -68,7 +68,7 @@ Favorite playback records the authenticated caller as a canonical Discord mentio
 
 **Purpose:** Owns single-use, 45-second Discord select menus and cancellation buttons.
 
-Waiting, prompt, selected/closed and denial messages use embeds. The prompt retains its five-result menu and cancel button; denials stay ephemeral. Closing the picker replaces its embed and removes active controls.
+Waiting, prompt, selected/closed and denial messages use embeds. The prompt retains its five-result menu and cancel button; denials stay ephemeral. If the prompt embed is rejected, bounded text is retried with the same menu and cancel button. Closing the picker removes active controls and also supports text fallback. Cancellation after sending still retains the message for cleanup.
 
 **Methods:** `ConfigureAsync` handles personal on/off/status; `SelectAsync` returns the first result when disabled and offers up to five real results when enabled; `CancelPending` supersedes a user's old request; `OnComponentInteractionAsync` validates component submissions.
 

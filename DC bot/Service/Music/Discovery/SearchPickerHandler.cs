@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using DC_bot.Constants;
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Discovery;
@@ -128,12 +129,32 @@ public sealed class SearchPickerHandler(
                 localization.Get(guildId, LocalizationKeys.SearchPickerCancel));
             await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SearchPickerWaiting, token)
                 .WaitAsync(token);
-            pending.Message = await message.Channel.ToDiscordChannel().SendMessageAsync(new DiscordMessageBuilder()
-                .AddEmbed(responseBuilder.CreateEmbed(guildId,
-                    localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention)))
-                .AddActionRowComponent(menu)
-                .AddActionRowComponent([cancel]))
-                .WaitAsync(token);
+            var prompt = localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention);
+            var channel = message.Channel.ToDiscordChannel();
+            token.ThrowIfCancellationRequested();
+
+            try
+            {
+                pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
+                    .AddEmbed(responseBuilder.CreateEmbed(guildId, prompt))
+                    .AddActionRowComponent(menu)
+                    .AddActionRowComponent([cancel]));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                token.ThrowIfCancellationRequested();
+                logger.LogDebug(exception, "Picker embed failed; retrying with text. Guild={GuildId}", guildId);
+                pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithContent(DiscordTextSanitizer.Truncate(prompt, 2000))
+                    .AddActionRowComponent(menu)
+                    .AddActionRowComponent([cancel]));
+            }
+
+            token.ThrowIfCancellationRequested();
 
             if (_latest.GetValueOrDefault(key) != nonce)
             {
@@ -174,9 +195,20 @@ public sealed class SearchPickerHandler(
             {
                 try
                 {
-                    await pending.Message.ModifyAsync(new DiscordMessageBuilder()
-                        .AddEmbed(responseBuilder.CreateEmbed(guildId, localization.Get(guildId,
-                            selected ? LocalizationKeys.SearchPickerSelected : LocalizationKeys.SearchPickerClosed))));
+                    var closed = localization.Get(guildId,
+                        selected ? LocalizationKeys.SearchPickerSelected : LocalizationKeys.SearchPickerClosed);
+
+                    try
+                    {
+                        await pending.Message.ModifyAsync(new DiscordMessageBuilder()
+                            .AddEmbed(responseBuilder.CreateEmbed(guildId, closed)));
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException)
+                    {
+                        logger.LogDebug(exception, "Picker cleanup embed failed; retrying with text. Guild={GuildId}", guildId);
+                        await pending.Message.ModifyAsync(new DiscordMessageBuilder()
+                            .WithContent(DiscordTextSanitizer.Truncate(closed, 2000)));
+                    }
                 }
                 catch (Exception exception)
                 {
