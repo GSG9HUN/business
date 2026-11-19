@@ -14,7 +14,8 @@ import kotlinx.serialization.Serializable
 data class QueueDto(
     val guildId: String = "",
     val trackCount: Int = 0,
-    val tracks: List<QueueTrackDto> = emptyList()
+    val tracks: List<QueueTrackDto> = emptyList(),
+    val displayTracks: List<QueueTrackDto> = emptyList()
 ) {
     /**
      * Maps this value to domain.
@@ -22,6 +23,7 @@ data class QueueDto(
     fun toDomain(): Queue = Queue(
         guildId = guildId,
         trackCount = trackCount,
-        tracks = tracks.map { track -> track.toDomain() }
+        tracks = tracks.map { track -> track.toDomain() },
+        displayTracks = displayTracks.map { displayTrack -> displayTrack.toDomain() }
     )
 }

@@ -30,6 +30,13 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
             .OnDelete(DeleteBehavior.Restrict);
         builder.ToTable("guild_queue_item");
         builder.HasKey(entity => entity.Id);
+
+        builder.Property(entity => entity.EnqueueGroupId)
+            .HasColumnName("enqueue_group_id");
+        builder.Property(entity => entity.BatchPosition)
+            .HasColumnName("batch_position");
+        builder.HasIndex(entity => new { entity.GuildId, entity.EnqueueGroupId });
+
         builder.Property(entity => entity.Id)
             .HasColumnName("id")
             .UseIdentityByDefaultColumn();

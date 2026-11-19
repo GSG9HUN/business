@@ -28,6 +28,7 @@ namespace DC_bot.Service.BotControl;
 /// <param name="currentTrackService">The current track service dependency used by this boundary.</param>
 /// <param name="discordClient">The discord client supplied for this operation.</param>
 /// <param name="trackSearchResolverService">The track search resolver service dependency used by this boundary.</param>
+/// <param name="playlistHandler">Executes queued saved-playlist commands.</param>
 public sealed class BotControlCommandDispatcher(
     IMusicQueueService musicQueueService,
     IBotControlResultFactory botControlResultFactory,
@@ -36,7 +37,9 @@ public sealed class BotControlCommandDispatcher(
     IRepeatService repeatService,
     ICurrentTrackService currentTrackService,
     DiscordClient discordClient,
-    ITrackSearchResolverService trackSearchResolverService) : IBotControlCommandDispatcher
+    ITrackSearchResolverService trackSearchResolverService,
+    PlaylistBotControlHandler playlistHandler)
+    : IBotControlCommandDispatcher
 {
 
     /// <summary>
@@ -52,6 +55,9 @@ public sealed class BotControlCommandDispatcher(
         {
             BotControlCommandTypes.Clear => HandleClearAsync(command, cancellationToken),
             BotControlCommandTypes.Play => HandlePlayAsync(command, cancellationToken),
+            BotControlCommandTypes.AddSong => playlistHandler.AddTrackAsync(command, cancellationToken),
+            BotControlCommandTypes.SavePlaylist => playlistHandler.ImportAsync(command, cancellationToken),
+            BotControlCommandTypes.LoadPlaylist => HandleLoadPlaylistAsync(command, cancellationToken),
             BotControlCommandTypes.Shuffle => HandleShuffleAsync(command, cancellationToken),
             BotControlCommandTypes.Remove => HandleRemoveAsync(command, cancellationToken),
             BotControlCommandTypes.MoveToIndex => HandleMoveToIndexAsync(command, cancellationToken),
@@ -62,6 +68,30 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Repeat => HandleRepeatAsync(command, cancellationToken),
             BotControlCommandTypes.RepeatList => HandleRepeatListAsync(command, cancellationToken),
             _ => Task.FromResult(botControlResultFactory.Failure(command, $"Unsupported bot control command type: {command.Type}", "UnsupportedCommandType", shouldNotifyDiscord: false))};
+    }
+
+    /// <summary>Resolves the user's current voice context before loading a saved playlist.</summary>
+    private async Task<BotControlCommandResult> HandleLoadPlaylistAsync(
+        BotControlCommandRecord command,
+        CancellationToken cancellationToken)
+    {
+        var context = await botControlContextResolver.ResolveAsync(command, null, cancellationToken);
+
+        if (context.VoiceChannelId is null)
+        {
+            return botControlResultFactory.Failure(command, "Join a voice channel first.",
+                "UserNotInVoiceChannel", shouldNotifyDiscord: false);
+        }
+
+        var runtime = await TryCreateRuntimeContextAsync(command, context);
+
+        if (runtime?.Member.VoiceState?.Channel is not { } voiceChannel)
+        {
+            return botControlResultFactory.Failure(command, "Could not resolve Discord context for playback.",
+                "DiscordContextNotFound", shouldNotifyDiscord: false);
+        }
+
+        return await playlistHandler.LoadAsync(command, runtime.Message, voiceChannel, cancellationToken);
     }
 
     /// <summary>
@@ -156,6 +186,7 @@ public sealed class BotControlCommandDispatcher(
             PlaybackStartStatus.Unknown => "Request submitted; playback outcome is not confirmed. Do not resubmit.",
             PlaybackStartStatus.Busy => "A previous playback operation needs reconciliation; no new playback was started.",
             PlaybackStartStatus.Superseded => "A newer session or leave operation superseded this request.",
+            PlaybackStartStatus.QueueFull => "Queue capacity exceeded; no tracks were added.",
             PlaybackStartStatus.Empty => "No queued track is available.",
             _ => "Playback did not start."
         };

@@ -1,5 +1,4 @@
 using DC_bot.Interface.Discord;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using Lavalink4NET.Events.Players;
 

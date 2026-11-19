@@ -1,10 +1,11 @@
 using DC_bot.Interface.Service.Persistence.MobileApps;
+using DC_bot.Interface.Service.Persistence.Guilds;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers;
 
 /// <summary>
-/// Resolves the authenticated Discord user and checks persisted guild access before handler operations.
+/// Resolves the authenticated Discord user and checks persisted membership and active guild premium before handler operations.
 /// </summary>
 internal static class ApiUserContext
 {
@@ -22,7 +23,7 @@ internal static class ApiUserContext
     }
 
     /// <summary>
-    /// Checks the subject claim and persisted membership, returning an HTTP access error when required.
+    /// Checks the subject claim, persisted membership, and active guild premium, returning an HTTP access error when required.
     /// </summary>
     /// <param name="httpContext">The current HTTP request, authenticated principal, and validated route values.</param>
     /// <param name="userRepository">The injected persistence contract used by this operation.</param>
@@ -41,6 +42,22 @@ internal static class ApiUserContext
         }
 
         var hasAccess = await userRepository.HasGuildAccessAsync(discordUserId, guildId, cancellationToken);
-        return hasAccess ? (discordUserId, null) : (discordUserId, HttpResults.Forbid());
+
+        if (!hasAccess)
+        {
+            return (discordUserId, HttpResults.Forbid());
+        }
+
+        var guildRepository = httpContext.RequestServices.GetRequiredService<IGuildDataRepository>();
+
+        if (!await guildRepository.IsPremiumAsync(guildId, cancellationToken))
+        {
+            httpContext.Response.Headers.CacheControl = "no-store";
+            return (discordUserId, HttpResults.Json(
+                new { ErrorCode = "PremiumRequired", ErrorMessage = "not premium member" },
+                statusCode: StatusCodes.Status403Forbidden));
+        }
+
+        return (discordUserId, null);
     }
 }

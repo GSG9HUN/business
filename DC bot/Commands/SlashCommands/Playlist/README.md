@@ -16,6 +16,8 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 
 **Purpose:** Adapts the playlist slash command to shared command execution and interaction acknowledgement.
 
+Delete confirmation is presented as a localized warning embed before the shared delete command is submitted.
+
 **Methods:**
 
 - `Create` — Adapts the create slash route to its shared handler and interaction response policy.

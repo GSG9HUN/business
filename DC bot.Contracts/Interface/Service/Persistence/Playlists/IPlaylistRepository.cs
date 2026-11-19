@@ -8,6 +8,18 @@ namespace DC_bot.Interface.Service.Persistence.Playlists;
 public interface IPlaylistRepository
 {
 
+    /// <summary>Creates ordered playlist metadata and tracks atomically, returning null when the guild cap is reached.</summary>
+    Task<long?> CreateSnapshotAsync(
+        ulong guildId,
+        string playlistName,
+        IReadOnlyList<PlaylistTrackCreateRecord> tracks,
+        int maxPlaylists,
+        int maxTracks,
+        CancellationToken cancellationToken);
+
+    /// <summary>Sets a custom cover or clears it to restore automatic source artwork.</summary>
+    Task<bool> SetArtworkAsync(long playlistId, string? artworkUri, CancellationToken cancellationToken);
+
     /// <summary>
     /// Reads the guild-owned playlist with the requested stored name.
     /// </summary>

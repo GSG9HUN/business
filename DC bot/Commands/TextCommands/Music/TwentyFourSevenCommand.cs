@@ -6,7 +6,6 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Persistence.Models.Guilds;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
 using Microsoft.Extensions.Logging;
 
@@ -34,8 +33,10 @@ public sealed class TwentyFourSevenCommand(
     public string Name => "24-7";
 
     /// <inheritdoc />
-    public string Description =>
-        localizationService.Get(LocalizationKeys.TwentyFourSevenCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.TwentyFourSevenCommandDescription;
 
     /// <summary>
     /// Displays the current mode or changes it using an explicit boolean argument.
@@ -53,8 +54,7 @@ public sealed class TwentyFourSevenCommand(
 
         if (message.Channel?.Guild is not { Id: > 0 } guild)
         {
-            await message.RespondAsync(
-                localizationService.Get(LocalizationKeys.SlashCommandGuildOnly));
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.SlashCommandGuildOnly, CancellationToken.None);
 
             return;
         }
@@ -75,6 +75,7 @@ public sealed class TwentyFourSevenCommand(
                     message,
                     LocalizationKeys.TwentyFourSevenCommandInvalidArgument,
                     CancellationToken.None);
+                await responseBuilder.SendUsageAsync(message, Name);
 
                 return;
             }

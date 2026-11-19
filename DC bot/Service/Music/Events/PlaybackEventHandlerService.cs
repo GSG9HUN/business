@@ -1,7 +1,6 @@
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.Events;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using Lavalink4NET;
 using Lavalink4NET.Events;
@@ -147,6 +146,7 @@ public sealed class PlaybackEventHandlerService(
 
                 // Skip dispatches its own end after StopAsync succeeds. A delayed
                 // Stopped/Replaced/Cleanup event must not consume the next attempt.
+
                 if (
                     args.Reason is
                     not (TrackEndReason.Finished or TrackEndReason.LoadFailed))

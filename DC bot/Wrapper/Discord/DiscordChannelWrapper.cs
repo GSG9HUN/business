@@ -1,3 +1,4 @@
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Logging;
 using DSharpPlus.Entities;
@@ -53,9 +54,32 @@ public class DiscordChannelWrapper(
         {
             await discordChannel.SendMessageAsync(embed);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.MessageSendFailed(ex, "DiscordChannelWrapper.SendMessageAsync");
+            _logger.MessageSendFailed(ex, "DiscordChannelWrapper.SendMessageAsync(embed)");
+            var text = string.IsNullOrWhiteSpace(embed.Description) ? embed.Title : embed.Description;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            try
+            {
+                await discordChannel.SendMessageAsync(DiscordTextSanitizer.Truncate(text, 2000));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception fallbackException)
+            {
+                _logger.MessageSendFailed(fallbackException, "DiscordChannelWrapper.SendMessageAsync(embed).Fallback");
+            }
         }
     }
 

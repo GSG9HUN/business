@@ -4,9 +4,9 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
-- Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
-- Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
-- QueueRepository delegates atomic start ownership to QueueClaimService and canonical repeat/history to QueueBatchRepository. QueueBatchStore coordinates active batch state inside transactions; QueueRealtimeNotifier signals readers after relevant changes.
+- Implements transactional queue, playback-start claim and canonical batch operations.
+- Preserves occurrence identity, repeat membership and history while changing waiting order.
+- Maps stored state to shared records and publishes queue-change notifications.
 
 ## Classes
 
@@ -221,6 +221,13 @@ await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(dbContext, guildId, eventNam
 
 **Purpose:** Exposes durable queue edits, canonical batch history, and fenced playback-start operations through injected persistence helpers.
 
+**Validation Checks:**
+
+- Non-premium overflow is rejected before insertion with `QueueCapacityExceededException`; active premium guilds bypass the waiting cap.
+- Play-next retains canonical append order; explicit moves synchronize repeat order by occurrence ID.
+- Skip-to validates the waiting ID/order snapshot and tags provisional skips with the selected start operation. Pre-dispatch release restores the prefix; confirmed transport retains skips.
+- `EnqueueAutoplayIfEmptyAsync` checks waiting/pending state and inserts canonical membership in one serializable transaction; false means no insertion.
+
 **Implements / inherits:** `IQueueRepository`.
 
 **Methods:**
@@ -278,27 +285,6 @@ The caller supplies the component and argument values used in this example.
 
 ```csharp
 var result = await queueRepository.GetActiveBatchItemsAsync(guildId, cancellationToken);
-```
-
----
-
-## Recovery Commit
-
-**Purpose:** `CompleteStartAsync` commits optional `initialPosition` and `initiallyPaused` values in the same transaction as the matching queue start. Defaults retain ordinary start-at-zero, unpaused behavior. Idempotent repeats retain the committed result; a mismatched operation cannot overwrite another attempt.
-
-**Methods:**
-
-```csharp
-Task<bool> CompleteStartAsync(
-    ulong guildId,
-    long queueItemId,
-    Guid operationId,
-    string trackIdentifier,
-    string realtimeEventName,
-    bool clearSourceMetadata = false,
-    TimeSpan? initialPosition = null,
-    bool initiallyPaused = false,
-    CancellationToken cancellationToken = default);
 ```
 
 ---

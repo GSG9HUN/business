@@ -4,10 +4,359 @@ Exposes voice join/leave and playback controls through slash commands.
 
 ## Overview
 
-- DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
+- Exposes typed Discord interaction options for playback, filters, discovery and guild music settings.
+- Builds `SlashCommandExecutionRequest` values for shared text-command execution.
+- Controls interaction acknowledgement while services enforce playback ownership and permissions.
 
 ## Classes
+
+### MusicStatusSlashCommand
+
+**Purpose:** Displays playback, voice and text destinations, audio settings, queue/repeat, votes, DJ role, 24/7 and the empty-channel countdown.
+
+**Usage:** `/music-status`.
+
+---
+
+### MusicConfigSlashCommand
+
+**Purpose:** Shows and changes guild vote-skip and DJ-role settings. Changes require Manage Guild and do not require a voice connection.
+
+**Usage:** `/music-config show`, `/music-config vote-skip enabled:true`, `/music-config dj-role role:DJ`. Omitting the role clears it; Discord supplies a native role picker.
+
+---
+
+### KaraokeSlashCommand
+
+**Files:**
+
+- `KaraokeSlashCommand.cs`
+
+**Purpose:** Routes /karaoke mode:on or mode:off to shared localized text behavior. FiltersSlashCommand also exposes Advanced(effect, values) and Custom(action, name, overwrite).
+
+---
+
+### LyricsSlashCommand
+
+**Files:**
+
+- `LyricsSlashCommand.cs`
+
+**Purpose:** Routes `lyrics [query] [--page N]` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### FavoriteSlashCommand
+
+**Files:**
+
+- `FavoriteSlashCommand.cs`
+
+**Purpose:** Routes `favorite add/list/remove/play` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### FavouriteSlashCommand
+
+**Files:**
+
+- `FavouriteSlashCommand.cs`
+
+**Purpose:** Routes `favourite add/list/remove/play` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### RecommendationsSlashCommand
+
+**Files:**
+
+- `RecommendationsSlashCommand.cs`
+
+**Purpose:** Routes `recommendations [query]` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### AutoplaySlashCommand
+
+**Files:**
+
+- `AutoplaySlashCommand.cs`
+
+**Purpose:** Routes `autoplay on/off/status` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### SearchPickerSlashCommand
+
+**Files:**
+
+- `SearchPickerSlashCommand.cs`
+
+**Purpose:** Routes `searchpicker on/off/status` to the shared discovery service and localized result boundary.
+
+**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
+
+**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
+
+---
+
+### PlayNextSlashCommand
+
+**Files:**
+
+- `PlayNextSlashCommand.cs`
+
+**Purpose:** Exposes `playnext <query or URL>` through existing validation, localized results and shared playback/queue services.
+
+**Methods:** `ExecuteAsync` handles the adapted interaction; the attributed command method binds typed Discord options.
+
+**Usage:** `/playnext <query or URL>`.
+
+---
+
+### FiltersSlashCommand
+
+**Files:**
+
+- `FiltersSlashCommand.cs`
+
+**Purpose:** Inspects confirmed settings, lists supported presets, selects a preset, or resets effects. Uses the existing shared text-command executor.
+
+**Usage:** `/filters show|list|reset`, `/filters preset name:<name>`, `/filters advanced effect:<effect> values:<values|off>` and `/filters custom action:<save|list|apply|delete> name:<name|page> overwrite:<bool>`. Omitted advanced values inspect current state.
+
+Read-only inspection and preset listing do not require voice membership. Changes require the bot voice channel. Preset save/overwrite/delete requires Manage Guild; saving also captures current connected-player state.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string argument)
+```
+
+**Usage:**
+
+```text
+/filters [show|list|reset|preset <name>]
+```
+
+---
+
+### BassBoostSlashCommand
+
+**Files:**
+
+- `BassBoostSlashCommand.cs`
+
+**Purpose:** Replaces only the equalizer curve using off, low, medium, or high. Internal gain and unrelated effects remain unchanged. Uses the existing shared text-command executor.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/bassboost [off|low|medium|high]
+```
+
+---
+
+### SpeedSlashCommand
+
+**Files:**
+
+- `SpeedSlashCommand.cs`
+
+**Purpose:** Changes only timescale speed between 0.5 and 2.0 while retaining pitch, rate, and other effects. Uses the existing shared text-command executor.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/speed [0.5-2.0]
+```
+
+---
+
+### PitchSlashCommand
+
+**Files:**
+
+- `PitchSlashCommand.cs`
+
+**Purpose:** Changes only timescale pitch between 0.5 and 2.0 while retaining speed, rate, and other effects. Uses the existing shared text-command executor.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/pitch [0.5-2.0]
+```
+
+---
+
+### NowPlayingSlashCommand
+
+**Files:**
+
+- `NowPlayingSlashCommand.cs`
+
+**Purpose:** Displays the current track, requester, source, position, state, repeat, volume, and configured effects. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context)
+```
+
+**Usage:**
+
+```text
+/nowplaying
+```
+
+---
+
+### VolumeSlashCommand
+
+**Files:**
+
+- `VolumeSlashCommand.cs`
+
+**Purpose:** Reads connected player volume without an argument or changes it in the bot voice channel. Levels above 100% are marked as amplified. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/volume [0-200]
+```
+
+---
+
+### SeekSlashCommand
+
+**Files:**
+
+- `SeekSlashCommand.cs`
+
+**Purpose:** Moves to an absolute position before the track end while retaining pause and queue identity. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/seek <seconds|mm:ss|hh:mm:ss>
+```
+
+---
+
+### ForwardSlashCommand
+
+**Files:**
+
+- `ForwardSlashCommand.cs`
+
+**Purpose:** Moves forward by nonnegative integer seconds, clamping before the end without dispatching skip. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/forward <seconds>
+```
+
+---
+
+### RewindSlashCommand
+
+**Files:**
+
+- `RewindSlashCommand.cs`
+
+**Purpose:** Moves backward by nonnegative integer seconds, clamping at zero. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
+```
+
+**Usage:**
+
+```text
+/rewind <seconds>
+```
+
+---
+
+### RestartSlashCommand
+
+**Files:**
+
+- `RestartSlashCommand.cs`
+
+**Purpose:** Seeks the current track to zero while retaining its history item and pause state. Uses the existing SlashCommandExecutor and the matching text command.
+
+**Methods:**
+
+```csharp
+public Task ExecuteAsync(ISlashInteractionContext context)
+```
+
+**Usage:**
+
+```text
+/restart
+```
+
+---
 
 ### JoinSlashCommand
 
@@ -194,6 +543,8 @@ await resumeSlashCommand.ExecuteAsync(context);
 **File:** `DC bot/Commands/SlashCommands/Music/SkipSlashCommand.cs`
 
 **Purpose:** Adapts the skip slash command to shared command execution and interaction acknowledgement.
+
+The requester and configured DJ can skip immediately from the bot voice channel. Other human listeners cast one vote per track when guild voting is enabled. Responses distinguish a recorded vote from a completed skip.
 
 **Methods:**
 

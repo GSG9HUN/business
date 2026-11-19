@@ -4,11 +4,49 @@ This folder contains EF Core schema migrations, their generated metadata, and th
 
 ## Overview
 
-- Preserve the chronological schema transitions required by the current database model.
-- Keep each migration operation file together with its matching generated designer file.
-- Apply pending schema changes through bot startup or an explicit EF tooling command.
+- Records EF Core schema transitions and their generated target-model metadata.
+- Keeps timestamped migration operations and the current model snapshot together.
+- Supports applying schema changes during startup or with EF tooling.
 
 ## Migration Components
+
+### AddGuildMusicControlSettings
+
+**Purpose:** Creates `guild_music_control_settings` with a guild primary key, default-disabled voting and nullable numeric DJ role ID.
+
+**Files:**
+
+- `20261118092853_AddGuildMusicControlSettings.cs`
+- `20261118092853_AddGuildMusicControlSettings.Designer.cs`
+
+**Methods:** `Up` creates the table; `Down` drops it.
+
+---
+
+### AddFilterPresets
+
+**Purpose:** Creates `filter_preset` with a composite guild/name primary key, schema version, JSONB definition, saving administrator and UTC timestamp.
+
+**Files:**
+
+- `20261117144346_AddFilterPresets.cs`
+- `20261117144346_AddFilterPresets.Designer.cs`
+
+**Methods:** `Up` creates the table; `Down` drops it.
+
+---
+
+### AddMusicDiscovery
+
+**Files:**
+
+- `20261117135456_AddMusicDiscovery.cs`, its designer metadata and `BotDbContextModelSnapshot.cs`
+
+**Purpose:** Creates personal favorites with a unique user/source identity and independent disabled-by-default user picker/guild autoplay settings. No existing rows are rewritten.
+
+**Methods:** `Up` creates three tables and the favorite index; `Down` drops those three tables.
+
+---
 
 ### Timestamped Migration Files
 
@@ -37,6 +75,8 @@ dotnet ef migrations add <MigrationName> --project "DC bot.Persistence/DC bot.Pe
 dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"
 ```
 
+To inspect unapplied migrations without changing the database, run `dotnet ef migrations list --project "DC bot.Persistence/DC bot.Persistence.csproj" --startup-project "DC bot.Persistence/DC bot.Persistence.csproj"`. Apply existing pending migrations with the `database update` command above; generating a new migration is unnecessary for that operation. Run against the same database as the API. In the Docker Compose deployment, rebuilding and starting `discord-bot` also applies pending migrations before connecting to Discord. An existing history entry combined with missing columns indicates schema drift and needs separate investigation; an ordinary update will not rerun an already recorded migration.
+
 `BotDbContextFactory` reads `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from the tooling process environment. It does not load `.env` itself. Bot startup separately invokes `DatabaseMigrationRunner`; the API does not currently apply migrations in its startup path.
 
 ---
@@ -47,7 +87,9 @@ dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.cspro
 
 **Purpose:** Adds canonical playback batch and item storage and links queue/playback state to that batch model.
 
-**Behavior:** This migration is already present. Enabling the existing batch behavior does not require generating a duplicate migration. Inspect `Up` and `Down` for the exact columns, indexes, relationships, and tables involved.
+Queue/canonical rows retain `bigint` batch keys. `enqueue_group_id` separates display grouping, `batch_position` records position and `is_removed` excludes canonical occurrences from repeats. Legacy occurrences receive deterministic display groups.
+
+**Behavior:** `Up` defines batch tables, occurrence metadata, indexes and relationships; `Down` reverses that schema transition.
 
 ---
 
@@ -62,26 +104,6 @@ dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.cspro
 - Keeps generated schema comparisons tied to a source-controlled model.
 - Makes a new migration describe a transition from the previous model.
 - Separates schema evolution from repository implementation and documentation changes.
-
-## Schema Change Checks
-
-- Review the generated operations and snapshot against the entity/configuration change.
-- Apply schema changes to the intended database environment.
-- Add a new migration for a new schema transition instead of rewriting previously deployed history.
-- Documentation, DI, XML, and cancellation-only changes do not need a migration unless the model also changes.
-
-## Persistent Voice Schema
-
-### AddTwentyFourSevenSettings
-
-**Files:**
-
-- `20261023110102_AddTwentyFourSevenSettings.cs`
-- `20261023110102_AddTwentyFourSevenSettings.Designer.cs`
-
-**Purpose:** Adds `is_twenty_four_seven_enabled` (default false), `preferred_voice_channel_id`, and `preferred_text_channel_id` to `guild_data`. The channel identifiers are nullable `numeric(20,0)` values. Apply this migration before using preference reads and writes; it changes storage only.
-
----
 
 ## Related Components
 

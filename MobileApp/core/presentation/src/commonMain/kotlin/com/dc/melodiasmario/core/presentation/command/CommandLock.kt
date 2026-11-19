@@ -14,6 +14,7 @@ class CommandLock<State>(
      * Acquires the command lock only when no command is currently running.
      */
     fun startIfIdle(): Boolean {
+
         if (uiState.value.isCommandInFlight) {
             return false
         }

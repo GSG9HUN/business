@@ -15,6 +15,8 @@ Reuses registered text commands for Discord slash interactions.
 
 **Purpose:** Adapts slash interactions to registered commands and completes deferred interaction responses.
 
+Guild-only denials, unknown commands, deferred acknowledgements and command exceptions use localized status embeds through `IResponseBuilder`. Normal registered commands retain their shared command pipeline.
+
 **Implements / inherits:** `ISlashCommandExecutor`.
 
 **Methods:**

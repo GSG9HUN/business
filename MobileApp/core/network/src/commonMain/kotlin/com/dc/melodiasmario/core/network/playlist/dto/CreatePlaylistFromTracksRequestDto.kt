@@ -11,5 +11,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreatePlaylistFromTracksRequestDto(
     val playlistName: String,
-    val trackUrls: List<String>
+    val trackUrls: List<String>,
+    val queueItemIds: List<String>
 )

@@ -38,11 +38,12 @@ enum class TrackSearchPrefix(val prefix: String, val alias: String) {
     companion object {
         /** Returns null for unprefixed queries, URLs, and unsupported prefixes. */
         fun fromInput(input: String): TrackSearchPrefix? {
+
             if (':' !in input) {
                 return null
             }
 
-            val value = input.substringBefore(':')
+            val value = input.substringBefore(delimiter = ':')
             return entries.firstOrNull { searchPrefix ->
                 searchPrefix.prefix.equals(other = value, ignoreCase = true) ||
                         searchPrefix.alias.equals(other = value, ignoreCase = true)

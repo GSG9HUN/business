@@ -2,6 +2,7 @@ using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -15,7 +16,11 @@ namespace DC_bot.Service.ReactionHandler;
 /// </summary>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
-public sealed class ReactionControlMessageService(ILocalizationService localizationService, ILogger? logger = null)
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
+public sealed class ReactionControlMessageService(
+    ILocalizationService localizationService,
+    IResponseBuilder responseBuilder,
+    ILogger? logger = null)
 {
     private readonly ILogger _logger = logger ?? NullLogger<ReactionControlMessageService>.Instance;
 
@@ -37,9 +42,9 @@ public sealed class ReactionControlMessageService(ILocalizationService localizat
         try
         {
             var guildId = textChannel.Guild.Id;
-            var controlText = $"**{localizationService.Get(guildId, LocalizationKeys.MusicControl)}**\n" + $"{ReactionControlEmojis.PauseEmoji} - {localizationService.Get(guildId, LocalizationKeys.PauseReaction)} " + $"{ReactionControlEmojis.ResumeEmoji} - {localizationService.Get(guildId, LocalizationKeys.ResumeReaction)} " + $"{ReactionControlEmojis.SkipEmoji} - {localizationService.Get(guildId, LocalizationKeys.SkipReaction)} " + $"{ReactionControlEmojis.RepeatEmoji} - {localizationService.Get(guildId, LocalizationKeys.RepeatReaction)}";
-            var builder = new DiscordMessageBuilder().WithContent(controlText)
-                .AddEmbed(embed);
+            var controlText = $"{ReactionControlEmojis.PauseEmoji} - {localizationService.Get(guildId, LocalizationKeys.PauseReaction)} " + $"{ReactionControlEmojis.ResumeEmoji} - {localizationService.Get(guildId, LocalizationKeys.ResumeReaction)} " + $"{ReactionControlEmojis.SkipEmoji} - {localizationService.Get(guildId, LocalizationKeys.SkipReaction)} " + $"{ReactionControlEmojis.RepeatEmoji} - {localizationService.Get(guildId, LocalizationKeys.RepeatReaction)}";
+            var builder = new DiscordMessageBuilder().AddEmbed(embed)
+                .AddEmbed(responseBuilder.CreateEmbed(guildId, controlText, titleKey: LocalizationKeys.MusicControl));
             var message = await textChannel.ToDiscordChannel()
                 .SendMessageAsync(builder)
                 .WaitAsync(cancellationToken);

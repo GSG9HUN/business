@@ -1,3 +1,4 @@
+using DSharpPlus.Entities;
 using DC_bot.Configuration;
 using DC_bot.Constants;
 using DC_bot.Exceptions;
@@ -5,6 +6,7 @@ using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
@@ -23,6 +25,7 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
     private readonly ILogger<CommandHandlerService> _logger;
     private readonly IDiscordMessageFactory _messageFactory;
     private bool _isRegistered;
+    private readonly IResponseBuilder _responseBuilder;
 
     /// <summary>
     /// Initializes CommandHandlerService with the supplied dependencies and settings.
@@ -32,10 +35,19 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
     /// <param name="localizationService">The localization service dependency used by this boundary.</param>
     /// <param name="botSettings">The bot settings supplied for this operation.</param>
     /// <param name="messageFactory">The Discord message factory dependency used by this boundary.</param>
+    /// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
     /// <param name="isTestMode">Whether explicit test-runtime behavior is enabled.</param>
-    public CommandHandlerService(ICommandRegistry commandRegistry, ILogger<CommandHandlerService> logger, ILocalizationService localizationService, BotSettings botSettings, IDiscordMessageFactory messageFactory, bool isTestMode = false)
+    public CommandHandlerService(
+        ICommandRegistry commandRegistry,
+        ILogger<CommandHandlerService> logger,
+        ILocalizationService localizationService,
+        BotSettings botSettings,
+        IDiscordMessageFactory messageFactory,
+        IResponseBuilder responseBuilder,
+        bool isTestMode = false)
     {
         _logger = logger;
+        _responseBuilder = responseBuilder;
         _commandRegistry = commandRegistry;
         _ = _commandRegistry.Commands;
         _localizationService = localizationService;
@@ -44,6 +56,7 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
         Prefix = botSettings.Prefix;
     }
 
+    /// <summary>Gets or sets the text-command prefix captured from bot settings.</summary>
     internal string? Prefix { get; set; }
 
     /// <summary>
@@ -122,7 +135,11 @@ public class CommandHandlerService : IEventHandler<MessageCreatedEventArgs>
             }
             else
             {
-                await args.Channel.SendMessageAsync(guildId == 0 ? _localizationService.Get(LocalizationKeys.UnknownCommandError) : _localizationService.Get(guildId, LocalizationKeys.UnknownCommandError));
+                var response = _messageFactory.Create(args.Message, args.Channel, args.Author, guild: args.Guild);
+                await response.RespondAsync(_responseBuilder.CreateEmbed(guildId == 0 ? null : guildId,
+                    guildId == 0 ? _localizationService.Get(LocalizationKeys.UnknownCommandError)
+                        : _localizationService.Get(guildId, LocalizationKeys.UnknownCommandError),
+                    DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle));
                 _logger.CommandHandlerUnknownCommand();
             }
         }

@@ -34,7 +34,7 @@ var result = await playbackCleanupService.CleanupAsync(guildId, player, joinWasN
 **Behavior:** Cleanup owns independent phase deadlines. Caller cancellation must not abandon an uncertain remote player or incorrectly persist a confirmed disconnect. FullySucceeded uses the completion predicate declared on LeaveResult; the Stop phase is reported separately from that predicate.
 
 
-**Checkpoint policy:** After confirmed remote disconnection and pending-start settlement, enabled persistent voice retains current-track identity, position, and pause state. Explicit leave disables that flag first, so its cleanup clears current playback. A disconnected voice observation and a retained recovery checkpoint describe different things.
+**Checkpoint policy:** After confirmed remote disconnection and pending-start settlement, enabled persistent voice retains current-track identity, position, and pause state. With 24/7 disabled, a remembered music recovery target also retains a confirmed Playing occurrence. Explicit leave disables persistent mode and clears remembered targets first, so its cleanup clears current playback. A disconnected voice observation and a retained recovery checkpoint describe different things.
 
 
 ---

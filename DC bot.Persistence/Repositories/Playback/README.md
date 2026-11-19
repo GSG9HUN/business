@@ -4,6 +4,8 @@ Implements shared storage operations for current playback state, repeat flags, s
 
 ## Overview
 
+- `RepeatListRepository.ReplaceAsync` permits more than 50 snapshot tracks for active premium guilds. Entitlement and the free-guild cap are checked in the replacement transaction before removing stored rows.
+
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 - Playback start confirmation checks operation ownership before committing the selected queue item. Notification helpers publish invalidation signals; consumers reload snapshots instead of interpreting the signal as complete playback state.

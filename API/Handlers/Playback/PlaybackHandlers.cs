@@ -141,10 +141,17 @@ public static class PlaybackHandlers
         return true;
     }
 
+    /// <summary>Supported repeat modes accepted by the playback API.</summary>
     private enum RepeatMode
     {
+
+        /// <summary>Disables repetition.</summary>
         None,
+
+        /// <summary>Repeats the current track.</summary>
         One,
+
+        /// <summary>Repeats the active playback list.</summary>
         All
     }
 }

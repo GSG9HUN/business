@@ -31,6 +31,7 @@ actual fun BindAppLockLifecycle(
                 }
 
                 Lifecycle.Event.ON_STOP -> {
+
                     if (activity?.isChangingConfigurations != true) {
                         appLockController.onBackground()
                     }
@@ -52,6 +53,7 @@ private fun Context.findActivity(): Activity? {
     var current: Context = this
 
     while (current is ContextWrapper) {
+
         if (current is Activity) {
             return current
         }

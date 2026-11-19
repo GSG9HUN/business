@@ -9,6 +9,7 @@ class TrackQueueReducer {
      * Returns queue state after moving a track between the supplied indexes.
      */
     fun <Track, State> reorder(uiState: State, fromIndex: Int, toIndex: Int): State where State : TrackQueueUiState<Track, State> {
+
         if (fromIndex == toIndex
             || fromIndex !in uiState.tracks.indices
             || toIndex !in uiState.tracks.indices

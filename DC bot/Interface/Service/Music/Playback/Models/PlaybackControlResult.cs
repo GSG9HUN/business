@@ -1,3 +1,5 @@
+using DC_bot.Interface.Service.Presentation.Models;
+
 namespace DC_bot.Interface.Service.Music.Playback.Models;
 
 /// <summary>
@@ -8,6 +10,12 @@ namespace DC_bot.Interface.Service.Music.Playback.Models;
 /// <param name="ErrorCode">The error code supplied for this operation.</param>
 public sealed record PlaybackControlResult(bool Success, string Message, string? ErrorCode = null)
 {
+
+    /// <summary>Gets optional read-only pagination for Discord presentation; ordinary bridge text remains in Message.</summary>
+    public PaginationRequest? Pagination { get; init; }
+
+    /// <summary>Gets the author and title captured from the track targeted by a successful control operation.</summary>
+    public string? TrackDisplayName { get; init; }
 
     /// <summary>
     /// Creates a successful playback-control result.

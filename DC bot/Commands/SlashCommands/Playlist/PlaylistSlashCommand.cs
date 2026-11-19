@@ -1,7 +1,9 @@
+using DSharpPlus.Entities;
 using System.ComponentModel;
 using DC_bot.Constants;
 using DC_bot.Helper;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -14,12 +16,14 @@ namespace DC_bot.Commands.SlashCommands.Playlist;
 /// <param name="slashCommandExecutor">The slash command executor dependency used by this boundary.</param>
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 [Command("playlist")]
 [Description("Manage saved playlists")]
 public class PlaylistSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory,
-    ILocalizationService localizationService)
+    ILocalizationService localizationService,
+    IResponseBuilder responseBuilder)
 {
 
     /// <summary>
@@ -160,7 +164,9 @@ public class PlaylistSlashCommand(
 
         if (!confirm)
         {
-            await slashContext.RespondAsync(GetLocalizedMessage(slashContext, LocalizationKeys.DeletePlaylistCommandConfirmationRequired, DiscordTextSanitizer.EscapeMentions(playlistName)));
+            await slashContext.RespondAsync(responseBuilder.CreateEmbed(slashContext.GuildId,
+                GetLocalizedMessage(slashContext, LocalizationKeys.DeletePlaylistCommandConfirmationRequired,
+                    DiscordTextSanitizer.EscapeMentions(playlistName)), DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle));
             return;
         }
 

@@ -38,6 +38,7 @@ class AppLockController(
      */
     suspend fun initialize(): Unit {
         initializationMutex.withLock {
+
             if (_uiState.value.isInitialized) {
                 return@withLock
             }
@@ -86,6 +87,7 @@ class AppLockController(
      * Records when the application leaves the foreground for lock-timeout handling.
      */
     fun onBackground(): Unit {
+
         if (!_uiState.value.isForeground) {
             return
         }
@@ -101,6 +103,7 @@ class AppLockController(
      * Reevaluates the application lock when the application returns to the foreground.
      */
     fun onForeground(): Unit {
+
         if (_uiState.value.isForeground) {
             return
         }
@@ -175,6 +178,7 @@ class AppLockController(
      * Clears the active authentication session and application-lock state.
      */
     suspend fun signOut(): Boolean {
+
         if (_uiState.value.isBusy) {
             return false
         }

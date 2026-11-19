@@ -44,5 +44,8 @@ public enum PlaybackStartReason
     /// <summary>
     /// Restores an existing queue item after a confirmed voice disconnect.
     /// </summary>
-    Recovery
+    Recovery,
+
+    /// <summary>Replaces playback with a captured waiting occurrence, skipping earlier entries for this pass.</summary>
+    SkipTo
 }

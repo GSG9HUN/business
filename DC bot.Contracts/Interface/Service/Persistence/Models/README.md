@@ -4,10 +4,46 @@ Groups immutable records and state enums passed across repository boundaries.
 
 ## Overview
 
-- Repositories map their EF entities into these records; services and API mappers use them without knowing table mappings.
-- Models describe storage use cases rather than HTTP serialization or live SDK state. Input records, snapshot records, and conditional mutation results have different roles.
+- Defines immutable repository inputs, snapshots and conditional mutation results.
+- Describes storage use cases independently of HTTP serialization and live SDK state.
 
 ## Subfolders
+
+### MusicControl/
+
+Carries immutable VoteSkipEnabled and DjRoleId values across the shared persistence boundary without Discord SDK dependencies.
+
+**Files:**
+
+- `GuildMusicControlSettingsRecord.cs`
+
+**Purpose:** Carries immutable VoteSkipEnabled and DjRoleId values across the shared persistence boundary without Discord SDK dependencies.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset contracts.
+
+**Files:**
+
+- `FilterPresetRecord.cs`
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery contracts and data.
+
+**Files:**
+
+- `FavoriteTrackRecord.cs`
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControlCommand/
 

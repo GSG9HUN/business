@@ -76,6 +76,119 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("bot_control_commands", (string)null);
                 });
 
+            modelBuilder.Entity("DC_bot.Entities.Discovery.FavoriteTrackEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("AddedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at_utc");
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("author");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<string>("TrackIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("track_identifier");
+
+                    b.Property<string>("TrackKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("track_key");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TrackKey")
+                        .IsUnique();
+
+                    b.ToTable("favorite_track", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Discovery.GuildMusicSettingsEntity", b =>
+                {
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<bool>("AutoplayEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("autoplay_enabled");
+
+                    b.HasKey("GuildId");
+
+                    b.ToTable("guild_music_settings", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Discovery.UserMusicSettingsEntity", b =>
+                {
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("user_id");
+
+                    b.Property<bool>("SearchPickerEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("search_picker_enabled");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("user_music_settings", (string)null);
+                });
+
+            modelBuilder.Entity("DC_bot.Entities.Filters.FilterPresetEntity", b =>
+                {
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("definition");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("schema_version");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<decimal>("UpdatedBy")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("GuildId", "Name");
+
+                    b.ToTable("filter_preset", (string)null);
+                });
+
             modelBuilder.Entity("DC_bot.Entities.GuildBotStatus.GuildBotStatusEntity", b =>
                 {
                     b.Property<decimal>("GuildId")
@@ -401,6 +514,27 @@ namespace DC_bot.Persistence.Migrations
                     b.ToTable("user_guilds", (string)null);
                 });
 
+            modelBuilder.Entity("DC_bot.Entities.MusicControl.GuildMusicControlSettingsEntity", b =>
+                {
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<decimal?>("DjRoleId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("dj_role_id");
+
+                    b.Property<bool>("VoteSkipEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("vote_skip_enabled");
+
+                    b.HasKey("GuildId");
+
+                    b.ToTable("guild_music_control_settings", (string)null);
+                });
+
             modelBuilder.Entity("DC_bot.Entities.Playback.GuildPlaybackStateEntity", b =>
                 {
                     b.Property<decimal>("GuildId")
@@ -545,6 +679,14 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("batch_id");
 
+                    b.Property<Guid>("EnqueueGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enqueue_group_id");
+
+                    b.Property<bool>("IsRemoved")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_removed");
+
                     b.Property<int>("Position")
                         .HasColumnType("integer")
                         .HasColumnName("position");
@@ -582,6 +724,11 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ArtworkUri")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("artwork_uri");
 
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
@@ -667,6 +814,14 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("batch_item_id");
 
+                    b.Property<int>("BatchPosition")
+                        .HasColumnType("integer")
+                        .HasColumnName("batch_position");
+
+                    b.Property<Guid>("EnqueueGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enqueue_group_id");
+
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
@@ -742,6 +897,8 @@ namespace DC_bot.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_queue_starting_guild")
                         .HasFilter("\"state\" = 4");
+
+                    b.HasIndex("GuildId", "EnqueueGroupId");
 
                     b.HasIndex("GuildId", "Position")
                         .IsUnique()

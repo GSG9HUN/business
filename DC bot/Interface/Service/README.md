@@ -4,8 +4,8 @@ Groups bot use-case contracts independently of their concrete runtime implementa
 
 ## Overview
 
-- Commands, adapters, and orchestrators depend on the feature-specific interfaces below. Startup binds them to services and factories.
-- Storage interfaces shared with the API are in DC bot.Contracts. Avoid leaking EF contexts into this tree.
+- Groups application service contracts by responsibility.
+- Defines orchestration boundaries for commands, music, localization, presentation and durable bot control.
 
 ## Subfolders
 

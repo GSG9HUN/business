@@ -45,9 +45,9 @@ public string Password { get; init; }
 
 ### PlaylistOptions
 
-**File:** `DC bot/Configuration/PlaylistOptions.cs`
+**File:** `DC bot.Contracts/Configuration/PlaylistOptions.cs`
 
-**Purpose:** Defines playlist and track limits applied to saved-playlist operations.
+**Purpose:** Defines shared limits of 5 playlists per guild, 100 tracks per playlist, and 100 imported tracks. The bot uses the Contracts declaration; no runtime-local duplicate is declared.
 
 **Properties:**
 

@@ -34,11 +34,6 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
     {
         ArgumentNullException.ThrowIfNull(trackIdentifiers);
 
-        if (trackIdentifiers.Count > MaxRepeatListItemsPerGuild)
-        {
-            throw new InvalidOperationException($"Repeat list cannot contain more than {MaxRepeatListItemsPerGuild} tracks.");
-        }
-
         await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(dbContextFactory, (dbContext, ct) => ReplaceAsync(dbContext, guildId, trackIdentifiers, ct), cancellationToken);
     }
 
@@ -57,6 +52,13 @@ public class RepeatListRepository(IDbContextFactory<BotDbContext> dbContextFacto
         CancellationToken cancellationToken)
     {
         await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+
+        if (trackIdentifiers.Count > MaxRepeatListItemsPerGuild
+            && !await GuildPremiumQuery.IsActiveAsync(dbContext, guildId, cancellationToken))
+        {
+            throw new InvalidOperationException($"Repeat list cannot contain more than {MaxRepeatListItemsPerGuild} tracks.");
+        }
+
         var existingItems = await dbContext.GuildRepeatListItems.Where(item => item.GuildId == guildId)
             .ToListAsync(cancellationToken);
         dbContext.GuildRepeatListItems.RemoveRange(existingItems);

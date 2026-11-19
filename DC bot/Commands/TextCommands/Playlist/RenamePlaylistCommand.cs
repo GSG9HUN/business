@@ -34,7 +34,10 @@ public class RenamePlaylistCommand(
     public string Name => "renamePlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.RenamePlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.RenamePlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

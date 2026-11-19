@@ -12,6 +12,7 @@ using DC_bot.Interface.Service.Persistence.Models.Queue;
 using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Service.BotControl;
+using DC_bot.Service.Music.Controls;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.Sessions;
@@ -25,7 +26,7 @@ using Microsoft.Extensions.Options;
 namespace DC_bot.Service.Music.Lifecycle.PersistentVoice;
 
 /// <summary>
-/// Maintains enabled persistent voice connections and restores confirmed playback checkpoints.
+/// Maintains persistent voice or active music connections and restores confirmed playback checkpoints.
 /// </summary>
 /// <remarks>
 /// Periodic checkpoints approximate the last confirmed position. Missing channels, failed cleanup, and uncertain starts
@@ -44,6 +45,8 @@ namespace DC_bot.Service.Music.Lifecycle.PersistentVoice;
 /// <param name="cleanupService">Confirms old player termination.</param>
 /// <param name="persistentVoiceGate">Serializes recovery, settings, and explicit leave.</param>
 /// <param name="options">Provides the configured join and cleanup deadlines for each recovery pass.</param>
+/// <param name="musicControls">Maintains votes and empty-channel deadlines.</param>
+/// <param name="playbackControls">Executes approved skips through the shared control path.</param>
 /// <param name="logger">Records recovery failures and results.</param>
 public sealed class PersistentVoiceRecoveryService(
     DiscordClient discordClient,
@@ -59,7 +62,9 @@ public sealed class PersistentVoiceRecoveryService(
     PlaybackCleanupService cleanupService,
     PersistentVoiceGate persistentVoiceGate,
     IOptions<PlaybackLifecycleOptions> options,
-    ILogger<PersistentVoiceRecoveryService> logger)
+    ILogger<PersistentVoiceRecoveryService> logger,
+    MusicControlSettingsService musicControls,
+    IPlaybackControlService playbackControls)
 {
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _disconnectedSince = new();
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> _retryAfter = new();
@@ -70,19 +75,40 @@ public sealed class PersistentVoiceRecoveryService(
     /// </summary>
     /// <param name="cancellationToken">Stops scheduling checks and waiting on supported work at shutdown.</param>
     /// <returns>The worker lifetime task; owned cleanup may outlive a cancelled check.</returns>
-    /// <remarks>Checks every five seconds and does not require a human listener or an active track.</remarks>
+    /// <remarks>Checks every five seconds. Disabled persistent voice requires remembered destinations and remaining music.</remarks>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
 
         do
         {
-            var jobs = discordClient.Guilds.Keys.Select(
-                guildId => ReconcileSafelyAsync(guildId, cancellationToken));
+            var jobs = discordClient.Guilds.Keys.Select(async guildId =>
+            {
+                try
+                {
+                    using var maintenanceDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    maintenanceDeadline.CancelAfter(options.Value.JoinDeadline + options.Value.LeaveDeadline);
+                    await musicControls.MaintainAsync(guildId,
+                        (message, member, attempt) => playbackControls.SkipVotedAttemptAsync(
+                            message, member, attempt, maintenanceDeadline.Token),
+                        maintenanceDeadline.Token);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    logger.LogWarning(exception, "Music control maintenance deferred. Guild={GuildId}", guildId);
+                }
+
+                await ReconcileSafelyAsync(guildId, cancellationToken);
+            });
 
             await Task.WhenAll(jobs);
         }
         while (await timer.WaitForNextTickAsync(cancellationToken));
+
     }
 
     /// <summary>
@@ -159,26 +185,55 @@ public sealed class PersistentVoiceRecoveryService(
         var settings = await guildRepository.GetTwentyFourSevenSettingsAsync(
             guildId,
             cancellationToken);
+        var recoveryChannels = sessions.GetRecoveryChannels(guildId);
 
         if (!settings.IsEnabled)
         {
-            _disconnectedSince.TryRemove(guildId, out _);
-            _restoreGeneration.TryRemove(guildId, out _);
-            return;
+            if (recoveryChannels is null)
+            {
+                _disconnectedSince.TryRemove(guildId, out _);
+                _restoreGeneration.TryRemove(guildId, out _);
+                return;
+            }
+
+            var playback = await playbackRepository.GetOrCreateAsync(guildId, cancellationToken);
+            var current = playback.QueueItemId is { } currentId
+                ? await queueRepository.GetByIdAsync(currentId, cancellationToken)
+                : null;
+            var hasCurrent = current is not null
+                && current.GuildId == guildId
+                && current.State == QueueItemState.Playing;
+            var hasQueued = await queueRepository.AnyQueuedItemsAsync(guildId, cancellationToken);
+            var hasRepeat = !hasCurrent
+                && !hasQueued
+                && playback.IsRepeatingList
+                && (await queueRepository.GetActiveBatchItemsAsync(guildId, cancellationToken)).Count > 0;
+
+            if (!hasCurrent && !hasQueued && !hasRepeat)
+            {
+                _disconnectedSince.TryRemove(guildId, out _);
+                _restoreGeneration.TryRemove(guildId, out _);
+                return;
+            }
         }
 
-        if (settings.VoiceChannelId is not { } voiceChannelId
-            || settings.TextChannelId is not { } textChannelId
+        var targetVoice = settings.IsEnabled ? settings.VoiceChannelId : recoveryChannels?.VoiceChannelId;
+        var targetText = settings.IsEnabled ? settings.TextChannelId : recoveryChannels?.TextChannelId;
+
+        if (targetVoice is not { } voiceChannelId
+            || targetText is not { } textChannelId
             || !discordClient.Guilds.TryGetValue(guildId, out var guild))
         {
             return;
         }
 
         var voice = guild.Channels.GetValueOrDefault(voiceChannelId)
-            ?? await guild.GetChannelAsync(voiceChannelId).WaitAsync(cancellationToken);
+            ?? await guild.GetChannelAsync(voiceChannelId)
+            .WaitAsync(cancellationToken);
 
         var text = guild.Channels.GetValueOrDefault(textChannelId)
-            ?? await guild.GetChannelAsync(textChannelId).WaitAsync(cancellationToken);
+            ?? await guild.GetChannelAsync(textChannelId)
+            .WaitAsync(cancellationToken);
 
         if (voice.GuildId != guildId || text.GuildId != guildId)
         {
@@ -203,17 +258,31 @@ public sealed class PersistentVoiceRecoveryService(
         if (session is not null
             && ReferenceEquals(registered, session.Player))
         {
-            var healthy = await IsHealthyAsync(
-                session,
-                voiceChannelId,
-                cancellationToken);
+            var healthy = false;
+            try
+            {
+                healthy = await IsHealthyAsync(session, voiceChannelId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (PlaybackSessionExpiredException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Voice player readiness failed; checking cleanup before replacement. Guild={GuildId}", guildId);
+            }
 
             if (healthy)
             {
                 _disconnectedSince.TryRemove(guildId, out _);
 
-                if (_restoreGeneration.TryGetValue(guildId, out var generation)
-                    && generation == session.Generation)
+                if ((!settings.IsEnabled && session.Player.CurrentTrack is null)
+                    || (_restoreGeneration.TryGetValue(guildId, out var generation)
+                        && generation == session.Generation))
                 {
                     await RestoreAsync(
                         session,
@@ -319,7 +388,7 @@ public sealed class PersistentVoiceRecoveryService(
         _disconnectedSince.TryRemove(guildId, out _);
 
         logger.LogInformation(
-            "Persistent voice restored. Guild={GuildId} Channel={ChannelId}",
+            "Voice restored for persistent mode or remaining music. Guild={GuildId} Channel={ChannelId}",
             guildId,
             voiceChannelId);
     }
@@ -418,7 +487,7 @@ public sealed class PersistentVoiceRecoveryService(
     }
 
     /// <summary>
-    /// Restarts only the confirmed playing queue item retained by recovery cleanup.
+    /// Restores a confirmed playing occurrence, or starts waiting music when no eligible checkpoint remains.
     /// </summary>
     /// <param name="session">The replacement player generation receiving the retained queue item.</param>
     /// <param name="textChannel">The saved channel used for subsequent playback events and notifications.</param>
@@ -448,7 +517,7 @@ public sealed class PersistentVoiceRecoveryService(
 
             if (state.QueueItemId is not { } queueItemId)
             {
-                _restoreGeneration.TryRemove(session.GuildId, out _);
+                await RestoreQueuedAsync(session, textChannel, reservation, cancellationToken);
                 return;
             }
 
@@ -460,7 +529,7 @@ public sealed class PersistentVoiceRecoveryService(
                 || item.GuildId != session.GuildId
                 || item.State != QueueItemState.Playing)
             {
-                _restoreGeneration.TryRemove(session.GuildId, out _);
+                await RestoreQueuedAsync(session, textChannel, reservation, cancellationToken);
                 return;
             }
 
@@ -503,6 +572,48 @@ public sealed class PersistentVoiceRecoveryService(
         {
             sessions.ReleaseControl(reservation);
         }
+    }
+
+    /// <summary>
+    /// Starts waiting music when no confirmed playing checkpoint remains, without retrying uncertain dispatch.
+    /// </summary>
+    /// <param name="session">The owned replacement or idle player generation.</param>
+    /// <param name="textChannel">The remembered playback notification channel.</param>
+    /// <param name="reservation">The exclusive restore reservation held by the caller.</param>
+    /// <param name="cancellationToken">Cancels supported queue and transport operations.</param>
+    /// <returns>A task completing after a confirmed start or an empty queue.</returns>
+    private async Task RestoreQueuedAsync(
+        PlaybackSession session,
+        IDiscordChannel textChannel,
+        ControlReservation reservation,
+        CancellationToken cancellationToken)
+    {
+        var result = await trackPlaybackService.TryPlayNextTrackAsync(
+            session,
+            textChannel,
+            PlaybackStartReason.Recovery,
+            reservation,
+            cancellationToken);
+
+        if (result.Status == PlaybackStartStatus.Empty
+            && await sessions.MutateAsync(session,
+                () => queueRepository.RestartActiveBatchAsync(session.GuildId, cancellationToken)))
+        {
+            result = await trackPlaybackService.TryPlayNextTrackAsync(
+                session,
+                textChannel,
+                PlaybackStartReason.Recovery,
+                reservation,
+                cancellationToken);
+        }
+
+        if (result.Status is PlaybackStartStatus.Started or PlaybackStartStatus.Empty)
+        {
+            _restoreGeneration.TryRemove(session.GuildId, out _);
+            return;
+        }
+
+        throw new PlaybackOperationBusyException($"Queued playback restoration requires reconciliation: {result.Status}.");
     }
 
     /// <summary>

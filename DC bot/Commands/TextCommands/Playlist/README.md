@@ -4,9 +4,9 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 
 ## Overview
 
-- CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
-- Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
-- Playlist names containing spaces can be quoted. Two-value commands such as savePlaylist, addSong, removeSong, and renamePlaylist use the shared argument parser; their slash adapters prepare the same argument shape.
+- Parses saved-playlist creation, import, editing, inspection and loading commands.
+- Validates caller context and delegates playlist storage and playback to services.
+- Provides localized descriptions, usage and operation outcomes.
 
 ## Classes
 
@@ -25,6 +25,7 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -60,6 +61,7 @@ await addSongToPlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -95,6 +97,7 @@ await createPlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -121,6 +124,8 @@ await deletePlaylistCommand.ExecuteAsync(message);
 
 **Purpose:** Handles the list playlists text command through validation, service, and localized response boundaries.
 
+Lists saved playlists with track counts in numbered snapshot pages, at most ten items per page. Navigation edits the same embed and is restricted to the requesting user.
+
 **Implements / inherits:** `ICommand`.
 
 **Command identifier:** `listPlaylists`. Message routing applies the configured prefix.
@@ -130,6 +135,7 @@ await deletePlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -165,6 +171,7 @@ await listPlaylistsCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -200,6 +207,7 @@ await loadPlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -235,6 +243,7 @@ await removeSongFromPlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -270,6 +279,7 @@ await renamePlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**
@@ -296,6 +306,8 @@ await savePlaylistCommand.ExecuteAsync(message);
 
 **Purpose:** Handles the view playlist text command through validation, service, and localized response boundaries.
 
+Displays every saved track through snapshot pages instead of truncating after ten tracks. Playlist order, author/title and duration are retained; the playlist name remains the embed title.
+
 **Implements / inherits:** `ICommand`.
 
 **Command identifier:** `viewPlaylist`. Message routing applies the configured prefix.
@@ -305,6 +317,7 @@ await savePlaylistCommand.ExecuteAsync(message);
 ```csharp
 public string Name { get; }
 public string Description { get; }
+public string DescriptionKey { get; }
 ```
 
 **Methods:**

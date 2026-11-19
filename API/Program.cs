@@ -42,6 +42,7 @@ var postgresConnectionString =
 
 builder.Services.AddOpenApi();
 builder.Services.AddPersistenceServices(postgresConnectionString);
+builder.Services.AddOptions<DC_bot.Configuration.PlaylistOptions>();
 builder.Services.AddMemoryCache();
 builder.Services.AddMusicSearch(builder.Configuration);
 builder.Services.AddOptions<AppAuthOptions>()
@@ -142,6 +143,7 @@ app.Run();
 
 static void LoadDotEnv()
 {
+
     foreach (var envPath in GetDotEnvCandidates())
     {
         if (!File.Exists(envPath))
@@ -153,10 +155,12 @@ static void LoadDotEnv()
             .Load(envPath);
         return;
     }
+
 }
 
 static IEnumerable<string> GetDotEnvCandidates()
 {
+
     foreach (var startDirectory in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
     {
         var directory = new DirectoryInfo(startDirectory);
@@ -166,7 +170,9 @@ static IEnumerable<string> GetDotEnvCandidates()
             yield return Path.Combine(directory.FullName, ".env");
             directory = directory.Parent;
         }
+
     }
+
 }
 
 static string GetRequiredEnvironmentVariable(string name)

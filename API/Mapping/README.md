@@ -7,6 +7,10 @@ Converts repository records and service outcomes into HTTP response contracts.
 - TrackResponseMapper decodes stored Lavalink identities; queue and playlist mapping omits undecodable tracks. DomainToHttpMapper handles expected API failures.
 - These are explicit, manual mapping strategies. Mapping should not open database contexts, send Discord messages, or execute playback commands.
 
+**Staging Integration**
+
+Queue responses expose the display EnqueueGroupId as batchId while internal canonical keys remain bigint references. Starting occurrences are represented as waiting tracks for display, retaining server-side pending-start edit fences.
+
 ## Classes
 
 ### BotControlCommandHttpMapper

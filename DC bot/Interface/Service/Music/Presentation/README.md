@@ -4,6 +4,8 @@ Defines the presentation boundary used by the bot music pipeline.
 
 ## Overview
 
+- ITrackFormatterService.FormatCurrentTrackListAsync returns at most ten displayed tracks, including the current track when present.
+
 - Implementations live under Service/Music/Presentation; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 
@@ -17,7 +19,7 @@ Defines the presentation boundary used by the bot music pipeline.
 
 **Methods:**
 
-- `FormatCurrentTrackListAsync` — Formats the current track followed by the waiting queue for repeat-mode responses.
+- `FormatCurrentTrackListAsync` — Formats at most ten tracks from the current track and waiting queue for repeat-mode responses.
 
 ```csharp
 Task<string> FormatCurrentTrackListAsync(ulong guildId, CancellationToken cancellationToken = default);

@@ -12,6 +12,7 @@ fun botStatusText(
     unknownText: String,
     connectedInVoiceSuffix: String
 ): String {
+
     if (isOnline == null) {
         return unknownText
     }

@@ -3,7 +3,6 @@ using DC_bot.Helper.Validation;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Logging;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Recovery;
 using Lavalink4NET.Players;
 using Microsoft.Extensions.Logging;
@@ -101,6 +100,7 @@ public class ValidationService(
             deadline.CancelAfter(TimeSpan.FromSeconds(2));
             var remoteConnected = await remoteProbe.IsVoiceConnectedAsync(nodeSessionId, connection.GuildId, discordVoiceSessionId, voiceChannelId, deadline.Token);
             // Reject evidence if the local connection changed during the request.
+
             if (remoteConnected
                 && connection.SessionId == nodeSessionId
                 && player.VoiceState.SessionId == discordVoiceSessionId

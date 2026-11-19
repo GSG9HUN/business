@@ -18,21 +18,25 @@ public class HelpSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlash
     /// Adapts the help slash route to its shared handler and interaction response policy.
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
+    /// <param name="command">The optional registered command name for detailed help.</param>
     /// <returns>A task representing completion of this operation.</returns>
     [Command("help")]
-    [Description("List the available commands")]
-    public Task Help(SlashCommandContext context)
+    [Description("List commands or show detailed command usage")]
+    public Task Help(
+        SlashCommandContext context,
+        [Description("Command name for detailed usage; omit to list commands")] string? command = null)
     {
-        return ExecuteAsync(contextFactory.Create(context));
+        return ExecuteAsync(contextFactory.Create(context), command);
     }
 
     /// <summary>
     /// Routes the slash interaction through the shared command executor and acknowledgement policy.
     /// </summary>
     /// <param name="context">The slash interaction context dependency used by this boundary.</param>
+    /// <param name="command"></param>
     /// <returns>A task representing completion of this operation.</returns>
-    public Task ExecuteAsync(ISlashInteractionContext context)
+    public Task ExecuteAsync(ISlashInteractionContext context, string? command)
     {
-        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(CommandName, context, RequireGuild: true), default);
+        return slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(CommandName, context, command, RequireGuild: true), default);
     }
 }

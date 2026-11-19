@@ -4,8 +4,8 @@ Groups persistence abstractions used by application services and handlers.
 
 ## Overview
 
-- Feature interfaces expose immutable records and cancellable operations; the persistence project supplies database implementations.
-- The folder name describes the consuming layer, not a requirement to implement database access inside a service.
+- Groups SDK-independent service and persistence contracts used across projects.
+- Defines repository boundaries and immutable exchange models.
 
 ## Subfolders
 

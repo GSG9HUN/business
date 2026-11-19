@@ -4,6 +4,8 @@ Loads runtime settings, composes dependencies, applies migrations, enables handl
 
 ## Overview
 
+- Migration startup first retries transient PostgreSQL connection readiness failures with bounded, cancellable backoff; permanent errors and migration execution errors still propagate.
+
 - BotApplication validates lifecycle options before migrations, then runs the Discord service, mobile command worker, pending-start recovery, and persistent voice recovery together under linked cancellation.
 - The bot uses ServiceProvider directly rather than an ASP.NET Host. Explicit options resolution makes validation happen before external startup, and worker faults must not be hidden as successful cancellation.
 

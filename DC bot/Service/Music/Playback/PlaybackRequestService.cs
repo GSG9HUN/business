@@ -2,12 +2,12 @@ using DC_bot.Constants;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Music.Events;
 using DC_bot.Interface.Service.Music.Lifecycle;
 using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Presentation;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using Lavalink4NET;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -25,6 +25,8 @@ namespace DC_bot.Service.Music.Playback;
 /// <param name="playbackEventHandlerService">The playback event handler service dependency used by this boundary.</param>
 /// <param name="trackPlaybackService">The track playback service dependency used by this boundary.</param>
 /// <param name="sessions">The sessions supplied for this operation.</param>
+/// <param name="searchPicker">Owns optional expiring Discord search selections.</param>
+/// <param name="recommendations">Invalidates automatic continuation after a manual request.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 public sealed class PlaybackRequestService(
     IAudioService audioService,
@@ -34,7 +36,9 @@ public sealed class PlaybackRequestService(
     IPlaybackEventHandlerService playbackEventHandlerService,
     ITrackPlaybackService trackPlaybackService,
     GuildPlaybackSessions sessions,
-    ILogger<PlaybackRequestService> logger) : IPlaybackRequestService
+    ILogger<PlaybackRequestService> logger,
+    ISearchPickerHandler searchPicker,
+    IRecommendationService recommendations) : IPlaybackRequestService
 {
 
     /// <summary>
@@ -101,6 +105,8 @@ public sealed class PlaybackRequestService(
     {
         cancellationToken.ThrowIfCancellationRequested();
         var requestId = Guid.NewGuid();
+        searchPicker.CancelPending(message.Channel.Guild.Id, message.Author.Id);
+        recommendations.ManualRequest(message.Channel.Guild.Id);
         var(player, _, guildId, valid) = await playerConnectionService.TryJoinAndValidateAsync(message, voiceStateChannel, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
@@ -151,10 +157,27 @@ public sealed class PlaybackRequestService(
             throw new TrackLoadException(query, "Track not found or load failed.");
         }
 
+        var sourceQuery = query;
+
+        if (!loaded.IsPlaylist
+            && (!Uri.TryCreate(query, UriKind.Absolute, out var directUri)
+                || directUri.Scheme is not ("http" or "https")))
+        {
+            var selected = await searchPicker.SelectAsync(message, session, loaded, cancellationToken);
+
+            if (selected is null)
+            {
+                return new(PlaybackStartStatus.NotStarted, requestId);
+            }
+
+            loaded = TrackLoadResult.CreateTrack(selected);
+            sourceQuery = selected.Uri?.ToString() ?? string.Empty;
+        }
+
         PlaybackStartResult result;
         try
         {
-            result = await trackPlaybackService.PlayTheFoundMusicAsync(loaded, session, message.Channel, requestedBy, query, searchMode, cancellationToken)
+            result = await trackPlaybackService.PlayTheFoundMusicAsync(loaded, session, message.Channel, $"<@{message.Author.Id}>", sourceQuery, searchMode, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (PlaybackSessionExpiredException)
@@ -182,6 +205,7 @@ public sealed class PlaybackRequestService(
         cancellationToken.ThrowIfCancellationRequested();
         var key = result.Status switch
         {
+            PlaybackStartStatus.QueueFull => ValidationErrorKeys.QueueCapacityExceeded,
             PlaybackStartStatus.StartedStatePending => ValidationErrorKeys.PlaybackStatePending,
             PlaybackStartStatus.Unknown => ValidationErrorKeys.PlaybackOutcomeUnknown,
             PlaybackStartStatus.Superseded => ValidationErrorKeys.PlaybackSuperseded,
@@ -209,4 +233,91 @@ public sealed class PlaybackRequestService(
             logger.LogWarning("Outcome notification failed. OperationId: {OperationId}, GuildId: {GuildId}, Phase: {Phase}, Category: {Category}, ExceptionType: {ExceptionType}", result.OperationId, message.Channel.Guild.Id, "Notification", "Notification", exception.GetType().Name);
         }
     }
+
+    /// <inheritdoc />
+    public async Task<PlaybackStartResult> PlayNextAsync(
+        IDiscordChannel voiceStateChannel,
+        string query,
+        IDiscordMessage message,
+        TrackSearchMode searchMode,
+        string requestedBy,
+        CancellationToken cancellationToken = default)
+    {
+        searchPicker.CancelPending(message.Channel.Guild.Id, message.Author.Id);
+        recommendations.ManualRequest(message.Channel.Guild.Id);
+        var existing = sessions.CaptureCurrent(message.Channel.Guild.Id);
+
+        if (voiceStateChannel.Guild.Id != message.Channel.Guild.Id
+            || (existing is not null && existing.Player.VoiceChannelId != voiceStateChannel.Id))
+        {
+            await trackNotificationService.SendSafeAsync(message.Channel,
+                localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.PlaybackWrongVoiceChannel),
+                "PlayNext.WrongVoice", cancellationToken);
+            return new(PlaybackStartStatus.NotStarted, Guid.NewGuid());
+        }
+
+        var operationId = Guid.NewGuid();
+        var (player, _, guildId, valid) = await playerConnectionService.TryJoinAndValidateAsync(
+            message, voiceStateChannel, cancellationToken: cancellationToken);
+
+        if (!valid || player is null)
+        {
+            return new(PlaybackStartStatus.NotStarted, operationId);
+        }
+
+        if (player.VoiceChannelId != voiceStateChannel.Id)
+        {
+            await trackNotificationService.SendSafeAsync(message.Channel,
+                localizationService.Get(guildId, LocalizationKeys.PlaybackWrongVoiceChannel),
+                "PlayNext.WrongVoice", cancellationToken);
+            return new(PlaybackStartStatus.NotStarted, operationId);
+        }
+
+        var session = sessions.Capture(guildId, player);
+
+        if (session is null)
+        {
+            return new(PlaybackStartStatus.Superseded, operationId);
+        }
+
+        playbackEventHandlerService.RegisterPlaybackFinishedHandler(guildId, player, message.Channel);
+        PlaybackStartResult result;
+        try
+        {
+            var loaded = await audioService.Tracks.LoadTracksAsync(query, searchMode, cancellationToken: cancellationToken);
+            var sourceQuery = query;
+
+            if (!loaded.IsPlaylist
+                && (!Uri.TryCreate(query, UriKind.Absolute, out var directUri)
+                    || directUri.Scheme is not ("http" or "https"))
+                && !loaded.IsFailed)
+            {
+                var selected = await searchPicker.SelectAsync(message, session, loaded, cancellationToken);
+
+                if (selected is null)
+                {
+                    return new(PlaybackStartStatus.NotStarted, operationId);
+                }
+
+                loaded = TrackLoadResult.CreateTrack(selected);
+                sourceQuery = selected.Uri?.ToString() ?? string.Empty;
+            }
+
+            result = await trackPlaybackService.PlayNextLoadedAsync(
+                loaded, session, message.Channel, sourceQuery, searchMode, $"<@{message.Author.Id}>", cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Play-next source loading failed. Guild={GuildId}", guildId);
+            result = new(PlaybackStartStatus.NotStarted, operationId);
+        }
+
+        await SendOutcomeAsync(message, result, cancellationToken);
+        return result;
+    }
+
 }

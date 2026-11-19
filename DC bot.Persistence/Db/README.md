@@ -4,8 +4,8 @@ Owns the EF Core context, design-time creation, and startup migration runner.
 
 ## Overview
 
-- Runtime repositories receive IDbContextFactory<BotDbContext>. BotDbContext applies feature configurations; DatabaseMigrationRunner applies pending migrations when called by bot startup.
-- BotDbContextFactory reads process environment for EF tooling; it does not load a .env file itself. The API registers persistence but does not call the migration runner in its current Program.cs.
+- Defines the shared EF Core context, model configuration and design-time context factory.
+- Coordinates startup schema migration with bounded handling of transient database readiness failures.
 
 ## Classes
 
@@ -14,6 +14,8 @@ Owns the EF Core context, design-time creation, and startup migration runner.
 **File:** `DC bot.Persistence/Db/BotDbContext.cs`
 
 **Purpose:** Owns the shared EF Core model and persisted guild, queue, playback, playlist, and mobile state.
+
+Maps favorites, user picker/guild autoplay settings, guild vote/DJ settings and versioned custom presets independently of live players. Saved definitions survive leave; menus and autoplay history remain process-local.
 
 **Implements / inherits:** `DbContext`.
 
@@ -46,6 +48,8 @@ public DbSet<MobileAppUserSettingsEntity> MobileAppUserSettings { get; }
 **File:** `DC bot.Persistence/Db/DatabaseMigrationRunner.cs`
 
 **Purpose:** Applies pending EF migrations before application startup without taking ownership of the application's service provider.
+
+Startup checks database readiness before querying migrations. Transient Npgsql connection failures retry up to eight times with exponential delay capped at 30 seconds. Permanent errors propagate, and caller cancellation interrupts waits.
 
 **Methods:**
 

@@ -1,3 +1,4 @@
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Wrapper.Discord;
@@ -12,6 +13,7 @@ namespace DC_bot.Wrapper.SlashCommands;
 public class SlashInteractionContextWrapper : ISlashInteractionContext
 {
     private readonly ISlashCommandContextAdapter _context;
+    private bool _hasResponded;
 
     /// <summary>
     /// Initializes SlashInteractionContextWrapper with the supplied dependencies and settings.
@@ -49,7 +51,11 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     public bool IsDeferred { get; private set; }
 
     /// <inheritdoc />
-    public bool HasResponded { get; private set; }
+    public bool HasResponded
+    {
+        get => _hasResponded || _context.HasResponded;
+        private set => _hasResponded = value;
+    }
 
     /// <summary>
     /// Acknowledges an interaction so its response can be completed after command execution.
@@ -73,7 +79,7 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <returns>A task representing completion of this operation.</returns>
     public async Task RespondAsync(string message)
     {
-        if (IsDeferred)
+        if (IsDeferred && !HasResponded)
         {
             await _context.EditResponseAsync(message);
         }
@@ -96,20 +102,56 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <returns>A task representing completion of this operation.</returns>
     public async Task RespondAsync(DiscordEmbed embed)
     {
-        if (IsDeferred)
+        try
         {
-            await _context.EditResponseAsync(embed);
+            if (IsDeferred && !HasResponded)
+            {
+                await _context.EditResponseAsync(embed);
+            }
+            else if (!HasResponded)
+            {
+                await _context.RespondAsync(embed);
+            }
+            else
+            {
+                await _context.FollowupAsync(embed);
+            }
+
         }
-        else if (!HasResponded)
+        catch (OperationCanceledException)
         {
-            await _context.RespondAsync(embed);
+            throw;
         }
-        else
+        catch (Exception)
         {
-            await _context.FollowupAsync(embed);
+            var text = string.IsNullOrWhiteSpace(embed.Description) ? embed.Title : embed.Description;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw;
+            }
+
+            await RespondAsync(DiscordTextSanitizer.Truncate(text, 2000));
+            return;
         }
 
         HasResponded = true;
+    }
+
+    /// <inheritdoc />
+    public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder)
+    {
+        try
+        {
+            var response = await _context.RespondWithComponentsAsync(builder, IsDeferred && !HasResponded, HasResponded);
+            HasResponded = true;
+            return response;
+        }
+        finally
+        {
+            // A successful send remains acknowledged even if retrieving its message fails.
+            HasResponded |= _context.HasResponded;
+        }
     }
 
     /// <summary>
@@ -129,6 +171,57 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
     /// <param name="context">The context supplied for this operation.</param>
     private sealed class DSharpPlusSlashCommandContextAdapter(CommandContext context) : ISlashCommandContextAdapter
     {
+        /// <inheritdoc />
+        public bool HasResponded { get; private set; }
+
+        /// <inheritdoc />
+        public async Task<DiscordMessage> RespondWithComponentsAsync(DiscordMessageBuilder builder, bool edit, bool followup)
+        {
+            if (followup)
+            {
+                var response = await context.FollowupAsync(builder);
+                HasResponded = true;
+                return response;
+            }
+
+            if (edit)
+            {
+                await context.EditResponseAsync(builder);
+            }
+            else
+            {
+                await context.RespondAsync(builder);
+            }
+
+            HasResponded = true;
+            return await GetComponentResponseAsync(builder);
+        }
+
+        /// <summary>Retrieves an accepted response and removes orphaned controls if its message cannot be resolved.</summary>
+        private async Task<DiscordMessage> GetComponentResponseAsync(DiscordMessageBuilder builder)
+        {
+            try
+            {
+                return await context.GetResponseAsync()
+                    ?? throw new InvalidOperationException("Discord did not return the sent response.");
+            }
+            catch (Exception lookupException)
+            {
+                try
+                {
+                    // Editing the known interaction response does not require its channel message ID.
+                    builder.ClearComponents();
+                    await context.EditResponseAsync(builder);
+                }
+                catch (Exception cleanupException)
+                {
+                    lookupException.Data["ComponentCleanupException"] = cleanupException;
+                }
+
+                throw;
+            }
+        }
+
         public DiscordGuild? Guild => context.Guild;
         public DiscordChannel Channel => context.Channel;
         public DiscordUser User => context.User;
@@ -210,66 +303,4 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
                 .AsTask();
         }
     }
-}
-
-/// <summary>
-/// Defines the slash command context adapter boundary so callers are independent of its concrete implementation.
-/// </summary>
-internal interface ISlashCommandContextAdapter
-{
-    DiscordGuild? Guild { get; }
-
-    DiscordChannel Channel { get; }
-
-    DiscordUser User { get; }
-
-    DiscordMember? Member { get; }
-
-    /// <summary>
-    /// Defers a slash response using the requested visibility policy.
-    /// </summary>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task DeferResponseAsync();
-
-    /// <summary>
-    /// Sends a response through the wrapped message or interaction boundary.
-    /// </summary>
-    /// <param name="message">The message supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task RespondAsync(string message);
-
-    /// <summary>
-    /// Sends a response through the wrapped message or interaction boundary.
-    /// </summary>
-    /// <param name="embed">The embed supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task RespondAsync(DiscordEmbed embed);
-
-    /// <summary>
-    /// Updates the previously acknowledged interaction response.
-    /// </summary>
-    /// <param name="message">The message supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task EditResponseAsync(string message);
-
-    /// <summary>
-    /// Updates the previously acknowledged interaction response.
-    /// </summary>
-    /// <param name="embed">The embed supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task EditResponseAsync(DiscordEmbed embed);
-
-    /// <summary>
-    /// Sends a follow-up message after interaction acknowledgement.
-    /// </summary>
-    /// <param name="message">The message supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task FollowupAsync(string message);
-
-    /// <summary>
-    /// Sends a follow-up message after interaction acknowledgement.
-    /// </summary>
-    /// <param name="embed">The embed supplied for this operation.</param>
-    /// <returns>A task representing completion of this operation.</returns>
-    Task FollowupAsync(DiscordEmbed embed);
 }

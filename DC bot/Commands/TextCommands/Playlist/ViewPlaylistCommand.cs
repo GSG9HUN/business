@@ -8,6 +8,7 @@ using DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
+using DC_bot.Service.Presentation;
 using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Playlist;
@@ -21,21 +22,24 @@ namespace DC_bot.Commands.TextCommands.Playlist;
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="playlistService">The playlist service dependency used by this boundary.</param>
 /// <param name="commandHelper">The command helper dependency used by this boundary.</param>
+/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
 public class ViewPlaylistCommand(
     ILogger<ViewPlaylistCommand> logger,
     IUserValidationService userValidation,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
     IPlaylistService playlistService,
-    ICommandHelper commandHelper) : ICommand
+    ICommandHelper commandHelper,
+    DiscordPaginationService pagination) : ICommand
 {
-    private const int MaxDisplayedTracks = 10;
-
     /// <inheritdoc />
     public string Name => "viewPlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.ViewPlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.ViewPlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -65,7 +69,12 @@ public class ViewPlaylistCommand(
         switch (result.Status)
         {
             case ViewPlaylistStatus.Viewed:
-                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ViewPlaylistCommandResponse, safePlaylistName, result.Tracks.Count, FormatTracks(guildId, result.Tracks));
+                var items = result.Tracks.Select(track => localizationService.Get(guildId,
+                        LocalizationKeys.ViewPlaylistCommandTrack, track.OrderNumber,
+                        DiscordTextSanitizer.EscapeMentions(track.Author),
+                        DiscordTextSanitizer.EscapeMentions(track.Title), FormatDuration(track.Duration)))
+                    .ToArray();
+                await pagination.SendAsync(message, DiscordPaginationService.FromItems(safePlaylistName, items));
                 break;
             case ViewPlaylistStatus.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
@@ -84,26 +93,6 @@ public class ViewPlaylistCommand(
         }
 
         logger.CommandExecuted(Name);
-    }
-
-    /// <summary>
-    /// Formats playlist track positions and metadata for a Discord response.
-    /// </summary>
-    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
-    /// <param name="tracks">The tracks supplied for this operation.</param>
-    /// <returns>The formatted, serialized, or resolved text value.</returns>
-    private string FormatTracks(ulong guildId, IReadOnlyList<PlaylistViewTrackDto> tracks)
-    {
-        var lines = tracks.Take(MaxDisplayedTracks)
-            .Select(track => localizationService.Get(guildId, LocalizationKeys.ViewPlaylistCommandTrack, track.OrderNumber, DiscordTextSanitizer.EscapeMentions(track.Author), DiscordTextSanitizer.EscapeMentions(track.Title), FormatDuration(track.Duration)))
-            .ToList();
-
-        if (tracks.Count > MaxDisplayedTracks)
-        {
-            lines.Add(localizationService.Get(guildId, LocalizationKeys.ViewPlaylistCommandMoreTracks, tracks.Count - MaxDisplayedTracks));
-        }
-
-        return string.Join(Environment.NewLine, lines);
     }
 
     /// <summary>

@@ -18,28 +18,23 @@ public class PlaylistService : IPlaylistService
     /// <param name="queryService">The saved-playlist query boundary.</param>
     /// <param name="mutationService">The playlist metadata mutation boundary.</param>
     /// <param name="trackMutationService">The track loading and mutation boundary.</param>
-    internal PlaylistService(PlaylistQueryService queryService, PlaylistMutationService mutationService, PlaylistTrackMutationService trackMutationService)
+    internal PlaylistService(
+        PlaylistQueryService queryService,
+        PlaylistMutationService mutationService,
+        PlaylistTrackMutationService trackMutationService)
     {
         _queryService = queryService;
         _mutationService = mutationService;
         _trackMutationService = trackMutationService;
     }
 
-    /// <summary>
-    /// Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
-    /// </summary>
-    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
-    /// <param name="playlistName">The playlist name supplied for this operation.</param>
-    /// <param name="playlistUrl">The playlist url supplied for this operation.</param>
-    /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
-    /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
+    /// <inheritdoc />
     public async Task<SavePlaylistResult> SavePlaylistAsync(
         ulong guildId,
         string playlistName,
         string playlistUrl,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         return await _trackMutationService.SavePlaylistAsync(guildId, playlistName, playlistUrl, cancellationToken);
     }
 
@@ -103,21 +98,13 @@ public class PlaylistService : IPlaylistService
         return await _mutationService.DeletePlaylistAsync(guildId, playlistName, cancellationToken: cancellationToken);
     }
 
-    /// <summary>
-    /// Loads a source track and appends it when playlist naming and track limits permit it.
-    /// </summary>
-    /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
-    /// <param name="playlistName">The playlist name supplied for this operation.</param>
-    /// <param name="songUrl">The song url supplied for this operation.</param>
-    /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
-    /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
+    /// <inheritdoc />
     public async Task<AddSongResult> AddSongToPlaylistAsync(
         ulong guildId,
         string playlistName,
         string songUrl,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         return await _trackMutationService.AddSongToPlaylistAsync(guildId, playlistName, songUrl, cancellationToken);
     }
 

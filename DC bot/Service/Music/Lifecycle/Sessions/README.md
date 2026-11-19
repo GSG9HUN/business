@@ -4,8 +4,9 @@ Coordinates guild player generations, exclusive control, track attempts, and lif
 
 ## Overview
 
-- Own shared session synchronization and invalidate stale operations before cleanup.
-- Keep transport draining, database admission, and attempt correlation under the same coordinator.
+- Owns per-guild player generations, track attempts and control reservations.
+- Rejects stale work and coordinates transport draining during cleanup.
+- Retains process-local audio checkpoints and remembered destinations for recovery.
 
 ## Session Coordination
 
@@ -14,6 +15,8 @@ Coordinates guild player generations, exclusive control, track attempts, and lif
 **File:** `DC bot/Service/Music/Lifecycle/Sessions/GuildPlaybackSessions.cs`
 
 **Purpose:** Coordinates per-guild player generations, exclusive reservations, playback attempts, and ordered cleanup.
+
+`GetReadyAttemptId` binds votes to a ready attempt; `GetConnectionPhase` reports joining, closing, connected or disconnected state. `LeaveWithDefaultAudioAsync` clears confirmed/pending filters and output volume under the generation lock before draining old work, including shared cleanup. Later joins start neutral at 100%; recovery cleanup retains confirmed audio.
 
 **Methods:**
 
@@ -56,7 +59,7 @@ public Task<LeaveResult> AbortJoinAsync(ulong guildId, Func<ILavalinkPlayer?, bo
 public void BeginAttempt(PlaybackSession session, Guid operationId, ControlReservation reservation, bool replace = false);
 ```
 
-**Additional methods:** `Capture`, `IsCurrent`, `MutateAsync`, `RunTransportAsync`, `BindAttempt`, `CompleteAttempt`, `OnTrackEnded`, `JoinAsync`, `LeaveAsync`, `ReleaseControl`, `IsAttemptCurrent`, `RecoverWithoutPlayerAsync`, `LeaveIfCurrentAsync`, `CleanupUnownedPlayerAsync`. See the source and its XML contracts for the complete parameter lists.
+**Additional methods:** `Capture`, `IsCurrent`, `MutateAsync`, `RunTransportAsync`, `BindAttempt`, `CompleteAttempt`, `OnTrackEnded`, `JoinAsync`, `LeaveAsync`, `LeaveWithDefaultAudioAsync`, `ReleaseControl`, `IsAttemptCurrent`, `RecoverWithoutPlayerAsync`, `LeaveIfCurrentAsync`, `CleanupUnownedPlayerAsync`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 
@@ -67,7 +70,6 @@ guildPlaybackSessions.ValidateControl(session, reservation);
 ```
 
 **Behavior:** Sessions are valid only while their player and generation remain current. Release control reservations in finally. Leave invalidates ownership before draining transports; failed cleanup remains quarantined for an explicit retry.
-
 
 **Additional methods:**
 

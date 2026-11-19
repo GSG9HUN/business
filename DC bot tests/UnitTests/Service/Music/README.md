@@ -38,3 +38,11 @@ Progressive timer tests cover now-playing timer start, pause/resume, stop, and l
 ```bash
 dotnet test "DC bot tests/DC bot tests.csproj" --filter "FullyQualifiedName~Service.Music"
 ```
+
+## Playlist URL Regression Coverage
+
+`Playlist/PlaylistServiceTrackUriTests.cs` verifies distinct resolved URLs during multi-track import, song additions by URL and search text, missing resolved URIs, and retention of serialized track identifiers.
+
+## Playlist Cancellation
+
+Playlist mutation test setups include the cancellation parameter on SavePlaylistAsync and AddSongToPlaylistAsync.

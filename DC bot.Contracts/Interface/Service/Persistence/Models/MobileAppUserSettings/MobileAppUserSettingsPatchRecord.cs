@@ -19,5 +19,9 @@ public sealed record MobileAppUserSettingsPatchRecord(
     /// <summary>
     /// Whether at least one optional settings field was supplied in this patch.
     /// </summary>
-    public bool HasChanges => LanguageCode is not null || Theme is not null || HapticFeedbackEnabled is not null || SoundEffectsEnabled is not null || TelemetryEnabled is not null;
+    public bool HasChanges => LanguageCode is not null
+        || Theme is not null
+        || HapticFeedbackEnabled is not null
+        || SoundEffectsEnabled is not null
+        || TelemetryEnabled is not null;
 }

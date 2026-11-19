@@ -21,8 +21,9 @@ actual fun BindAppLockLifecycle(
 ): Unit {
     DisposableEffect(key1 = appLockController) {
         val center = NSNotificationCenter.defaultCenter
+        val applicationState = UIApplication.sharedApplication.applicationState
 
-        if (UIApplication.sharedApplication.applicationState == UIApplicationState.UIApplicationStateBackground) {
+        if (applicationState == UIApplicationState.UIApplicationStateBackground) {
             appLockController.onBackground()
         } else {
             appLockController.onForeground()

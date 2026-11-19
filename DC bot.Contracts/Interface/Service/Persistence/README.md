@@ -4,10 +4,48 @@ Defines the shared storage vocabulary for guild data, commands, queues, playback
 
 ## Overview
 
-- API handlers and bot services depend on these interfaces while persistence registrations select the implementations.
-- Storage operations expose records and results, not tracked EF entities. Cancellation is forwarded through ordinary I/O; required ownership cleanup can use an independent lifetime.
+- Defines repository operations for guild, playback, queue, playlist and mobile application state.
+- Carries caller cancellation and explicit ownership scope across the storage boundary.
+- Exchanges immutable records instead of EF entities or live player objects.
 
 ## Subfolders
+
+### MusicControl/
+
+Stores default-disabled vote skip and an optional DJ role independently of 24/7, autoplay and presets. GetAsync returns disabled/null defaults; SetVoteSkipAsync and SetDjRoleAsync update only their own field.
+
+**Files:**
+
+- `IGuildMusicControlSettingsRepository.cs`
+
+**Purpose:** Stores default-disabled vote skip and an optional DJ role independently of 24/7, autoplay and presets. GetAsync returns disabled/null defaults; SetVoteSkipAsync and SetDjRoleAsync update only their own field.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset contracts.
+
+**Files:**
+
+- `IFilterPresetRepository.cs`
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery contracts and data.
+
+**Files:**
+
+- `IFavoriteRepository.cs`
+- `IDiscoverySettingsRepository.cs`
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControl/
 

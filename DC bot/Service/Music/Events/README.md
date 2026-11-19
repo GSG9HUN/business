@@ -4,8 +4,8 @@ Processes correlated track events and coordinates queue advancement.
 
 ## Overview
 
-- PlaybackEventHandlerService manages player subscriptions. TrackEndedHandlerService settles the accepted attempt and selects repeat, next-track, or queue-end behavior.
-- Natural finish events must match the active session and attempt. Skip uses explicit correlated completion so a delayed SDK Stopped event cannot advance the queue a second time.
+- Routes correlated playback events to queue progression and persistence.
+- Coordinates repeat, manual queue priority and automatic continuation.
 
 ## Classes
 
@@ -46,6 +46,8 @@ await playbackEventHandlerService.CleanupGuildAsync(guildId);
 **File:** `DC bot/Service/Music/Events/TrackEndedHandlerService.cs`
 
 **Purpose:** Completes the correlated attempt, then advances, reloads, repeats, or closes its batch.
+
+Natural completion processes manual waiting tracks and repeat before bounded autoplay. Conditional empty-queue insertion and a second queue check preserve racing manual appends. Idle batch closure cannot clear playback state over newly queued work. Accepted events must match the current session/attempt; explicit correlated skip completion prevents a delayed SDK stop event from advancing twice.
 
 **Implements / inherits:** `ITrackEndedHandlerService`.
 

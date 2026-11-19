@@ -20,14 +20,16 @@ class PlaybackMonitorObserver(
      * Starts playback monitor observer for the supplied configuration.
      */
     fun start(): Unit {
+
         if (observationJob?.isActive == true) {
             return
         }
 
         observationJob = coroutineScope.launch {
-            observePlayback().collect { playback ->
-                onPlayback(playback)
-            }
+            observePlayback()
+                .collect { playback ->
+                    onPlayback(playback)
+                }
         }
     }
 

@@ -7,6 +7,10 @@ Represents the database rows used for ordered queue entries, canonical batches, 
 - Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 - Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 
+**Staging Integration**
+
+GuildQueueItemEntity preserves staging BatchId/BatchItemId ownership and adds independent EnqueueGroupId plus BatchPosition for mobile grouping. This avoids mixing UUID display groups with canonical bigint foreign keys.
+
 ## Classes
 
 ### GuildQueueItemEntity

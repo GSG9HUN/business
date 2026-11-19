@@ -4,8 +4,8 @@ Registers the shared PostgreSQL context factory, repositories, queue helpers, an
 
 ## Overview
 
-- Both executable projects call AddPersistenceServices with their connection string. Singleton repositories create short-lived contexts rather than sharing a tracked DbContext.
-- Resolve QueueRepository through IQueueRepository so its claim and batch dependencies are supplied. Keep runtime registration here and design-time context creation in Db.
+- Registers shared database contexts and repository implementations.
+- Provides the same persistence boundaries to the bot and API without referencing bot runtime services.
 
 ## Classes
 
@@ -14,6 +14,8 @@ Registers the shared PostgreSQL context factory, repositories, queue helpers, an
 **File:** `DC bot.Persistence/DependencyInjection/PersistenceServiceCollectionExtensions.cs`
 
 **Purpose:** Composes shared PostgreSQL contexts and repository dependencies for the bot and API.
+
+Registers favorite, discovery-settings, filter-preset and guild music-control repositories alongside guild, queue and playlist persistence through the shared context factory.
 
 **Methods:**
 

@@ -92,7 +92,8 @@ internal class CurrentTrackCommandHandler(
 
     private suspend fun nextTrack() {
         val guildId = currentGuildIdProvider() ?: return
-        nextTrackUseCase(guildId = guildId).runBotCommand(
+        nextTrackUseCase(guildId = guildId)
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
@@ -103,7 +104,8 @@ internal class CurrentTrackCommandHandler(
 
     private suspend fun previousTrack() {
         val guildId = currentGuildIdProvider() ?: return
-        previousTrackUseCase(guildId = guildId).runBotCommand(
+        previousTrackUseCase(guildId = guildId)
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
@@ -115,7 +117,8 @@ internal class CurrentTrackCommandHandler(
     private suspend fun repeat() {
         val guildId = currentGuildIdProvider() ?: return
         val nextRepeatMode = nextRepeatMode(repeatMode = uiState.value.playback.repeatMode)
-        setRepeatModeUseCase(guildId = guildId, repeatMode = nextRepeatMode).runAction(
+        setRepeatModeUseCase(guildId = guildId, repeatMode = nextRepeatMode)
+            .runAction(
             uiState = uiState,
             effects = effects,
             successEffect = CurrentTrackEffect.RepeatModeChanged,

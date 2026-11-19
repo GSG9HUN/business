@@ -34,7 +34,10 @@ public class CreatePlaylistCommand(
     public string Name => "createPlaylist";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.CreatePlaylistCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.CreatePlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.

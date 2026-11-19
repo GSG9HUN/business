@@ -75,7 +75,8 @@ class TrackQueueCommandHandler<State, Effect>(
             return
         }
 
-        addToQueue(guildId, query).runBotCommand(
+        addToQueue(guildId, query)
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = acceptedEffect,
@@ -101,7 +102,8 @@ class TrackQueueCommandHandler<State, Effect>(
             return
         }
 
-        removeFromQueue(guildId, (index + 1).toString()).runBotCommand(
+        removeFromQueue(guildId, (index + 1).toString())
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = acceptedEffect,
@@ -127,12 +129,13 @@ class TrackQueueCommandHandler<State, Effect>(
         }
 
         uiState.update { currentUiState -> trackQueueReducer.reorder(uiState = currentUiState, fromIndex = fromIndex, toIndex = toIndex) }
-        moveTrackToIndex(guildId, fromIndex, toIndex).onEach { result ->
+        moveTrackToIndex(guildId, fromIndex, toIndex)
+            .onEach { result ->
 
-            if (result is Resource.Error) {
-                onMoveFailed()
+                if (result is Resource.Error) {
+                    onMoveFailed()
+                }
             }
-        }
             .runBotCommand(
                 uiState = uiState,
                 effects = effects,
@@ -153,7 +156,8 @@ class TrackQueueCommandHandler<State, Effect>(
         }
 
         onCloseDialog()
-        clearQueue(guildId).runBotCommand(
+        clearQueue(guildId)
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = acceptedEffect,
@@ -176,7 +180,8 @@ class TrackQueueCommandHandler<State, Effect>(
         }
 
         onCloseDialog()
-        shuffleQueue(guildId).runBotCommand(
+        shuffleQueue(guildId)
+            .runBotCommand(
             uiState = uiState,
             effects = effects,
             acceptedEffect = acceptedEffect,

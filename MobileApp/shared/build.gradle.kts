@@ -27,89 +27,89 @@ kotlin {
     }
 
     android {
-       namespace = "com.dc.melodiasmario.shared"
-       compileSdk = libs.versions.android.compileSdk.get()
-           .toInt()
-       minSdk = libs.versions.android.minSdk.get()
-           .toInt()
+        namespace = "com.dc.melodiasmario.shared"
+        compileSdk = libs.versions.android.compileSdk.get()
+            .toInt()
+        minSdk = libs.versions.android.minSdk.get()
+            .toInt()
 
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
-       withDeviceTestBuilder {
-           sourceSetTreeName = "test"
-       }.configure {
-           instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-       }
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
+        androidResources {
+            enable = true
+        }
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.compose.uiTooling)
+            implementation(dependencyNotation = libs.compose.uiToolingPreview)
+            implementation(dependencyNotation = libs.compose.uiTooling)
 
-            implementation(libs.ktor.client.okhttp)
+            implementation(dependencyNotation = libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation(project(":core:common"))
-            implementation(project(":core:presentation"))
-            implementation(project(":core:common-ui"))
-            implementation(project(":core:di"))
+            implementation(dependencyNotation = project(":core:common"))
+            implementation(dependencyNotation = project(":core:presentation"))
+            implementation(dependencyNotation = project(":core:common-ui"))
+            implementation(dependencyNotation = project(":core:di"))
 
-            implementation(project(":feature:playlisttrack:presentation"))
-            implementation(project(":feature:playlisttrack:ui"))
-            implementation(project(":feature:currenttrack:presentation"))
-            implementation(project(":feature:currenttrack:ui"))
-            implementation(project(":feature:guild:presentation"))
-            implementation(project(":feature:guild:ui"))
-            implementation(project(":feature:login:presentation"))
-            implementation(project(":feature:login:ui"))
-            implementation(project(":feature:playlist:presentation"))
-            implementation(project(":feature:playlist:ui"))
-            implementation(project(":feature:profile:presentation"))
-            implementation(project(":feature:profile:ui"))
-            implementation(project(":feature:queue:presentation"))
-            implementation(project(":feature:queue:ui"))
-            implementation(project(":feature:removesong:presentation"))
-            implementation(project(":feature:removesong:ui"))
-            implementation(project(":feature:settings:presentation"))
-            implementation(project(":feature:settings:ui"))
+            implementation(dependencyNotation = project(":feature:playlisttrack:presentation"))
+            implementation(dependencyNotation = project(":feature:playlisttrack:ui"))
+            implementation(dependencyNotation = project(":feature:currenttrack:presentation"))
+            implementation(dependencyNotation = project(":feature:currenttrack:ui"))
+            implementation(dependencyNotation = project(":feature:guild:presentation"))
+            implementation(dependencyNotation = project(":feature:guild:ui"))
+            implementation(dependencyNotation = project(":feature:login:presentation"))
+            implementation(dependencyNotation = project(":feature:login:ui"))
+            implementation(dependencyNotation = project(":feature:playlist:presentation"))
+            implementation(dependencyNotation = project(":feature:playlist:ui"))
+            implementation(dependencyNotation = project(":feature:profile:presentation"))
+            implementation(dependencyNotation = project(":feature:profile:ui"))
+            implementation(dependencyNotation = project(":feature:queue:presentation"))
+            implementation(dependencyNotation = project(":feature:queue:ui"))
+            implementation(dependencyNotation = project(":feature:removesong:presentation"))
+            implementation(dependencyNotation = project(":feature:removesong:ui"))
+            implementation(dependencyNotation = project(":feature:settings:presentation"))
+            implementation(dependencyNotation = project(":feature:settings:ui"))
 
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(dependencyNotation = libs.compose.runtime)
+            implementation(dependencyNotation = libs.compose.foundation)
+            implementation(dependencyNotation = libs.compose.material3)
+            implementation(dependencyNotation = libs.compose.ui)
+            implementation(dependencyNotation = libs.compose.components.resources)
+            implementation(dependencyNotation = libs.compose.uiToolingPreview)
+            implementation(dependencyNotation = libs.androidx.lifecycle.viewmodelCompose)
+            implementation(dependencyNotation = libs.androidx.lifecycle.runtimeCompose)
 
-            implementation(libs.koin.core)
-            implementation(libs.koin.annotations)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
+            implementation(dependencyNotation = libs.koin.core)
+            implementation(dependencyNotation = libs.koin.annotations)
+            implementation(dependencyNotation = libs.koin.compose)
+            implementation(dependencyNotation = libs.koin.compose.viewmodel)
 
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(dependencyNotation = libs.ktor.client.core)
+            implementation(dependencyNotation = libs.ktor.client.logging)
+            implementation(dependencyNotation = libs.ktor.client.content.negotiation)
+            implementation(dependencyNotation = libs.ktor.serialization.kotlinx.json)
 
-            implementation(libs.jetbrains.navigation3.ui)
-            implementation(libs.kotlinx.serialization.json)
+            implementation(dependencyNotation = libs.jetbrains.navigation3.ui)
+            implementation(dependencyNotation = libs.kotlinx.serialization.json)
         }
 
         nativeMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+            implementation(dependencyNotation = libs.ktor.client.darwin)
         }
 
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(dependencyNotation = libs.kotlin.test)
         }
     }
 

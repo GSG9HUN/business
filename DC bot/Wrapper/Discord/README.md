@@ -4,8 +4,8 @@ Wraps messages, users, guilds, channels, members, and voice state and handles Di
 
 ## Overview
 
-- DiscordClientEventHandler routes connection and voice events to status persistence and playback recovery. Separate loggers keep event diagnostics focused.
-- Voice event payloads and cached member/channel values can be incomplete. Gateway reconnection and voice transport recovery are separate lifecycle concerns.
+- Adapts DSharpPlus messages, channels, users, members and interactions to application contracts.
+- Routes gateway and voice events to runtime services while containing callback failures.
 
 ## Classes
 
@@ -14,6 +14,8 @@ Wraps messages, users, guilds, channels, members, and voice state and handles Di
 **File:** `DC bot/Wrapper/Discord/DiscordChannelWrapper.cs`
 
 **Purpose:** Adapts discord channel data and operations to the bot's Discord boundary.
+
+Failed embed sends try bounded plain text using the embed description or title. Text fallback is limited to 2000 characters, cancellation propagates, and delivery failures are logged.
 
 **Implements / inherits:** `IDiscordChannel`.
 
@@ -60,6 +62,8 @@ await discordChannelWrapper.SendMessageAsync(embed);
 **File:** `DC bot/Wrapper/Discord/DiscordClientEventHandler.cs`
 
 **Purpose:** Isolates event failures while maintaining gateway recovery and persisted bot voice state.
+
+Forwards voice membership changes to guild controls: returning humans cancel the empty-channel countdown, and departed listeners lose skip votes.
 
 **Methods:**
 
@@ -244,7 +248,9 @@ var result = discordMemberWrapper.ToDiscordMember();
 
 **File:** `DC bot/Wrapper/Discord/DiscordMessageWrapper.cs`
 
-**Purpose:** Adapts discord message data and operations to the bot's Discord boundary.
+**Purpose:** Adapts discord message data and operations to the bot's Discord boundary. Plain-text and embed response cancellation propagates to callers, including pagination fallback delivery.
+
+When embed delivery fails, the adapter attempts its description (or title when the description is empty) as plain text, bounded to 2000 characters. It logs failed embed/fallback attempts and propagates cancellation exceptions. Successful embeds do not produce a second text response.
 
 **Implements / inherits:** `IDiscordMessage`.
 

@@ -1,7 +1,9 @@
+using DSharpPlus.Entities;
 using DC_bot.Constants;
 using DC_bot.Exceptions;
 using DC_bot.Interface;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Interface.Service.SlashCommands;
 using DC_bot.Logging;
 using Microsoft.Extensions.Logging;
@@ -14,10 +16,12 @@ namespace DC_bot.Service.SlashCommands;
 /// <param name="commands">The commands supplied for this operation.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 public class SlashCommandExecutor(
     IEnumerable<ICommand> commands,
     ILogger<SlashCommandExecutor> logger,
-    ILocalizationService localizationService) : ISlashCommandExecutor
+    ILocalizationService localizationService,
+    IResponseBuilder responseBuilder) : ISlashCommandExecutor
 {
     private readonly IReadOnlyDictionary<string, ICommand> _commands = commands.ToDictionary(command => command.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -58,14 +62,16 @@ public class SlashCommandExecutor(
 
         if (requireGuild && context.Guild is null)
         {
-            await context.RespondAsync(GetLocalizedMessage(context, LocalizationKeys.SlashCommandGuildOnly))
+            await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
+                GetLocalizedMessage(context, LocalizationKeys.SlashCommandGuildOnly), DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                 .WaitAsync(cancellationToken);
             return;
         }
 
         if (!_commands.TryGetValue(commandName, out var command))
         {
-            await context.RespondAsync(GetLocalizedMessage(context, LocalizationKeys.SlashCommandNotRegistered, commandName))
+            await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
+                GetLocalizedMessage(context, LocalizationKeys.SlashCommandNotRegistered, commandName), DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                 .WaitAsync(cancellationToken);
             return;
         }
@@ -82,7 +88,8 @@ public class SlashCommandExecutor(
 
             if (ensureDeferredResponse && context.IsDeferred && !context.HasResponded)
             {
-                await context.RespondAsync(GetLocalizedMessage(context, LocalizationKeys.SlashCommandDeferredAccepted))
+                await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
+                    GetLocalizedMessage(context, LocalizationKeys.SlashCommandDeferredAccepted)))
                     .WaitAsync(cancellationToken);
             }
 
@@ -94,7 +101,8 @@ public class SlashCommandExecutor(
 
             if (!context.HasResponded)
             {
-                await context.RespondAsync(exception.Message)
+                await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId, exception.Message,
+                    DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                     .WaitAsync(cancellationToken);
             }
         }
@@ -108,7 +116,8 @@ public class SlashCommandExecutor(
 
             if (!context.HasResponded)
             {
-                await context.RespondAsync(GetLocalizedMessage(context, LocalizationKeys.SlashCommandUnexpectedError))
+                await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
+                    GetLocalizedMessage(context, LocalizationKeys.SlashCommandUnexpectedError), DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
                     .WaitAsync(cancellationToken);
             }
         }

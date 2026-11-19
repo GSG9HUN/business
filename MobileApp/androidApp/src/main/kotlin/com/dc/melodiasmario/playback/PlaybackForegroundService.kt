@@ -70,28 +70,29 @@ class PlaybackForegroundService : Service() {
         )
 
         coroutineScope.launch {
-            observeCurrentPlaybackMonitorUseCase().collectLatest { state ->
-                val currentTrack = state.currentTrack ?: return@collectLatest
-                val track = currentTrack.currentTrack ?: return@collectLatest
-                val safeGuildId = state.guildId ?: return@collectLatest
+            observeCurrentPlaybackMonitorUseCase()
+                .collectLatest { state ->
+                    val currentTrack = state.currentTrack ?: return@collectLatest
+                    val track = currentTrack.currentTrack ?: return@collectLatest
+                    val safeGuildId = state.guildId ?: return@collectLatest
 
-                guildId = safeGuildId
-                latestIsPlaying = currentTrack.isPlaying
-                val artwork = loadArtwork(url = track.thumbnailUrl)
+                    guildId = safeGuildId
+                    latestIsPlaying = currentTrack.isPlaying
+                    val artwork = loadArtwork(url = track.thumbnailUrl)
 
-                val notification = PlaybackNotificationMapper.create(
-                    context = this@PlaybackForegroundService,
-                    mediaSessionToken = playbackMediaSessionController.sessionToken,
-                    guildId = safeGuildId,
-                    title = track.title,
-                    artist = track.artist,
-                    artwork = artwork,
-                    isPlaying = currentTrack.isPlaying
-                )
+                    val notification = PlaybackNotificationMapper.create(
+                        context = this@PlaybackForegroundService,
+                        mediaSessionToken = playbackMediaSessionController.sessionToken,
+                        guildId = safeGuildId,
+                        title = track.title,
+                        artist = track.artist,
+                        artwork = artwork,
+                        isPlaying = currentTrack.isPlaying
+                    )
 
-                playbackMediaSessionController.update(currentTrack = currentTrack, artwork = artwork)
-                startForeground(NOTIFICATION_ID, notification)
-            }
+                    playbackMediaSessionController.update(currentTrack = currentTrack, artwork = artwork)
+                    startForeground(NOTIFICATION_ID, notification)
+                }
         }
     }
 
@@ -142,30 +143,36 @@ class PlaybackForegroundService : Service() {
     }
 
     private fun runPrevious() = runCommand {
-        previousPlaybackUseCase(guildId = requireGuildId()).runBackgroundBotCommand()
+        previousPlaybackUseCase(guildId = requireGuildId())
+            .runBackgroundBotCommand()
     }
 
     private fun runPlayPause() = runCommand {
         playPausePlaybackUseCase(
             guildId = requireGuildId(),
             isPlaying = latestIsPlaying
-        ).runBackgroundBotCommand()
+        )
+            .runBackgroundBotCommand()
     }
 
     private fun runNext() = runCommand {
-        nextPlaybackUseCase(guildId = requireGuildId()).runBackgroundBotCommand()
+        nextPlaybackUseCase(guildId = requireGuildId())
+            .runBackgroundBotCommand()
     }
 
     private suspend fun loadArtwork(url: String?): Bitmap? {
+
         if (url.isNullOrBlank()) {
             return null
         }
 
         return withContext(context = Dispatchers.IO) {
             runCatching {
-                URL(url).openStream()
+                URL(url)
+                    .openStream()
                     .use(block = BitmapFactory::decodeStream)
-            }.getOrNull()
+            }
+                .getOrNull()
         }
     }
 

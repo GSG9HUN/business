@@ -106,13 +106,14 @@ class PlaylistsViewModel(
      */
     suspend fun loadPlaylists(guildId: String): Unit {
         currentGuildId = guildId
-        getPlaylistsUseCase(guildId = guildId).collect { result ->
-            when (result) {
-                Resource.Loading -> onLoading()
-                is Resource.Success -> onGetPlaylistsSuccess(playlists = result.data)
-                is Resource.Error -> onError(error = result.error)
+        getPlaylistsUseCase(guildId = guildId)
+            .collect { result ->
+                when (result) {
+                    Resource.Loading -> onLoading()
+                    is Resource.Success -> onGetPlaylistsSuccess(playlists = result.data)
+                    is Resource.Error -> onError(error = result.error)
+                }
             }
-        }
     }
 
     private suspend fun onArtworkConfirmed() {
@@ -120,7 +121,8 @@ class PlaylistsViewModel(
         val artworkUri = _uiState.value.artworkDraft.trim()
             .ifEmpty { null }
         closeDialog()
-        setPlaylistArtworkUseCase(playlistId = dialog.playlistId, artworkUri = artworkUri).runAction(
+        setPlaylistArtworkUseCase(playlistId = dialog.playlistId, artworkUri = artworkUri)
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistsEffect.ArtworkSaved,
@@ -134,7 +136,8 @@ class PlaylistsViewModel(
 
     private suspend fun createPlaylist(playlistName: String) {
         val guildId = currentGuildId ?: return
-        createPlaylistUseCase(guildId = guildId, playlistName = playlistName).runAction(
+        createPlaylistUseCase(guildId = guildId, playlistName = playlistName)
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistsEffect.PlaylistCreated,
@@ -155,7 +158,8 @@ class PlaylistsViewModel(
     }
 
     private suspend fun renamePlaylist(playlistId: String, newPlaylistName: String) {
-        renamePlaylistUseCase(playlistId = playlistId, newPlaylistName = newPlaylistName).runAction(
+        renamePlaylistUseCase(playlistId = playlistId, newPlaylistName = newPlaylistName)
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistsEffect.PlaylistRenamed,
@@ -178,7 +182,8 @@ class PlaylistsViewModel(
 
     private suspend fun deletePlaylist(playlistId: String) {
 
-        deletePlaylistUseCase(playlistId = playlistId).runAction(
+        deletePlaylistUseCase(playlistId = playlistId)
+            .runAction(
             uiState = _uiState,
             effects = _effect,
             successEffect = PlaylistsEffect.PlaylistDeleted,

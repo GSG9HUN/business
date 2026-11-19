@@ -6,6 +6,106 @@ namespace DC_bot.Constants;
 public static class LocalizationKeys
 {
 
+    /// <summary>Identifies the localized pagination expired text.</summary>
+    public const string PaginationExpired = "pagination_expired";
+
+    /// <summary>Identifies the localized pagination denied text.</summary>
+    public const string PaginationDenied = "pagination_denied";
+
+    /// <summary>Identifies the localized pagination error text.</summary>
+    public const string PaginationError = "pagination_error";
+
+    /// <summary>Identifies the localized pagination footer text.</summary>
+    public const string PaginationFooter = "pagination_footer";
+
+    /// <summary>Identifies the localized pagination text footer text.</summary>
+    public const string PaginationTextFooter = "pagination_text_footer";
+
+    /// <summary>Identifies the localized pagination empty text.</summary>
+    public const string PaginationEmpty = "pagination_empty";
+
+    /// <summary>Identifies the localized pagination previous text.</summary>
+    public const string PaginationPrevious = "pagination_previous";
+
+    /// <summary>Identifies the localized pagination next text.</summary>
+    public const string PaginationNext = "pagination_next";
+
+    /// <summary>Identifies the localized pagination help title text.</summary>
+    public const string PaginationHelpTitle = "pagination_help_title";
+
+    /// <summary>Identifies the localized pagination favorites title text.</summary>
+    public const string PaginationFavoritesTitle = "pagination_favorites_title";
+
+    /// <summary>Identifies the localized pagination presets title text.</summary>
+    public const string PaginationPresetsTitle = "pagination_presets_title";
+
+    /// <summary>Identifies the localized pagination playlists title text.</summary>
+    public const string PaginationPlaylistsTitle = "pagination_playlists_title";
+
+
+    /// <summary>Identifies the localized response success title.</summary>
+    public const string ResponseSuccessTitle = "response_success_title";
+
+    /// <summary>Identifies the localized response warning title.</summary>
+    public const string ResponseWarningTitle = "response_warning_title";
+
+    /// <summary>Identifies the localized response error title.</summary>
+    public const string ResponseErrorTitle = "response_error_title";
+
+    /// <summary>Identifies the localized response usage title.</summary>
+    public const string ResponseUsageTitle = "response_usage_title";
+
+    /// <summary>Identifies the localized response validation footer.</summary>
+    public const string ResponseValidationFooter = "response_validation_footer";
+
+    /// <summary>Identifies the localized response usage footer.</summary>
+    public const string ResponseUsageFooter = "response_usage_footer";
+
+    /// <summary>Identifies the localized response success footer.</summary>
+    public const string ResponseSuccessFooter = "response_success_footer";
+
+    /// <summary>Identifies the localized response warning footer.</summary>
+    public const string ResponseWarningFooter = "response_warning_footer";
+
+    /// <summary>Identifies the localized response error footer.</summary>
+    public const string ResponseErrorFooter = "response_error_footer";
+
+
+    /// <summary>Formats a command name and guild-localized description.</summary>
+    public const string HelpCommandDetails = "help_command_details";
+
+    /// <summary>Reports a help query for an unknown registered command.</summary>
+    public const string HelpCommandUnknown = "help_command_unknown";
+
+
+    /// <summary>Localization key for music_config_description.</summary>
+    public const string MusicConfigDescription = "music_config_description";
+
+    /// <summary>Localization key for music_status_description.</summary>
+    public const string MusicStatusDescription = "music_status_description";
+
+    /// <summary>Localization key for music_config_response.</summary>
+    public const string MusicConfigResponse = "music_config_response";
+
+    /// <summary>Localization key for music_config_forbidden.</summary>
+    public const string MusicConfigForbidden = "music_config_forbidden";
+
+    /// <summary>Localization key for canonical music-config usage.</summary>
+    public const string MusicConfigUsage = "music-config_command_usage";
+
+    /// <summary>Localization key for music_vote_progress.</summary>
+    public const string MusicVoteProgress = "music_vote_progress";
+
+    /// <summary>Localization key for music_empty_leave.</summary>
+    public const string MusicEmptyLeave = "music_empty_leave";
+
+    /// <summary>Localization key for music_vote_required.</summary>
+    public const string MusicVoteRequired = "music_vote_required";
+
+    /// <summary>Localization key for music_status_response.</summary>
+    public const string MusicStatusResponse = "music_status_response";
+
+
     /// <summary>
     /// The localization lookup key <c>history_command_description</c> used for history command description.
     /// </summary>
@@ -696,4 +796,313 @@ public static class LocalizationKeys
     /// </summary>
     public const string TwentyFourSevenCommandFailed =
         "twenty_four_seven_command_failed";
+
+    /// <summary>The localization key for nowplaying command description.</summary>
+    public const string NowPlayingCommandDescription = "nowplaying_command_description";
+
+    /// <summary>The localization key for volume command description.</summary>
+    public const string VolumeCommandDescription = "volume_command_description";
+
+    /// <summary>The localization key for seek command description.</summary>
+    public const string SeekCommandDescription = "seek_command_description";
+
+    /// <summary>The localization key for forward command description.</summary>
+    public const string ForwardCommandDescription = "forward_command_description";
+
+    /// <summary>The localization key for rewind command description.</summary>
+    public const string RewindCommandDescription = "rewind_command_description";
+
+    /// <summary>The localization key for restart command description.</summary>
+    public const string RestartCommandDescription = "restart_command_description";
+
+    /// <summary>The localization key for playback command response.</summary>
+    public const string PlaybackCommandResponse = "playback_command_response";
+
+    /// <summary>The localization key for nowplaying command no track.</summary>
+    public const string NowPlayingCommandNoTrack = "nowplaying_command_no_track";
+
+    /// <summary>The localization key for nowplaying command response.</summary>
+    public const string NowPlayingCommandResponse = "nowplaying_command_response";
+
+    /// <summary>The localization key for playback details unknown.</summary>
+    public const string PlaybackDetailsUnknown = "playback_details_unknown";
+
+    /// <summary>The localization key for playback details live.</summary>
+    public const string PlaybackDetailsLive = "playback_details_live";
+
+    /// <summary>The localization key for playback details none.</summary>
+    public const string PlaybackDetailsNone = "playback_details_none";
+
+    /// <summary>The localization key for volume command current.</summary>
+    public const string VolumeCommandCurrent = "volume_command_current";
+
+    /// <summary>The localization key for volume command invalid.</summary>
+    public const string VolumeCommandInvalid = "volume_command_invalid";
+
+    /// <summary>The localization key for volume command amplified.</summary>
+    public const string VolumeCommandAmplified = "volume_command_amplified";
+
+    /// <summary>The localization key for volume command response.</summary>
+    public const string VolumeCommandResponse = "volume_command_response";
+
+    /// <summary>The localization key for playback audio unsupported.</summary>
+    public const string PlaybackAudioUnsupported = "playback_audio_unsupported";
+
+    /// <summary>The localization key for seek command invalid.</summary>
+    public const string SeekCommandInvalid = "seek_command_invalid";
+
+    /// <summary>The localization key for seek command unsupported.</summary>
+    public const string SeekCommandUnsupported = "seek_command_unsupported";
+
+    /// <summary>The localization key for seek command outside track.</summary>
+    public const string SeekCommandOutsideTrack = "seek_command_outside_track";
+
+    /// <summary>The localization key for seek command clamped.</summary>
+    public const string SeekCommandClamped = "seek_command_clamped";
+
+    /// <summary>The localization key for playback wrong voice channel.</summary>
+    public const string PlaybackWrongVoiceChannel = "playback_wrong_voice_channel";
+
+    /// <summary>The localization key for playback audio outcome unknown.</summary>
+    public const string PlaybackAudioOutcomeUnknown = "playback_audio_outcome_unknown";
+
+    /// <summary>The localization key for filters command description.</summary>
+    public const string FiltersCommandDescription = "filters_command_description";
+
+    /// <summary>The localization key for bassboost command description.</summary>
+    public const string BassBoostCommandDescription = "bassboost_command_description";
+
+    /// <summary>The localization key for speed command description.</summary>
+    public const string SpeedCommandDescription = "speed_command_description";
+
+    /// <summary>The localization key for pitch command description.</summary>
+    public const string PitchCommandDescription = "pitch_command_description";
+
+    /// <summary>The localization key for filters command invalid.</summary>
+    public const string FiltersCommandInvalid = "filters_command_invalid";
+
+    /// <summary>The localization key for bassboost command invalid.</summary>
+    public const string BassBoostCommandInvalid = "bassboost_command_invalid";
+
+    /// <summary>The localization key for filters parameter invalid.</summary>
+    public const string FiltersParameterInvalid = "filters_parameter_invalid";
+
+    /// <summary>The localization key for filters command state.</summary>
+    public const string FiltersCommandState = "filters_command_state";
+
+    /// <summary>The localization key for filters command presets.</summary>
+    public const string FiltersCommandPresets = "filters_command_presets";
+
+    /// <summary>The localization key for filters command unsupported.</summary>
+    public const string FiltersCommandUnsupported = "filters_command_unsupported";
+
+    /// <summary>The localization key for filters command outcome unknown.</summary>
+    public const string FiltersCommandOutcomeUnknown = "filters_command_outcome_unknown";
+
+    /// <summary>The localization key for filters command operation failed.</summary>
+    public const string FiltersCommandOperationFailed = "filters_command_operation_failed";
+
+    /// <summary>The localization key for filters command applied.</summary>
+    public const string FiltersCommandApplied = "filters_command_applied";
+
+    /// <summary>The localization key for filters command reset.</summary>
+    public const string FiltersCommandReset = "filters_command_reset";
+
+    /// <summary>The localization key for filters command preset applied.</summary>
+    public const string FiltersCommandPresetApplied = "filters_command_preset_applied";
+
+    /// <summary>The localization key for filters command heavy warning.</summary>
+    public const string FiltersCommandHeavyWarning = "filters_command_heavy_warning";
+
+    /// <summary>The localization key for filters command position pending.</summary>
+    public const string FiltersCommandPositionPending = "filters_command_position_pending";
+
+    /// <summary>The localization key for filters command pending.</summary>
+    public const string FiltersCommandPending = "filters_command_pending";
+
+    /// <summary>The localization key for speed command current.</summary>
+    public const string SpeedCommandCurrent = "speed_command_current";
+
+    /// <summary>The localization key for pitch command current.</summary>
+    public const string PitchCommandCurrent = "pitch_command_current";
+
+    /// <summary>The localization key for filters details karaoke.</summary>
+    public const string FiltersDetailsKaraoke = "filters_details_karaoke";
+
+    /// <summary>The localization key for filters details rotation.</summary>
+    public const string FiltersDetailsRotation = "filters_details_rotation";
+
+    /// <summary>The localization key for filters details low pass.</summary>
+    public const string FiltersDetailsLowPass = "filters_details_low_pass";
+
+    /// <summary>The localization key for filters details channel mix.</summary>
+    public const string FiltersDetailsChannelMix = "filters_details_channel_mix";
+
+    /// <summary>The localization key for filters details tremolo.</summary>
+    public const string FiltersDetailsTremolo = "filters_details_tremolo";
+
+    /// <summary>The localization key for filters details vibrato.</summary>
+    public const string FiltersDetailsVibrato = "filters_details_vibrato";
+
+    /// <summary>The localization key for filters details distortion.</summary>
+    public const string FiltersDetailsDistortion = "filters_details_distortion";
+
+    /// <summary>The localization key for remove command description.</summary>
+    public const string RemoveCommandDescription = "remove_command_description";
+
+    /// <summary>The localization key for move command description.</summary>
+    public const string MoveCommandDescription = "move_command_description";
+
+    /// <summary>The localization key for skipto command description.</summary>
+    public const string SkipToCommandDescription = "skipto_command_description";
+
+    /// <summary>The localization key for queuefind command description.</summary>
+    public const string QueueFindCommandDescription = "queuefind_command_description";
+
+    /// <summary>The localization key for playnext command description.</summary>
+    public const string PlayNextCommandDescription = "playnext_command_description";
+
+    /// <summary>The localization key for queue command invalid.</summary>
+    public const string QueueCommandInvalid = "queue_command_invalid";
+
+    /// <summary>The localization key for queue command changed.</summary>
+    public const string QueueCommandChanged = "queue_command_changed";
+
+    /// <summary>The localization key for remove command result.</summary>
+    public const string RemoveCommandResult = "remove_command_result";
+
+    /// <summary>The localization key for move command result.</summary>
+    public const string MoveCommandResult = "move_command_result";
+
+    /// <summary>The localization key for skipto command result.</summary>
+    public const string SkipToCommandResult = "skipto_command_result";
+
+    /// <summary>The localization key for queuefind command empty.</summary>
+    public const string QueueFindCommandEmpty = "queuefind_command_empty";
+
+    /// <summary>The localization key for queuefind command result.</summary>
+    public const string QueueFindCommandResult = "queuefind_command_result";
+
+    /// <summary>The localization key for playnext command queued.</summary>
+    public const string PlayNextCommandQueued = "playnext_command_queued";
+
+    /// <summary>The localization key for a bounded waiting queue order preview.</summary>
+    public const string QueueCommandPreview = "queue_command_preview";
+
+    /// <summary>The localization key for lyrics command description.</summary>
+    public const string LyricsCommandDescription = "lyrics_command_description";
+
+    /// <summary>The localization key for favorite command description.</summary>
+    public const string FavoriteCommandDescription = "favorite_command_description";
+
+    /// <summary>The localization key for recommendations command description.</summary>
+    public const string RecommendationsCommandDescription = "recommendations_command_description";
+
+    /// <summary>The localization key for autoplay command description.</summary>
+    public const string AutoplayCommandDescription = "autoplay_command_description";
+
+    /// <summary>The localization key for searchpicker command description.</summary>
+    public const string SearchPickerCommandDescription = "searchpicker_command_description";
+
+    /// <summary>The localization key for discovery invalid.</summary>
+    public const string DiscoveryInvalid = "discovery_invalid";
+
+    /// <summary>The localization key for discovery no track.</summary>
+    public const string DiscoveryNoTrack = "discovery_no_track";
+
+    /// <summary>The localization key for lyrics unavailable.</summary>
+    public const string LyricsUnavailable = "lyrics_unavailable";
+
+    /// <summary>The localization key for lyrics page.</summary>
+    public const string LyricsPage = "lyrics_page";
+
+    /// <summary>The localization key for favorite empty.</summary>
+    public const string FavoriteEmpty = "favorite_empty";
+
+    /// <summary>The localization key for favorite list.</summary>
+    public const string FavoriteList = "favorite_list";
+
+    /// <summary>The localization key for favorite added.</summary>
+    public const string FavoriteAdded = "favorite_added";
+
+    /// <summary>The localization key for favorite removed.</summary>
+    public const string FavoriteRemoved = "favorite_removed";
+
+    /// <summary>The localization key for favorite missing.</summary>
+    public const string FavoriteMissing = "favorite_missing";
+
+    /// <summary>The localization key for favorite playing.</summary>
+    public const string FavoritePlaying = "favorite_playing";
+
+    /// <summary>The localization key for recommendations unavailable.</summary>
+    public const string RecommendationsUnavailable = "recommendations_unavailable";
+
+    /// <summary>The localization key for recommendations list.</summary>
+    public const string RecommendationsList = "recommendations_list";
+
+    /// <summary>The localization key for autoplay enabled.</summary>
+    public const string AutoplayEnabled = "autoplay_enabled";
+
+    /// <summary>The localization key for autoplay disabled.</summary>
+    public const string AutoplayDisabled = "autoplay_disabled";
+
+    /// <summary>The localization key for searchpicker enabled.</summary>
+    public const string SearchPickerEnabled = "searchpicker_enabled";
+
+    /// <summary>The localization key for searchpicker disabled.</summary>
+    public const string SearchPickerDisabled = "searchpicker_disabled";
+
+    /// <summary>The localization key for searchpicker placeholder.</summary>
+    public const string SearchPickerPlaceholder = "searchpicker_placeholder";
+
+    /// <summary>The localization key for searchpicker cancel.</summary>
+    public const string SearchPickerCancel = "searchpicker_cancel";
+
+    /// <summary>The localization key for searchpicker prompt.</summary>
+    public const string SearchPickerPrompt = "searchpicker_prompt";
+
+    /// <summary>The localization key for searchpicker selected.</summary>
+    public const string SearchPickerSelected = "searchpicker_selected";
+
+    /// <summary>The localization key for searchpicker closed.</summary>
+    public const string SearchPickerClosed = "searchpicker_closed";
+
+    /// <summary>The localization key for searchpicker denied.</summary>
+    public const string SearchPickerDenied = "searchpicker_denied";
+
+    /// <summary>The localization key for waiting on a search menu choice.</summary>
+    public const string SearchPickerWaiting = "searchpicker_waiting";
+
+    /// <summary>The localization key for karaoke command description.</summary>
+    public const string KaraokeCommandDescription = "karaoke_command_description";
+
+    /// <summary>The localization key for filters advanced invalid.</summary>
+    public const string FiltersAdvancedInvalid = "filters_advanced_invalid";
+
+    /// <summary>The localization key for filters advanced help.</summary>
+    public const string FiltersAdvancedHelp = "filters_advanced_help";
+
+    /// <summary>The localization key for filter preset invalid.</summary>
+    public const string FilterPresetInvalid = "filter_preset_invalid";
+
+    /// <summary>The localization key for filter preset list.</summary>
+    public const string FilterPresetList = "filter_preset_list";
+
+    /// <summary>The localization key for filter preset forbidden.</summary>
+    public const string FilterPresetForbidden = "filter_preset_forbidden";
+
+    /// <summary>The localization key for filter preset missing.</summary>
+    public const string FilterPresetMissing = "filter_preset_missing";
+
+    /// <summary>The localization key for filter preset exists.</summary>
+    public const string FilterPresetExists = "filter_preset_exists";
+
+    /// <summary>The localization key for filter preset saved.</summary>
+    public const string FilterPresetSaved = "filter_preset_saved";
+
+    /// <summary>The localization key for filter preset deleted.</summary>
+    public const string FilterPresetDeleted = "filter_preset_deleted";
+
+    /// <summary>The localization key for filter preset unsupported.</summary>
+    public const string FilterPresetUnsupported = "filter_preset_unsupported";
 }

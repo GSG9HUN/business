@@ -8,6 +8,10 @@ Defines shared records and state values for ordered queue entries, canonical bat
 - Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 - Queue position orders waiting playback; batch metadata preserves the canonical sequence. Start claims carry operation ownership so late completion cannot commit against a newer attempt.
 
+**Staging Integration**
+
+QueueItemRecord retains positional long? BatchId and BatchItemId from staging and exposes EnqueueGroupId and BatchPosition as additive init properties. Canonical playback ownership and frontend group identity are separate.
+
 ## Models and Results
 
 ### PendingPlaybackStart

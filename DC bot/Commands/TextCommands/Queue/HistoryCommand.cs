@@ -25,7 +25,10 @@ public sealed class HistoryCommand(
     public string Name => "history";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.HistoryCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.HistoryCommandDescription;
 
     /// <summary>
     /// Lists the guild&apos;s recent playback batches without requiring voice membership or changing playback state.
@@ -34,6 +37,12 @@ public sealed class HistoryCommand(
     /// <returns>A task representing completion of this operation.</returns>
     public async Task ExecuteAsync(IDiscordMessage message)
     {
+        if ((message.Content ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length > 1)
+        {
+            await responseBuilder.SendUsageAsync(message, Name);
+            return;
+        }
+
         var guildId = message.Channel.Guild?.Id ?? 0;
 
         if (guildId == 0)

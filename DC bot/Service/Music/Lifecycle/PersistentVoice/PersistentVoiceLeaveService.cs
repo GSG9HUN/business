@@ -42,31 +42,69 @@ public sealed class PersistentVoiceLeaveService(
 
         try
         {
-            using (var persistenceDeadline = new CancellationTokenSource(options.Value.LeaveDeadline))
-            {
-                await guildRepository.SetTwentyFourSevenSettingsAsync(
-                    guildId,
-                    false,
-                    null,
-                    null,
-                    persistenceDeadline.Token);
-            }
-
-            var result = await sessions.LeaveAsync(
-                guildId,
-                player => cleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: false));
-
-            if (result.FullySucceeded)
-            {
-                using var persistenceDeadline = new CancellationTokenSource(options.Value.LeaveDeadline);
-                await queueRepository.CloseActiveBatchAsync(guildId, cancellationToken: persistenceDeadline.Token);
-            }
-
-            return result;
+            return await LeaveUnderGateAsync(guildId);
         }
         finally
         {
             gate.Release();
         }
     }
+
+    /// <summary>Admits automatic leave only while 24/7 is disabled and the caller's fresh check still holds.</summary>
+    /// <param name="guildId">The guild to leave.</param>
+    /// <param name="isEligible">Rechecks current generation and human listener presence under the shared gate.</param>
+    /// <param name="cancellationToken">Cancels admission; admitted cleanup owns its lifetime.</param>
+    /// <returns>The cleanup result, or null when leave was not admitted.</returns>
+    public async Task<LeaveResult?> LeaveIfEligibleAsync(
+        ulong guildId,
+        Func<CancellationToken, Task<bool>> isEligible,
+        CancellationToken cancellationToken)
+    {
+        var gate = persistentVoiceGate.Get(guildId);
+        await gate.WaitAsync(cancellationToken);
+
+        try
+        {
+            var settings = await guildRepository.GetTwentyFourSevenSettingsAsync(guildId, cancellationToken);
+
+            if (settings.IsEnabled || !await isEligible(cancellationToken))
+            {
+                return null;
+            }
+
+            return await LeaveUnderGateAsync(guildId);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    /// <summary>Runs the existing full leave path while the caller owns the persistent-voice gate.</summary>
+    private async Task<LeaveResult> LeaveUnderGateAsync(ulong guildId)
+    {
+        using (var persistenceDeadline = new CancellationTokenSource(options.Value.LeaveDeadline))
+        {
+            await guildRepository.SetTwentyFourSevenSettingsAsync(
+                guildId,
+                false,
+                null,
+                null,
+                persistenceDeadline.Token);
+        }
+
+        sessions.ForgetRecoveryChannels(guildId);
+        var result = await sessions.LeaveWithDefaultAudioAsync(
+            guildId,
+            player => cleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: false));
+
+        if (result.FullySucceeded)
+        {
+            using var persistenceDeadline = new CancellationTokenSource(options.Value.LeaveDeadline);
+            await queueRepository.CloseActiveBatchAsync(guildId, cancellationToken: persistenceDeadline.Token);
+        }
+
+        return result;
+    }
+
 }

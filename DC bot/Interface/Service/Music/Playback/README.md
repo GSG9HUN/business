@@ -4,8 +4,9 @@ Defines the playback boundary used by the bot music pipeline.
 
 ## Overview
 
-- Implementations live under Service/Music/Playback; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
-- Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
+- Defines playback inspection, control, filter, source-request and track-start boundaries.
+- Preserves caller cancellation, session ownership and explicit operation outcomes.
+- Uses shared result models for confirmed, rejected, pending and superseded work.
 
 ## Subfolders
 
@@ -25,6 +26,20 @@ Carries inputs, statuses, and results for the playback use cases.
 ---
 
 ## Interfaces
+
+### IPlaybackFilterService
+
+**Files:**
+
+- `IPlaybackFilterService.cs`
+
+**Purpose:** Exposes FiltersAsync, BassBoostAsync, SpeedAsync, PitchAsync, and RestoreAsync without adding an API/shared-contract dependency on SDK filter snapshots.
+
+`FiltersAsync` supports inspection, preset selection/reset, advanced parameters and custom presets. Individual controls preserve unrelated effects/output; presets replace the effect map. `RestoreAsync` restores confirmed process-local effects during player replacement.
+
+**Methods:** `FiltersAsync` inspects/lists/resets/selects presets; the three specific controls retain unrelated effects. `RestoreAsync` applies the last acknowledged process-local configuration during owned join validation.
+
+---
 
 ### ICurrentTrackService
 
@@ -72,7 +87,23 @@ var result = await currentTrackService.GetCurrentTrackAsync(guildId, cancellatio
 
 **Purpose:** Defines the playback control service boundary so callers are independent of its concrete implementation.
 
+Provides now-playing inspection, 0-200% volume, seek/forward/rewind/restart, pause/resume, skip/previous/leave and queue control. Position changes retain the occurrence and pause state. `SkipVotedAttemptAsync` binds background vote completion to its ready attempt.
+
 **Methods:**
+
+```csharp
+Task<PlaybackControlResult> NowPlayingAsync(IDiscordMessage message, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> VolumeAsync(
+    IDiscordMessage message, IDiscordMember? member, string? value, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> SeekAsync(
+    IDiscordMessage message, IDiscordMember? member, string position, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> ForwardAsync(
+    IDiscordMessage message, IDiscordMember? member, string seconds, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> RewindAsync(
+    IDiscordMessage message, IDiscordMember? member, string seconds, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> RestartAsync(
+    IDiscordMessage message, IDiscordMember? member, CancellationToken cancellationToken = default);
+```
 
 - `LeaveVoiceChannel` — Runs shared leave cleanup and closes the active batch after all applicable cleanup phases succeed.
 
@@ -166,6 +197,20 @@ Task<PlaybackStartResult> PlayAsyncUrl(
 
 **Purpose:** Defines the track playback service boundary so callers are independent of its concrete implementation.
 
+```csharp
+Task<PlaybackStartResult> StartExistingAsync(
+    PlaybackSession session,
+    IDiscordChannel textChannel,
+    long queueItemId,
+    PlaybackStartReason reason,
+    ILavaLinkTrack? replacement = null,
+    ControlReservation? reservation = null,
+    PlaybackResumeOptions? resume = null,
+    CancellationToken cancellationToken = default);
+```
+
+`PlayNextLoadedAsync` places loaded tracks at the waiting front. `StartQueueSelectionAsync` starts a captured waiting occurrence. `StartExistingAsync` accepts `PlaybackResumeOptions` to restore confirmed position/pause without creating another canonical item.
+
 **Methods:**
 
 - `StartExistingAsync` — Starts the specified durable queue item under the supplied or newly acquired reservation.
@@ -212,26 +257,6 @@ The caller supplies the component and argument values used in this example.
 ```csharp
 var result = await trackPlaybackService.TryPlayNextTrackAsync(session, textChannel, reason, reservation, cancellationToken);
 ```
-
----
-
-## Existing-Item Recovery
-
-**Methods:**
-
-```csharp
-Task<PlaybackStartResult> StartExistingAsync(
-    PlaybackSession session,
-    IDiscordChannel textChannel,
-    long queueItemId,
-    PlaybackStartReason reason,
-    ILavaLinkTrack? replacement = null,
-    ControlReservation? reservation = null,
-    PlaybackResumeOptions? resume = null,
-    CancellationToken cancellationToken = default);
-```
-
-**Purpose:** Preserve the same queue occurrence while forwarding a confirmed position and pause state through start dispatch and commit. The optional checkpoint does not enqueue another canonical item.
 
 ---
 

@@ -9,6 +9,37 @@ namespace DC_bot.Service.BotControl;
 internal static class BotControlDiscordChannelResolver
 {
 
+    /// <summary>Chooses the first usable remembered, explicitly requested, or user voice response channel.</summary>
+    /// <param name="rememberedChannelId">The music response channel retained by the guild playback session.</param>
+    /// <param name="requestedChannelId">The optional response channel supplied with the mobile command.</param>
+    /// <param name="voiceChannelId">The validated voice channel of the requesting user.</param>
+    /// <param name="isUsableAsync">Checks whether a candidate belongs to the guild and supports messages.</param>
+    /// <param name="cancellationToken">Cancels channel lookup before considering further candidates.</param>
+    /// <returns>The first usable response channel, or null when none is available.</returns>
+    internal static async Task<ulong?> SelectResponseChannelAsync(
+        ulong? rememberedChannelId,
+        ulong? requestedChannelId,
+        ulong? voiceChannelId,
+        Func<ulong, CancellationToken, Task<bool>> isUsableAsync,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var candidates = new[] { rememberedChannelId, requestedChannelId, voiceChannelId }.OfType<ulong>()
+            .Distinct();
+
+        foreach (var channelId in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (await isUsableAsync(channelId, cancellationToken))
+            {
+                return channelId;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Attempts to resolve an available guild for the operation.
     /// </summary>

@@ -6,6 +6,12 @@ namespace DC_bot.Entities.Playback;
 public class PlaybackBatchItemEntity
 {
 
+    /// <summary>Whether the occurrence is excluded from subsequent repeat cycles.</summary>
+    public bool IsRemoved { get; set; }
+
+    /// <summary>Identifies the original enqueue operation independently of the playback batch.</summary>
+    public Guid EnqueueGroupId { get; set; }
+
     /// <summary>
     /// The identifier of this persisted record.
     /// </summary>

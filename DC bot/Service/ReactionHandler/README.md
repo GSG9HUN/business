@@ -15,6 +15,8 @@ Connects now-playing messages and Discord reactions to music controls.
 
 **Purpose:** Maps supported reaction emojis to music controls and localized responses.
 
+Repeat-on/off acknowledgements use green localized embeds. Pause, resume and skip continue through the shared playback control path.
+
 **Methods:**
 
 - `DispatchAddedAsync` — Dispatches the added operation to its resolved service handler.
@@ -76,6 +78,8 @@ var result = ReactionControlEmojis.Normalize(emojiName);
 **File:** `DC bot/Service/ReactionHandler/ReactionControlMessageService.cs`
 
 **Purpose:** Sends track control messages and attaches supported control reactions.
+
+Sends the track embed together with a localized reaction-guide embed and attaches the control reactions to that message. The guide is embedded rather than placed in message content.
 
 **Methods:**
 

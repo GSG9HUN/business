@@ -133,6 +133,8 @@ var result = discordMember.ToDiscordMember();
 
 **Purpose:** Defines the discord message boundary so callers are independent of its concrete implementation.
 
+`RespondWithComponentsAsync` sends an embed/component builder and returns the actual response message for later edits. Native message contexts send to their channel; slash message adapters override delivery to retain interaction response ownership.
+
 **Properties:**
 
 ```csharp

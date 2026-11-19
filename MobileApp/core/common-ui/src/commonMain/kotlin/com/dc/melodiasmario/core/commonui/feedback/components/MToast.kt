@@ -38,13 +38,12 @@ fun MToast(
     val statusStyle = data.type.statusStyle()
 
     Surface(
-        modifier = modifier
-            .semantics {
-                liveRegion = when (data.type) {
-                    MToastType.Error -> LiveRegionMode.Assertive
-                    else -> LiveRegionMode.Polite
-                }
+        modifier = modifier.semantics {
+            liveRegion = when (data.type) {
+                MToastType.Error -> LiveRegionMode.Assertive
+                else -> LiveRegionMode.Polite
             }
+        }
             .padding(horizontal = 16.dp)
             .widthIn(max = 560.dp)
             .fillMaxWidth(),

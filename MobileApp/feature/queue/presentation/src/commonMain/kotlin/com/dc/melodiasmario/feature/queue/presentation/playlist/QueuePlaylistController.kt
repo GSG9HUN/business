@@ -24,22 +24,30 @@ internal class QueuePlaylistController(
         val snapshot = uiState.value
         val name = snapshot.playlistNameDraft.trim()
 
-        if (name.isBlank() || snapshot.tracks.isEmpty()) {
+        val captured = snapshot.displayTracks.filter { track -> track.queueState == "Played" || track.queueState == "Skipped" } +
+            snapshot.displayTracks.filter { track -> track.queueState == "Playing" } + snapshot.tracks
+
+        if (name.isBlank() || captured.isEmpty()) {
             return
         }
 
-        val trackUrls = snapshot.tracks.map { track -> track.id }
-
         try {
+            require(value = captured.all { track -> !track.queueItemId.isNullOrBlank() }) {
+                "Queue occurrence IDs are missing. Refresh the queue before saving."
+            }
+            // Deduplicate overlapping snapshot sections by occurrence, never by source URL.
+            val ordered = captured.distinctBy { track -> track.queueItemId }
             val result = queuePlaylistSaveManager.save(
                 guildId = guildId,
                 name = name,
-                trackUrls = trackUrls
+                trackUrls = ordered.map { track -> track.id },
+                queueItemIds = ordered.map { track -> requireNotNull(value = track.queueItemId) }
             )
 
             if (result.succeeded && currentGuildIdProvider() == guildId) {
                 onCloseDialog()
             }
+
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

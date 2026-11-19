@@ -39,13 +39,11 @@ fun MSettingRow(
     trailingContent: (@Composable () -> Unit)? = null
 ): Unit {
     val rowModifier = if (onClick != null) {
-        modifier
-            .fillMaxWidth()
+        modifier.fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp)
     } else {
-        modifier
-            .fillMaxWidth()
+        modifier.fillMaxWidth()
             .padding(vertical = 12.dp)
     }
 

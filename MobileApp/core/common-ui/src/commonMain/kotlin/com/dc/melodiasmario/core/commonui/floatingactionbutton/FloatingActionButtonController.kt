@@ -33,6 +33,7 @@ class FloatingActionButtonController {
      * Clears the state and resources owned by FloatingActionButtonController.
      */
     internal fun clear(owner: FloatingActionButtonOwner): Unit {
+
         if (this.owner === owner) {
             this.owner = null
             config = null

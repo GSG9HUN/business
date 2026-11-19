@@ -7,6 +7,10 @@ Defines repository operations for saved playlist metadata and ordered, serialize
 - The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
 - Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 
+**Staging Integration**
+
+Playlist metadata reads retain one GetByGuildAndNameAsync declaration. The interface additionally exposes SetArtworkAsync and transactional CreateSnapshotAsync from the playlist feature.
+
 ## Interfaces
 
 ### IPlaylistRepository

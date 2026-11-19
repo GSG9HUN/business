@@ -4,6 +4,8 @@ Implements shared storage operations for saved playlist metadata and ordered, se
 
 ## Overview
 
+- `CreateSnapshotAsync` checks active guild premium inside its serializable transaction. Only free guilds are subject to `maxPlaylists` and `maxTracks`; premium does not bypass uniqueness, ownership, or storage validation.
+
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.
 - Forward caller cancellation through database I/O. Preserve transactional ownership and use the shared retry/rollback helpers where a multi-step mutation requires them.
 

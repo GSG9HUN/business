@@ -54,16 +54,18 @@ data class BotControlCommandRealtimeEventDto(
     )
 
     private fun String?.toErrorKey(): String? {
+
         if (isNullOrBlank()) {
             return null
         }
 
         return runCatching {
-            Json.parseToJsonElement(this)
+            Json.parseToJsonElement(string = this)
                 .jsonObject["errorCode"]
                 ?.jsonPrimitive
                 ?.content
                 ?.takeIf { textValue -> textValue.isNotBlank() }
-        }.getOrNull()
+        }
+            .getOrNull()
     }
 }

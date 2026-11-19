@@ -47,4 +47,8 @@
     <string name="m_add_music_reason_enqueue_unavailable">Ennél a szolgáltatónál a sorhoz adás ki van kapcsolva.</string>
     <string name="m_add_music_reason_deployment_verification_required">Ezt a szolgáltatót még ellenőrizni kell élesítés előtt.</string>
     <string name="m_add_music_reason_search_support_unverified">Ennél a szolgáltatónál a keresés támogatása még nincs ellenőrizve.</string>
+    <string name="queue_batch_label">Hozzáadás %1$d</string>
+    <string name="queue_state_playing">Most játszott</string>
+    <string name="queue_state_played">Lejátszva</string>
+    <string name="queue_state_skipped">Kihagyva</string>
 </resources>

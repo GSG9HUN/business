@@ -53,6 +53,7 @@ fun Navigation(
                     }
                 },
                 bottomBar = {
+
                     if (currentRoute.shouldShowBottomBar()) {
                         val items = bottomBarItems(
                             currentRoute = currentRoute,
@@ -65,6 +66,7 @@ fun Navigation(
                                 MBottomBar(items = navigationItems)
                             }
                     }
+
                 },
                 floatingActionButton = {
                     val config = floatingActionButtonController.config

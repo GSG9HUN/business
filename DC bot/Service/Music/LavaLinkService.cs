@@ -7,7 +7,6 @@ using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Presentation;
 using DC_bot.Interface.Service.Music.Repeat;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Sessions;
 using DSharpPlus.Entities;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -18,6 +17,7 @@ namespace DC_bot.Service.Music;
 /// <summary>
 /// Exposes music commands through connection, request, queue, and playback-control services.
 /// </summary>
+/// <param name="filterService">Composes and confirms filter state under existing session ownership.</param>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 /// <param name="repeatService">The repeat service dependency used by this boundary.</param>
 /// <param name="trackNotificationService">The track notification service dependency used by this boundary.</param>
@@ -38,8 +38,107 @@ public class LavaLinkService(
     ILavalinkNodeConnectionService lavalinkNodeConnectionService,
     ITrackPlaybackService trackPlaybackService,
     GuildPlaybackSessions sessions,
-    IPlaybackControlService playbackControlService) : ILavaLinkService
+    IPlaybackControlService playbackControlService,
+    IPlaybackFilterService filterService) : ILavaLinkService
 {
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> FiltersAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string? arguments,
+        CancellationToken cancellationToken = default)
+    {
+        return filterService.FiltersAsync(message, member, arguments, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> BassBoostAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string? level,
+        CancellationToken cancellationToken = default)
+    {
+        return filterService.BassBoostAsync(message, member, level, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> SpeedAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string? multiplier,
+        CancellationToken cancellationToken = default)
+    {
+        return filterService.SpeedAsync(message, member, multiplier, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> PitchAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string? multiplier,
+        CancellationToken cancellationToken = default)
+    {
+        return filterService.PitchAsync(message, member, multiplier, cancellationToken);
+    }
+
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> NowPlayingAsync(
+        IDiscordMessage message,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.NowPlayingAsync(message, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> VolumeAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string? value,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.VolumeAsync(message, member, value, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> SeekAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string position,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.SeekAsync(message, member, position, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> ForwardAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string seconds,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.ForwardAsync(message, member, seconds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> RewindAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string seconds,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.RewindAsync(message, member, seconds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> RestartAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.RestartAsync(message, member, cancellationToken);
+    }
+
 
     /// <inheritdoc />
     public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted { add => trackNotificationService.TrackStarted += value; remove => trackNotificationService.TrackStarted -= value; }
@@ -230,4 +329,16 @@ public class LavaLinkService(
 
         return await trackPlaybackService.TryPlayNextTrackAsync(session, textChannel, PlaybackStartReason.JoinQueue, default, cancellationToken: cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> QueueCommandAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string operation,
+        string arguments,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.QueueCommandAsync(message, member, operation, arguments, cancellationToken);
+    }
+
 }

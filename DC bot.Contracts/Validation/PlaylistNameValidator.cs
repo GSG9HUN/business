@@ -14,7 +14,9 @@ public static class PlaylistNameValidator
     /// <returns>True when the documented check or conditional mutation succeeds; otherwise false.</returns>
     static bool IsValid(string playlistName)
     {
-        return playlistName.Length is >= 1 and <= MaxLength && !playlistName.Contains('\n') && !playlistName.Contains('\r');
+        return playlistName.Length is >= 1 and <= MaxLength
+            && !playlistName.Contains('\n')
+            && !playlistName.Contains('\r');
     }
 
     /// <summary>

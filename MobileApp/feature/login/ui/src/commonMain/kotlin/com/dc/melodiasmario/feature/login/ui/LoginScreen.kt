@@ -50,8 +50,7 @@ fun LoginScreen(
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -76,8 +75,7 @@ fun LoginScreen(
 
             Button(
                 onClick = { onEvent(LoginEvent.DiscordLoginClicked) },
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .height(height = 52.dp),
                 enabled = uiState.apiConnectionStatus == ApiConnectionStatus.Online,
                 shape = RoundedCornerShape(size = 12.dp),

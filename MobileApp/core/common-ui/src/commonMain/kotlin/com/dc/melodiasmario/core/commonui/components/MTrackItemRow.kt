@@ -75,6 +75,7 @@ fun MTrackItemRow(
         "$artist - $durationText"
     }
     val reorderAccessibilityActions = buildList {
+
         if (enabled && reorderEnabled && !isFirst) {
             add(
                 CustomAccessibilityAction(
@@ -101,8 +102,7 @@ fun MTrackItemRow(
     }
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .semantics {
                 customActions = reorderAccessibilityActions
             }
@@ -127,6 +127,7 @@ fun MTrackItemRow(
                 isFirst,
                 isLast
             ) {
+
                 if (!enabled || !dragEnabled || !reorderEnabled) {
                     return@pointerInput
                 }
@@ -204,7 +205,7 @@ fun MTrackItemRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 MQueueRemoveButton(
-                    modifier = Modifier.zIndex(2f),
+                    modifier = Modifier.zIndex(zIndex = 2f),
                     contentDescription = removeContentDescription,
                     onClick = onRemove,
                     enabled = enabled

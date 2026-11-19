@@ -1,7 +1,6 @@
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Music.Tracks;
-using DC_bot.Service.Music.Lifecycle;
 using DC_bot.Service.Music.Lifecycle.Models;
 using Lavalink4NET.Rest.Entities.Tracks;
 
@@ -70,4 +69,24 @@ public interface ITrackPlaybackService
         ControlReservation? reservation = null,
         PlaybackResumeOptions? resume = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Starts a captured waiting occurrence only if its complete waiting order remains unchanged.</summary>
+    Task<PlaybackStartResult> StartQueueSelectionAsync(
+        PlaybackSession session,
+        IDiscordChannel channel,
+        long targetId,
+        IReadOnlyList<long> expectedIds,
+        ControlReservation reservation,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Enqueues loaded tracks at the front of the waiting queue, preserving canonical append order.</summary>
+    Task<PlaybackStartResult> PlayNextLoadedAsync(
+        TrackLoadResult loaded,
+        PlaybackSession session,
+        IDiscordChannel channel,
+        string query,
+        TrackSearchMode searchMode,
+        string requestedBy,
+        CancellationToken cancellationToken = default);
+
 }

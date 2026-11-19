@@ -1,6 +1,8 @@
+using DSharpPlus.Entities;
 using System.ComponentModel;
 using DC_bot.Constants;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Presentation;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -13,10 +15,12 @@ namespace DC_bot.Commands.SlashCommands.Queue;
 /// <param name="slashCommandExecutor">The slash command executor dependency used by this boundary.</param>
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
+/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
 public class ClearSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory,
-    ILocalizationService localizationService)
+    ILocalizationService localizationService,
+    IResponseBuilder responseBuilder)
 {
     private const string CommandName = "clear";
 
@@ -45,7 +49,9 @@ public class ClearSlashCommand(
     {
         if (!confirm)
         {
-            await context.RespondAsync(GetLocalizedMessage(context, LocalizationKeys.ClearCommandConfirmationRequired));
+            await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
+                GetLocalizedMessage(context, LocalizationKeys.ClearCommandConfirmationRequired),
+                DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle));
             return;
         }
 

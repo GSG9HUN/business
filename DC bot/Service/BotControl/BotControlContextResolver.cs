@@ -2,6 +2,7 @@ using DC_bot.BotControl;
 using DC_bot.Interface.Service.BotControl;
 using DC_bot.Interface.Service.BotControl.Models;
 using DC_bot.Interface.Service.Persistence.Models.BotControlCommand;
+using DC_bot.Service.Music.Lifecycle.Sessions;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
@@ -11,7 +12,8 @@ namespace DC_bot.Service.BotControl;
 /// Resolves guild, member, and channel permissions for durable mobile commands.
 /// </summary>
 /// <param name="discordClient">The discord client supplied for this operation.</param>
-public class BotControlContextResolver(DiscordClient discordClient) : IBotControlContextResolver
+/// <param name="sessions">Provides the music response channel remembered for each guild.</param>
+public class BotControlContextResolver(DiscordClient discordClient, GuildPlaybackSessions sessions) : IBotControlContextResolver
 {
 
     /// <summary>
@@ -67,7 +69,7 @@ public class BotControlContextResolver(DiscordClient discordClient) : IBotContro
     }
 
     /// <summary>
-    /// Resolves an available channel for optional mobile-command Discord responses.
+    /// Prefers the remembered music response channel before an explicit request channel or the user's voice chat.
     /// </summary>
     /// <param name="guild">The guild supplied for this operation.</param>
     /// <param name="channelContextTextChannelId">The channel context text channel id supplied for this operation.</param>
@@ -82,29 +84,17 @@ public class BotControlContextResolver(DiscordClient discordClient) : IBotContro
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (channelContextTextChannelId is not null)
-        {
-            var requestedChannel = await BotControlDiscordChannelResolver.TryGetGuildChannelAsync(guild, channelContextTextChannelId.Value, cancellationToken);
-
-            if (
-                BotControlDiscordChannelResolver.IsMessageCapableChannel(
-                requestedChannel))
+        var rememberedTextChannelId = sessions.GetRecoveryChannels(guild.Id)?.TextChannelId;
+        return await BotControlDiscordChannelResolver.SelectResponseChannelAsync(
+            rememberedTextChannelId,
+            channelContextTextChannelId,
+            voiceChannelId,
+            async (channelId, token) =>
             {
-                return requestedChannel!.Id;
-            }
-        }
-
-        if (voiceChannelId is not null)
-        {
-            var voiceChannel = await BotControlDiscordChannelResolver.TryGetGuildChannelAsync(guild, voiceChannelId.Value, cancellationToken);
-
-            if (BotControlDiscordChannelResolver.IsMessageCapableChannel(voiceChannel))
-            {
-                return voiceChannel!.Id;
-            }
-        }
-
-        return null;
+                var channel = await BotControlDiscordChannelResolver.TryGetGuildChannelAsync(guild, channelId, token);
+                return BotControlDiscordChannelResolver.IsMessageCapableChannel(channel);
+            },
+            cancellationToken);
     }
 
     /// <summary>

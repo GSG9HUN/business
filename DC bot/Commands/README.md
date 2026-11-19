@@ -4,8 +4,9 @@ Groups prefix-based text commands and slash command adapters.
 
 ## Overview
 
-- Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor.
-- Keep command parsing and presentation at this boundary; guild sessions, transport calls, and persistence decisions belong to services.
+- Routes prefixed messages and slash interactions to shared command implementations.
+- Validates command arguments and caller context, delegates work to services, and presents localized outcomes.
+- Exposes command descriptions and usage through the command registry and help pipeline.
 
 ## Subfolders
 
@@ -29,7 +30,7 @@ Implements commands selected by the configured message prefix and ICommandRegist
 
 - `README.md` — Folder overview and navigation to its source components.
 
-**Purpose:** CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services.
+**Purpose:** CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services. Long queue, playlist, help, favorite, lyrics and custom-preset responses use the shared caller-bound button pagination.
 
 ---
 

@@ -53,6 +53,7 @@ fun ProfileScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
+
             if (!uiState.isLoading
                 && uiState.errorMessage == null
                 && uiState.hasUnsavedChanges) {

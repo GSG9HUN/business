@@ -4,8 +4,9 @@ Translates DSharpPlus interaction context and response state into bot-facing mes
 
 ## Overview
 
-- The factory creates an interaction context; wrappers expose deferred, initial, and follow-up response operations to the shared command pipeline.
-- An interaction response is not an ordinary text-message send. Preserve its response lifecycle instead of making commands know SDK-specific reply rules.
+- Adapts Discord interactions to application message contracts.
+- Tracks deferred, initial and follow-up response delivery.
+- Preserves response lifecycle and bounded fallback behavior.
 
 ## Classes
 
@@ -14,6 +15,10 @@ Translates DSharpPlus interaction context and response state into bot-facing mes
 **File:** `DC bot/Wrapper/SlashCommands/SlashInteractionContextWrapper.cs`
 
 **Purpose:** Adapts slash interaction context data and operations to the bot's Discord boundary.
+
+`ISlashCommandContextAdapter.cs` contains the internal SDK context adapter contract. `SlashInteractionContextWrapper.cs` retains interaction response ownership and SDK method signatures.
+
+The first reply after deferral edits the pending response; subsequent replies use follow-ups. Embed failures try bounded text on the same response path. Cancellation does not trigger fallback, and acknowledgement state changes only after successful delivery. `RespondWithComponentsAsync` follows the same initial/edit/follow-up path and returns the sent Discord message so pagination updates the existing response. The SDK adapter records acceptance immediately after sending, independently of message lookup. Lookup failure or a missing message retains acknowledgement state and attempts to remove controls through the known interaction response; fallback delivery then uses a follow-up instead of another initial response.
 
 **Implements / inherits:** `ISlashInteractionContext`.
 

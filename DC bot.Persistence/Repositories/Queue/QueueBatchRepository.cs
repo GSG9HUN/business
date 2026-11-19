@@ -60,7 +60,7 @@ internal sealed class QueueBatchRepository(IDbContextFactory<BotDbContext> facto
             return[];
         }
 
-        return await db.PlaybackBatchItems.Where(x => x.BatchId == batch.Id)
+        return await db.PlaybackBatchItems.Where(x => x.BatchId == batch.Id && !x.IsRemoved)
             .OrderBy(x => x.Position)
             .Select(x => new QueueItemToEnqueue(x.TrackIdentifier, x.SourceQuery, x.SourceSearchMode, x.RequestedBy))
             .ToListAsync(token);
@@ -89,7 +89,7 @@ internal sealed class QueueBatchRepository(IDbContextFactory<BotDbContext> facto
             return false;
         }
 
-        var items = await db.PlaybackBatchItems.Where(x => x.BatchId == batch.Id)
+        var items = await db.PlaybackBatchItems.Where(x => x.BatchId == batch.Id && !x.IsRemoved)
             .OrderBy(x => x.Position)
             .ToListAsync(token);
 
@@ -102,7 +102,10 @@ internal sealed class QueueBatchRepository(IDbContextFactory<BotDbContext> facto
             .Select(x => (int? )x.Position)
             .MaxAsync(token) ?? -1;
         var now = DateTimeOffset.UtcNow;
-        db.GuildQueueItems.AddRange(items.Select((x, index) => new GuildQueueItemEntity { GuildId = guildId, BatchId = batch.Id, BatchItemId = x.Id, Position = checked(maxPosition + index + 1), TrackIdentifier = x.TrackIdentifier, SourceQuery = x.SourceQuery, SourceSearchMode = x.SourceSearchMode, RequestedBy = x.RequestedBy, State = QueueItemState.Queued, AddedAtUtc = now }));
+        var groups = items.Select(item => item.EnqueueGroupId)
+            .Distinct()
+            .ToDictionary(id => id, _ => Guid.NewGuid());
+        db.GuildQueueItems.AddRange(items.Select((x, index) => new GuildQueueItemEntity { GuildId = guildId, BatchId = batch.Id, BatchItemId = x.Id, Position = checked(maxPosition + index + 1), TrackIdentifier = x.TrackIdentifier, SourceQuery = x.SourceQuery, SourceSearchMode = x.SourceSearchMode, RequestedBy = x.RequestedBy, State = QueueItemState.Queued, EnqueueGroupId = groups[x.EnqueueGroupId], BatchPosition = x.Position, AddedAtUtc = now }));
         await db.SaveChangesAsync(token);
         await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(db, guildId, MobileRealtimeEventNames.QueueItemsAdded, token);
         return true;

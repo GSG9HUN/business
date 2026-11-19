@@ -155,7 +155,9 @@ class CurrentTrackViewModel(
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
     fun onEvent(event: CurrentTrackEvent): Unit {
+
         if (event.isCommandEvent()) {
+
             if (!startCommandIfIdle()) {
                 return
             }
@@ -187,6 +189,7 @@ class CurrentTrackViewModel(
     private suspend fun handleEvent(event: CurrentTrackEvent) {
         when (event) {
             is CurrentTrackEvent.LoadCurrentTrack -> {
+
                 if (currentGuildId != event.guildId) {
                     clearCommandExecution()
                     musicSearchController.resetForGuildChange(newGuildId = event.guildId, currentGuildId = currentGuildId)
@@ -251,6 +254,7 @@ class CurrentTrackViewModel(
     }
 
     private suspend fun runCommandIfIdle(action: suspend () -> Unit) {
+
         if (!startCommandIfIdle()) {
             return
         }
@@ -264,6 +268,7 @@ class CurrentTrackViewModel(
     }
 
     private fun startCommandIfIdle(): Boolean {
+
         if (currentGuildId == null || _uiState.value.isLoading) {
             return false
         }
@@ -277,26 +282,28 @@ class CurrentTrackViewModel(
     }
 
     private fun finishCommand(version: Long) {
+
         if (version == commandVersion) {
             commandLock.finish()
         }
     }
 
     private suspend fun loadCurrentUser() {
-        getCurrentUserUseCase().collect { result ->
+        getCurrentUserUseCase()
+            .collect { result ->
 
-            if (result is Resource.Success) {
-                currentUserId = result.data.id
-                _uiState.update { currentUiState ->
-                    currentUiState.copy(
-                        header = currentUiState.header.copy(
-                            profileName = result.data.displayName,
-                            profileAvatarUrl = result.data.avatarUrl
+                if (result is Resource.Success) {
+                    currentUserId = result.data.id
+                    _uiState.update { currentUiState ->
+                        currentUiState.copy(
+                            header = currentUiState.header.copy(
+                                profileName = result.data.displayName,
+                                profileAvatarUrl = result.data.avatarUrl
+                            )
                         )
-                    )
+                    }
                 }
             }
-        }
     }
 
     private fun updateAddToQueueDraft(value: String) {
@@ -359,7 +366,7 @@ class CurrentTrackViewModel(
                     errorMessage = playbackState.errorMessage,
                     header = value.header.copy(guildName = "", guildIconUrl = null),
                     playback = CurrentTrackPlaybackUiState(),
-                    queue = value.queue.copy(tracks = emptyList())
+                    queue = value.queue.copy(tracks = emptyList(), displayTracks = emptyList())
                 )
             } else {
                 value.copy(
@@ -376,7 +383,8 @@ class CurrentTrackViewModel(
                         repeatMode = track.repeatMode
                     ),
                     queue = value.queue.copy(
-                        tracks = track.queuedTracks
+                        tracks = track.queuedTracks,
+                        displayTracks = track.displayTracks
                     )
                 )
             }

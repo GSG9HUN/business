@@ -4,10 +4,48 @@ Groups tracked database entity types by storage feature.
 
 ## Overview
 
-- BotDbContext and feature repositories use these types; Configurations defines their PostgreSQL mapping.
-- Return shared contract records to services and API handlers instead of exposing tracked entities across the persistence boundary.
+- Defines tracked EF Core entities for persisted application state.
+- Groups stored data by feature while repositories own queries and mutations.
 
 ## Subfolders
+
+### MusicControl/
+
+Represents one guild-owned settings row with VoteSkipEnabled defaulting to false and an optional DjRoleId.
+
+**Files:**
+
+- `GuildMusicControlSettingsEntity.cs`
+
+**Purpose:** Represents one guild-owned settings row with VoteSkipEnabled defaulting to false and an optional DjRoleId.
+
+---
+
+### Filters/
+
+Contains the dedicated saved filter preset components.
+
+**Files:**
+
+- `FilterPresetEntity.cs`
+
+**Purpose:** Keep durable guild definitions separate from temporary audio, playlist and queue state.
+
+---
+
+### Discovery/
+
+Contains the dedicated music discovery components.
+
+**Files:**
+
+- `FavoriteTrackEntity.cs`
+- `UserMusicSettingsEntity.cs`
+- `GuildMusicSettingsEntity.cs`
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### BotControl/
 

@@ -29,7 +29,10 @@ public class TagCommand(
     public string Name => "tag";
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(LocalizationKeys.TagCommandDescription);
+    public string Description => localizationService.Get(DescriptionKey);
+
+    /// <inheritdoc />
+    public string DescriptionKey => LocalizationKeys.TagCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -74,6 +77,11 @@ public class TagCommand(
     /// <returns>Whether the requested check or operation succeeded.</returns>
     private static bool MatchesMember(IDiscordMember member, string memberReference)
     {
-        return string.Equals(member.Username, memberReference, StringComparison.OrdinalIgnoreCase) || string.Equals(member.Mention, memberReference, StringComparison.OrdinalIgnoreCase) || string.Equals(memberReference, $"<@{member.Id}>", StringComparison.OrdinalIgnoreCase) || string.Equals(memberReference, $"<@!{member.Id}>", StringComparison.OrdinalIgnoreCase) || ulong.TryParse(memberReference, out var memberId) && member.Id == memberId;
+        return string.Equals(member.Username, memberReference, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(member.Mention, memberReference, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(memberReference, $"<@{member.Id}>", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(memberReference, $"<@!{member.Id}>", StringComparison.OrdinalIgnoreCase)
+            || ulong.TryParse(memberReference, out var memberId)
+            && member.Id == memberId;
     }
 }

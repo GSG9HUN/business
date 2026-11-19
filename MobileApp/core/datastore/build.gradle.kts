@@ -25,39 +25,39 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                implementation(project(":core:common"))
-                implementation(project(":core:domain"))
-                implementation(project(":core:model"))
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.koin.core)
-                implementation(libs.koin.annotations)
+                implementation(dependencyNotation = project(":core:common"))
+                implementation(dependencyNotation = project(":core:domain"))
+                implementation(dependencyNotation = project(":core:model"))
+                implementation(dependencyNotation = libs.kotlin.stdlib)
+                implementation(dependencyNotation = libs.koin.core)
+                implementation(dependencyNotation = libs.koin.annotations)
             }
         }
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
+                implementation(dependencyNotation = libs.kotlin.test)
+                implementation(dependencyNotation = libs.kotlinx.coroutines.test)
             }
         }
         getByName("androidDeviceTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.androidx.junit)
-                implementation(libs.androidx.runner)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.androidx.junit)
+                implementation(dependencyNotation = libs.androidx.runner)
             }
         }
 
         getByName("androidHostTest") {
             dependencies {
-                implementation(libs.androidx.core)
-                implementation(libs.robolectric)
+                implementation(dependencyNotation = libs.androidx.core)
+                implementation(dependencyNotation = libs.robolectric)
             }
         }
 
         getByName("androidMain") {
             dependencies {
-                implementation(libs.androidx.datastore.preferences)
-                implementation(libs.kotlinx.serialization.json)
+                implementation(dependencyNotation = libs.androidx.datastore.preferences)
+                implementation(dependencyNotation = libs.kotlinx.serialization.json)
             }
         }
     }

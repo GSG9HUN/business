@@ -43,7 +43,8 @@ public static class MusicSearchProviders
             "amsearch" => host == "music.apple.com",
             "dzsearch" => host is "deezer.com" or "www.deezer.com",
             "ymsearch" => host is "music.yandex.ru" or "music.yandex.com",
-            "bcsearch" => host == "bandcamp.com" || host.EndsWith(".bandcamp.com", StringComparison.Ordinal),
+            "bcsearch" => host == "bandcamp.com"
+            || host.EndsWith(".bandcamp.com", StringComparison.Ordinal),
             _ => false
         };
 
@@ -56,13 +57,27 @@ public static class MusicSearchProviders
         var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
         return providerId switch
         {
-            "ytsearch" or "ytmsearch" => host == "youtu.be" ? segments.Length == 1 : (uri.AbsolutePath == "/watch" && HasQueryValue(uri, "v")) || (uri.AbsolutePath == "/playlist" && HasQueryValue(uri, "list")) || (segments.Length == 2 && segments[0] is "shorts" or "live"),
-            "sptfy" => segments.Length >= 2 && (segments[0] is "track" or "playlist" or "album" or "artist" || segments.Length == 3 && segments[0].StartsWith("intl-", StringComparison.Ordinal) && segments[1] is "track" or "playlist" or "album" or "artist"),
-            "scsearch" => (segments.Length == 2 || segments.Length == 3 && segments[1] == "sets") && segments[0] is not ("redirect" or "oauth" or "connect"),
-            "amsearch" => segments.Length >= 3 && segments[1] is "song" or "album" or "playlist" or "artist",
+            "ytsearch" or "ytmsearch" => host == "youtu.be" ? segments.Length == 1 : (uri.AbsolutePath == "/watch"
+            && HasQueryValue(uri, "v"))
+            || (uri.AbsolutePath == "/playlist"
+            && HasQueryValue(uri, "list"))
+            || (segments.Length == 2
+            && segments[0] is "shorts" or "live"),
+            "sptfy" => segments.Length >= 2
+            && (segments[0] is "track" or "playlist" or "album" or "artist"
+            || segments.Length == 3
+            && segments[0].StartsWith("intl-", StringComparison.Ordinal)
+            && segments[1] is "track" or "playlist" or "album" or "artist"),
+            "scsearch" => (segments.Length == 2
+            || segments.Length == 3
+            && segments[1] == "sets")
+            && segments[0] is not ("redirect" or "oauth" or "connect"),
+            "amsearch" => segments.Length >= 3
+            && segments[1] is "song" or "album" or "playlist" or "artist",
             "dzsearch" => segments.Length >= 2 && segments.Take(2)
                 .Any(s => s is "track" or "album" or "playlist" or "artist"),
-            "ymsearch" => segments.Length >= 2 && segments[0] is "track" or "album" or "playlists" or "users" or "artist",
+            "ymsearch" => segments.Length >= 2
+            && segments[0] is "track" or "album" or "playlists" or "users" or "artist",
             "bcsearch" => segments.Length == 2 && segments[0] is "track" or "album",
             _ => false
         };
@@ -76,5 +91,6 @@ public static class MusicSearchProviders
     /// <returns>True when the documented check or conditional mutation succeeds; otherwise false.</returns>
     private static bool HasQueryValue(Uri uri, string key) => uri.Query.TrimStart('?')
         .Split('&')
-        .Any(part => part.StartsWith(key + "=", StringComparison.Ordinal) && part.Length > key.Length + 1);
+        .Any(part => part.StartsWith(key + "=", StringComparison.Ordinal)
+        && part.Length > key.Length + 1);
 }

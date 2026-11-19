@@ -4,9 +4,9 @@ Coordinates saved twenty-four-seven preferences, periodic connection recovery, a
 
 ## Overview
 
-- Serialize settings, automatic recovery, and explicit leave through one guild gate.
-- Restore the same confirmed queue occurrence and checkpoint without requiring a human listener.
-- Disable persistent voice before explicit leave so the recovery worker does not reverse the request.
+- Coordinates saved 24/7 preferences, connection recovery and full leave cleanup.
+- Serializes recovery, setting changes and leave admission through a guild gate.
+- Restores confirmed playback checkpoints and prevents automatic recovery after explicit leave.
 
 ## Persistent Voice Services
 
@@ -24,7 +24,6 @@ public SemaphoreSlim Get(ulong guildId);
 
 Every successful acquisition has exactly one release. A setting change must not wait twice on the same non-reentrant semaphore.
 
-
 ---
 
 ### PersistentVoiceLeaveService
@@ -32,6 +31,8 @@ Every successful acquisition has exactly one release. A setting change must not 
 **File:** `PersistentVoiceLeaveService.cs`
 
 **Purpose:** Disables persistent voice before owned leave cleanup and closes the active batch only after a fully successful result.
+
+`LeaveIfEligibleAsync` rechecks persisted 24/7 mode, session ownership and human presence under `PersistentVoiceGate`. Admitted automatic leave uses full explicit-leave cleanup and batch closure. Temporary audio is cleared; saved custom presets remain stored.
 
 **Methods:**
 
@@ -55,7 +56,6 @@ var result = await leaving.WaitAsync(callerCancellationToken);
 - Retain the gate until the admitted operation completes, even if the command stops waiting.
 - Retry batch closure after a previously completed shared leave without requiring another remote disconnect.
 
-
 ---
 
 ### PersistentVoiceRecoveryService
@@ -63,6 +63,10 @@ var result = await leaving.WaitAsync(callerCancellationToken);
 **File:** `PersistentVoiceRecoveryService.cs`
 
 **Purpose:** Checks available guilds every five seconds, preserves healthy players, and replaces disconnected players after confirmed cleanup.
+
+The five-second worker runs music-control maintenance before recovery. Empty channels leave after five minutes only with 24/7 disabled. Enabling 24/7 cancels the countdown.
+
+Without 24/7, recovery requires a playing occurrence, waiting track or nonempty repeated batch plus process-local remembered channels. Explicit leave clears that intent. Recovery restores a checkpoint or starts/refills an eligible queue; unknown starts remain fenced.
 
 **Methods:**
 
@@ -83,14 +87,13 @@ await persistentVoiceRecovery.RunAsync(stoppingToken);
 - Allow ten seconds of failed health validation on a still-registered owned player before replacement.
 - Defer new playback while a pending start requires reconciliation.
 - Cleanup invalidates and drains the old generation; a failed cleanup remains quarantined.
-- Restore only the retained guild queue item still marked `Playing`; no duplicate canonical item is enqueued.
+- Restore the retained guild queue item still marked `Playing`; otherwise start queued music or atomically refill an enabled canonical repeat batch.
 - Seekable tracks resume at the stored source position, while non-seekable tracks restart without seeking.
 - Save position and pause state only for a ready, correlated queue attempt under a control reservation.
 - Busy operations defer for five seconds; other failures defer for thirty seconds. Each pass uses the configured join plus leave deadlines.
 - Cancelling the worker's wait does not cancel admitted lifecycle cleanup; late failures remain observed.
 
 **Limits:** Checkpoints are periodic, so resumption is approximate. Missing permissions/channels and unresolved remote starts can defer recovery. A successful build does not prove live Discord or Lavalink connectivity.
-
 
 ---
 
@@ -127,7 +130,6 @@ if (settings is null)
 - Disabling saves the flag without joining, disconnecting, or requiring voice membership.
 - Initial setup does not start or advance the queue.
 - This service handles preference changes and initial setup under `PersistentVoiceGate`; the separate periodic worker performs rejoining and checkpoint restoration.
-
 
 ---
 

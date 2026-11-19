@@ -4,6 +4,8 @@ Formats playback metadata and sends now-playing notifications.
 
 ## Overview
 
+- TrackFormatterService formats at most ten entries in order: the current track, when present, followed by enough waiting tracks to fill the display. It leaves queue and repeat state unchanged.
+
 - TrackFormatterService builds track text and embeds; TrackNotificationService handles response delivery through the selected message channel.
 - Presentation errors should be diagnosed separately from the result of a remote audio command. The caller determines which text channel receives the notification.
 
@@ -13,13 +15,13 @@ Formats playback metadata and sends now-playing notifications.
 
 **File:** `DC bot/Service/Music/Presentation/TrackFormatterService.cs`
 
-**Purpose:** Formats the current track followed by waiting tracks for repeat-mode responses.
+**Purpose:** Formats up to ten tracks, starting with the current track, for repeat-mode responses.
 
 **Implements / inherits:** `ITrackFormatterService`.
 
 **Methods:**
 
-- `FormatCurrentTrackListAsync` — Formats the current track followed by the waiting queue for repeat-mode responses.
+- `FormatCurrentTrackListAsync` — Formats at most ten tracks from the current track and waiting queue for repeat-mode responses.
 
 ```csharp
 public async Task<string> FormatCurrentTrackListAsync(ulong guildId, CancellationToken cancellationToken = default);
@@ -40,6 +42,8 @@ var result = await trackFormatterService.FormatCurrentTrackListAsync(guildId, ca
 **File:** `DC bot/Service/Music/Presentation/TrackNotificationService.cs`
 
 **Purpose:** Builds playback notifications and contains Discord delivery failures at the presentation boundary.
+
+`SendSafeAsync` formats notification text with the shared informational embed factory before channel delivery. Queue-empty and load-error notifications use this route; now-playing retains its artwork, metadata and event subscribers.
 
 **Implements / inherits:** `ITrackNotificationService`.
 

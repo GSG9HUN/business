@@ -5,6 +5,7 @@ using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Music.Lavalink;
 using DC_bot.Interface.Service.Music.Lifecycle;
+using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
@@ -35,6 +36,7 @@ namespace DC_bot.Service.Music.Lifecycle.Connections;
 /// <param name="playbackCleanupService">The playback cleanup service supplied for this operation.</param>
 /// <param name="playbackRecoveryService">The playback recovery service supplied for this operation.</param>
 /// <param name="options">The configured typed options consumed by this boundary.</param>
+/// <param name="filterService">Restores acknowledged filters before publishing a replacement player.</param>
 /// <param name="retryPolicy">The injected joined-player readiness policy.</param>
 public sealed class PlayerConnectionService(
     IAudioService audioService,
@@ -49,7 +51,8 @@ public sealed class PlayerConnectionService(
     PlaybackCleanupService playbackCleanupService,
     PlaybackRecoveryService playbackRecoveryService,
     IOptions<PlaybackLifecycleOptions> options,
-    PlayerConnectionRetryPolicy retryPolicy) : IPlayerConnectionService
+    PlayerConnectionRetryPolicy retryPolicy,
+    IPlaybackFilterService filterService) : IPlayerConnectionService
 {
     private readonly PlayerConnectionRetryPolicy _retry =
         retryPolicy ?? throw new ArgumentNullException(nameof(retryPolicy));
@@ -86,6 +89,7 @@ public sealed class PlayerConnectionService(
         {
             await disconnectedPlayerCleanupService.ReconcileBeforeJoinAsync(guildId, deadline.Token);
             // A failed startup recovery must block only this guild's join.
+
             if (!await playbackRecoveryService.RecoverBeforeJoinAsync(guildId, deadline.Token))
             {
                 logger.LogWarning(
@@ -114,6 +118,7 @@ public sealed class PlayerConnectionService(
 
                         if (checkedPlayer.isValid)
                         {
+                            sessions.RememberRecoveryChannels(captured, channel.Id, message.Channel.Id);
                             return checkedPlayer;
                         }
                     }
@@ -150,6 +155,15 @@ public sealed class PlayerConnectionService(
                     {
                         throw new InvalidOperationException("Joined player is not valid.");
                     }
+
+                    if (sessions.GetConfirmedVolume(guildId) is { } volume
+                        && player is LavalinkPlayer writablePlayer)
+                    {
+                        await writablePlayer.SetVolumeAsync(volume, deadline.Token);
+                    }
+
+                    await filterService.RestoreAsync(player, deadline.Token);
+
                 },
                 cleanupFailedJoin: (player, joinInvoked) =>
                     playbackCleanupService.CleanupAsync(guildId, player, joinWasNeverInvoked: !joinInvoked));
@@ -201,6 +215,7 @@ public sealed class PlayerConnectionService(
             }
 
             gatewayRecovery.Remember(session, channel.Id);
+            sessions.RememberRecoveryChannels(session, channel.Id, message.Channel.Id);
             return (session.Player, channel, guildId, true);
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)

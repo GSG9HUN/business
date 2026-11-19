@@ -4,10 +4,25 @@ Exposes the top-level music operations used by commands and adapters.
 
 ## Overview
 
-- ILavaLinkService delegates to specialized request, connection, control, queue, and playback services.
-- Use the feature subcontracts for internal responsibilities. A caller must not infer session ownership from a stored player reference alone.
+- Defines the music facade and feature-specific playback, queue, playlist, discovery and lifecycle contracts.
+- Separates command adapters from player transport and repository implementations.
 
 ## Subfolders
+
+### Discovery/
+
+Contains the dedicated music discovery contracts and data.
+
+**Files:**
+
+- `ILyricsService.cs`
+- `IFavoriteService.cs`
+- `IRecommendationService.cs`
+- `ISearchPickerHandler.cs`
+
+**Purpose:** Keep personal favorites and discovery opt-in responsibilities separate from queue, playlist and mobile state.
+
+---
 
 ### Events/
 
@@ -147,6 +162,20 @@ Defines the tracks boundary used by the bot music pipeline.
 **Purpose:** Defines the lava link service boundary so callers are independent of its concrete implementation.
 
 **Methods:**
+
+```csharp
+Task<PlaybackControlResult> NowPlayingAsync(IDiscordMessage message, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> VolumeAsync(
+    IDiscordMessage message, IDiscordMember? member, string? value, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> SeekAsync(
+    IDiscordMessage message, IDiscordMember? member, string position, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> ForwardAsync(
+    IDiscordMessage message, IDiscordMember? member, string seconds, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> RewindAsync(
+    IDiscordMessage message, IDiscordMember? member, string seconds, CancellationToken cancellationToken = default);
+Task<PlaybackControlResult> RestartAsync(
+    IDiscordMessage message, IDiscordMember? member, CancellationToken cancellationToken = default);
+```
 
 - `StartPlayingQueue` — Requests a validated player connection and starts the next waiting queue item.
 
