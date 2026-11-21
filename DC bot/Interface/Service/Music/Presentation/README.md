@@ -5,7 +5,6 @@ Defines the presentation boundary used by the bot music pipeline.
 ## Overview
 
 - ITrackFormatterService.FormatCurrentTrackListAsync returns at most ten displayed tracks, including the current track when present.
-
 - Implementations live under Service/Music/Presentation; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 
@@ -37,16 +36,23 @@ var result = await trackFormatterService.FormatCurrentTrackListAsync(guildId, ca
 
 ### ITrackNotificationService
 
+`SendValidationAsync` accepts a localization key and preserves the shared response builder's distinction between user-condition warnings and system errors.
+
 **File:** `DC bot/Interface/Service/Music/Presentation/ITrackNotificationService.cs`
 
 **Purpose:** Defines the track notification service boundary so callers are independent of its concrete implementation.
 
 **Methods:**
 
-- `BuildNowPlayingEmbed` — Builds localized track details for the now-playing notification.
+- `NotifyMusicControlAsync` — Sends background skip/empty-channel results with contextual styling and bounded text fallback.
 
 ```csharp
-DiscordEmbed BuildNowPlayingEmbed(ILavaLinkTrack track, TimeSpan pos, TimeSpan trackDuration);
+Task NotifyMusicControlAsync(
+    DiscordChannel channel,
+    ulong guildId,
+    string text,
+    bool success,
+    CancellationToken cancellationToken = default);
 ```
 
 - `NotifyNowPlayingAsync` — Publishes started-track details to the selected response channel.
@@ -81,7 +87,7 @@ public Task SendSafeAsync(
 The caller supplies the component and argument values used in this example.
 
 ```csharp
-var result = trackNotificationService.BuildNowPlayingEmbed(track, pos, trackDuration);
+await trackNotificationService.NotifyNowPlayingAsync(textChannel, track, position, duration, cancellationToken);
 ```
 
 ---

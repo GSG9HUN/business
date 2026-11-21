@@ -4,6 +4,8 @@ Groups process lifecycle, localization, command orchestration, music, reactions,
 
 ## Overview
 
+- Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
+
 - Coordinates bot runtime, command execution and application workflows.
 - Groups music, durable-command, localization and presentation responsibilities.
 - Keeps orchestration separate from Discord adapters and persistence implementations.

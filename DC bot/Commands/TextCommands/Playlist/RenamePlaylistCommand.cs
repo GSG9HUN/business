@@ -31,7 +31,7 @@ public class RenamePlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "renamePlaylist";
+    public string Name => CommandNames.RenamePlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -54,7 +54,7 @@ public class RenamePlaylistCommand(
             return;
         }
 
-        var parsed = await commandHelper.TryParseSavePlaylistArguments(message, responseBuilder, logger, Name, default);
+        var parsed = await commandHelper.TryParsePlaylistArgumentsAsync(message, responseBuilder, logger, Name, default);
 
         if (parsed is null)
         {

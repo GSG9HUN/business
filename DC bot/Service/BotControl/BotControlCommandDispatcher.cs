@@ -56,7 +56,7 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Clear => HandleClearAsync(command, cancellationToken),
             BotControlCommandTypes.Play => HandlePlayAsync(command, cancellationToken),
             BotControlCommandTypes.AddSong => playlistHandler.AddTrackAsync(command, cancellationToken),
-            BotControlCommandTypes.SavePlaylist => playlistHandler.ImportAsync(command, cancellationToken),
+            BotControlCommandTypes.ImportPlaylist => playlistHandler.ImportAsync(command, cancellationToken),
             BotControlCommandTypes.LoadPlaylist => HandleLoadPlaylistAsync(command, cancellationToken),
             BotControlCommandTypes.Shuffle => HandleShuffleAsync(command, cancellationToken),
             BotControlCommandTypes.Remove => HandleRemoveAsync(command, cancellationToken),

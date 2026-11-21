@@ -2,7 +2,9 @@
 
 Handles text command routing, registry snapshots, argument parsing, and user/player readiness validation.
 
-## Overview
+## Overview
+
+- Command lookup ignores casing while retaining canonical registered names. The shared playlist argument parser is `TryParsePlaylistArgumentsAsync`; quoting rules are preserved.
 
 - CommandHandlerService dispatches registered ICommand values. CommandRegistry materializes lookup state; CommandValidationService parses command payloads. ValidationService checks voice context and player readiness.
 - If the SDK reports disconnected, readiness can use REST evidence tied to unchanged node and Discord voice sessions. A voice channel ID alone is not sufficient proof of a valid connection.
@@ -102,7 +104,7 @@ public async Task<string?> TryGetArgumentAsync(
     CancellationToken cancellationToken = default);
 ```
 
-- `TryParseSavePlaylistArguments` — Parses a playlist name and source argument while preserving quoted values.
+- `TryParsePlaylistArgumentsAsync` — Parses a playlist name and source argument while preserving quoted values.
 
 ```csharp
 public async Task<(

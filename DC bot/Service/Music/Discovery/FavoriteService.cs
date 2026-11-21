@@ -74,11 +74,17 @@ public sealed class FavoriteService(
                 var selected = Math.Clamp(number, 1, pages);
                 var items = await repository.ListAsync(userId, selected, token);
                 var lines = string.Join("\n", items.Select(item =>
-                    $"{item.Id}. {Bound(item.Author)} - {Bound(item.Title)}"));
+                    $"**{item.Id}.** {DC_bot.Helper.DiscordTextSanitizer.EscapeMentions(Bound(item.Title))}"));
                 return new PaginationPage(localization.Get(guildId, LocalizationKeys.PaginationFavoritesTitle),
                     lines, selected, pages, total);
             }, page);
             var initial = await request.LoadPageAsync(page, cancellationToken);
+
+            if (initial.TotalItems == 0)
+            {
+                return Fail(guildId, LocalizationKeys.FavoriteEmpty);
+            }
+
             return PlaybackControlResult.Succeeded(localization.Get(guildId,
                 initial.TotalItems == 0 ? LocalizationKeys.FavoriteEmpty : LocalizationKeys.FavoriteList,
                 initial.Number, initial.Description)) with
@@ -105,7 +111,8 @@ public sealed class FavoriteService(
             var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(track.SourceName + ":" + track.Identifier)));
             var item = await repository.AddAsync(userId, key, serializer.Serialize(new LavaLinkTrackWrapper(track)),
                 track.Title, track.Author, cancellationToken);
-            return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.FavoriteAdded, item.Id, Bound(item.Title)));
+            return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.FavoriteAdded, item.Id, Bound(item.Title))) with
+            { ResponseTitleKey = LocalizationKeys.ResponseOutcomeFavoriteAddedTitle };
         }
 
         if (!long.TryParse(argument, NumberStyles.None, CultureInfo.InvariantCulture, out var id)
@@ -117,7 +124,7 @@ public sealed class FavoriteService(
         if (operation == "remove")
         {
             return await repository.RemoveAsync(userId, id, cancellationToken)
-                ? PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.FavoriteRemoved, id))
+                ? PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.FavoriteRemoved, id)) with { ResponseTitleKey = LocalizationKeys.ResponseOutcomeFavoriteRemovedTitle }
                 : Fail(guildId, LocalizationKeys.FavoriteMissing);
         }
 
@@ -163,7 +170,7 @@ public sealed class FavoriteService(
         return result.Status switch
         {
             PlaybackStartStatus.Started or PlaybackStartStatus.Queued => PlaybackControlResult.Succeeded(
-                localization.Get(guildId, LocalizationKeys.FavoritePlaying, id)),
+                localization.Get(guildId, LocalizationKeys.FavoritePlaying, id)) with { ResponseTitleKey = LocalizationKeys.ResponseOutcomeFavoritePlayingTitle },
             PlaybackStartStatus.QueueFull => Fail(guildId, ValidationErrorKeys.QueueCapacityExceeded),
             PlaybackStartStatus.StartedStatePending => Fail(guildId, ValidationErrorKeys.PlaybackStatePending),
             PlaybackStartStatus.Unknown => Fail(guildId, ValidationErrorKeys.PlaybackOutcomeUnknown),

@@ -31,7 +31,7 @@ public class DeletePlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "deletePlaylist";
+    public string Name => CommandNames.DeletePlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

@@ -4,6 +4,8 @@ Defines repository operations for ordered queue entries, canonical batches, cond
 
 ## Overview
 
+- MarkAllQueuedAsSkippedWithCountAsync returns the affected count from the committed update, including serializable retry handling; the existing no-result entry forwards to it.
+
 - EnqueueAutoplayIfEmptyAsync atomically inserts one generated source item only when no queued or pending-start occurrence exists, using the same capacity and canonical enqueue implementation.
 
 - IQueueRepository adds EnqueueNextAsync, snapshot-fenced MoveQueuedItemAsync, and ClaimForSkipToAsync. Expected snapshots contain ordered occurrence IDs rather than encoded tracks, so duplicate songs remain distinct. The existing QueueClaimResult represents a selected start or changed/busy state.

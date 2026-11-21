@@ -78,7 +78,13 @@ public sealed class SearchPickerHandler(
 
         var enabled = await settings.GetPickerAsync(message.Author.Id, token);
         return PlaybackControlResult.Succeeded(localization.Get(message.Channel.Guild.Id,
-            enabled ? LocalizationKeys.SearchPickerEnabled : LocalizationKeys.SearchPickerDisabled));
+            enabled ? LocalizationKeys.SearchPickerEnabled : LocalizationKeys.SearchPickerDisabled)) with
+        {
+            IsInformational = value is "" or "status",
+            ResponseTitleKey = value is "" or "status" ? null
+                : enabled ? LocalizationKeys.ResponseOutcomeSearchPickerEnabledTitle
+                : LocalizationKeys.ResponseOutcomeSearchPickerDisabledTitle
+        };
     }
 
     /// <inheritdoc />
@@ -125,20 +131,17 @@ public sealed class SearchPickerHandler(
             var options = CreateOptions(tracks);
             var menu = new DiscordSelectComponent(Prefix + nonce,
                 localization.Get(guildId, LocalizationKeys.SearchPickerPlaceholder), options);
-            var cancel = new DiscordButtonComponent(DiscordButtonStyle.Secondary, Prefix + nonce + ":cancel",
-                localization.Get(guildId, LocalizationKeys.SearchPickerCancel));
-            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SearchPickerWaiting, token)
-                .WaitAsync(token);
-            var prompt = localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention);
+            var rows = string.Join("\n", tracks.Select((track, index) =>
+                $"**{index + 1}.** {DC_bot.Helper.DiscordTextSanitizer.EscapeMentions(track.Title)}"));
+            var prompt = localization.Get(guildId, LocalizationKeys.SearchPickerDesignBody, rows);
             var channel = message.Channel.ToDiscordChannel();
             token.ThrowIfCancellationRequested();
 
             try
             {
                 pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
-                    .AddEmbed(responseBuilder.CreateEmbed(guildId, prompt))
-                    .AddActionRowComponent(menu)
-                    .AddActionRowComponent([cancel]));
+                    .AddEmbed(responseBuilder.CreateEmbed(guildId, prompt, titleKey: LocalizationKeys.SearchPickerDesignTitle))
+                    .AddActionRowComponent(menu));
             }
             catch (OperationCanceledException)
             {
@@ -150,8 +153,7 @@ public sealed class SearchPickerHandler(
                 logger.LogDebug(exception, "Picker embed failed; retrying with text. Guild={GuildId}", guildId);
                 pending.Message = await channel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent(DiscordTextSanitizer.Truncate(prompt, 2000))
-                    .AddActionRowComponent(menu)
-                    .AddActionRowComponent([cancel]));
+                    .AddActionRowComponent(menu));
             }
 
             token.ThrowIfCancellationRequested();
@@ -240,7 +242,7 @@ public sealed class SearchPickerHandler(
                 new DiscordInteractionResponseBuilder()
                     .AddEmbed(responseBuilder.CreateEmbed(args.Guild?.Id,
                         localization.Get(args.Guild?.Id ?? 0, LocalizationKeys.SearchPickerDenied),
-                        DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
+                        DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle))
                     .AsEphemeral());
             return;
         }
@@ -260,11 +262,7 @@ public sealed class SearchPickerHandler(
 
         await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.DeferredMessageUpdate);
 
-        if (value.EndsWith(":cancel", StringComparison.Ordinal))
-        {
-            pending.Completion.TrySetResult(null);
-        }
-        else if (args.Values.Length == 1
+        if (args.Values.Length == 1
             && int.TryParse(args.Values[0], NumberStyles.None, CultureInfo.InvariantCulture, out var index)
             && index >= 0
             && index < pending.Tracks.Length)

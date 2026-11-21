@@ -29,7 +29,7 @@ public class ClearCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "clear";
+    public string Name => CommandNames.Clear;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -59,8 +59,8 @@ public class ClearCommand(
         }
 
         var guildId = message.Channel.Guild.Id;
-        await musicQueueService.ClearQueue(guildId, default);
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ClearCommandResponse);
+        var count = await musicQueueService.ClearQueueWithCountAsync(guildId, default);
+        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ClearCommandResponse, count);
         logger.CommandExecuted(Name);
     }
 }

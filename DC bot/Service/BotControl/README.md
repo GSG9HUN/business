@@ -2,7 +2,9 @@
 
 Executes API-originated commands from the durable PostgreSQL command bridge.
 
-## Overview
+## Overview
+
+- Playlist import calls `IPlaylistService.ImportPlaylistAsync` and consumes `ImportPlaylistResult`. The durable command identifier retains its existing wire value.
 
 - Executes durable API-originated commands through bot service boundaries.
 - Resolves authenticated Discord context and response destinations.

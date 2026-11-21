@@ -29,7 +29,7 @@ public class PauseCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "pause";
+    public string Name => CommandNames.Pause;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

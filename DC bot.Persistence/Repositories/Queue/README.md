@@ -4,6 +4,8 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
+- MarkAllQueuedAsSkippedWithCountAsync counts the affected update rows inside the same serializable transaction as queue clearing and notification. The original method forwards without requiring callers to consume the count.
+
 - Implements transactional queue, playback-start claim and canonical batch operations.
 - Preserves occurrence identity, repeat membership and history while changing waiting order.
 - Maps stored state to shared records and publishes queue-change notifications.

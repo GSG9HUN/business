@@ -33,7 +33,7 @@ public class ViewPlaylistCommand(
     DiscordPaginationService pagination) : ICommand
 {
     /// <inheritdoc />
-    public string Name => "viewPlaylist";
+    public string Name => CommandNames.ViewPlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -69,12 +69,7 @@ public class ViewPlaylistCommand(
         switch (result.Status)
         {
             case ViewPlaylistStatus.Viewed:
-                var items = result.Tracks.Select(track => localizationService.Get(guildId,
-                        LocalizationKeys.ViewPlaylistCommandTrack, track.OrderNumber,
-                        DiscordTextSanitizer.EscapeMentions(track.Author),
-                        DiscordTextSanitizer.EscapeMentions(track.Title), FormatDuration(track.Duration)))
-                    .ToArray();
-                await pagination.SendAsync(message, DiscordPaginationService.FromItems(safePlaylistName, items));
+                await pagination.SendAsync(message, responseBuilder.BuildPlaylistPages(guildId, result));
                 break;
             case ViewPlaylistStatus.PlaylistDoesNotExist:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
@@ -93,15 +88,5 @@ public class ViewPlaylistCommand(
         }
 
         logger.CommandExecuted(Name);
-    }
-
-    /// <summary>
-    /// Formats track duration for display in a Discord response.
-    /// </summary>
-    /// <param name="duration">The duration supplied for this operation.</param>
-    /// <returns>The formatted, serialized, or resolved text value.</returns>
-    private static string FormatDuration(TimeSpan duration)
-    {
-        return duration.TotalHours >= 1 ? duration.ToString(@"h\:mm\:ss") : duration.ToString(@"m\:ss");
     }
 }

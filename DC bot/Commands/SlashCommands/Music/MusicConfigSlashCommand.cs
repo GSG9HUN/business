@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -9,7 +10,7 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <summary>Exposes guild voting settings and the native Discord DJ-role picker.</summary>
 /// <param name="executor">Executes the existing shared command pipeline.</param>
 /// <param name="contexts">Adapts interaction contexts.</param>
-[Command("music-config")]
+[Command(CommandNames.MusicConfig)]
 [Description("Configure guild voting and DJ role")]
 public sealed class MusicConfigSlashCommand(ISlashCommandExecutor executor, ISlashInteractionContextFactory contexts)
 {
@@ -34,7 +35,7 @@ public sealed class MusicConfigSlashCommand(ISlashCommandExecutor executor, ISla
     /// <summary>Routes through the established text-command and deferred-response pipeline.</summary>
     private Task ExecuteAsync(SlashCommandContext context, string arguments)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("music-config", contexts.Create(context), arguments,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.MusicConfig, contexts.Create(context), arguments,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

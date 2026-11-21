@@ -28,7 +28,7 @@ public class LanguageCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "language";
+    public string Name => CommandNames.Language;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

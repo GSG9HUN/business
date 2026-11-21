@@ -1,4 +1,3 @@
-using DC_bot.Helper;
 using System.Collections.Concurrent;
 using System.Globalization;
 using DC_bot.Constants;
@@ -7,9 +6,8 @@ using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Playback.Models;
 using DC_bot.Interface.Service.Persistence.Guilds;
 using DC_bot.Interface.Service.Persistence.MusicControl;
-using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Persistence.Queue;
-using DC_bot.Interface.Service.Presentation;
+using DC_bot.Interface.Service.Music.Presentation;
 using DC_bot.Service.BotControl;
 using DC_bot.Service.Music.Lifecycle.Models;
 using DC_bot.Service.Music.Lifecycle.PersistentVoice;
@@ -25,24 +23,22 @@ namespace DC_bot.Service.Music.Controls;
 /// <param name="settings">Stores guild opt-in voting and DJ roles.</param>
 /// <param name="guildSettings">Reads the independent 24/7 preference.</param>
 /// <param name="queue">Reads authoritative requester and waiting-track information.</param>
-/// <param name="playback">Reads repeat state.</param>
 /// <param name="sessions">Owns player and track-attempt identity.</param>
 /// <param name="client">Provides the current gateway voice membership.</param>
 /// <param name="leave">Executes the established full leave path.</param>
 /// <param name="localization">Resolves all user-visible text.</param>
 /// <param name="logger">Records background control and notification failures.</param>
-/// <param name="responseBuilder">Creates localized embeds through the shared presentation boundary.</param>
+/// <param name="notifications">Owns background response styling, delivery and text fallback.</param>
 public sealed class MusicControlSettingsService(
     IGuildMusicControlSettingsRepository settings,
     IGuildDataRepository guildSettings,
     IQueueRepository queue,
-    IPlaybackStateRepository playback,
     GuildPlaybackSessions sessions,
     DiscordClient client,
     PersistentVoiceLeaveService leave,
     ILocalizationService localization,
     ILogger<MusicControlSettingsService> logger,
-    IResponseBuilder responseBuilder)
+    ITrackNotificationService notifications)
 {
     private readonly ConcurrentDictionary<ulong, VoteState> _votes = new();
     private readonly ConcurrentDictionary<ulong, (long Generation, DateTimeOffset Since)> _empty = new();
@@ -237,7 +233,7 @@ public sealed class MusicControlSettingsService(
         if (parts.Length == 0 || parts is ["show"])
         {
             var current = await settings.GetAsync(guildId, cancellationToken);
-            return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.MusicConfigResponse,
+            return PlaybackControlResult.Information(localization.Get(guildId, LocalizationKeys.MusicConfigResponse,
                 Enabled(guildId, current.VoteSkipEnabled), Role(guildId, current.DjRoleId)));
         }
 
@@ -287,7 +283,8 @@ public sealed class MusicControlSettingsService(
             return PlaybackControlResult.Failed("Invalid settings.", LocalizationKeys.MusicConfigUsage);
         }
 
-        return await ConfigureAsync(message, "show", cancellationToken);
+        var result = await ConfigureAsync(message, "show", cancellationToken);
+        return result with { IsInformational = false };
     }
 
     /// <summary>Performs one maintenance pass using the existing five-second recovery worker lifetime.</summary>
@@ -339,7 +336,7 @@ public sealed class MusicControlSettingsService(
                     if (result.FullySucceeded && channels is { } remembered)
                     {
                         var channel = await client.GetChannelAsync(remembered.TextChannelId).WaitAsync(cancellationToken);
-                        await SendNotificationAsync(channel, guildId,
+                        await notifications.NotifyMusicControlAsync(channel, guildId,
                             localization.Get(guildId, LocalizationKeys.MusicEmptyLeave), false, cancellationToken);
                     }
 
@@ -385,33 +382,7 @@ public sealed class MusicControlSettingsService(
 
         if (outcome.Success)
         {
-            await SendNotificationAsync(text, guildId, outcome.Message, true, cancellationToken);
-        }
-    }
-
-    /// <summary>Sends a background status embed with a bounded text fallback when embed delivery is unavailable.</summary>
-    private async Task SendNotificationAsync(
-        DiscordChannel channel,
-        ulong guildId,
-        string text,
-        bool success,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await channel.SendMessageAsync(responseBuilder.CreateEmbed(guildId, text,
-                success ? DiscordColor.Green : DiscordColor.Azure,
-                success ? LocalizationKeys.ResponseSuccessTitle : LocalizationKeys.ResponseUsageTitle))
-                .WaitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            logger.LogDebug(exception, "Background embed delivery failed; trying text. Guild={GuildId}", guildId);
-            await channel.SendMessageAsync(DiscordTextSanitizer.Truncate(text, 2000)).WaitAsync(cancellationToken);
+            await notifications.NotifyMusicControlAsync(text, guildId, outcome.Message, true, cancellationToken);
         }
     }
 
@@ -420,60 +391,45 @@ public sealed class MusicControlSettingsService(
     {
         var guildId = message.Channel.Guild.Id;
         var session = sessions.CaptureCurrent(guildId);
-        var config = await settings.GetAsync(guildId, cancellationToken);
-        var persistent = await guildSettings.GetTwentyFourSevenSettingsAsync(guildId, cancellationToken);
-        var state = await playback.GetOrCreateAsync(guildId, cancellationToken);
         var waiting = await queue.GetQueuedItemsAsync(guildId, cancellationToken);
-        var unknown = localization.Get(guildId, LocalizationKeys.PlaybackDetailsNone);
-        var remembered = sessions.GetRecoveryChannels(guildId);
-        var track = session?.Player.CurrentTrack;
-        var status = session is null ? "disconnected" : track is null ? "idle"
-            : session.Player.State == Lavalink4NET.Players.PlayerState.Paused ? "paused" : "playing";
-        var remaining = session is not null
-            && _empty.TryGetValue(guildId, out var empty)
-            && empty.Generation == session.Generation
-            ? Math.Max(0, 300 - (int)(DateTimeOffset.UtcNow - empty.Since).TotalSeconds).ToString(CultureInfo.InvariantCulture)
-            : unknown;
-        var voteCount = 0;
-        var humans = session is null ? new Dictionary<ulong, DiscordMember>()
-            : await GetListenersAsync(session, cancellationToken);
-
-        if (session is not null
-            && _votes.TryGetValue(guildId, out var votes))
-        {
-            lock (votes.Sync)
-            {
-                if (votes.Generation == session.Generation
-                    && votes.Attempt == sessions.GetReadyAttemptId(session))
-                {
-                    votes.Users.IntersectWith(humans.Keys);
-                    voteCount = votes.Users.Count;
-                }
-            }
-        }
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (session is not null && !sessions.IsCurrent(session))
         {
             return PlaybackControlResult.Failed("Session changed.", ValidationErrorKeys.PlaybackSuperseded);
         }
 
-        var effects = session is null ? unknown
-            : sessions.HasPendingFilterChange(session)
-                ? localization.Get(guildId, LocalizationKeys.FiltersCommandPending)
-                : DC_bot.Service.Music.Playback.PlaybackControlService.GetConfiguredEffects(session.Player.Filters);
-        return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.MusicStatusResponse,
-            localization.Get(guildId, "music_state_" + status),
-            session is null ? unknown : $"<#{session.Player.VoiceChannelId}>",
-            remembered is { } destination ? $"<#{destination.TextChannelId}>" : unknown,
-            track is null ? unknown : $"{track.Author} - {track.Title}",
-            session is null ? "100" : (session.Player.Volume * 100f).ToString("0.##", CultureInfo.InvariantCulture),
-            string.IsNullOrEmpty(effects) ? unknown : effects, waiting.Count,
-            localization.Get(guildId, state.IsRepeating ? "playback_details_repeat_track"
-                : state.IsRepeatingList ? "playback_details_repeat_list" : "playback_details_repeat_off"),
-            Enabled(guildId, config.VoteSkipEnabled), voteCount, Role(guildId, config.DjRoleId),
-            Enabled(guildId, persistent.IsEnabled), persistent.IsEnabled ? unknown : remaining,
-            session is null ? unknown : RequiredVotes(humans.Count).ToString(CultureInfo.InvariantCulture),
-            localization.Get(guildId, "music_connection_" + sessions.GetConnectionPhase(guildId))));
+        var healthKey = LocalizationKeys.MusicStatusUnchecked;
+
+        if (session is not null)
+        {
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(3));
+
+            try
+            {
+                await session.Player.ApiClient.RetrieveServerInformationAsync(deadline.Token).AsTask().WaitAsync(deadline.Token);
+                healthKey = LocalizationKeys.MusicStatusReady;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                logger.LogDebug(exception, "Lavalink health query failed. Guild={GuildId}", guildId);
+                healthKey = LocalizationKeys.MusicStatusUnavailable;
+            }
+
+            if (!sessions.IsCurrent(session))
+            {
+                return PlaybackControlResult.Failed("Session changed.", ValidationErrorKeys.PlaybackSuperseded);
+            }
+        }
+
+        return PlaybackControlResult.Information(localization.Get(guildId, LocalizationKeys.MusicStatusDesignBody,
+            localization.Get(guildId, "music_connection_" + sessions.GetConnectionPhase(guildId)),
+            localization.Get(guildId, healthKey), waiting.Count));
     }
 
     /// <summary>Reads human voice participants from the current gateway snapshot; unknown guild state fails closed.</summary>

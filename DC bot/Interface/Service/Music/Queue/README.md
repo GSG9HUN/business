@@ -4,6 +4,8 @@ Defines the queue boundary used by the bot music pipeline.
 
 ## Overview
 
+- ClearQueueWithCountAsync returns the committed number of skipped waiting rows. ClearQueue remains supported for callers that do not need presentation counts.
+
 - Defines queue reads and mutations independently of repository and transport details.
 - Exchanges stable occurrence identities, serialized tracks and mutation results.
 

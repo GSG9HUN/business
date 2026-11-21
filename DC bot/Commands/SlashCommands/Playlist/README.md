@@ -4,6 +4,10 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- `/playlist import name:<name> url:<query-or-url>` dispatches `importPlaylist`. The existing `url` option accepts a source URL or search query.
+
 - DSharpPlus binds interaction options, then each adapter dispatches a SlashCommandExecutionRequest to the shared text command pipeline.
 - Keep user input and response presentation here. Playback ownership, track transport, and database transitions belong to the services reached by the command.
 - PlaylistSlashCommand groups the playlist operations into one module and quotes names before dispatching commands that expect two values. URL resolution and repository limits remain in the saved-playlist services.
@@ -65,7 +69,7 @@ public Task RemoveSong(
     [Parameter("track-number")][Description("Track number from playlist view")] int trackNumber);
 ```
 
-**Additional methods:** `Save`, `View`, `Rename`. See the source and its XML contracts for the complete parameter lists.
+**Additional methods:** `Import`, `View`, `Rename`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 

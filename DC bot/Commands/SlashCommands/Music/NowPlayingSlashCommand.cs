@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,12 +13,12 @@ public sealed class NowPlayingSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "nowplaying";
+    private const string CommandName = CommandNames.NowPlaying;
 
     /// <summary>Show the current track and playback details through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("nowplaying")]
+    [Command(CommandNames.NowPlaying)]
     [Description("Show the current track and playback details")]
     public Task NowPlaying(
         SlashCommandContext context)

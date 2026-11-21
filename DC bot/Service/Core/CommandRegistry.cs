@@ -42,7 +42,7 @@ public sealed class CommandRegistry : ICommandRegistry
     {
         var commands = commandFactory()
             .ToList();
-        var lookup = commands.ToDictionary(command => command.Name, command => command);
+        var lookup = commands.ToDictionary(command => command.Name, command => command, StringComparer.OrdinalIgnoreCase);
         return new CommandRegistrySnapshot(commands, lookup);
     }
 }

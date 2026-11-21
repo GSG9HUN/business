@@ -4,6 +4,8 @@ Implements commands selected by the configured message prefix and ICommandRegist
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
 - CommandHandlerService resolves a command, wraps its Discord message, and invokes ExecuteAsync. Commands validate the required user context and delegate to services.
 - Commands expose a name and localized description. The same implementations are reused by slash and selected mobile command paths.
 
@@ -40,7 +42,7 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 - `LoadPlaylistCommand.cs`
 - `RemoveSongFromPlaylistCommand.cs`
 - `RenamePlaylistCommand.cs`
-- `SavePlaylistCommand.cs`
+- `ImportPlaylistCommand.cs`
 - `ViewPlaylistCommand.cs`
 
 **Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
@@ -58,7 +60,7 @@ Exposes queue display, repetition, ordering, and recent batch history through te
 - `RepeatCommand.cs`
 - `RepeatListCommand.cs`
 - `ShuffleCommand.cs`
-- `ViewQueueCommand.cs`
+- `QueueCommand.cs`
 
 **Purpose:** CommandHandlerService selects an ICommand by name. The command parses input, validates the required context, calls injected services, and sends a localized result.
 

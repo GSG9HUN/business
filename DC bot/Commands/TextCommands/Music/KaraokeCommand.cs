@@ -27,7 +27,7 @@ public sealed class KaraokeCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "karaoke";
+    public string Name => CommandNames.Karaoke;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -65,7 +65,7 @@ public sealed class KaraokeCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

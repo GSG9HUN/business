@@ -26,7 +26,7 @@ public class TagCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "tag";
+    public string Name => CommandNames.Tag;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

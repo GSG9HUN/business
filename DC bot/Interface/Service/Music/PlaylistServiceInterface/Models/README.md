@@ -255,16 +255,16 @@ public enum RenamePlaylistResult
 
 ---
 
-### SavePlaylistResult
+### ImportPlaylistResult
 
-**File:** `DC bot/Interface/Service/Music/PlaylistServiceInterface/Models/SavePlaylistResult.cs`
+**File:** `DC bot/Interface/Service/Music/PlaylistServiceInterface/Models/ImportPlaylistResult.cs`
 
 **Purpose:** Defines the typed result and status values returned by the save playlist use case, including expected rejection outcomes.
 
 **Values:**
 
 ```csharp
-public enum SavePlaylistResult
+public enum ImportPlaylistResult
 {
     // The playlist was saved.
     Saved,

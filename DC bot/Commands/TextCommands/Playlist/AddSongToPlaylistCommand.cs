@@ -31,7 +31,7 @@ public class AddSongToPlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "addSong";
+    public string Name => CommandNames.AddSongToPlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -54,7 +54,7 @@ public class AddSongToPlaylistCommand(
             return;
         }
 
-        var parsed = await commandHelper.TryParseSavePlaylistArguments(message, responseBuilder, logger, Name, default);
+        var parsed = await commandHelper.TryParsePlaylistArgumentsAsync(message, responseBuilder, logger, Name, default);
 
         if (parsed is null)
         {

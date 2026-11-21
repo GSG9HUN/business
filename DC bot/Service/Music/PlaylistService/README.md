@@ -4,6 +4,8 @@ Separates saved-playlist queries, metadata changes, track loading, and track mut
 
 ## Overview
 
+- ImportPlaylistWithCountAsync returns the count from the committed saved snapshot; it does not query again after import. Existing enum-only import callers remain supported.
+
 - Mutation helpers query `IGuildDataRepository.IsPremiumAsync` and bypass playlist count, saved-track, and imported-track caps for active premium. Name, ownership, source, uniqueness, and storage checks still apply; atomic snapshot persistence checks entitlement again in its transaction.
 
 - Empty playlist creation and imports use `IPlaylistRepository.CreateSnapshotAsync`, the same serializable count-and-insert transaction used by HTTP creation. Preflight count checks are advisory; the transactional result decides whether creation succeeds. A null result maps to `PlaylistLimitReached`. Imported metadata and ordered tracks commit together; cancellation or persistence failure rolls back without deleting a playlist by name afterward.
@@ -164,7 +166,7 @@ public async Task<RemoveSongResult> RemoveSongFromPlaylistAsync(
     CancellationToken cancellationToken = default);
 ```
 
-**Additional methods:** `SavePlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
+**Additional methods:** `ImportPlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 
@@ -265,10 +267,10 @@ internal async Task<RemoveSongResult> RemoveSongFromPlaylistAsync(
     CancellationToken cancellationToken = default);
 ```
 
-- `SavePlaylistAsync` — Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
+- `ImportPlaylistAsync` — Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
 
 ```csharp
-internal async Task<SavePlaylistResult> SavePlaylistAsync(
+internal async Task<ImportPlaylistResult> ImportPlaylistAsync(
     ulong guildId,
     string playlistName,
     string playlistUrl,

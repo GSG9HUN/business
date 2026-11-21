@@ -4,6 +4,21 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
+- Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
+
+- Existing localized reply titles/bodies follow the HTML response design. Dynamic values remain real and no missing state/diagnostic branches were added by the text alignment.
+
+- Queue/playlist/lyrics/favorite/search lists use the revised design rows and headings. ResponseBuilder owns saved-playlist row formatting. Search selection has one result menu; internal expiry remains 45 seconds. Lavalink status is verified remotely when a session exposes an API client.
+
+- Presentation follows the response design palette and separates the status label from the action title. Help omits aliases and uses localized category headers/footers, combined selector labels and separate prefix/slash usage blocks.
+
+- HelpCommand validates entry only; HelpResponseBuilder owns metadata, typed navigation and V2 layout, while DiscordPaginationService owns delivery and expiry. CommandNames supplies canonical Discord names. See the detailed refactor record in docs/plans/help-response-refactor.md at repository root.
+
+- Personal favorites have one text/slash entry point, `favorite`, with add/list/remove/play operations; help counts come from the registry.
+
+- Discord text entry points are `queue` and `importPlaylist`; slash routes are `/queue` and `/playlist import`. Bilingual descriptions and usage distinguish waiting-track changes, saved playlists, active playback batches and server-scoped settings.
+
+- Discord replies distinguish read-only information, confirmed changes, user-condition warnings and system errors; partial-success caveats stay visible. Short status replies use contextual localized titles and severity icons, without repeating the same status in a footer.
 - Runs Discord text/slash commands, reactions and voice playback.
 - Coordinates per-guild playback, saved playlists, discovery and music-control settings.
 - Executes durable API-originated commands through shared contracts.
@@ -19,7 +34,7 @@ Groups prefix-based text commands and slash command adapters.
 
 - `README.md` — Overview and navigation to feature-specific source files.
 
-**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor. Queue, playlist, help, favorite, lyrics and custom-preset listings share localized embed pagination; one-page results omit navigation. Rejected interactive embeds fall back to bounded text; search selection retains its menu and cancel control.
+**Purpose:** Text commands implement ICommand and reuse services and localized responses. Slash adapters enter the same command pipeline through SlashCommandExecutor. Queue, playlist, favorite, lyrics and custom-preset listings use localized embed pagination; one-page lists omit navigation. Help reuses its ownership and five-minute expiry for native V2 home, category and detail views, seven-command pages, validated selectors and back navigation. Rejected interactive embeds fall back to bounded text; search selection retains its result menu.
 
 ---
 

@@ -6,7 +6,7 @@ Translates DSharpPlus interaction context and response state into bot-facing mes
 
 - Adapts Discord interactions to application message contracts.
 - Tracks deferred, initial and follow-up response delivery.
-- Preserves response lifecycle and bounded fallback behavior.
+- Preserves response lifecycle and bounded fallback behavior. If accepted component delivery is followed by failed message lookup, cleanup removes control rows while retaining V2 containers/text, and acknowledgement state remains set.
 
 ## Classes
 

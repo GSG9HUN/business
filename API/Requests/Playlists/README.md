@@ -4,6 +4,7 @@ Defines client-supplied input for saved playlist metadata and ordered, serialize
 
 ## Overview
 
+- `ImportPlaylistRequest` retains the existing `Name` and `Url` JSON fields; its type/file rename does not change the request shape.
 - Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
 - Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
 - CreatePlaylistRequest accepts PlaylistName with a legacy Name fallback. Name normalization and duplicate handling occur in the handler and repository boundaries rather than in the DTO constructors.
@@ -104,11 +105,11 @@ renamePlaylistRequest.Deconstruct(out var newName);
 
 ---
 
-### SavePlaylistRequest
+### ImportPlaylistRequest
 
-**File:** `API/Requests/Playlists/SavePlaylistRequest.cs`
+**File:** `API/Requests/Playlists/ImportPlaylistRequest.cs`
 
-**Purpose:** Carries client input for save playlist processing; handlers and endpoint filters validate its values.
+**Purpose:** Carries client input for playlist import; handlers and endpoint filters validate its values.
 
 **Properties:**
 
@@ -131,7 +132,7 @@ public void Deconstruct(out string name, out string url);
 The caller supplies the component and argument values used in this example.
 
 ```csharp
-savePlaylistRequest.Deconstruct(out var name, out var url);
+importPlaylistRequest.Deconstruct(out var name, out var url);
 ```
 
 ---

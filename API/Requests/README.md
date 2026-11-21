@@ -43,7 +43,7 @@ Defines client-supplied input for saved playlist metadata and ordered, serialize
 - `AddSongRequest.cs`
 - `CreatePlaylistRequest.cs`
 - `RenamePlaylistRequest.cs`
-- `SavePlaylistRequest.cs`
+- `ImportPlaylistRequest.cs`
 
 **Purpose:** Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
 

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.Globalization;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
@@ -13,13 +14,13 @@ public sealed class VolumeSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "volume";
+    private const string CommandName = CommandNames.Volume;
 
     /// <summary>Show or set player output volume (0-200%) through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="value">The value passed to the shared text command.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("volume")]
+    [Command(CommandNames.Volume)]
     [Description("Show or set player output volume (0-200%)")]
     public Task Volume(
         SlashCommandContext context,

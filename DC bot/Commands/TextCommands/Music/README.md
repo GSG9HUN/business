@@ -4,9 +4,16 @@ Exposes voice join/leave and playback controls through text commands.
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- `FavoriteCommand` is the sole personal-favorites text entry point; its service and persisted user data are retained.
+
+- Descriptions distinguish enqueueing, next-position insertion and vote-aware skipping. Usage documents decimal-point multipliers, lyrics page bounds and actual slash routes.
+
 - Parses playback, audio-filter, discovery and guild-setting commands selected by the message prefix.
 - Uses shared validation, playback ownership and localized response boundaries.
 - Provides description keys and prefix-aware usage for command help and argument errors.
+- Presents read-only state as information, confirmed changes as success and completed changes with caveats as warnings.
 
 ## Classes
 

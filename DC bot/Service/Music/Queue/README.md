@@ -4,6 +4,8 @@ Maps track requests to durable queue items and batch-aware queue operations.
 
 ## Overview
 
+- ClearQueueWithCountAsync exposes the affected row count returned by the same serializable database update; the existing ClearQueue contract remains available.
+
 - Coordinates queue reads, enqueueing, removal, ordering and repeat-aware operations.
 - Serializes tracks and delegates atomic state changes to queue repositories.
 - Preserves occurrence identity and canonical batch membership.

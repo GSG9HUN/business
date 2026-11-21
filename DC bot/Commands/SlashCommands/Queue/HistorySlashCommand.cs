@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -20,7 +21,7 @@ public sealed class HistorySlashCommand(
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("history")]
+    [Command(CommandNames.History)]
     [Description("View recent playback batches")]
     public Task History(SlashCommandContext context) => ExecuteAsync(contextFactory.Create(context));
 
@@ -29,5 +30,5 @@ public sealed class HistorySlashCommand(
     /// </summary>
     /// <param name="context">The slash interaction context dependency used by this boundary.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    public Task ExecuteAsync(ISlashInteractionContext context) => slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest("history", context, RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
+    public Task ExecuteAsync(ISlashInteractionContext context) => slashCommandExecutor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.History, context, RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
 }
