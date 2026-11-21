@@ -110,7 +110,7 @@ Task<string?> TryGetArgumentAsync(
     CancellationToken cancellationToken = default);
 ```
 
-- `TryParseSavePlaylistArguments` — Parses a playlist name and source argument while preserving quoted values.
+- `TryParsePlaylistArgumentsAsync` — Parses a playlist name and source argument while preserving quoted values.
 
 ```csharp
 Task<(

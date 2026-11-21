@@ -78,7 +78,10 @@ public sealed class SearchPickerHandler(
 
         var enabled = await settings.GetPickerAsync(message.Author.Id, token);
         return PlaybackControlResult.Succeeded(localization.Get(message.Channel.Guild.Id,
-            enabled ? LocalizationKeys.SearchPickerEnabled : LocalizationKeys.SearchPickerDisabled));
+            enabled ? LocalizationKeys.SearchPickerEnabled : LocalizationKeys.SearchPickerDisabled)) with
+        {
+            IsInformational = value is "" or "status"
+        };
     }
 
     /// <inheritdoc />
@@ -127,7 +130,7 @@ public sealed class SearchPickerHandler(
                 localization.Get(guildId, LocalizationKeys.SearchPickerPlaceholder), options);
             var cancel = new DiscordButtonComponent(DiscordButtonStyle.Secondary, Prefix + nonce + ":cancel",
                 localization.Get(guildId, LocalizationKeys.SearchPickerCancel));
-            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SearchPickerWaiting, token)
+            await responseBuilder.SendInfoAsync(message, LocalizationKeys.SearchPickerWaiting, token)
                 .WaitAsync(token);
             var prompt = localization.Get(guildId, LocalizationKeys.SearchPickerPrompt, message.Author.Mention);
             var channel = message.Channel.ToDiscordChannel();
@@ -240,7 +243,7 @@ public sealed class SearchPickerHandler(
                 new DiscordInteractionResponseBuilder()
                     .AddEmbed(responseBuilder.CreateEmbed(args.Guild?.Id,
                         localization.Get(args.Guild?.Id ?? 0, LocalizationKeys.SearchPickerDenied),
-                        DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
+                        DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle))
                     .AsEphemeral());
             return;
         }

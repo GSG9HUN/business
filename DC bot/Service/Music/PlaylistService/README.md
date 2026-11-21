@@ -164,7 +164,7 @@ public async Task<RemoveSongResult> RemoveSongFromPlaylistAsync(
     CancellationToken cancellationToken = default);
 ```
 
-**Additional methods:** `SavePlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
+**Additional methods:** `ImportPlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 
@@ -265,10 +265,10 @@ internal async Task<RemoveSongResult> RemoveSongFromPlaylistAsync(
     CancellationToken cancellationToken = default);
 ```
 
-- `SavePlaylistAsync` — Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
+- `ImportPlaylistAsync` — Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
 
 ```csharp
-internal async Task<SavePlaylistResult> SavePlaylistAsync(
+internal async Task<ImportPlaylistResult> ImportPlaylistAsync(
     ulong guildId,
     string playlistName,
     string playlistUrl,

@@ -24,7 +24,7 @@ public class PingCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "ping";
+    public string Name => CommandNames.Ping;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

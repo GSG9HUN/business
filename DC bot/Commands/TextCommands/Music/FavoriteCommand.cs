@@ -25,7 +25,7 @@ public sealed class FavoriteCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "favorite";
+    public string Name => CommandNames.Favorite;
 
     /// <inheritdoc />
     public string Description => localization.Get(DescriptionKey);
@@ -54,7 +54,7 @@ public sealed class FavoriteCommand(
             return;
         }
 
-        await responses.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responses.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

@@ -70,7 +70,6 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, PlayNextCommand>()
             .AddSingleton<ICommand, LyricsCommand>()
             .AddSingleton<ICommand, FavoriteCommand>()
-            .AddSingleton<ICommand, FavouriteCommand>()
             .AddSingleton<ICommand, RecommendationsCommand>()
             .AddSingleton<ICommand, AutoplayCommand>()
             .AddSingleton<ICommand, SearchPickerCommand>()
@@ -79,11 +78,11 @@ public static class CommandServiceCollectionExtensions
             .AddSingleton<ICommand, RepeatCommand>()
             .AddSingleton<ICommand, ShuffleCommand>()
             .AddSingleton<ICommand, LanguageCommand>()
-            .AddSingleton<ICommand, ViewQueueCommand>()
+            .AddSingleton<ICommand, QueueCommand>()
             .AddSingleton<ICommand, HistoryCommand>()
             .AddSingleton<ICommand, TwentyFourSevenCommand>()
             .AddSingleton<ICommand, CreatePlaylistCommand>()
-            .AddSingleton<ICommand, SavePlaylistCommand>()
+            .AddSingleton<ICommand, ImportPlaylistCommand>()
             .AddSingleton<ICommand, DeletePlaylistCommand>()
             .AddSingleton<ICommand, AddSongToPlaylistCommand>()
             .AddSingleton<ICommand, RemoveSongFromPlaylistCommand>()
@@ -130,7 +129,6 @@ public static class CommandServiceCollectionExtensions
             .AddTransient<PlayNextSlashCommand>()
             .AddTransient<LyricsSlashCommand>()
             .AddTransient<FavoriteSlashCommand>()
-            .AddTransient<FavouriteSlashCommand>()
             .AddTransient<RecommendationsSlashCommand>()
             .AddTransient<AutoplaySlashCommand>()
             .AddTransient<SearchPickerSlashCommand>()
@@ -171,7 +169,6 @@ public static class CommandServiceCollectionExtensions
             typeof(PlayNextSlashCommand),
             typeof(LyricsSlashCommand),
             typeof(FavoriteSlashCommand),
-            typeof(FavouriteSlashCommand),
             typeof(RecommendationsSlashCommand),
             typeof(AutoplaySlashCommand),
             typeof(SearchPickerSlashCommand),

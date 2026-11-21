@@ -110,7 +110,7 @@ public class PlaybackControlService(
                 (session.Player.Volume * 100f).ToString("0.##", CultureInfo.InvariantCulture),
                 effects.Length == 0 ? localizationService.Get(guildId, LocalizationKeys.PlaybackDetailsNone) : effects,
                 track.SourceName ?? unknown);
-            return PlaybackControlResult.Succeeded(response);
+            return PlaybackControlResult.Information(response);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -138,7 +138,7 @@ public class PlaybackControlService(
             var session = sessions.CaptureCurrent(guildId);
             return Task.FromResult(session is null
                 ? RejectAudioCommand(guildId, ValidationErrorKeys.BotIsNotConnectedError)
-                : PlaybackControlResult.Succeeded(localizationService.Get(guildId, LocalizationKeys.VolumeCommandCurrent,
+                : PlaybackControlResult.Information(localizationService.Get(guildId, LocalizationKeys.VolumeCommandCurrent,
                     (session.Player.Volume * 100f).ToString("0.##", CultureInfo.InvariantCulture))));
         }
 
@@ -551,7 +551,7 @@ public class PlaybackControlService(
             if (currentTrack is null
                 && !await musicQueueService.HasTracks(guildId, cancellationToken))
             {
-                await trackNotificationService.SendSafeAsync(message.Channel, localizationService.Get(guildId, LocalizationKeys.SkipCommandError), "SkipAsync.NoTrack", cancellationToken);
+                await trackNotificationService.SendValidationAsync(message.Channel, LocalizationKeys.SkipCommandError, cancellationToken);
                 return PlaybackControlResult.Failed(localizationService.Get(guildId, LocalizationKeys.SkipCommandError), LocalizationKeys.SkipCommandError);
             }
 
@@ -825,7 +825,7 @@ public class PlaybackControlService(
 
             if (currentTrack is null)
             {
-                await trackNotificationService.SendSafeAsync(channel, localizationService.Get(guildId, noTrackLocalizationKey), $"{operationName}.NoTrack", cancellationToken);
+                await trackNotificationService.SendValidationAsync(channel, noTrackLocalizationKey, cancellationToken);
                 return PlaybackControlResult.Failed(localizationService.Get(guildId, noTrackLocalizationKey), noTrackErrorCode);
             }
 

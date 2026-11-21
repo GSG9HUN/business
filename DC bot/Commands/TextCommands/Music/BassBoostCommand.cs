@@ -27,7 +27,7 @@ public sealed class BassBoostCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "bassboost";
+    public string Name => CommandNames.BassBoost;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -65,7 +65,7 @@ public sealed class BassBoostCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

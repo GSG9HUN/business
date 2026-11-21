@@ -1,5 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Exceptions.Messaging;
+using DC_bot.Helper;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Presentation;
@@ -25,6 +26,33 @@ internal class TrackNotificationService(
 
     /// <inheritdoc />
     public event Func<IDiscordChannel, DiscordEmbed, Task> TrackStarted = (_, _) => Task.CompletedTask;
+
+    /// <inheritdoc />
+    public async Task NotifyMusicControlAsync(
+        DiscordChannel channel,
+        ulong guildId,
+        string text,
+        bool success,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            await channel.SendMessageAsync(responseBuilder.CreateEmbed(guildId, text,
+                success ? DiscordColor.Green : DiscordColor.Azure,
+                success ? LocalizationKeys.ResponseSkipTitle : LocalizationKeys.ResponsePlaybackClearedTitle))
+                .WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(exception, "Background embed delivery failed; trying text. Guild={GuildId}", guildId);
+            await channel.SendMessageAsync(DiscordTextSanitizer.Truncate(text, 2000)).WaitAsync(cancellationToken);
+        }
+    }
 
     /// <summary>
     /// Publishes started-track details to the selected response channel.
@@ -118,16 +146,12 @@ internal class TrackNotificationService(
         }
     }
 
-    /// <summary>
-    /// Builds localized track details for the now-playing notification.
-    /// </summary>
-    /// <param name="track">The track whose identity and metadata are used by the operation.</param>
-    /// <param name="position">The position supplied for this operation.</param>
-    /// <param name="duration">The duration supplied for this operation.</param>
-    /// <returns>The value produced for the supplied operation context.</returns>
-    public DiscordEmbed BuildNowPlayingEmbed(ILavaLinkTrack track, TimeSpan position, TimeSpan duration)
+    /// <inheritdoc />
+    public Task SendValidationAsync(IDiscordChannel channel, string errorKey, CancellationToken cancellationToken = default)
     {
-        return BuildNowPlayingEmbed(null, track, position, duration);
+        cancellationToken.ThrowIfCancellationRequested();
+        return channel.SendMessageAsync(responseBuilder.CreateValidationEmbed(channel.Guild.Id, errorKey))
+            .WaitAsync(cancellationToken);
     }
 
     /// <summary>

@@ -29,7 +29,7 @@ public class ClearCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "clear";
+    public string Name => CommandNames.Clear;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

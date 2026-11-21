@@ -36,7 +36,7 @@ public class PlaylistSlashCommand(
     [Description("Create an empty saved playlist")]
     public Task Create(SlashCommandContext context, [Parameter("name")][Description("Playlist name")] string name)
     {
-        return ExecuteAsync("createPlaylist", contextFactory.Create(context), name.Trim());
+        return ExecuteAsync(CommandNames.CreatePlaylist, contextFactory.Create(context), name.Trim());
     }
 
     /// <summary>
@@ -46,14 +46,14 @@ public class PlaylistSlashCommand(
     /// <param name="name">The name supplied for this operation.</param>
     /// <param name="url">The url supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("save")]
-    [Description("Save tracks from a playlist URL")]
-    public Task Save(
+    [Command("import")]
+    [Description("Import tracks from a URL or search query into a new saved playlist")]
+    public Task Import(
         SlashCommandContext context,
         [Parameter("name")][Description("Playlist name")] string name,
-        [Parameter("url")][Description("Playlist URL")] string url)
+        [Parameter("url")][Description("Source URL or search query")] string url)
     {
-        return ExecuteAsync("savePlaylist", contextFactory.Create(context), $"{QuoteArgument(name)} {url.Trim()}", ensureDeferredResponse: true);
+        return ExecuteAsync(CommandNames.ImportPlaylist, contextFactory.Create(context), $"{QuoteArgument(name)} {url.Trim()}", ensureDeferredResponse: true);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class PlaylistSlashCommand(
     [Description("List saved playlists")]
     public Task List(SlashCommandContext context)
     {
-        return ExecuteAsync("listPlaylists", contextFactory.Create(context));
+        return ExecuteAsync(CommandNames.ListPlaylists, contextFactory.Create(context));
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class PlaylistSlashCommand(
     [Description("View a saved playlist")]
     public Task View(SlashCommandContext context, [Parameter("name")][Description("Playlist name")] string name)
     {
-        return ExecuteAsync("viewPlaylist", contextFactory.Create(context), name.Trim());
+        return ExecuteAsync(CommandNames.ViewPlaylist, contextFactory.Create(context), name.Trim());
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class PlaylistSlashCommand(
     [Description("Load a saved playlist into the queue")]
     public Task Load(SlashCommandContext context, [Parameter("name")][Description("Playlist name")] string name)
     {
-        return ExecuteAsync("loadPlaylist", contextFactory.Create(context), name.Trim(), ensureDeferredResponse: true);
+        return ExecuteAsync(CommandNames.LoadPlaylist, contextFactory.Create(context), name.Trim(), ensureDeferredResponse: true);
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class PlaylistSlashCommand(
         [Parameter("name")][Description("Playlist name")] string name,
         [Parameter("url")][Description("Song URL or search query")] string url)
     {
-        return ExecuteAsync("addSong", contextFactory.Create(context), $"{QuoteArgument(name)} {url.Trim()}", ensureDeferredResponse: true);
+        return ExecuteAsync(CommandNames.AddSongToPlaylist, contextFactory.Create(context), $"{QuoteArgument(name)} {url.Trim()}", ensureDeferredResponse: true);
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public class PlaylistSlashCommand(
         [Parameter("name")][Description("Playlist name")] string name,
         [Parameter("track-number")][Description("Track number from playlist view")] int trackNumber)
     {
-        return ExecuteAsync("removeSong", contextFactory.Create(context), $"{QuoteArgument(name)} {trackNumber}");
+        return ExecuteAsync(CommandNames.RemoveSongFromPlaylist, contextFactory.Create(context), $"{QuoteArgument(name)} {trackNumber}");
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class PlaylistSlashCommand(
         [Parameter("current-name")][Description("Current playlist name")] string currentName,
         [Parameter("new-name")][Description("New playlist name")] string newName)
     {
-        return ExecuteAsync("renamePlaylist", contextFactory.Create(context), $"{QuoteArgument(currentName)} {QuoteArgument(newName)}");
+        return ExecuteAsync(CommandNames.RenamePlaylist, contextFactory.Create(context), $"{QuoteArgument(currentName)} {QuoteArgument(newName)}");
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class PlaylistSlashCommand(
             return;
         }
 
-        await ExecuteAsync("deletePlaylist", slashContext, playlistName);
+        await ExecuteAsync(CommandNames.DeletePlaylist, slashContext, playlistName);
     }
 
     /// <summary>

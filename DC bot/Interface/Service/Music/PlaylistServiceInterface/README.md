@@ -26,7 +26,7 @@ Carries inputs, statuses, and results for the playlist service use cases.
 - `PlaylistViewTrackDto.cs`
 - `RemoveSongResult.cs`
 - `RenamePlaylistResult.cs`
-- `SavePlaylistResult.cs`
+- `ImportPlaylistResult.cs`
 - `ViewPlaylistResult.cs`
 
 **Purpose:** Implementations live under Service/Music/PlaylistService; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
@@ -87,7 +87,7 @@ Task<RemoveSongResult> RemoveSongFromPlaylistAsync(
     CancellationToken cancellationToken = default);
 ```
 
-**Additional methods:** `SavePlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
+**Additional methods:** `ImportPlaylistAsync`, `ViewPlaylistAsync`, `RenamePlaylistAsync`. See the source and its XML contracts for the complete parameter lists.
 
 **Usage:**
 
@@ -316,16 +316,16 @@ public enum RenamePlaylistResult
 
 ---
 
-### SavePlaylistResult
+### ImportPlaylistResult
 
-**File:** `DC bot/Interface/Service/Music/PlaylistServiceInterface/Models/SavePlaylistResult.cs`
+**File:** `DC bot/Interface/Service/Music/PlaylistServiceInterface/Models/ImportPlaylistResult.cs`
 
 **Purpose:** Defines the typed result and status values returned by the save playlist use case, including expected rejection outcomes.
 
 **Values:**
 
 ```csharp
-public enum SavePlaylistResult
+public enum ImportPlaylistResult
 {
     Saved,
     AlreadyExists,

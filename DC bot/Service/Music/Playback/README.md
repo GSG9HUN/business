@@ -35,7 +35,7 @@ Contains SDK-dependent playback data separated from behavior.
 
 Reads node state, synchronizes the SDK cache, composes the complete filter map and reconciles uncertain updates under a control reservation. Individual controls retain unrelated built-in/plugin values; presets replace the map, and reset retains output volume.
 
-Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit. Custom preset listing returns lazy ten-entry guild-scoped pages with totals; Discord adapters present the same navigation used by other list commands.
+Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit. Filter inspection and help return informational results. Applied effects with a position-save failure or a preset caveat return warning metadata without reporting that the applied effects failed. Custom preset listing returns lazy ten-entry guild-scoped pages with totals; Discord adapters present the same navigation used by other list commands.
 
 **Methods:**
 
@@ -50,6 +50,8 @@ Task<PlaybackControlResult> PitchAsync(
     IDiscordMessage message, IDiscordMember? member, string? multiplier, CancellationToken cancellationToken = default);
 Task RestoreAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default);
 ```
+
+Playback-start rejections use `ITrackNotificationService.SendValidationAsync`, so full queues, pending results and wrong voice channels use the same severity as command validation. Unsuccessful playback starts remain system errors.
 
 **Validation Checks:** Mutations require the current player generation and the requesting member in the bot voice channel. Speed/pitch require finite invariant numbers in 0.5-2.0. Bass curves stay within 0-0.20 gain. Node capability data is cached per API client and node session, retaining the reported version, for one minute. Unknown outcomes are not retried blindly; the next inspection or mutation reads the authoritative player before composing new state.
 

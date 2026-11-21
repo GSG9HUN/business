@@ -22,10 +22,10 @@ namespace DC_bot.Commands.TextCommands.Queue;
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="commandHelper">The command helper dependency used by this boundary.</param>
 /// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
-public class ViewQueueCommand(
+public class QueueCommand(
     IMusicQueueService musicQueueService,
     IUserValidationService userValidation,
-    ILogger<ViewQueueCommand> logger,
+    ILogger<QueueCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
     ICommandHelper commandHelper,
@@ -33,13 +33,13 @@ public class ViewQueueCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "viewList";
+    public string Name => CommandNames.Queue;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
 
     /// <inheritdoc />
-    public string DescriptionKey => LocalizationKeys.ViewListCommandDescription;
+    public string DescriptionKey => LocalizationKeys.QueueCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -67,7 +67,7 @@ public class ViewQueueCommand(
 
         if (queue.Count == 0)
         {
-            await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewListCommandError);
+            await responseBuilder.SendInfoAsync(message, LocalizationKeys.QueueCommandEmpty);
             logger.QueueIsEmpty();
             return;
         }
@@ -76,7 +76,7 @@ public class ViewQueueCommand(
                 $"{index + 1}. {DiscordTextSanitizer.EscapeMentions(track.Title)} - {DiscordTextSanitizer.EscapeMentions(track.Author)}")
             .ToArray();
         await pagination.SendAsync(message, DiscordPaginationService.FromItems(
-            localizationService.Get(guildId, LocalizationKeys.ViewListCommandEmbedTitle), items));
+            localizationService.Get(guildId, LocalizationKeys.QueueCommandEmbedTitle), items));
         logger.CommandExecuted(Name);
     }
 }

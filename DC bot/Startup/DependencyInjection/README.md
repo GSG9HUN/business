@@ -4,6 +4,10 @@ Registers command, core, Discord, Lavalink, logging, and music dependencies at t
 
 ## Overview
 
+- Personal favorites register only `FavoriteCommand` and `FavoriteSlashCommand`; the command modules reuse the existing favorite service.
+
+- Text registration uses `QueueCommand` and `ImportPlaylistCommand`; slash adapters dispatch `queue` and `importPlaylist` through the shared executor.
+
 - Composes application services, command adapters and external clients.
 - Defines dependency lifetimes, configuration validation and SDK event wiring.
 - Connects bot runtime modules to shared persistence registrations.
@@ -42,7 +46,7 @@ var result = services.AddCommandServices();
 
 **Purpose:** Registers the core runtime dependencies at the composition root.
 
-Registers `DiscordPaginationService` as a singleton alongside the response builder and localization service.
+Registers `IHelpResponseBuilder` / `HelpResponseBuilder` and `DiscordPaginationService` as singletons alongside the response builder and localization service. The help builder owns metadata/layout; pagination retains the existing interaction event and message lifecycle.
 
 Supplies the shared `IResponseBuilder` to command routing, reaction presentation and durable-command notifications, including the explicit reaction-message factory.
 

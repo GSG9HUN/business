@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -14,7 +15,7 @@ public sealed class TwentyFourSevenSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "24-7";
+    private const string CommandName = CommandNames.TwentyFourSeven;
 
     /// <summary>
     /// Enables or disables persistent voice mode through a slash interaction.
@@ -22,7 +23,7 @@ public sealed class TwentyFourSevenSlashCommand(
     /// <param name="context">The SDK slash interaction context.</param>
     /// <param name="enabled">Whether persistent voice mode should be enabled.</param>
     /// <returns>A task that completes after command execution and response processing.</returns>
-    [Command("24-7")]
+    [Command(CommandNames.TwentyFourSeven)]
     [Description("Enable or disable twenty-four-seven voice mode")]
     public Task TwentyFourSeven(
         SlashCommandContext context,

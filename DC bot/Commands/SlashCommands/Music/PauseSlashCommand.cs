@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,14 +13,14 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class PauseSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "pause";
+    private const string CommandName = CommandNames.Pause;
 
     /// <summary>
     /// Adapts the pause slash route to its shared handler and interaction response policy.
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("pause")]
+    [Command(CommandNames.Pause)]
     [Description("Pause the current music")]
     public Task Pause(SlashCommandContext context)
     {

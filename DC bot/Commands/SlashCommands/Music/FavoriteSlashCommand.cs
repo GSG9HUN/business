@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using System.Globalization;
 using DC_bot.Interface.Service.SlashCommands;
@@ -9,7 +10,7 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <summary>Groups personal favorite add, list, remove and play operations.</summary>
 /// <param name="executor">Executes shared localized command behavior.</param>
 /// <param name="factory">Adapts SDK interaction context.</param>
-[Command("favorite")]
+[Command(CommandNames.Favorite)]
 [Description("Manage your personal favorite tracks")]
 public sealed class FavoriteSlashCommand(ISlashCommandExecutor executor, ISlashInteractionContextFactory factory)
 {
@@ -61,7 +62,7 @@ public sealed class FavoriteSlashCommand(ISlashCommandExecutor executor, ISlashI
     /// <summary>Routes all personal favorite actions through the shared text handler.</summary>
     public Task ExecuteAsync(ISlashInteractionContext context, string argument)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("favorite", context, argument,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.Favorite, context, argument,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

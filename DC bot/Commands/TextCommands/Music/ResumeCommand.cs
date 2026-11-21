@@ -29,7 +29,7 @@ public class ResumeCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "resume";
+    public string Name => CommandNames.Resume;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

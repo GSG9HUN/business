@@ -6,6 +6,127 @@ namespace DC_bot.Constants;
 public static class LocalizationKeys
 {
 
+    /// <summary>The localized error prefix used by plain-text response fallback.</summary>
+    public const string ResponseErrorPrefix = "response_error_prefix";
+
+    /// <summary>The localized warning prefix used by plain-text response fallback.</summary>
+    public const string ResponseWarningPrefix = "response_warning_prefix";
+
+    /// <summary>Identifies the localized response voice required title text.</summary>
+    public const string ResponseVoiceRequiredTitle = "response_voice_required_title";
+
+    /// <summary>Identifies the localized response same voice title text.</summary>
+    public const string ResponseSameVoiceTitle = "response_same_voice_title";
+
+    /// <summary>Identifies the localized response queue empty title text.</summary>
+    public const string ResponseQueueEmptyTitle = "response_queue_empty_title";
+
+    /// <summary>Identifies the localized response queue full title text.</summary>
+    public const string ResponseQueueFullTitle = "response_queue_full_title";
+
+    /// <summary>Identifies the localized response playback cleared title text.</summary>
+    public const string ResponsePlaybackClearedTitle = "response_playback_cleared_title";
+
+    /// <summary>Identifies the localized response always on enabled title text.</summary>
+    public const string ResponseAlwaysOnEnabledTitle = "response_always_on_enabled_title";
+
+    /// <summary>Identifies the localized response always on disabled title text.</summary>
+    public const string ResponseAlwaysOnDisabledTitle = "response_always_on_disabled_title";
+
+    /// <summary>Identifies the localized response playback pending title text.</summary>
+    public const string ResponsePlaybackPendingTitle = "response_playback_pending_title";
+
+    /// <summary>Identifies the localized response playback unavailable title text.</summary>
+    public const string ResponsePlaybackUnavailableTitle = "response_playback_unavailable_title";
+
+    /// <summary>Identifies the localized response no track title text.</summary>
+    public const string ResponseNoTrackTitle = "response_no_track_title";
+
+    /// <summary>Identifies the localized response now playing title text.</summary>
+    public const string ResponseNowPlayingTitle = "response_now_playing_title";
+
+    /// <summary>Identifies the localized response volume title text.</summary>
+    public const string ResponseVolumeTitle = "response_volume_title";
+
+    /// <summary>Identifies the localized response filters title text.</summary>
+    public const string ResponseFiltersTitle = "response_filters_title";
+
+    /// <summary>Identifies the localized response music status title text.</summary>
+    public const string ResponseMusicStatusTitle = "response_music_status_title";
+
+    /// <summary>Identifies the localized response music settings title text.</summary>
+    public const string ResponseMusicSettingsTitle = "response_music_settings_title";
+
+    /// <summary>Identifies the localized response search picker title text.</summary>
+    public const string ResponseSearchPickerTitle = "response_search_picker_title";
+
+    /// <summary>Identifies the localized response autoplay title text.</summary>
+    public const string ResponseAutoplayTitle = "response_autoplay_title";
+
+    /// <summary>Identifies the localized response lyrics title text.</summary>
+    public const string ResponseLyricsTitle = "response_lyrics_title";
+
+    /// <summary>Identifies the localized response favorites title text.</summary>
+    public const string ResponseFavoritesTitle = "response_favorites_title";
+
+    /// <summary>Identifies the localized response recommendations title text.</summary>
+    public const string ResponseRecommendationsTitle = "response_recommendations_title";
+
+    /// <summary>Identifies the localized response queue title text.</summary>
+    public const string ResponseQueueTitle = "response_queue_title";
+
+    /// <summary>Identifies the localized response queue search title text.</summary>
+    public const string ResponseQueueSearchTitle = "response_queue_search_title";
+
+    /// <summary>Identifies the localized response skip title text.</summary>
+    public const string ResponseSkipTitle = "response_skip_title";
+
+    /// <summary>Identifies the localized response seek title text.</summary>
+    public const string ResponseSeekTitle = "response_seek_title";
+
+    /// <summary>Identifies the localized response pause title text.</summary>
+    public const string ResponsePauseTitle = "response_pause_title";
+
+    /// <summary>Identifies the localized response resume title text.</summary>
+    public const string ResponseResumeTitle = "response_resume_title";
+
+    /// <summary>Identifies the localized response previous title text.</summary>
+    public const string ResponsePreviousTitle = "response_previous_title";
+
+    /// <summary>Identifies the localized response repeat title text.</summary>
+    public const string ResponseRepeatTitle = "response_repeat_title";
+
+    /// <summary>Identifies the localized response shuffle title text.</summary>
+    public const string ResponseShuffleTitle = "response_shuffle_title";
+
+    /// <summary>Identifies the localized response queue cleared title text.</summary>
+    public const string ResponseQueueClearedTitle = "response_queue_cleared_title";
+
+    /// <summary>Identifies the localized response playlist created title text.</summary>
+    public const string ResponsePlaylistCreatedTitle = "response_playlist_created_title";
+
+    /// <summary>Identifies the localized response playlist saved title text.</summary>
+    public const string ResponsePlaylistSavedTitle = "response_playlist_saved_title";
+
+    /// <summary>Identifies the localized response playlist deleted title text.</summary>
+    public const string ResponsePlaylistDeletedTitle = "response_playlist_deleted_title";
+
+    /// <summary>Identifies the localized response playlist renamed title text.</summary>
+    public const string ResponsePlaylistRenamedTitle = "response_playlist_renamed_title";
+
+    /// <summary>Identifies the localized response playlist updated title text.</summary>
+    public const string ResponsePlaylistUpdatedTitle = "response_playlist_updated_title";
+
+    /// <summary>Identifies the localized response playlist loaded title text.</summary>
+    public const string ResponsePlaylistLoadedTitle = "response_playlist_loaded_title";
+
+    /// <summary>Identifies the localized response language title text.</summary>
+    public const string ResponseLanguageTitle = "response_language_title";
+
+    /// <summary>Formats queue-empty guidance with the configured text-command prefix.</summary>
+    public const string ResponseQueueEmptyHint = "response_queue_empty_hint";
+
+
     /// <summary>Identifies the localized pagination expired text.</summary>
     public const string PaginationExpired = "pagination_expired";
 
@@ -30,9 +151,6 @@ public static class LocalizationKeys
     /// <summary>Identifies the localized pagination next text.</summary>
     public const string PaginationNext = "pagination_next";
 
-    /// <summary>Identifies the localized pagination help title text.</summary>
-    public const string PaginationHelpTitle = "pagination_help_title";
-
     /// <summary>Identifies the localized pagination favorites title text.</summary>
     public const string PaginationFavoritesTitle = "pagination_favorites_title";
 
@@ -55,24 +173,9 @@ public static class LocalizationKeys
     /// <summary>Identifies the localized response usage title.</summary>
     public const string ResponseUsageTitle = "response_usage_title";
 
-    /// <summary>Identifies the localized response validation footer.</summary>
-    public const string ResponseValidationFooter = "response_validation_footer";
-
     /// <summary>Identifies the localized response usage footer.</summary>
     public const string ResponseUsageFooter = "response_usage_footer";
 
-    /// <summary>Identifies the localized response success footer.</summary>
-    public const string ResponseSuccessFooter = "response_success_footer";
-
-    /// <summary>Identifies the localized response warning footer.</summary>
-    public const string ResponseWarningFooter = "response_warning_footer";
-
-    /// <summary>Identifies the localized response error footer.</summary>
-    public const string ResponseErrorFooter = "response_error_footer";
-
-
-    /// <summary>Formats a command name and guild-localized description.</summary>
-    public const string HelpCommandDetails = "help_command_details";
 
     /// <summary>Reports a help query for an unknown registered command.</summary>
     public const string HelpCommandUnknown = "help_command_unknown";
@@ -158,10 +261,6 @@ public static class LocalizationKeys
     /// </summary>
     public const string HelpCommandDescription = "help_command_description";
 
-    /// <summary>
-    /// The localization lookup key <c>help_command_response</c> used for help command response.
-    /// </summary>
-    public const string HelpCommandResponse = "help_command_response";
     // Join Command
 
     /// <summary>
@@ -265,44 +364,44 @@ public static class LocalizationKeys
     public const string CreatePlaylistCommandUnknownError = "createPlaylist_command_unknown_error";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_description</c> used for save playlist command description.
+    /// The localization lookup key <c>import_playlist_command_description</c> used for save playlist command description.
     /// </summary>
-    public const string SavePlaylistCommandDescription = "save_playlist_command_description";
+    public const string ImportPlaylistCommandDescription = "import_playlist_command_description";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_saved</c> used for save playlist command saved.
+    /// The localization lookup key <c>import_playlist_command_saved</c> used for save playlist command saved.
     /// </summary>
-    public const string SavePlaylistCommandSaved = "save_playlist_command_saved";
+    public const string ImportPlaylistCommandSaved = "import_playlist_command_saved";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_already_exists</c> used for save playlist command already exists.
+    /// The localization lookup key <c>import_playlist_command_already_exists</c> used for save playlist command already exists.
     /// </summary>
-    public const string SavePlaylistCommandAlreadyExists = "save_playlist_command_already_exists";
+    public const string ImportPlaylistCommandAlreadyExists = "import_playlist_command_already_exists";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_no_tracks_found</c> used for save playlist command no tracks found.
+    /// The localization lookup key <c>import_playlist_command_no_tracks_found</c> used for save playlist command no tracks found.
     /// </summary>
-    public const string SavePlaylistCommandNoTracksFound = "save_playlist_command_no_tracks_found";
+    public const string ImportPlaylistCommandNoTracksFound = "import_playlist_command_no_tracks_found";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_invalid_playlist_name</c> used for save playlist command invalid playlist name.
+    /// The localization lookup key <c>import_playlist_command_invalid_playlist_name</c> used for save playlist command invalid playlist name.
     /// </summary>
-    public const string SavePlaylistCommandInvalidPlaylistName = "save_playlist_command_invalid_playlist_name";
+    public const string ImportPlaylistCommandInvalidPlaylistName = "import_playlist_command_invalid_playlist_name";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_playlist_limit_reached</c> used for save playlist command playlist limit reached.
+    /// The localization lookup key <c>import_playlist_command_playlist_limit_reached</c> used for save playlist command playlist limit reached.
     /// </summary>
-    public const string SavePlaylistCommandPlaylistLimitReached = "save_playlist_command_playlist_limit_reached";
+    public const string ImportPlaylistCommandPlaylistLimitReached = "import_playlist_command_playlist_limit_reached";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_track_limit_exceeded</c> used for save playlist command track limit exceeded.
+    /// The localization lookup key <c>import_playlist_command_track_limit_exceeded</c> used for save playlist command track limit exceeded.
     /// </summary>
-    public const string SavePlaylistCommandTrackLimitExceeded = "save_playlist_command_track_limit_exceeded";
+    public const string ImportPlaylistCommandTrackLimitExceeded = "import_playlist_command_track_limit_exceeded";
 
     /// <summary>
-    /// The localization lookup key <c>save_playlist_command_unknown_error</c> used for save playlist command unknown error.
+    /// The localization lookup key <c>import_playlist_command_unknown_error</c> used for save playlist command unknown error.
     /// </summary>
-    public const string SavePlaylistCommandUnknownError = "save_playlist_command_unknown_error";
+    public const string ImportPlaylistCommandUnknownError = "import_playlist_command_unknown_error";
 
     /// <summary>
     /// The localization lookup key <c>deletePlaylist_command_description</c> used for delete playlist command description.
@@ -684,24 +783,19 @@ public static class LocalizationKeys
     // ViewQueue Command
 
     /// <summary>
-    /// The localization lookup key <c>view_list_command_description</c> used for view list command description.
+    /// The localization lookup key <c>queue_command_description</c> used for view list command description.
     /// </summary>
-    public const string ViewListCommandDescription = "view_list_command_description";
+    public const string QueueCommandDescription = "queue_command_description";
 
     /// <summary>
-    /// The localization lookup key <c>view_list_command_embed_title</c> used for view list command embed title.
+    /// The localization lookup key <c>queue_command_embed_title</c> used for view list command embed title.
     /// </summary>
-    public const string ViewListCommandEmbedTitle = "view_list_command_embed_title";
+    public const string QueueCommandEmbedTitle = "queue_command_embed_title";
 
     /// <summary>
-    /// The localization lookup key <c>view_list_command_response</c> used for view list command response.
+    /// The localization lookup key <c>queue_command_empty</c> used for view list command error.
     /// </summary>
-    public const string ViewListCommandResponse = "view_list_command_response";
-
-    /// <summary>
-    /// The localization lookup key <c>view_list_command_error</c> used for view list command error.
-    /// </summary>
-    public const string ViewListCommandError = "view_list_command_error";
+    public const string QueueCommandEmpty = "queue_command_empty";
     // Reaction Handler
 
     /// <summary>
@@ -1105,4 +1199,199 @@ public static class LocalizationKeys
 
     /// <summary>The localization key for filter preset unsupported.</summary>
     public const string FilterPresetUnsupported = "filter_preset_unsupported";
+
+    /// <summary>The localization key for home title.</summary>
+    public const string HelpHomeTitle = "help_v2_home_title";
+
+    /// <summary>The localization key for home description.</summary>
+    public const string HelpHomeDescription = "help_v2_home_description";
+
+    /// <summary>The localization key for direct hint.</summary>
+    public const string HelpDirectHint = "help_v2_direct_hint";
+
+    /// <summary>The localization key for home footer.</summary>
+    public const string HelpHomeFooter = "help_v2_home_footer";
+
+    /// <summary>The localization key for category footer.</summary>
+    public const string HelpCategoryFooter = "help_v2_category_footer";
+
+    /// <summary>The localization key for details footer.</summary>
+    public const string HelpDetailsFooter = "help_v2_details_footer";
+
+    /// <summary>The localization key for details title.</summary>
+    public const string HelpDetailsTitle = "help_v2_details_title";
+
+    /// <summary>The localization key for category option.</summary>
+    public const string HelpCategoryOption = "help_v2_category_option";
+
+    /// <summary>The localization key for category label.</summary>
+    public const string HelpCategoryLabel = "help_v2_category_label";
+
+    /// <summary>The localization key for usage label.</summary>
+    public const string HelpUsageLabel = "help_v2_usage_label";
+
+    /// <summary>The localization key for aliases label.</summary>
+    public const string HelpAliasesLabel = "help_v2_aliases_label";
+
+    /// <summary>The localization key for requirements label.</summary>
+    public const string HelpRequirementsLabel = "help_v2_requirements_label";
+
+    /// <summary>The localization key for example label.</summary>
+    public const string HelpExampleLabel = "help_v2_example_label";
+
+    /// <summary>The localization key for no aliases.</summary>
+    public const string HelpNoAliases = "help_v2_no_aliases";
+
+    /// <summary>The localization key for choose category.</summary>
+    public const string HelpChooseCategory = "help_v2_choose_category";
+
+    /// <summary>The localization key for choose command.</summary>
+    public const string HelpChooseCommand = "help_v2_choose_command";
+
+    /// <summary>The localization key for back.</summary>
+    public const string HelpBack = "help_v2_back";
+
+    /// <summary>The localization key for categories.</summary>
+    public const string HelpCategories = "help_v2_categories";
+
+    /// <summary>The localization key for playback name.</summary>
+    public const string HelpPlaybackName = "help_v2_playback_name";
+
+    /// <summary>The localization key for playback description.</summary>
+    public const string HelpPlaybackDescription = "help_v2_playback_description";
+
+    /// <summary>The localization key for queue name.</summary>
+    public const string HelpQueueName = "help_v2_queue_name";
+
+    /// <summary>The localization key for queue description.</summary>
+    public const string HelpQueueDescription = "help_v2_queue_description";
+
+    /// <summary>The localization key for playlists name.</summary>
+    public const string HelpPlaylistsName = "help_v2_playlists_name";
+
+    /// <summary>The localization key for playlists description.</summary>
+    public const string HelpPlaylistsDescription = "help_v2_playlists_description";
+
+    /// <summary>The localization key for audio name.</summary>
+    public const string HelpAudioName = "help_v2_audio_name";
+
+    /// <summary>The localization key for audio description.</summary>
+    public const string HelpAudioDescription = "help_v2_audio_description";
+
+    /// <summary>The localization key for discovery name.</summary>
+    public const string HelpDiscoveryName = "help_v2_discovery_name";
+
+    /// <summary>The localization key for discovery description.</summary>
+    public const string HelpDiscoveryDescription = "help_v2_discovery_description";
+
+    /// <summary>The localization key for settings name.</summary>
+    public const string HelpSettingsName = "help_v2_settings_name";
+
+    /// <summary>The localization key for settings description.</summary>
+    public const string HelpSettingsDescription = "help_v2_settings_description";
+
+    /// <summary>The localization key for utilities name.</summary>
+    public const string HelpUtilitiesName = "help_v2_utilities_name";
+
+    /// <summary>The localization key for utilities description.</summary>
+    public const string HelpUtilitiesDescription = "help_v2_utilities_description";
+
+    /// <summary>The localization key for requires server.</summary>
+    public const string HelpRequiresServer = "help_v2_requires_server";
+
+    /// <summary>The localization key for requires voice.</summary>
+    public const string HelpRequiresVoice = "help_v2_requires_voice";
+
+    /// <summary>The localization key for requires manage server.</summary>
+    public const string HelpRequiresManageServer = "help_v2_requires_manage_server";
+
+    /// <summary>The localization key for requires persistent voice.</summary>
+    public const string HelpRequiresPersistentVoice = "help_v2_requires_persistent_voice";
+
+    /// <summary>The localization key for requires favorite.</summary>
+    public const string HelpRequiresFavorite = "help_v2_requires_favorite";
+
+    /// <summary>The localization key for requires audio.</summary>
+    public const string HelpRequiresAudio = "help_v2_requires_audio";
+
+    /// <summary>The localization key for requires autoplay.</summary>
+    public const string HelpRequiresAutoplay = "help_v2_requires_autoplay";
+
+    /// <summary>The localization key for requires filters.</summary>
+    public const string HelpRequiresFilters = "help_v2_requires_filters";
+
+    /// <summary>The localization key for requires skip.</summary>
+    public const string HelpRequiresSkip = "help_v2_requires_skip";
+
+    /// <summary>The localization key for requires skipto.</summary>
+    public const string HelpRequiresSkipto = "help_v2_requires_skipto";
+
+    /// <summary>The localization key for example playlist name.</summary>
+    public const string HelpExamplePlaylistName = "help_v2_example_playlist_name";
+
+    /// <summary>The localization key for example default.</summary>
+    public const string HelpExampleDefault = "help_v2_example_default";
+
+    /// <summary>The localization key for example track query.</summary>
+    public const string HelpExampleTrackQuery = "help_v2_example_track_query";
+
+    /// <summary>The localization key for example playlist name command.</summary>
+    public const string HelpExamplePlaylistNameCommand = "help_v2_example_playlist_name_command";
+
+    /// <summary>The localization key for example playlist import.</summary>
+    public const string HelpExamplePlaylistImport = "help_v2_example_playlist_import";
+
+    /// <summary>The localization key for example playlist rename.</summary>
+    public const string HelpExamplePlaylistRename = "help_v2_example_playlist_rename";
+
+    /// <summary>The localization key for example playlist remove track.</summary>
+    public const string HelpExamplePlaylistRemoveTrack = "help_v2_example_playlist_remove_track";
+
+    /// <summary>The localization key for example volume.</summary>
+    public const string HelpExampleVolume = "help_v2_example_volume";
+
+    /// <summary>The localization key for example multiplier.</summary>
+    public const string HelpExampleMultiplier = "help_v2_example_multiplier";
+
+    /// <summary>The localization key for example seconds.</summary>
+    public const string HelpExampleSeconds = "help_v2_example_seconds";
+
+    /// <summary>The localization key for example position.</summary>
+    public const string HelpExamplePosition = "help_v2_example_position";
+
+    /// <summary>The localization key for example queue position.</summary>
+    public const string HelpExampleQueuePosition = "help_v2_example_queue_position";
+
+    /// <summary>The localization key for example queue move.</summary>
+    public const string HelpExampleQueueMove = "help_v2_example_queue_move";
+
+    /// <summary>The localization key for example queue query.</summary>
+    public const string HelpExampleQueueQuery = "help_v2_example_queue_query";
+
+    /// <summary>The localization key for example show.</summary>
+    public const string HelpExampleShow = "help_v2_example_show";
+
+    /// <summary>The localization key for example list.</summary>
+    public const string HelpExampleList = "help_v2_example_list";
+
+    /// <summary>The localization key for example status.</summary>
+    public const string HelpExampleStatus = "help_v2_example_status";
+
+    /// <summary>The localization key for example enable.</summary>
+    public const string HelpExampleEnable = "help_v2_example_enable";
+
+    /// <summary>The localization key for example bass.</summary>
+    public const string HelpExampleBass = "help_v2_example_bass";
+
+    /// <summary>The localization key for example karaoke.</summary>
+    public const string HelpExampleKaraoke = "help_v2_example_karaoke";
+
+    /// <summary>The localization key for example language.</summary>
+    public const string HelpExampleLanguage = "help_v2_example_language";
+
+    /// <summary>The localization key for example help.</summary>
+    public const string HelpExampleHelp = "help_v2_example_help";
+
+    /// <summary>The localization key for example member.</summary>
+    public const string HelpExampleMember = "help_v2_example_member";
 }

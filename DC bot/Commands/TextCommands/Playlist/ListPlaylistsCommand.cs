@@ -34,7 +34,7 @@ public class ListPlaylistsCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "listPlaylists";
+    public string Name => CommandNames.ListPlaylists;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -76,7 +76,7 @@ public class ListPlaylistsCommand(
                     localizationService.Get(guildId, LocalizationKeys.PaginationPlaylistsTitle), items));
                 break;
             case ListPlaylistsStatus.NoPlaylists:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ListPlaylistsCommandNoPlaylists);
+                await responseBuilder.SendInfoAsync(message, LocalizationKeys.ListPlaylistsCommandNoPlaylists);
                 break;
             case ListPlaylistsStatus.UnknownError:
                 await responseBuilder.SendErrorAsync(message, LocalizationKeys.ListPlaylistsCommandUnknownError);

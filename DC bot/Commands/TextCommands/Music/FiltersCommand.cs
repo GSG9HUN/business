@@ -30,7 +30,7 @@ public sealed class FiltersCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "filters";
+    public string Name => CommandNames.Filters;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -84,7 +84,7 @@ public sealed class FiltersCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

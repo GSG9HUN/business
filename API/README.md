@@ -2,7 +2,9 @@
 
 This ASP.NET Core minimal API exposes mobile authentication, guild and profile reads, saved playlists, music search, playback control, and SignalR updates. It uses the shared PostgreSQL persistence layer rather than referencing the running Discord bot executable.
 
-## Overview
+## Overview
+
+- Playlist import uses `ImportPlaylistRequest`; JSON fields and durable command wire identifiers remain compatible with existing clients.
 
 - Guild-scoped HTTP operations require persisted user membership and active guild premium. Non-premium members receive HTTP 403 with `errorCode: PremiumRequired` and `errorMessage: not premium member`. Global authentication, profile, guild discovery, and health routes remain available. API dependencies remain limited to the shared Contracts and Persistence projects.
 

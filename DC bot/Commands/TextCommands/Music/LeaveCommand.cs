@@ -29,7 +29,7 @@ public class LeaveCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "leave";
+    public string Name => CommandNames.Leave;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

@@ -30,7 +30,7 @@ public class ShuffleCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "shuffle";
+    public string Name => CommandNames.Shuffle;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

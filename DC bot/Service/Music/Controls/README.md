@@ -14,13 +14,13 @@ Coordinates durable guild settings, current-attempt voting, five-minute empty-ch
 
 **Purpose:** Coordinates durable guild settings, current-attempt voting, five-minute empty-channel cleanup and read-only music status through existing session, repository, localization and leave boundaries.
 
-Automatic empty-channel leave and background vote completion publish localized status embeds. Failed embed delivery falls back to plain text bounded to 2000 characters.
+Automatic empty-channel leave and background vote completion delegate presentation and delivery to `ITrackNotificationService.NotifyMusicControlAsync`. The control service determines the outcome and localized reason; the notification service applies playback-cleared/skip titles and bounded text fallback.
 
 **Files:**
 
 - `MusicControlSettingsService.cs`
 
-**Methods:** `ConfigureAsync`, `EvaluateSkipAsync`, `MaintainAsync` and `StatusAsync`.
+**Methods:** `ConfigureAsync`, `EvaluateSkipAsync`, `MaintainAsync` and `StatusAsync`. Read-only settings and status carry informational presentation; saved setting changes retain success presentation.
 
 **Usage:**
 

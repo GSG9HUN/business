@@ -27,7 +27,7 @@ public sealed class PitchCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "pitch";
+    public string Name => CommandNames.Pitch;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -65,7 +65,7 @@ public sealed class PitchCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

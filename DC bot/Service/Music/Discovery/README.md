@@ -40,7 +40,7 @@ Favorite playback records the authenticated caller as a canonical Discord mentio
 
 ```text
 <prefix>favorite add
-<prefix>favourite add artist song
+<prefix>favorite add artist song
 <prefix>favorite list 2
 <prefix>favorite play 41
 <prefix>favorite remove 41
@@ -53,6 +53,8 @@ Favorite playback records the authenticated caller as a canonical Discord mentio
 ### RecommendationService
 
 **Purpose:** Provides up to five real source recommendations and optional queue continuation. Spotify seeds use the configured LavaSrc track mix; YouTube seeds use the installed YouTube plugin's radio mix. Other sources first resolve a YouTube seed. Provider failures produce unavailable results, not arbitrary search-result substitutions.
+
+Recommendations and autoplay status carry informational result metadata; autoplay changes retain success presentation.
 
 **Methods:** `ExecuteAsync` lists recommendations; `AutoplayAsync` reads/sets the durable guild preference; `ManualRequest` resets the automatic chain and invalidates an in-flight decision; `ObserveEnded` retains the last twenty ended identities; `TryEnqueueAsync` conditionally enqueues one automatic item.
 
@@ -68,7 +70,7 @@ Favorite playback records the authenticated caller as a canonical Discord mentio
 
 **Purpose:** Owns single-use, 45-second Discord select menus and cancellation buttons.
 
-Waiting, prompt, selected/closed and denial messages use embeds. The prompt retains its five-result menu and cancel button; denials stay ephemeral. If the prompt embed is rejected, bounded text is retried with the same menu and cancel button. Closing the picker removes active controls and also supports text fallback. Cancellation after sending still retains the message for cleanup.
+Waiting, prompt and selected/closed messages use informational embeds; denied or wrong-channel selections use warning embeds. The prompt retains its five-result menu and cancel button; denials stay ephemeral. If the prompt embed is rejected, bounded text is retried with the same menu and cancel button. Closing the picker removes active controls and also supports text fallback. Cancellation after sending still retains the message for cleanup.
 
 **Methods:** `ConfigureAsync` handles personal on/off/status; `SelectAsync` returns the first result when disabled and offers up to five real results when enabled; `CancelPending` supersedes a user's old request; `OnComponentInteractionAsync` validates component submissions.
 

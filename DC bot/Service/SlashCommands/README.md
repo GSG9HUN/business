@@ -4,6 +4,7 @@ Reuses registered text commands for Discord slash interactions.
 
 ## Overview
 
+- Guild-only restrictions use warning presentation; missing registrations and unexpected execution failures remain errors.
 - SlashCommandExecutor resolves the named command, validates guild context, handles deferral, and dispatches through an interaction-backed message wrapper.
 - Keep interaction response state in the slash adapter. Commands remain responsible for their ordinary validation, services, and localized outcomes.
 

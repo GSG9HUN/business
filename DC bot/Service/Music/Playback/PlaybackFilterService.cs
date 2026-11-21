@@ -81,7 +81,7 @@ public sealed class PlaybackFilterService(
             if (parts.Length == 1
                 || (parts.Length == 2 && parts[1].Equals("help", StringComparison.OrdinalIgnoreCase)))
             {
-                return Task.FromResult(PlaybackControlResult.Succeeded(
+                return Task.FromResult(PlaybackControlResult.Information(
                     localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.FiltersAdvancedHelp)));
             }
 
@@ -268,7 +268,7 @@ public sealed class PlaybackFilterService(
                 var supported = await GetSupportedFiltersAsync(session.Player, cancellationToken);
                 sessions.ValidateControl(session, reservation);
                 var names = PresetNames.Where(name => IsSupported(CreatePreset(name)!, supported));
-                return PlaybackControlResult.Succeeded(localizationService.Get(
+                return PlaybackControlResult.Information(localizationService.Get(
                     guildId, LocalizationKeys.FiltersCommandPresets, string.Join(", ", names)));
             }
 
@@ -284,7 +284,7 @@ public sealed class PlaybackFilterService(
                         Number(previous.Filters.Timescale?.Pitch ?? 1f)),
                     _ => FormatState(guildId, previous, session.Player.Volume)
                 };
-                return PlaybackControlResult.Succeeded(result);
+                return PlaybackControlResult.Information(result);
             }
 
             var desired = Snapshot(mutation(previous).Filters);
@@ -330,7 +330,7 @@ public sealed class PlaybackFilterService(
                     presetName!, summary, warning),
                 _ => localizationService.Get(guildId, LocalizationKeys.FiltersCommandApplied, summary, warning)
             };
-            return PlaybackControlResult.Succeeded(text);
+            return warning.Length > 0 ? PlaybackControlResult.Warning(text) : PlaybackControlResult.Succeeded(text);
         }
         catch (PlaybackOperationBusyException)
         {

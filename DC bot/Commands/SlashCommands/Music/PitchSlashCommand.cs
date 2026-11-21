@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.Globalization;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
@@ -18,7 +19,7 @@ public sealed class PitchSlashCommand(
     /// <param name="context">The SDK interaction context.</param>
     /// <param name="multiplier">The optional value; omitted values inspect the current state.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("pitch")]
+    [Command(CommandNames.Pitch)]
     [Description("Show or change pitch (0.5-2.0)")]
     public Task Pitch(
         SlashCommandContext context,

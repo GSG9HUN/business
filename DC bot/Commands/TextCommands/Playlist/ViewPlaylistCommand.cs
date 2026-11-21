@@ -33,7 +33,7 @@ public class ViewPlaylistCommand(
     DiscordPaginationService pagination) : ICommand
 {
     /// <inheritdoc />
-    public string Name => "viewPlaylist";
+    public string Name => CommandNames.ViewPlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -80,7 +80,7 @@ public class ViewPlaylistCommand(
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandPlaylistDoesNotExist, safePlaylistName);
                 break;
             case ViewPlaylistStatus.EmptyPlaylist:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandEmptyPlaylist, safePlaylistName);
+                await responseBuilder.SendInfoAsync(message, LocalizationKeys.ViewPlaylistCommandEmptyPlaylist, safePlaylistName);
                 break;
             case ViewPlaylistStatus.InvalidPlaylistName:
                 await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewPlaylistCommandInvalidPlaylistName, safePlaylistName);

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -13,7 +14,7 @@ namespace DC_bot.Commands.SlashCommands.Utility;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class TagSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "tag";
+    private const string CommandName = CommandNames.Tag;
 
     /// <summary>
     /// Adapts the tag slash route to its shared handler and interaction response policy.
@@ -21,8 +22,8 @@ public class TagSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashI
     /// <param name="context">The context supplied for this operation.</param>
     /// <param name="member">The member supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("tag")]
-    [Description("You can tag someone")]
+    [Command(CommandNames.Tag)]
+    [Description("Mention a server member with a wake-up message")]
     public Task Tag(SlashCommandContext context, [Parameter("user")][Description("Member you want to tag.")] DiscordMember member)
     {
         return ExecuteAsync(contextFactory.Create(context), member.Mention);
