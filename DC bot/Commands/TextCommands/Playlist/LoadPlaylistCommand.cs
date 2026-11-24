@@ -53,7 +53,7 @@ public class LoadPlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "loadPlaylist";
+    public string Name => CommandNames.LoadPlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

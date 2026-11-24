@@ -27,7 +27,7 @@ public sealed class RemoveCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "remove";
+    public string Name => CommandNames.Remove;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -57,7 +57,7 @@ public sealed class RemoveCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

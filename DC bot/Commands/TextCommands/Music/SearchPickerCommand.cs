@@ -22,7 +22,7 @@ public sealed class SearchPickerCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "searchpicker";
+    public string Name => CommandNames.SearchPicker;
 
     /// <inheritdoc />
     public string Description => localization.Get(DescriptionKey);
@@ -44,7 +44,7 @@ public sealed class SearchPickerCommand(
             return;
         }
 
-        await responses.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responses.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

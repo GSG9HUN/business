@@ -22,7 +22,7 @@ public sealed class QueueFindCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "queuefind";
+    public string Name => CommandNames.QueueFind;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -45,7 +45,7 @@ public sealed class QueueFindCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendInfoAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
         logger.CommandExecuted(Name);
     }
 }

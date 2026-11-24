@@ -10,38 +10,32 @@ using Microsoft.Extensions.Logging;
 
 namespace DC_bot.Commands.TextCommands.Utility;
 
-/// <summary>
-/// Handles the help text command through validation, service, and localized response boundaries.
-/// </summary>
-/// <param name="userValidation">The user validation service dependency used by this boundary.</param>
-/// <param name="logger">The structured logger used at this operation boundary.</param>
-/// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
-/// <param name="localizationService">The localization service dependency used by this boundary.</param>
-/// <param name="commandRegistry">The command registry dependency used by this boundary.</param>
-/// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
-public class HelpCommand(
+/// <summary>Validates help entry and delegates presentation and message lifetime to their existing service boundaries.</summary>
+/// <param name="userValidation">Rejects bot-authored command messages.</param>
+/// <param name="logger">Records command invocation and completion.</param>
+/// <param name="responses">Presents argument and guild validation failures.</param>
+/// <param name="localization">Resolves this command's description.</param>
+/// <param name="helpResponses">Builds localized help views and navigation metadata.</param>
+/// <param name="pagination">Owns response delivery, interactions and expiry.</param>
+public sealed class HelpCommand(
     IUserValidationService userValidation,
     ILogger<HelpCommand> logger,
-    IResponseBuilder responseBuilder,
-    ILocalizationService localizationService,
-    ICommandRegistry commandRegistry,
+    IResponseBuilder responses,
+    ILocalizationService localization,
+    IHelpResponseBuilder helpResponses,
     DiscordPaginationService pagination) : ICommand
 {
 
     /// <inheritdoc />
-    public string Name => "help";
+    public string Name => CommandNames.Help;
 
     /// <inheritdoc />
-    public string Description => localizationService.Get(DescriptionKey);
+    public string Description => localization.Get(DescriptionKey);
 
     /// <inheritdoc />
     public string DescriptionKey => LocalizationKeys.HelpCommandDescription;
 
-    /// <summary>
-    /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
-    /// </summary>
-    /// <param name="message">The message supplying command context and the response channel.</param>
-    /// <returns>A task representing completion of this operation.</returns>
+    /// <inheritdoc />
     public async Task ExecuteAsync(IDiscordMessage message)
     {
         logger.CommandInvoked(Name);
@@ -51,40 +45,34 @@ public class HelpCommand(
             return;
         }
 
-        var arguments = message.Content.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         var guildId = message.Channel.Guild?.Id ?? 0;
+
+        if (guildId == 0)
+        {
+            await responses.SendWarningAsync(message, LocalizationKeys.SlashCommandGuildOnly);
+            return;
+        }
+
+        var arguments = message.Content.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
         if (arguments.Length > 2
             || (arguments.Length == 2 && arguments[1].Length > 64))
         {
-            await responseBuilder.SendUsageAsync(message, Name);
+            await responses.SendUsageAsync(message, Name);
             return;
         }
 
-        if (arguments.Length == 2)
+        var commandName = arguments.Length == 2 ? arguments[1] : null;
+        var response = helpResponses.Create(guildId, commandName);
+
+        if (response is null)
         {
-            var command = commandRegistry.Commands.FirstOrDefault(candidate =>
-                candidate.Name.Equals(arguments[1], StringComparison.OrdinalIgnoreCase));
-
-            if (command is null)
-            {
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.HelpCommandUnknown, arguments[1]);
-                await responseBuilder.SendUsageAsync(message, Name);
-                return;
-            }
-
-            await responseBuilder.SendSuccessAsync(message, LocalizationKeys.HelpCommandDetails,
-                command.Name, localizationService.Get(guildId, command.DescriptionKey));
-            await responseBuilder.SendUsageAsync(message, command.Name);
-            logger.CommandExecuted(Name);
+            await responses.SendWarningAsync(message, LocalizationKeys.HelpCommandUnknown, commandName!);
+            await responses.SendUsageAsync(message, Name);
             return;
         }
 
-        var items = commandRegistry.Commands.OrderBy(command => command.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(command => $"**{command.Name}**: {localizationService.Get(guildId, command.DescriptionKey)}")
-            .ToArray();
-        await pagination.SendAsync(message, DiscordPaginationService.FromItems(
-            localizationService.Get(guildId, LocalizationKeys.PaginationHelpTitle), items));
+        await pagination.SendHelpAsync(message, response);
         logger.CommandExecuted(Name);
     }
 }

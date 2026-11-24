@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace DC_bot.Commands.TextCommands.Playlist;
 
 /// <summary>
-/// Handles the save playlist text command through validation, service, and localized response boundaries.
+/// Imports external tracks into a new saved playlist through validation, service, and localized response boundaries.
 /// </summary>
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 /// <param name="userValidation">The user validation service dependency used by this boundary.</param>
@@ -21,8 +21,8 @@ namespace DC_bot.Commands.TextCommands.Playlist;
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="playlistService">The playlist service dependency used by this boundary.</param>
 /// <param name="commandHelper">The command helper dependency used by this boundary.</param>
-public class SavePlaylistCommand(
-    ILogger<SavePlaylistCommand> logger,
+public class ImportPlaylistCommand(
+    ILogger<ImportPlaylistCommand> logger,
     IUserValidationService userValidation,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
@@ -31,13 +31,13 @@ public class SavePlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "savePlaylist";
+    public string Name => CommandNames.ImportPlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
 
     /// <inheritdoc />
-    public string DescriptionKey => LocalizationKeys.SavePlaylistCommandDescription;
+    public string DescriptionKey => LocalizationKeys.ImportPlaylistCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -54,7 +54,7 @@ public class SavePlaylistCommand(
             return;
         }
 
-        var parsed = await commandHelper.TryParseSavePlaylistArguments(message, responseBuilder, logger, Name, default);
+        var parsed = await commandHelper.TryParsePlaylistArgumentsAsync(message, responseBuilder, logger, Name, default);
 
         if (parsed is null)
         {
@@ -64,30 +64,30 @@ public class SavePlaylistCommand(
         var(playlistName, playlistUrl) = parsed.Value;
         var safePlaylistName = DiscordTextSanitizer.EscapeMentions(playlistName.Trim());
         var guildId = message.Channel.Guild.Id;
-        var result = await playlistService.SavePlaylistAsync(guildId, playlistName, playlistUrl, default);
+        var (result, savedCount) = await playlistService.ImportPlaylistWithCountAsync(guildId, playlistName, playlistUrl, default);
 
         switch (result)
         {
-            case SavePlaylistResult.Saved:
-                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.SavePlaylistCommandSaved, safePlaylistName);
+            case ImportPlaylistResult.Saved:
+                await responseBuilder.SendSuccessAsync(message, LocalizationKeys.ImportPlaylistCommandSaved, safePlaylistName, savedCount);
                 break;
-            case SavePlaylistResult.AlreadyExists:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandAlreadyExists, safePlaylistName);
+            case ImportPlaylistResult.AlreadyExists:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ImportPlaylistCommandAlreadyExists, safePlaylistName);
                 break;
-            case SavePlaylistResult.NoTracksFound:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandNoTracksFound, safePlaylistName);
+            case ImportPlaylistResult.NoTracksFound:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ImportPlaylistCommandNoTracksFound, safePlaylistName);
                 break;
-            case SavePlaylistResult.InvalidPlaylistName:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandInvalidPlaylistName, safePlaylistName);
+            case ImportPlaylistResult.InvalidPlaylistName:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ImportPlaylistCommandInvalidPlaylistName, safePlaylistName);
                 break;
-            case SavePlaylistResult.PlaylistLimitReached:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandPlaylistLimitReached, safePlaylistName);
+            case ImportPlaylistResult.PlaylistLimitReached:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ImportPlaylistCommandPlaylistLimitReached, safePlaylistName);
                 break;
-            case SavePlaylistResult.TrackLimitExceeded:
-                await responseBuilder.SendWarningAsync(message, LocalizationKeys.SavePlaylistCommandTrackLimitExceeded, safePlaylistName);
+            case ImportPlaylistResult.TrackLimitExceeded:
+                await responseBuilder.SendWarningAsync(message, LocalizationKeys.ImportPlaylistCommandTrackLimitExceeded, safePlaylistName);
                 break;
-            case SavePlaylistResult.UnknownError:
-                await responseBuilder.SendErrorAsync(message, LocalizationKeys.SavePlaylistCommandUnknownError, safePlaylistName);
+            case ImportPlaylistResult.UnknownError:
+                await responseBuilder.SendErrorAsync(message, LocalizationKeys.ImportPlaylistCommandUnknownError, safePlaylistName);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(result), result, null);

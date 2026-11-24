@@ -22,7 +22,7 @@ public sealed class AutoplayCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "autoplay";
+    public string Name => CommandNames.Autoplay;
 
     /// <inheritdoc />
     public string Description => localization.Get(DescriptionKey);
@@ -44,7 +44,7 @@ public sealed class AutoplayCommand(
             return;
         }
 
-        await responses.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responses.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

@@ -4,6 +4,10 @@ Exposes queue display, repetition, ordering, and recent batch history through sl
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- Descriptions identify waiting-track positions, title/artist searches and active-batch repetition. `/clear confirm:true` removes waiting tracks while retaining the current track and saved playlists.
+
 - Exposes queue inspection, ordering, removal, repeat and history as slash commands.
 - Maps interaction options to shared text-command requests with guild validation.
 - Uses one-based waiting positions for queue edits.

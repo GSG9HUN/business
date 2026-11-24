@@ -8,6 +8,13 @@ namespace DC_bot.Interface.Service.Music.PlaylistServiceInterface;
 public interface IPlaylistService
 {
 
+    /// <summary>Imports a saved playlist and returns its committed snapshot count with the existing status.</summary>
+    Task<(ImportPlaylistResult Status, int SavedCount)> ImportPlaylistWithCountAsync(
+        ulong guildId,
+        string playlistName,
+        string playlistUrl,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Loads source tracks into a saved playlist while enforcing names, ownership, and configured limits.
     /// </summary>
@@ -16,7 +23,7 @@ public interface IPlaylistService
     /// <param name="playlistUrl">The playlist url supplied for this operation.</param>
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
-    Task<SavePlaylistResult> SavePlaylistAsync(
+    Task<ImportPlaylistResult> ImportPlaylistAsync(
         ulong guildId,
         string playlistName,
         string playlistUrl,

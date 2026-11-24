@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using DC_bot.BotControl;
 using DC_bot.Constants;
 using DC_bot.Exceptions.Music;
@@ -81,7 +82,7 @@ public sealed class PlaybackFilterService(
             if (parts.Length == 1
                 || (parts.Length == 2 && parts[1].Equals("help", StringComparison.OrdinalIgnoreCase)))
             {
-                return Task.FromResult(PlaybackControlResult.Succeeded(
+                return Task.FromResult(PlaybackControlResult.Information(
                     localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.FiltersAdvancedHelp)));
             }
 
@@ -93,7 +94,8 @@ public sealed class PlaybackFilterService(
                 return Task.FromResult(Reject(message.Channel.Guild.Id, LocalizationKeys.FiltersAdvancedInvalid));
             }
 
-            return ExecuteAsync(message, member, "advanced", mutation, null, cancellationToken);
+            return ExecuteAsync(message, member, advanced[0].Equals("karaoke", StringComparison.OrdinalIgnoreCase)
+                ? "karaoke" : "advanced", mutation, null, cancellationToken);
         }
 
         if (parts.Length <= 1 && operation is "show" or "list")
@@ -135,9 +137,9 @@ public sealed class PlaybackFilterService(
         var gain = level.Trim().ToLowerInvariant() switch
         {
             "off" => 0f,
-            "low" => 0.06f,
-            "medium" => 0.12f,
-            "high" => 0.20f,
+            "low" => 0.10f,
+            "medium" => 0.18f,
+            "high" => 0.25f,
             _ => -1f
         };
 
@@ -268,7 +270,7 @@ public sealed class PlaybackFilterService(
                 var supported = await GetSupportedFiltersAsync(session.Player, cancellationToken);
                 sessions.ValidateControl(session, reservation);
                 var names = PresetNames.Where(name => IsSupported(CreatePreset(name)!, supported));
-                return PlaybackControlResult.Succeeded(localizationService.Get(
+                return PlaybackControlResult.Information(localizationService.Get(
                     guildId, LocalizationKeys.FiltersCommandPresets, string.Join(", ", names)));
             }
 
@@ -280,11 +282,13 @@ public sealed class PlaybackFilterService(
                 {
                     "speed" => localizationService.Get(guildId, LocalizationKeys.SpeedCommandCurrent,
                         Number(previous.Filters.Timescale?.Speed ?? 1f)),
+                    "karaoke" => localizationService.Get(guildId, LocalizationKeys.KaraokeDesignState,
+                        localizationService.Get(guildId, previous.Filters.Karaoke is null ? "music_disabled" : "music_enabled")),
                     "pitch" => localizationService.Get(guildId, LocalizationKeys.PitchCommandCurrent,
                         Number(previous.Filters.Timescale?.Pitch ?? 1f)),
                     _ => FormatState(guildId, previous, session.Player.Volume)
                 };
-                return PlaybackControlResult.Succeeded(result);
+                return PlaybackControlResult.Information(result);
             }
 
             var desired = Snapshot(mutation(previous).Filters);
@@ -309,6 +313,13 @@ public sealed class PlaybackFilterService(
                 return true;
             });
             sessions.ValidateControl(session, reservation);
+            var observed = await ReadRemoteAsync(session, reservation, cancellationToken);
+
+            if (!HasSameFilters(desired, observed))
+            {
+                throw new InvalidOperationException("Lavalink did not retain the requested filter configuration.");
+            }
+
             committed = true;
             sessions.ConfirmFilters(session, desired);
             var warning = operation == "preset" && presetName == "bass-heavy"
@@ -330,7 +341,13 @@ public sealed class PlaybackFilterService(
                     presetName!, summary, warning),
                 _ => localizationService.Get(guildId, LocalizationKeys.FiltersCommandApplied, summary, warning)
             };
-            return PlaybackControlResult.Succeeded(text);
+            var outcome = warning.Length > 0 ? PlaybackControlResult.Warning(text) : PlaybackControlResult.Succeeded(text);
+            var titleKey = operation == "reset" ? LocalizationKeys.FilterDesignResetTitle
+                : operation is "preset" or "custom-preset" ? LocalizationKeys.FilterDesignPresetTitle
+                : operation == "karaoke" ? desired.Filters.Karaoke is null
+                    ? LocalizationKeys.KaraokeDesignOffTitle : LocalizationKeys.KaraokeDesignOnTitle
+                : null;
+            return outcome with { ResponseTitleKey = titleKey };
         }
         catch (PlaybackOperationBusyException)
         {
@@ -507,8 +524,9 @@ public sealed class PlaybackFilterService(
             }
         }
 
-        var additional = model.AdditionalFilters?.ToImmutableDictionary(
-            item => item.Key, item => item.Value.Clone(), StringComparer.Ordinal);
+        var additional = model.AdditionalFilters is { Count: > 0 } pluginFilters
+            ? pluginFilters.ToImmutableDictionary(item => item.Key, item => item.Value.Clone(), StringComparer.Ordinal)
+            : null;
         return new PlaybackFilterState(normalized with { AdditionalFilters = additional });
     }
 
@@ -609,8 +627,8 @@ public sealed class PlaybackFilterService(
         PlayerFilterMapModel? filters = name switch
         {
             "flat" => new(),
-            "bass-light" => new() { Equalizer = BassBands(0.06f) },
-            "bass-heavy" => new() { Equalizer = BassBands(0.20f), Volume = 0.85f },
+            "bass-light" => new() { Equalizer = BassBands(0.10f) },
+            "bass-heavy" => new() { Equalizer = BassBands(0.25f), Volume = 0.85f },
             "nightcore" => new() { Timescale = new TimescaleFilterModel(1.15f, 1.15f, 1f) },
             "slowed" => new() { Timescale = new TimescaleFilterModel(0.85f, 0.9f, 1f) },
             "karaoke" => new() { Karaoke = new KaraokeFilterModel(1f, 1f, 220f, 100f) },
@@ -623,11 +641,20 @@ public sealed class PlaybackFilterService(
     }
 
     /// <summary>Builds a bounded low-frequency curve without introducing an unrelated filter.</summary>
-    private static ImmutableArray<EqualizerBandModel>? BassBands(float gain)
+    internal static ImmutableArray<EqualizerBandModel>? BassBands(float gain)
     {
         return gain == 0 ? null :
-        [new EqualizerBandModel(0, gain), new EqualizerBandModel(1, gain * 0.8f),
-            new EqualizerBandModel(2, gain * 0.6f), new EqualizerBandModel(3, gain * 0.3f)];
+        [new EqualizerBandModel(0, gain * 0.6f), new EqualizerBandModel(1, gain),
+            new EqualizerBandModel(2, gain), new EqualizerBandModel(3, gain * 0.8f),
+            new EqualizerBandModel(4, gain * 0.4f), new EqualizerBandModel(5, gain * 0.15f)];
+    }
+
+    /// <summary>Compares normalized server and requested filters, including plugin values and neutral SDK defaults.</summary>
+    internal static bool HasSameFilters(PlaybackFilterState requested, PlaybackFilterState observed)
+    {
+        return JsonNode.DeepEquals(
+            JsonSerializer.SerializeToNode(Snapshot(requested.Filters).Filters),
+            JsonSerializer.SerializeToNode(Snapshot(observed.Filters).Filters));
     }
 
     /// <summary>Formats confirmed numeric values without exposing SDK type names or private protocol state.</summary>

@@ -43,7 +43,17 @@ internal sealed class PlaylistTrackMutationService(
     /// <param name="playlistUrl">The playlist url supplied for this operation.</param>
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
-    internal async Task<SavePlaylistResult> SavePlaylistAsync(
+    internal async Task<ImportPlaylistResult> ImportPlaylistAsync(
+        ulong guildId,
+        string playlistName,
+        string playlistUrl,
+        CancellationToken cancellationToken = default)
+    {
+        return (await ImportPlaylistWithCountAsync(guildId, playlistName, playlistUrl, cancellationToken)).Status;
+    }
+
+    /// <summary>Imports once and reports the count from the saved snapshot without a second database read.</summary>
+    internal async Task<(ImportPlaylistResult Status, int SavedCount)> ImportPlaylistWithCountAsync(
         ulong guildId,
         string playlistName,
         string playlistUrl,
@@ -54,7 +64,7 @@ internal sealed class PlaylistTrackMutationService(
         if (!PlaylistNameValidator.TryNormalize(playlistName, out playlistName))
         {
             logger.LogWarning("Invalid SavePlaylist request. GuildId: {GuildId}, PlaylistName: {PlaylistName}", guildId, playlistName);
-            return SavePlaylistResult.InvalidPlaylistName;
+            return (ImportPlaylistResult.InvalidPlaylistName, 0);
         }
 
         playlistUrl = playlistUrl.Trim();
@@ -62,7 +72,7 @@ internal sealed class PlaylistTrackMutationService(
         if (string.IsNullOrWhiteSpace(playlistUrl))
         {
             logger.LogWarning("Invalid SavePlaylist URL. GuildId: {GuildId}, PlaylistName: {PlaylistName}, PlaylistUrl: {PlaylistUrl}", guildId, playlistName, playlistUrl);
-            return SavePlaylistResult.UnknownError;
+            return (ImportPlaylistResult.UnknownError, 0);
         }
 
         try
@@ -73,14 +83,14 @@ internal sealed class PlaylistTrackMutationService(
             if (exists)
             {
                 logger.LogWarning("Playlist {PlaylistName} already exists for guild {GuildId}", playlistName, guildId);
-                return SavePlaylistResult.AlreadyExists;
+                return (ImportPlaylistResult.AlreadyExists, 0);
             }
 
             if (await IsPlaylistLimitReachedAsync(guildId, cancellationToken))
             {
                 var maxPlaylists = Math.Max(1, options.MaxPlaylistsPerGuild);
                 logger.LogWarning("Playlist limit reached for guild {GuildId}. MaxPlaylistsPerGuild: {MaxPlaylistsPerGuild}", guildId, maxPlaylists);
-                return SavePlaylistResult.PlaylistLimitReached;
+                return (ImportPlaylistResult.PlaylistLimitReached, 0);
             }
 
             var searchMode = trackSearchResolverService.ResolveSearchMode(playlistUrl);
@@ -93,7 +103,7 @@ internal sealed class PlaylistTrackMutationService(
             if (loadResult.IsFailed || tracks.Count == 0)
             {
                 logger.LogWarning("No tracks found for playlist {PlaylistName} with URL {PlaylistUrl} for guild {GuildId}", playlistName, playlistUrl, guildId);
-                return SavePlaylistResult.NoTracksFound;
+                return (ImportPlaylistResult.NoTracksFound, 0);
             }
 
             var maxImportedTracks = GetMaxImportedTracks();
@@ -103,7 +113,7 @@ internal sealed class PlaylistTrackMutationService(
                 && !await guildDataRepository.IsPremiumAsync(guildId, cancellationToken))
             {
                 logger.LogWarning("Playlist {PlaylistName} for guild {GuildId} has {TrackCount} tracks, exceeding limits. MaxImportedTracks: {MaxImportedTracks}, MaxTracksPerPlaylist: {MaxTracksPerPlaylist}", playlistName, guildId, tracks.Count, maxImportedTracks, trackLimit);
-                return SavePlaylistResult.TrackLimitExceeded;
+                return (ImportPlaylistResult.TrackLimitExceeded, 0);
             }
 
             var source = searchMode.ToString();
@@ -122,16 +132,16 @@ internal sealed class PlaylistTrackMutationService(
 
             if (playlistId is null)
             {
-                return SavePlaylistResult.PlaylistLimitReached;
+                return (ImportPlaylistResult.PlaylistLimitReached, 0);
             }
 
             logger.LogInformation("Saved playlist {PlaylistName} for guild {GuildId}. Track count: {TrackCount}", playlistName, guildId, trackRecords.Count);
-            return SavePlaylistResult.Saved;
+            return (ImportPlaylistResult.Saved, trackRecords.Count);
         }
         catch (UniqueConstraintConflictException ex)
         {
             logger.LogWarning(ex, "Playlist {PlaylistName} already exists for guild {GuildId}", playlistName, guildId);
-            return SavePlaylistResult.AlreadyExists;
+            return (ImportPlaylistResult.AlreadyExists, 0);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -140,7 +150,7 @@ internal sealed class PlaylistTrackMutationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to save playlist {PlaylistName} for guild {GuildId}", playlistName, guildId);
-            return SavePlaylistResult.UnknownError;
+            return (ImportPlaylistResult.UnknownError, 0);
         }
     }
 

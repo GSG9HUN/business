@@ -5,7 +5,6 @@ Formats playback metadata and sends now-playing notifications.
 ## Overview
 
 - TrackFormatterService formats at most ten entries in order: the current track, when present, followed by enough waiting tracks to fill the display. It leaves queue and repeat state unchanged.
-
 - TrackFormatterService builds track text and embeds; TrackNotificationService handles response delivery through the selected message channel.
 - Presentation errors should be diagnosed separately from the result of a remote audio command. The caller determines which text channel receives the notification.
 
@@ -39,6 +38,8 @@ var result = await trackFormatterService.FormatCurrentTrackListAsync(guildId, ca
 
 ### TrackNotificationService
 
+`SendValidationAsync` sends classified user-condition warnings and system errors through the existing channel adapter. Playback request outcomes no longer use the generic informational notification path.
+
 **File:** `DC bot/Service/Music/Presentation/TrackNotificationService.cs`
 
 **Purpose:** Builds playback notifications and contains Discord delivery failures at the presentation boundary.
@@ -49,10 +50,15 @@ var result = await trackFormatterService.FormatCurrentTrackListAsync(guildId, ca
 
 **Methods:**
 
-- `BuildNowPlayingEmbed` — Builds localized track details for the now-playing notification.
+- `NotifyMusicControlAsync` — Sends background skip/empty-channel results with contextual styling and bounded text fallback.
 
 ```csharp
-public DiscordEmbed BuildNowPlayingEmbed(ILavaLinkTrack track, TimeSpan position, TimeSpan duration);
+public Task NotifyMusicControlAsync(
+    DiscordChannel channel,
+    ulong guildId,
+    string text,
+    bool success,
+    CancellationToken cancellationToken = default);
 ```
 
 - `NotifyNowPlayingAsync` — Publishes started-track details to the selected response channel.
@@ -87,7 +93,7 @@ public async Task SendSafeAsync(
 The caller supplies the component and argument values used in this example.
 
 ```csharp
-var result = trackNotificationService.BuildNowPlayingEmbed(track, position, duration);
+await trackNotificationService.NotifyNowPlayingAsync(textChannel, track, position, duration, cancellationToken);
 ```
 
 ---

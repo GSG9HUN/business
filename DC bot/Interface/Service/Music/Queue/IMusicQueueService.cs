@@ -78,6 +78,9 @@ public interface IMusicQueueService
     /// <returns>A task representing completion of this operation.</returns>
     Task ClearQueue(ulong guildId, CancellationToken cancellationToken = default);
 
+    /// <summary>Clears waiting entries and returns the affected count from the committed update.</summary>
+    Task<int> ClearQueueWithCountAsync(ulong guildId, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Shuffles waiting tracks and persists their order while retaining queue-item identities.
     /// </summary>

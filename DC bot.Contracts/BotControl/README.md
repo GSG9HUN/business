@@ -2,7 +2,9 @@
 
 Defines command type identifiers, realtime event names, and optional execution-channel context shared by the API and bot.
 
-## Overview
+## Overview
+
+- `BotControlCommandTypes.Queue` and `ImportPlaylist` retain wire values `viewList` and `savePlaylist` for durable command/client compatibility. Discord text names are independently `queue` and `importPlaylist`.
 
 - The API writes commands using these names and Payloads; the worker reads them and the API publishes state updates using the shared event identifiers.
 - Changing a command or event identifier affects both processes and mobile clients. Keep this protocol independent of ASP.NET, Discord SDK objects, and EF entities.

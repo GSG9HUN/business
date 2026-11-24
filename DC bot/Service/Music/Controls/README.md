@@ -4,6 +4,8 @@ Coordinates durable guild settings, current-attempt voting, five-minute empty-ch
 
 ## Overview
 
+- StatusAsync displays compact Voice/Lavalink/Queue information. Lavalink readiness requires a successful live server-information HTTP request with a three-second deadline; transport failures/timeouts report unavailable and caller cancellation propagates. Without an active API client it reports not checked.
+
 - Coordinates guild voting settings, DJ-role selection and track-scoped skip votes.
 - Maintains empty-channel deadlines through the playback lifecycle.
 - Provides read-only music and connection status.
@@ -14,13 +16,13 @@ Coordinates durable guild settings, current-attempt voting, five-minute empty-ch
 
 **Purpose:** Coordinates durable guild settings, current-attempt voting, five-minute empty-channel cleanup and read-only music status through existing session, repository, localization and leave boundaries.
 
-Automatic empty-channel leave and background vote completion publish localized status embeds. Failed embed delivery falls back to plain text bounded to 2000 characters.
+Automatic empty-channel leave and background vote completion delegate presentation and delivery to `ITrackNotificationService.NotifyMusicControlAsync`. The control service determines the outcome and localized reason; the notification service applies playback-cleared/skip titles and bounded text fallback.
 
 **Files:**
 
 - `MusicControlSettingsService.cs`
 
-**Methods:** `ConfigureAsync`, `EvaluateSkipAsync`, `MaintainAsync` and `StatusAsync`.
+**Methods:** `ConfigureAsync`, `EvaluateSkipAsync`, `MaintainAsync` and `StatusAsync`. Read-only settings and status carry informational presentation; saved setting changes retain success presentation.
 
 **Usage:**
 
@@ -44,7 +46,7 @@ Slash equivalents are `/music-config show`, `/music-config vote-skip enabled:tru
 - New Discord/mobile play, playnext, saved-playlist and favorite loads save a canonical Discord mention in the existing requester field. Legacy username-only rows cannot safely establish ownership; their listeners can still vote and DJs can skip.
 - Empty channels leave after five continuous minutes, sampled by the five-second recovery worker. Human return events cancel the timer. Enabling 24/7 cancels it; the shared leave gate rechecks 24/7, current generation and listener presence before admitting full cleanup. Maintenance runs within `PersistentVoiceRecoveryService`.
 - Successful empty-channel leave posts the English/Hungarian reason to the remembered music text channel. Failed notification delivery is logged; it does not undo completed cleanup. Cleanup failure does not produce a false success message.
-- Music status displays actual connection phase, channels, track, volume, filter names, queue size, repeat, voting progress, DJ role, 24/7 and the empty-channel countdown. It does not promise a recovery retry time unavailable through the current state boundary.
+- Music status displays compact voice/API health/queue information. API health is checked remotely; it does not imply that a track is ready to play.
 - Fresh joins use neutral effects and 100% output; the volume range is 0-200%.
 
 ## Related Components

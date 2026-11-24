@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -15,7 +16,7 @@ public sealed class RecommendationsSlashCommand(ISlashCommandExecutor executor, 
     /// <param name="context">The Discord interaction.</param>
     /// <param name="query">Optional seed query; omit to use the current track.</param>
     /// <returns>The shared command execution.</returns>
-    [Command("recommendations")]
+    [Command(CommandNames.Recommendations)]
     [Description("Show recommended tracks")]
     public Task Recommendations(
         SlashCommandContext context,
@@ -27,7 +28,7 @@ public sealed class RecommendationsSlashCommand(ISlashCommandExecutor executor, 
     /// <summary>Routes typed options through the shared text-command pipeline.</summary>
     public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("recommendations", context, argument,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.Recommendations, context, argument,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

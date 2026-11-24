@@ -4,9 +4,23 @@ Contains the .NET Discord music bot, mobile API, Kotlin mobile application, shar
 
 ## Overview
 
+- Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
+
+- The response-text alignment follows existing HTML titles/bodies where runtime data permits. The current 50-command title inventory and explicit unsupported cases are maintained in docs/plans/discord-response-design-audit.md.
+
+- The response design follow-up uses confirmed skip/playnext metadata and committed clear/import counts. Saved-playlist formatting is owned by ResponseBuilder; list embeds omit generic footers. Search selection sends one menu without a cancel button or visible timeout instructions. Music status checks the Lavalink HTTP API with a three-second deadline; no session means not checked. Current design differences are recorded in docs/plans/discord-response-design-audit.md.
+
+- Status embeds now use a separate localized author label, exact design accent colors and result-specific titles. Help uses localized design headers, navigation labels and separate prefix/slash blocks; see docs/plans/help-response-refactor.md for the implemented scope and remaining design differences.
+
+- Help presentation responsibilities and unused response cleanup are documented in docs/plans/help-response-refactor.md. Canonical Discord names now use CommandNames; durable API identifiers remain compatible.
+
+- Personal favorites expose only the `favorite` text/slash command; stored personal favorites remain shared through the existing service.
+
+- Discord command guidance distinguishes waiting queues from saved playlists. Text commands use `queue` and `importPlaylist`; slash import uses `/playlist import`. Bilingual usage lists actual slash routes, options and confirmations.
+
 - Contains the Discord music bot, authenticated mobile API, shared contracts and PostgreSQL persistence.
 - Includes a Kotlin multiplatform mobile application and the supporting Lavalink/Docker configuration.
-- Separates runtime projects, automated tests and technical documentation.
+- Separates runtime projects, automated tests and technical documentation. Native Components V2 help reuses existing pagination for localized category selection, seven-command pages and detailed text/slash guidance in one expiring message. Failed versioned edits retire their session; expiry cleanup has bounded gate waiting and late completed edits remove expired controls.
 
 ## Subfolders
 
@@ -19,7 +33,7 @@ Runs the Discord music bot, command pipeline, and playback lifecycle.
 - `DC bot.csproj`
 - `Program.cs`
 
-**Purpose:** Runs the Discord music bot, command pipeline, and playback lifecycle. Discord replies and channel notifications use localized embeds; long queue, playlist, help, favorite, lyrics and custom-preset results use caller-bound navigation buttons. Rejected embeds use bounded text fallbacks, including unknown commands and long lists; search selection preserves its menu and cancel button.
+**Purpose:** Runs the Discord music bot, command pipeline, and playback lifecycle. Discord replies and channel notifications use localized embeds with contextual titles, severity icons and informational, success, warning and error presentation; long queue, playlist, help, favorite, lyrics and custom-preset results use caller-bound navigation buttons. Rejected embeds use bounded text fallbacks, including unknown commands and long lists; search selection preserves its result menu.
 
 ---
 
@@ -147,7 +161,7 @@ Do not commit local secrets, IDE state, build output, test result artifacts, cov
 - command and reaction handler activation through `BotHandlerRegistrar`
 - cancellation-token based runtime shutdown from `Program.cs` through `BotApplication` to `BotService`
 
-`DiscordClientEventHandler` receives dependencies directly through constructor injection. `CommandHandlerService` and `HelpCommand` use `ICommandRegistry` instead of command service-location. `BotServiceProviderFactory` composes focused DI modules under `Startup/DependencyInjection/`; `AddDiscordRuntime` wires Discord socket/session/guild/voice/message/reaction callbacks through DSharpPlus 5 builder APIs, while `BotHandlerRegistrar` enables the text command and reaction handlers after the service graph is built. Track identity persistence is centralized behind `ITrackSerializer`; queue item states use the explicit `QueueItemState` enum; saved playlists are persisted through playlist repository records and EF Core playlist entities.
+`DiscordClientEventHandler` receives dependencies directly through constructor injection. `CommandHandlerService` and `HelpResponseBuilder` use `ICommandRegistry` instead of command service-location; `HelpCommand` delegates presentation to `IHelpResponseBuilder`. `BotServiceProviderFactory` composes focused DI modules under `Startup/DependencyInjection/`; `AddDiscordRuntime` wires Discord socket/session/guild/voice/message/reaction callbacks through DSharpPlus 5 builder APIs, while `BotHandlerRegistrar` enables the text command and reaction handlers after the service graph is built. Track identity persistence is centralized behind `ITrackSerializer`; queue item states use the explicit `QueueItemState` enum; saved playlists are persisted through playlist repository records and EF Core playlist entities.
 
 ---
 
@@ -159,8 +173,12 @@ Playlists use guild playback ownership and canonical batches. Canonical BatchId/
 
 ## Related Components
 
+- [Current response design audit](docs/plans/discord-response-design-audit.md) - All 50 HTML command entries, remaining differences and source/live validation limits.
+
 - `docs/plans/music-command-roadmap.md` - Bot feature proposals and deployment verification backlog.
 - `docs/plans/mobile-music-parity-roadmap.md` - API, command bridge and Android/iOS integration backlog.
+- `docs/plans/discord-components-v2-help.md` - Implemented Components V2 help flow and outstanding live Discord acceptance checks.
+- [Help response refactor](docs/plans/help-response-refactor.md) - Responsibility audit, exact component changes, unused legacy removals and validation limits.
 - `docker-compose.yaml` - Local runtime stack.
 - `readme_required_tests.md` - Required verification matrix and test policy.
 - `DC bot/Startup/README.md` - Runtime composition and database migration startup.

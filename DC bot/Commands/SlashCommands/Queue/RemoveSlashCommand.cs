@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,14 +13,14 @@ public sealed class RemoveSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "remove";
+    private const string CommandName = CommandNames.Remove;
 
     /// <summary>Handle remove queue operation through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="position">The position passed to the shared text command.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("remove")]
-    [Description("Handle remove queue operation")]
+    [Command(CommandNames.Remove)]
+    [Description("Remove a waiting track by its one-based queue position")]
     public Task Remove(
         SlashCommandContext context,
         [Parameter("position")][Description("One-based waiting position")] int position)

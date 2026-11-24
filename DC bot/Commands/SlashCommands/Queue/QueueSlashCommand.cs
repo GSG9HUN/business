@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -12,14 +13,14 @@ namespace DC_bot.Commands.SlashCommands.Queue;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class QueueSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "viewList";
+    private const string CommandName = CommandNames.Queue;
 
     /// <summary>
     /// Adapts the queue slash route to its shared handler and interaction response policy.
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("queue")]
+    [Command(CommandNames.Queue)]
     [Description("View the current queue")]
     public Task Queue(SlashCommandContext context)
     {

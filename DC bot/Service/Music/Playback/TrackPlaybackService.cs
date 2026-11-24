@@ -499,7 +499,9 @@ public sealed class TrackPlaybackService(
             try
             {
                 await trackNotificationService.SendSafeAsync(channel,
-                    localizationService.Get(session.GuildId, LocalizationKeys.PlayNextCommandQueued, tracks.Count),
+                    localizationService.Get(session.GuildId, LocalizationKeys.PlayNextCommandQueued, tracks.Count,
+                        DC_bot.Helper.DiscordTextSanitizer.EscapeMentions(tracks[0].Title),
+                        tracks[0].Duration.ToString(@"m\:ss", System.Globalization.CultureInfo.InvariantCulture)),
                     "PlayNext.Queued", cancellationToken);
             }
             catch (Exception exception)

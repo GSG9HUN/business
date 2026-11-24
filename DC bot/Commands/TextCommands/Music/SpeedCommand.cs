@@ -27,7 +27,7 @@ public sealed class SpeedCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "speed";
+    public string Name => CommandNames.Speed;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -65,7 +65,7 @@ public sealed class SpeedCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

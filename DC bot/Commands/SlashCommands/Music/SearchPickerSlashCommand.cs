@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -15,7 +16,7 @@ public sealed class SearchPickerSlashCommand(ISlashCommandExecutor executor, ISl
     /// <param name="context">The Discord interaction.</param>
     /// <param name="mode">on, off, or status.</param>
     /// <returns>The shared command execution.</returns>
-    [Command("searchpicker")]
+    [Command(CommandNames.SearchPicker)]
     [Description("Configure searchpicker (on/off/status)")]
     public Task SearchPicker(
         SlashCommandContext context,
@@ -27,7 +28,7 @@ public sealed class SearchPickerSlashCommand(ISlashCommandExecutor executor, ISl
     /// <summary>Routes typed options through the shared text-command pipeline.</summary>
     public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("searchpicker", context, argument,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.SearchPicker, context, argument,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

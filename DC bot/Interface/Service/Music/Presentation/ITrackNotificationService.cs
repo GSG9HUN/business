@@ -10,6 +10,17 @@ namespace DC_bot.Interface.Service.Music.Presentation;
 public interface ITrackNotificationService
 {
 
+    /// <summary>Sends background skip/empty-channel results with contextual styling and bounded text fallback.</summary>
+    Task NotifyMusicControlAsync(
+        DiscordChannel channel,
+        ulong guildId,
+        string text,
+        bool success,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Sends a localized failure or user condition with the shared response severity classification.</summary>
+    Task SendValidationAsync(IDiscordChannel channel, string errorKey, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Raised when a track-start notification is published to subscribers.
     /// </summary>
@@ -52,13 +63,4 @@ public interface ITrackNotificationService
         string message,
         string operation,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Builds localized track details for the now-playing notification.
-    /// </summary>
-    /// <param name="track">The track whose identity and metadata are used by the operation.</param>
-    /// <param name="pos">The pos supplied for this operation.</param>
-    /// <param name="trackDuration">The track duration supplied for this operation.</param>
-    /// <returns>The value produced for the supplied operation context.</returns>
-    DiscordEmbed BuildNowPlayingEmbed(ILavaLinkTrack track, TimeSpan pos, TimeSpan trackDuration);
 }

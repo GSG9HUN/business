@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -8,7 +9,7 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <summary>Groups filter inspection, supported preset selection, and volume-preserving reset.</summary>
 /// <param name="slashCommandExecutor">Executes the existing shared command pipeline.</param>
 /// <param name="contextFactory">Adapts the SDK interaction context.</param>
-[Command("filters")]
+[Command(CommandNames.Filters)]
 [Description("Inspect and configure playback filters")]
 public sealed class FiltersSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,

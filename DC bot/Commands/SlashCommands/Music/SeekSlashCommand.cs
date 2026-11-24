@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,13 +13,13 @@ public sealed class SeekSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "seek";
+    private const string CommandName = CommandNames.Seek;
 
     /// <summary>Seek to seconds, mm:ss, or hh:mm:ss through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="position">The position passed to the shared text command.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("seek")]
+    [Command(CommandNames.Seek)]
     [Description("Seek to seconds, mm:ss, or hh:mm:ss")]
     public Task Seek(
         SlashCommandContext context,

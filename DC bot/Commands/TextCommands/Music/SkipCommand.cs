@@ -29,7 +29,7 @@ public class SkipCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "skip";
+    public string Name => CommandNames.Skip;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -67,7 +67,7 @@ public class SkipCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

@@ -1,5 +1,10 @@
+using DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
+using DC_bot.Interface.Service.Music.Tracks;
+using DC_bot.Interface.Service.Presentation.Models;
 using DSharpPlus.Entities;
 using DC_bot.Interface.Discord;
+using DC_bot.Interface.Service.Music.Playback.Models;
+using DC_bot.Interface.Service.Persistence.Models.Queue;
 
 namespace DC_bot.Interface.Service.Presentation;
 
@@ -8,6 +13,36 @@ namespace DC_bot.Interface.Service.Presentation;
 /// </summary>
 public interface IResponseBuilder
 {
+
+    /// <summary>Formats saved-playlist rows using only their persisted order and display title.</summary>
+    PaginationRequest BuildPlaylistPages(ulong guildId, ViewPlaylistResult result);
+
+    /// <summary>Formats a queue snapshot with the current-track heading and waiting-track durations.</summary>
+    PaginationRequest BuildQueuePages(
+        ulong guildId,
+        IReadOnlyCollection<ILavaLinkTrack> tracks,
+        ILavaLinkTrack? current);
+
+    /// <summary>Presents batch history through the shared localized response and bounded fallback pipeline.</summary>
+    Task SendHistoryAsync(
+        IDiscordMessage message,
+        IReadOnlyCollection<PlaybackBatchRecord> batches,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a localized validation response using the shared user-condition/system-failure classification.</summary>
+    DiscordEmbed CreateValidationEmbed(ulong? guildId, string errorKey);
+
+    /// <summary>Sends read-only information through the existing bounded embed and text fallback pipeline.</summary>
+    Task SendInfoAsync(IDiscordMessage message, string localizationKey, CancellationToken cancellationToken, params object[] args);
+
+    /// <summary>Sends read-only information with formatting arguments.</summary>
+    Task SendInfoAsync(IDiscordMessage message, string localizationKey, params object[] args);
+
+    /// <summary>Presents successful playback results according to their informational, warning or change metadata.</summary>
+    Task SendPlaybackResultAsync(
+        IDiscordMessage message,
+        PlaybackControlResult result,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Creates a bounded, guild-localized embed for channel notifications and interaction responses.</summary>
     /// <param name="guildId">The guild language scope, or null for the default catalog.</param>

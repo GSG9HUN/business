@@ -29,13 +29,21 @@ public class PlaylistService : IPlaylistService
     }
 
     /// <inheritdoc />
-    public async Task<SavePlaylistResult> SavePlaylistAsync(
+    public Task<(ImportPlaylistResult Status, int SavedCount)> ImportPlaylistWithCountAsync(
+        ulong guildId,
+        string playlistName,
+        string playlistUrl,
+        CancellationToken cancellationToken = default) =>
+        _trackMutationService.ImportPlaylistWithCountAsync(guildId, playlistName, playlistUrl, cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<ImportPlaylistResult> ImportPlaylistAsync(
         ulong guildId,
         string playlistName,
         string playlistUrl,
         CancellationToken cancellationToken)
     {
-        return await _trackMutationService.SavePlaylistAsync(guildId, playlistName, playlistUrl, cancellationToken);
+        return await _trackMutationService.ImportPlaylistAsync(guildId, playlistName, playlistUrl, cancellationToken);
     }
 
     /// <summary>

@@ -121,7 +121,7 @@ public sealed class RecommendationService(
 
             var text = string.Join("\n", choices.Select((track, index) =>
                 $"{index + 1}. {Bound(track.Author)} - {Bound(track.Title)}\n{track.Uri}"));
-            return PlaybackControlResult.Succeeded(localization.Get(guildId, LocalizationKeys.RecommendationsList, text));
+            return PlaybackControlResult.Information(localization.Get(guildId, LocalizationKeys.RecommendationsList, text));
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -146,7 +146,7 @@ public sealed class RecommendationService(
         if (value is "" or "status")
         {
             var enabled = await settings.GetAutoplayAsync(guildId, token);
-            return PlaybackControlResult.Succeeded(localization.Get(guildId,
+            return PlaybackControlResult.Information(localization.Get(guildId,
                 enabled ? LocalizationKeys.AutoplayEnabled : LocalizationKeys.AutoplayDisabled));
         }
 
@@ -172,7 +172,11 @@ public sealed class RecommendationService(
             await settings.SetAutoplayAsync(guildId, value == "on", token);
             ManualRequest(guildId);
             return PlaybackControlResult.Succeeded(localization.Get(guildId,
-                value == "on" ? LocalizationKeys.AutoplayEnabled : LocalizationKeys.AutoplayDisabled));
+                value == "on" ? LocalizationKeys.AutoplayEnabled : LocalizationKeys.AutoplayDisabled)) with
+        {
+            ResponseTitleKey = value == "on" ? LocalizationKeys.ResponseOutcomeAutoplayEnabledTitle
+                : LocalizationKeys.ResponseOutcomeAutoplayDisabledTitle
+        };
         }
         finally
         {

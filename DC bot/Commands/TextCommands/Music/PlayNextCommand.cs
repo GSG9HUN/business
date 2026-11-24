@@ -32,7 +32,7 @@ public class PlayNextCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "playnext";
+    public string Name => CommandNames.PlayNext;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

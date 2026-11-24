@@ -4,9 +4,15 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 
 ## Overview
 
+- ViewPlaylistCommand delegates saved-list headings and rows to IResponseBuilder.BuildPlaylistPages; unused author/duration formatting has been removed. Empty/missing/error states use localized warnings/errors. Import replies use the count returned by the saved snapshot.
+
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- `ImportPlaylistCommand` imports external tracks into a new saved playlist. Usage demonstrates quoted multiword names and URL/search input; it does not save the active queue.
+
 - Parses saved-playlist creation, import, editing, inspection and loading commands.
 - Validates caller context and delegates playlist storage and playback to services.
-- Provides localized descriptions, usage and operation outcomes.
+- Provides localized descriptions, usage and operation outcomes. Empty read-only listings use informational responses; rejected changes use warnings and storage failures use errors.
 
 ## Classes
 
@@ -264,15 +270,15 @@ await renamePlaylistCommand.ExecuteAsync(message);
 
 ---
 
-### SavePlaylistCommand
+### ImportPlaylistCommand
 
-**File:** `DC bot/Commands/TextCommands/Playlist/SavePlaylistCommand.cs`
+**File:** `DC bot/Commands/TextCommands/Playlist/ImportPlaylistCommand.cs`
 
-**Purpose:** Handles the save playlist text command through validation, service, and localized response boundaries.
+**Purpose:** Imports external tracks into a new saved playlist through validation, service, and localized response boundaries.
 
 **Implements / inherits:** `ICommand`.
 
-**Command identifier:** `savePlaylist`. Message routing applies the configured prefix.
+**Command identifier:** `importPlaylist`. Message routing applies the configured prefix.
 
 **Properties:**
 
@@ -295,7 +301,7 @@ public async Task ExecuteAsync(IDiscordMessage message);
 The caller supplies the component and argument values used in this example.
 
 ```csharp
-await savePlaylistCommand.ExecuteAsync(message);
+await importPlaylistCommand.ExecuteAsync(message);
 ```
 
 ---
@@ -306,7 +312,7 @@ await savePlaylistCommand.ExecuteAsync(message);
 
 **Purpose:** Handles the view playlist text command through validation, service, and localized response boundaries.
 
-Displays every saved track through snapshot pages instead of truncating after ten tracks. Playlist order, author/title and duration are retained; the playlist name remains the embed title.
+Displays every saved track through snapshot pages instead of truncating after ten tracks. ResponseBuilder renders persisted order/title and a localized playlist-name heading; author/duration values are not formatted for this view.
 
 **Implements / inherits:** `ICommand`.
 

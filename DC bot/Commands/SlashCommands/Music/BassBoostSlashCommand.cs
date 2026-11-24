@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -17,7 +18,7 @@ public sealed class BassBoostSlashCommand(
     /// <param name="context">The SDK interaction context.</param>
     /// <param name="level">The optional value; omitted values inspect the current state.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("bassboost")]
+    [Command(CommandNames.BassBoost)]
     [Description("Show or change bass emphasis: off, low, medium, high")]
     public Task BassBoost(
         SlashCommandContext context,

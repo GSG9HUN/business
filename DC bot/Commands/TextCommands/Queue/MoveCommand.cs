@@ -27,7 +27,7 @@ public sealed class MoveCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "move";
+    public string Name => CommandNames.Move;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -57,7 +57,7 @@ public sealed class MoveCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

@@ -4,8 +4,11 @@ This class library defines the shared language used by the Discord bot, mobile A
 
 ## Overview
 
+- Queue clearing can return the affected count from the committed serializable update. Existing no-count callers remain supported; the Discord response consumes this count without an earlier race-prone count query.
+
 - Defines SDK-independent data and operation contracts shared by the bot and API.
 - Provides persistence interfaces, immutable records, validation and durable command payloads.
+- `BotControlCommandTypes.Queue` and `ImportPlaylist` retain legacy serialized identifiers for existing clients and queued commands; Discord command names are independent.
 
 ## Subfolders
 

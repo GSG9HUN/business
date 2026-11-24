@@ -63,7 +63,7 @@ public class SlashCommandExecutor(
         if (requireGuild && context.Guild is null)
         {
             await context.RespondAsync(responseBuilder.CreateEmbed(context.GuildId,
-                GetLocalizedMessage(context, LocalizationKeys.SlashCommandGuildOnly), DiscordColor.Red, LocalizationKeys.ResponseErrorTitle))
+                GetLocalizedMessage(context, LocalizationKeys.SlashCommandGuildOnly), DiscordColor.Gold, LocalizationKeys.ResponseWarningTitle))
                 .WaitAsync(cancellationToken);
             return;
         }

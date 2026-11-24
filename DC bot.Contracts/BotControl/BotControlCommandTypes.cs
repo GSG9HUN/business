@@ -69,7 +69,8 @@ public static class BotControlCommandTypes
     /// <summary>
     /// The bot control command type for viewing the playback queue.
     /// </summary>
-    public const string ViewList = "viewList";
+    /// <remarks>The legacy wire value is retained for durable commands and existing clients.</remarks>
+    public const string Queue = "viewList";
 
     /// <summary>
     /// The bot control command type for clearing the playback queue.
@@ -109,7 +110,8 @@ public static class BotControlCommandTypes
     /// <summary>
     /// The bot control command type for saving a playlist from a URL.
     /// </summary>
-    public const string SavePlaylist = "savePlaylist";
+    /// <remarks>The legacy wire value is retained for durable commands and existing clients.</remarks>
+    public const string ImportPlaylist = "savePlaylist";
 
     /// <summary>
     /// The bot control command type for loading a saved playlist.

@@ -1,7 +1,6 @@
 using DC_bot.Constants;
 using DC_bot.Exceptions.Music;
 using DC_bot.Interface.Discord;
-using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Music.Discovery;
 using DC_bot.Interface.Service.Music.Events;
 using DC_bot.Interface.Service.Music.Lifecycle;
@@ -19,7 +18,6 @@ namespace DC_bot.Service.Music.Playback;
 /// Loads requested tracks and routes them to a validated, session-bound queue.
 /// </summary>
 /// <param name="audioService">The audio service dependency used by this boundary.</param>
-/// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="trackNotificationService">The track notification service dependency used by this boundary.</param>
 /// <param name="playerConnectionService">The player connection service dependency used by this boundary.</param>
 /// <param name="playbackEventHandlerService">The playback event handler service dependency used by this boundary.</param>
@@ -30,7 +28,6 @@ namespace DC_bot.Service.Music.Playback;
 /// <param name="logger">The structured logger used at this operation boundary.</param>
 public sealed class PlaybackRequestService(
     IAudioService audioService,
-    ILocalizationService localizationService,
     ITrackNotificationService trackNotificationService,
     IPlayerConnectionService playerConnectionService,
     IPlaybackEventHandlerService playbackEventHandlerService,
@@ -221,7 +218,7 @@ public sealed class PlaybackRequestService(
 
         try
         {
-            await trackNotificationService.SendSafeAsync(message.Channel, localizationService.Get(message.Channel.Guild.Id, key), "PlaybackRequest.Outcome", cancellationToken)
+            await trackNotificationService.SendValidationAsync(message.Channel, key, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
@@ -250,9 +247,8 @@ public sealed class PlaybackRequestService(
         if (voiceStateChannel.Guild.Id != message.Channel.Guild.Id
             || (existing is not null && existing.Player.VoiceChannelId != voiceStateChannel.Id))
         {
-            await trackNotificationService.SendSafeAsync(message.Channel,
-                localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.PlaybackWrongVoiceChannel),
-                "PlayNext.WrongVoice", cancellationToken);
+            await trackNotificationService.SendValidationAsync(message.Channel,
+                LocalizationKeys.PlaybackWrongVoiceChannel, cancellationToken);
             return new(PlaybackStartStatus.NotStarted, Guid.NewGuid());
         }
 
@@ -267,9 +263,8 @@ public sealed class PlaybackRequestService(
 
         if (player.VoiceChannelId != voiceStateChannel.Id)
         {
-            await trackNotificationService.SendSafeAsync(message.Channel,
-                localizationService.Get(guildId, LocalizationKeys.PlaybackWrongVoiceChannel),
-                "PlayNext.WrongVoice", cancellationToken);
+            await trackNotificationService.SendValidationAsync(message.Channel,
+                LocalizationKeys.PlaybackWrongVoiceChannel, cancellationToken);
             return new(PlaybackStartStatus.NotStarted, operationId);
         }
 

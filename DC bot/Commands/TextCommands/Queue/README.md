@@ -4,9 +4,16 @@ Exposes queue display, repetition, ordering, and recent batch history through te
 
 ## Overview
 
+- Queue presentation includes current-track context and waiting-track durations. Clear replies report the affected count from the committed update; shuffle replies include the changed snapshot size. Empty queues are warnings.
+
+- HistoryCommand loads recent batches and delegates row formatting and safe delivery to IResponseBuilder.SendHistoryAsync.
+
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
 - Provides queue inspection, ordering, removal, repeat and batch-history commands.
 - Uses one-based waiting positions and shared playback validation for mutations.
 - Presents localized descriptions, usage, queue results and validation errors.
+- Uses informational embeds for queue searches and empty read-only listings; confirmed queue changes retain success presentation.
 
 ## Classes
 
@@ -246,9 +253,9 @@ await shuffleCommand.ExecuteAsync(message);
 
 ---
 
-### ViewQueueCommand
+### QueueCommand
 
-**File:** `DC bot/Commands/TextCommands/Queue/ViewQueueCommand.cs`
+**File:** `DC bot/Commands/TextCommands/Queue/QueueCommand.cs`
 
 **Purpose:** Handles the view queue text command through validation, service, and localized response boundaries.
 
@@ -256,7 +263,7 @@ Displays the complete waiting queue in stable snapshot pages with numbered track
 
 **Implements / inherits:** `ICommand`.
 
-**Command identifier:** `viewList`. Message routing applies the configured prefix.
+**Command identifier:** `queue`. Message routing applies the configured prefix.
 
 **Properties:**
 

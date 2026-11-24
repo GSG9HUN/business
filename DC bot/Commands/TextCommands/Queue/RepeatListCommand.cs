@@ -35,7 +35,7 @@ public class RepeatListCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "repeatList";
+    public string Name => CommandNames.RepeatList;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -83,7 +83,7 @@ public class RepeatListCommand(
 
         if (!await queueService.TryEnableBatchRepeatAsync(guildId, default))
         {
-            await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewListCommandError);
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.QueueCommandEmpty);
             return;
         }
 

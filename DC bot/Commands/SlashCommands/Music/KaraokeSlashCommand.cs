@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -17,7 +18,7 @@ public sealed class KaraokeSlashCommand(
     /// <param name="context">The SDK interaction context.</param>
     /// <param name="mode">The optional value; omitted values inspect the current state.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("karaoke")]
+    [Command(CommandNames.Karaoke)]
     [Description("Show or toggle karaoke: on/off")]
     public Task Karaoke(
         SlashCommandContext context,

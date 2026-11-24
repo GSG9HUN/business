@@ -29,7 +29,7 @@ public class PreviousCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "previous";
+    public string Name => CommandNames.Previous;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

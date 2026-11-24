@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -12,14 +13,14 @@ namespace DC_bot.Commands.SlashCommands.Utility;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class PingSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "ping";
+    private const string CommandName = CommandNames.Ping;
 
     /// <summary>
     /// Adapts the ping slash route to its shared handler and interaction response policy.
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("ping")]
+    [Command(CommandNames.Ping)]
     [Description("Replies with Pong!")]
     public Task Ping(SlashCommandContext context)
     {

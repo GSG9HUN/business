@@ -4,6 +4,8 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 
 ## Overview
 
+- Queue clearing can return the affected count from the committed serializable update. Existing no-count callers remain supported; the Discord response consumes this count without an earlier race-prone count query.
+
 - Implements shared PostgreSQL storage for guilds, playback, queues, playlists and durable commands.
 - Maps EF Core entities to SDK-independent repository contracts and result records.
 - Coordinates transactional writes, concurrency retries and schema migrations.

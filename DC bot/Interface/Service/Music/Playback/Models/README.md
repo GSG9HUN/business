@@ -4,6 +4,8 @@ Carries inputs, statuses, and results for the playback use cases.
 
 ## Overview
 
+- PlaybackControlResult.ResponseTitleKey optionally carries a localized outcome identity for compound commands. Severity remains governed by Success, HasWarning and IsInformational; pagination is unchanged.
+
 - Describes playback outcomes, start reasons and acknowledgement states.
 - Carries presentation and reconciliation data between playback services and command adapters.
 
@@ -15,7 +17,7 @@ Carries inputs, statuses, and results for the playback use cases.
 
 **Purpose:** Carries the success state and response details of a playback control.
 
-`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes. Optional `Pagination` carries a read-only page loader and starting content for Discord list presentation; the ordinary message remains available to other callers.
+`TrackDisplayName` contains the author/title captured by a successful pause or resume. `Success`, `Message` and `ErrorCode` describe execution and presentation outcomes. `IsInformational` marks read-only success; `HasWarning` marks completed work with a caveat. `Information` and `Warning` factories retain successful execution semantics while selecting the appropriate Discord presentation. Optional `Pagination` carries a read-only page loader and starting content for Discord list presentation; the ordinary message remains available to other callers.
 
 **Record declaration:**
 

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,14 +13,14 @@ public sealed class SkipToSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "skipto";
+    private const string CommandName = CommandNames.SkipTo;
 
     /// <summary>Handle skipto queue operation through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="position">The position passed to the shared text command.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("skipto")]
-    [Description("Handle skipto queue operation")]
+    [Command(CommandNames.SkipTo)]
+    [Description("Start a waiting track by position, skipping earlier waiting tracks for this pass")]
     public Task SkipTo(
         SlashCommandContext context,
         [Parameter("position")][Description("One-based waiting position")] int position)

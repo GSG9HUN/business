@@ -29,7 +29,7 @@ public class JoinCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "join";
+    public string Name => CommandNames.Join;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

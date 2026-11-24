@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -12,7 +13,7 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class PlaySlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "play";
+    private const string CommandName = CommandNames.Play;
 
     /// <summary>
     /// Adapts the play slash route to its shared handler and interaction response policy.
@@ -20,8 +21,8 @@ public class PlaySlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlash
     /// <param name="context">The context supplied for this operation.</param>
     /// <param name="query">The query supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("play")]
-    [Description("Start playing music in the voice channel")]
+    [Command(CommandNames.Play)]
+    [Description("Add music from a query or URL to the queue; start playback if nothing is playing")]
     public Task Play(SlashCommandContext context, [Parameter("query")][Description("URL or search query")] string query)
     {
         return ExecuteAsync(contextFactory.Create(context), query);

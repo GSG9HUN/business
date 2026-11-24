@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,14 +13,14 @@ public sealed class QueueFindSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "queuefind";
+    private const string CommandName = CommandNames.QueueFind;
 
     /// <summary>Handle queuefind queue operation through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="query">The title or artist text to find.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("queuefind")]
-    [Description("Handle queuefind queue operation")]
+    [Command(CommandNames.QueueFind)]
+    [Description("Find waiting tracks by title or artist; show up to 10 matches")]
     public Task QueueFind(
         SlashCommandContext context,
         [Parameter("query")][Description("Title or artist to find")] string query)

@@ -53,6 +53,7 @@ public static class CoreServiceCollectionExtensions
             .AddSingleton<ReactionHandlerService>()
             .AddSingleton<CommandHandlerService>()
             .AddSingleton<IResponseBuilder, ResponseBuilder>()
+            .AddSingleton<IHelpResponseBuilder, HelpResponseBuilder>()
             .AddSingleton<DiscordPaginationService>()
             .AddSingleton<ICommandHelper, CommandValidationService>()
             .AddSingleton<IValidationService, ValidationService>()

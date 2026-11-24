@@ -219,18 +219,25 @@ public class QueueRepository : IQueueRepository
     /// <inheritdoc/>
     public async Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
-        await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
+        await MarkAllQueuedAsSkippedWithCountAsync(guildId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> MarkAllQueuedAsSkippedWithCountAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        return await PostgreSqlConcurrencyHelper.ExecuteInSerializableTransactionWithRetryAsync(
             _dbContextFactory,
             async (dbContext, ct) =>
             {
                 await EnsureNoPendingStartAsync(dbContext, guildId, ct);
                 await QueueRepeatListRepository.ClearAsync(dbContext, guildId, ct);
                 var now = DateTimeOffset.UtcNow;
-                await dbContext.GuildQueueItems.Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
+                var count = await dbContext.GuildQueueItems.Where(item => item.GuildId == guildId && item.State == QueueItemState.Queued)
                     .ExecuteUpdateAsync(setters => setters.SetProperty(item => item.State, QueueItemState.Skipped)
                         .SetProperty(item => item.SkippedAtUtc, now), ct);
                 await QueueRealtimeNotifier.NotifyQueueUpdatedAsync(
                     dbContext, guildId, MobileRealtimeEventNames.QueueCleared, ct);
+                return count;
             },
             cancellationToken);
     }
