@@ -7,8 +7,10 @@ namespace DC_bot.Interface.Service.Persistence.Models.Queue;
 /// <param name = "SourceQuery">The optional original reloadable URL or query, subject to the storage length limit.</param>
 /// <param name = "SourceSearchMode">The optional persisted provider/search-mode name.</param>
 /// <param name = "RequestedBy">The optional requester display value, subject to the storage length limit.</param>
+/// <param name="RequestedByDisplayName">Plain requester name for non-Discord clients, when captured.</param>
 public sealed record QueueItemToEnqueue(
     string TrackIdentifier,
     string? SourceQuery,
     string? SourceSearchMode,
-    string? RequestedBy);
+    string? RequestedBy,
+    string? RequestedByDisplayName = null);

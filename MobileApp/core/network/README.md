@@ -5,6 +5,8 @@ used by the application data layer.
 
 ## Overview
 
+`CurrentTrackApiService.setVolume` posts `SetVolumeRequestDto(volumePercent)` to `/guilds/{guildId}/playback/volume`. HTTP acceptance returns a durable command, while terminal completion is observed separately. `PlaybackStatusDto.volumePercent` is nullable and defaults to unknown for older servers; successful snapshots map confirmed server output to the domain and UI.
+
 - Typed HTTP services and remote data sources for authenticated application operations.
 - Serialization DTOs and realtime transport adapters shared through the data layer.
 - Platform HTTP clients configured through the existing dependency injection modules.

@@ -24,6 +24,9 @@ import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrac
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_seek_succeeded
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_seek_unknown
 import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_shuffle_queue_failed
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_volume_failed
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_volume_succeeded
+import com.dc.melodiasmario.feature.currenttrack.generated.resources.currenttrack_volume_unknown
 import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEffect
 import org.jetbrains.compose.resources.stringResource
 
@@ -48,6 +51,9 @@ internal data class CurrentTrackEffectMessages(
     private val repeatModeChangeFailed: String,
     private val shuffleQueueFailed: String,
     private val playPauseToggleFailed: String,
+    private val volumeSucceeded: String,
+    private val volumeFailed: String,
+    private val volumeUnknown: String,
     private val seekSucceeded: String,
     private val seekFailed: String,
     private val seekUnknown: String,
@@ -57,6 +63,9 @@ internal data class CurrentTrackEffectMessages(
      * Maps the supplied effect to localized toast data, or returns null when no toast is needed.
      */
     fun toastDataFor(effect: CurrentTrackEffect): MToastData? = when (effect) {
+        CurrentTrackEffect.VolumeSucceeded -> success(message = volumeSucceeded)
+        CurrentTrackEffect.VolumeFailed -> error(message = volumeFailed)
+        CurrentTrackEffect.VolumeOutcomeUnknown -> info(message = volumeUnknown)
         CurrentTrackEffect.NavigateToGuildSelector,
         CurrentTrackEffect.NavigateToProfile -> null
 
@@ -119,6 +128,9 @@ internal fun currentTrackEffectMessages(): CurrentTrackEffectMessages = CurrentT
     repeatModeChangeFailed = stringResource(resource = Res.string.currenttrack_repeat_mode_change_failed),
     shuffleQueueFailed = stringResource(resource = Res.string.currenttrack_shuffle_queue_failed),
     playPauseToggleFailed = stringResource(resource = Res.string.currenttrack_play_pause_toggle_failed),
+    volumeSucceeded = stringResource(resource = Res.string.currenttrack_volume_succeeded),
+    volumeFailed = stringResource(resource = Res.string.currenttrack_volume_failed),
+    volumeUnknown = stringResource(resource = Res.string.currenttrack_volume_unknown),
     seekSucceeded = stringResource(resource = Res.string.currenttrack_seek_succeeded),
     seekFailed = stringResource(resource = Res.string.currenttrack_seek_failed),
     seekUnknown = stringResource(resource = Res.string.currenttrack_seek_unknown),

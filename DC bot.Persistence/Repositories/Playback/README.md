@@ -4,6 +4,8 @@ Implements shared storage operations for current playback state, repeat flags, s
 
 ## Overview
 
+`PlaybackStateRepository.SetVolumePercentAsync` validates 0-200, changes only volume and the general update timestamp, and publishes `PlaybackSnapshotChanged` in the same transaction. It does not modify `PositionUpdatedAtUtc`, pause/repeat state, or other guilds.
+
 - `RepeatListRepository.ReplaceAsync` permits more than 50 snapshot tracks for active premium guilds. Entitlement and the free-guild cap are checked in the replacement transaction before removing stored rows.
 
 - Callers resolve the contracts through AddPersistenceServices; implementations create contexts through IDbContextFactory and map database state into shared records.

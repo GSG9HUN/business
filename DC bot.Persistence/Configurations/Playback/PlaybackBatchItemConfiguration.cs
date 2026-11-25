@@ -32,6 +32,9 @@ public class PlaybackBatchItemConfiguration : IEntityTypeConfiguration<PlaybackB
             .HasColumnName("source_query");
         builder.Property(x => x.SourceSearchMode)
             .HasColumnName("source_search_mode");
+        builder.Property(x => x.RequestedByDisplayName)
+            .HasColumnName("requested_by_display_name")
+            .HasMaxLength(128);
         builder.Property(x => x.RequestedBy)
             .HasColumnName("requested_by");
         builder.Property(x => x.AddedAtUtc)

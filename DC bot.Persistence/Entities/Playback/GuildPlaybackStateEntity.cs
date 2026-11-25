@@ -8,6 +8,9 @@ namespace DC_bot.Entities.Playback;
 public class GuildPlaybackStateEntity
 {
 
+    /// <summary>The last acknowledged output percentage; null until a player has been observed.</summary>
+    public int? VolumePercent { get; set; }
+
     /// <summary>
     /// The Discord guild identifier.
     /// </summary>

@@ -4,6 +4,8 @@ Defines repository operations for current playback state, repeat flags, start ow
 
 ## Overview
 
+`IPlaybackStateRepository.SetVolumePercentAsync` stores acknowledged 0-200% output and publishes a playback snapshot notification without changing track identity, pause state, or position timestamps.
+
 - The bot and API consume these interfaces; concrete implementations and DI registration live in DC bot.Persistence unless noted below.
 - Describe lookup absence, ordering, conditional mutation, and cancellation in the contract. Keep provider-specific SQL and EF types out of this boundary.
 

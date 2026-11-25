@@ -4,6 +4,10 @@ Defines EF Core table mappings for current playback state, repeat flags, start o
 
 ## Overview
 
+Canonical batch items map nullable `RequestedByDisplayName` to `requested_by_display_name` with a maximum length of 128. The `AddRequesterDisplayNames` migration introduces this metadata alongside the queue occurrence column.
+
+`GuildPlaybackStateConfiguration` maps nullable `VolumePercent` to `guild_playback_state.volume_percent`. The `AddPlaybackVolume` migration introduces the column without inventing a confirmed default.
+
 - These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 - Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 

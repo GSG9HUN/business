@@ -54,6 +54,7 @@ public sealed class BotControlCommandDispatcher(
         cancellationToken.ThrowIfCancellationRequested();
         return command.Type switch
         {
+            BotControlCommandTypes.SetVolume => HandleSetVolumeAsync(command, cancellationToken),
             BotControlCommandTypes.Seek => HandleSeekAsync(command, cancellationToken),
             BotControlCommandTypes.Clear => HandleClearAsync(command, cancellationToken),
             BotControlCommandTypes.Play => HandlePlayAsync(command, cancellationToken),
@@ -70,6 +71,32 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Repeat => HandleRepeatAsync(command, cancellationToken),
             BotControlCommandTypes.RepeatList => HandleRepeatListAsync(command, cancellationToken),
             _ => Task.FromResult(botControlResultFactory.Failure(command, $"Unsupported bot control command type: {command.Type}", "UnsupportedCommandType", shouldNotifyDiscord: false))};
+    }
+
+    /// <summary>Applies mobile volume through the existing voice authorization and audio reservation.</summary>
+    /// <param name="command">Durable command carrying the absolute percentage.</param>
+    /// <param name="cancellationToken">Cancels context resolution and supported audio work.</param>
+    /// <returns>The confirmed, rejected, or uncertain audio command result.</returns>
+    private Task<BotControlCommandResult> HandleSetVolumeAsync(
+        BotControlCommandRecord command,
+        CancellationToken cancellationToken)
+    {
+        if (!TryDeserializePayload<SetVolumeCommandPayload>(command, out var payload, out var errorResult))
+        {
+            return Task.FromResult(errorResult!);
+        }
+
+        if (payload!.VolumePercent is < 0 or > 200)
+        {
+            return Task.FromResult(botControlResultFactory.Failure(
+                command, "Invalid volume request.", "InvalidVolumeRequest", shouldNotifyDiscord: false));
+        }
+
+        return HandlePlaybackControlAsync(
+            command,
+            (service, message, member) => service.VolumeAsync(
+                message, member, payload.VolumePercent.ToString(CultureInfo.InvariantCulture), cancellationToken),
+            cancellationToken);
     }
 
     /// <summary>Executes a validated mobile seek through the existing voice and playback-ownership boundary.</summary>

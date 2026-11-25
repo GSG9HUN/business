@@ -59,6 +59,7 @@ builder.Services.AddOptions<DiscordOAuthOptions>()
         && !string.IsNullOrWhiteSpace(options.AndroidRedirectUri), "DiscordOAuth settings are required.")
     .ValidateOnStart();
 
+builder.Services.AddScoped<API.Services.Playback.RequesterDisplayNameResolver>();
 builder.Services.AddHttpClient<DiscordOAuthService>();
 builder.Services.AddSingleton<AppTokenService>()
     .AddSingleton<OAuthStateStore>()

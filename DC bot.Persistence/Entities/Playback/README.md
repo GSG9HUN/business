@@ -4,6 +4,10 @@ Represents the database rows used for current playback state, repeat flags, star
 
 ## Overview
 
+`PlaybackBatchItemEntity.RequestedByDisplayName` retains plain requester metadata for canonical replay while `RequestedBy` retains the Discord mention.
+
+`GuildPlaybackStateEntity.VolumePercent` stores nullable confirmed server output percentage. It is independent of filter-volume gain and remains null until a runtime player is observed.
+
 - Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 - Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 - PlaybackBatchEntity and PlaybackBatchItemEntity retain the canonical playback sequence independently of waiting queue order. GuildPlaybackStateEntity also stores operation ownership and remote node binding needed for reconciliation.

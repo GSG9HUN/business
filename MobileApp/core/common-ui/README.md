@@ -9,6 +9,8 @@ Android and iOS applications.
 - Top-bar and floating-action-button configuration.
 - Shared queue drag handling and edge scrolling.
 - Material 3 light, dark, and system-following themes.
+- `EmptyRouteScreen` uses the theme surface color, matching the shared navigation and Profile page backgrounds.
+- `MBottomBar` uses `surfaceContainerHigh` with an `outlineVariant` top divider; inactive navigation items have transparent backgrounds.
 
 The module depends on `core:common`, `core:presentation`, and `core:model`. Feature UI modules consume its Compose components; platform adapters remain in their Android or iOS source sets.
 

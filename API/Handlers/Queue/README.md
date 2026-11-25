@@ -4,6 +4,8 @@ Reads a guild queue and submits authorized queue mutation commands.
 
 ## Overview
 
+Queue and history entries pass through `RequesterDisplayNameResolver` before mapping. Only plain requester names are returned to mobile clients; occurrence identity, positions, playback state, and original persistence records remain unchanged.
+
 - Enqueue validates the query and optional channel identifiers, resolves requester display metadata, and stores a bot play command. Clear, remove, shuffle, and move also use the command bridge.
 - Queue display positions and zero-based move indices are separate inputs. The bot worker owns actual playback effects after command acceptance.
 

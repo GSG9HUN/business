@@ -4,6 +4,10 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 
 ## Overview
 
+Playback requests preserve the Discord requester mention and separately capture the supplied mobile profile name or Discord username. `TrackPlaybackService` carries that name through normal play and play-next queueing without changing session ownership or track selection.
+
+Successful output-volume changes persist the acknowledged 0-200% value under the current session mutation fence after the Lavalink call completes. The transaction publishes a playback snapshot update without changing position or pause state. Mobile commands use the same authorization and reservation boundary as Discord volume commands.
+
 The additive seek overload accepts an expected playback operation ID for mobile gestures. It checks ready-attempt identity under the control reservation before remote seeking and again before persistence, rejecting replacement attempts even when the source URL is unchanged. Existing text/slash seek calls retain their signatures.
 
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.

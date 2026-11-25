@@ -10,8 +10,10 @@ namespace DC_bot.Interface.Service.Music.Queue.Models;
 /// <param name="SourceQuery">The source query supplied for this operation.</param>
 /// <param name="SourceSearchMode">The source search mode supplied for this operation.</param>
 /// <param name="RequestedBy">The requested by supplied for this operation.</param>
+/// <param name="RequestedByDisplayName">Plain requester name for non-Discord clients, when captured.</param>
 public sealed record QueueTrackToEnqueue(
     ILavaLinkTrack Track,
     string? SourceQuery,
     TrackSearchMode? SourceSearchMode,
-    string? RequestedBy);
+    string? RequestedBy,
+    string? RequestedByDisplayName = null);

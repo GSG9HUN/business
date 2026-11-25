@@ -4,6 +4,8 @@ Exposes saved playlist creation, URL import, track editing, and queue loading th
 
 ## Overview
 
+Playlist loading captures the requesting Discord username as separate queue metadata while retaining the original requester mention for bot responses.
+
 - ViewPlaylistCommand delegates saved-list headings and rows to IResponseBuilder.BuildPlaylistPages; unused author/duration formatting has been removed. Empty/missing/error states use localized warnings/errors. Import replies use the count returned by the saved snapshot.
 
 - Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.

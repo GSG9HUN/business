@@ -19,6 +19,7 @@ import com.dc.melodiasmario.core.model.guild.BotStatus
  * @property isRepeatingList Is repeating list.
  * @property repeatMode Repeat mode.
  * @property updatedAtUtc Updated at utc.
+ * @property volumePercent Last confirmed server output percentage, or null when unavailable.
  */
 data class CurrentTrack(
     val guildId: String = "",
@@ -35,5 +36,6 @@ data class CurrentTrack(
     val isRepeating: Boolean = false,
     val isRepeatingList: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.NONE,
-    val updatedAtUtc: String = ""
+    val updatedAtUtc: String = "",
+    val volumePercent: Int? = null
 )

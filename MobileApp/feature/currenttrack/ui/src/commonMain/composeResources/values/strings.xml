@@ -67,4 +67,20 @@
     <string name="currenttrack_seek_label">Lejátszási pozíció</string>
     <string name="currenttrack_seek_pending">Lejátszási pozíció frissítése…</string>
     <string name="currenttrack_seek_unavailable">A tekerés ennél a számnál vagy kapcsolatnál nem érhető el.</string>
+    <string name="currenttrack_volume_label">Hangerő</string>
+    <string name="currenttrack_volume_decrease">Szerverhangerő csökkentése 5 százalékkal</string>
+    <string name="currenttrack_volume_increase">Szerverhangerő növelése 5 százalékkal</string>
+    <string name="currenttrack_volume_percent">%1$d%</string>
+    <string name="currenttrack_volume_confirmed">Megerősített: %1$d% · szerverhangerő</string>
+    <string name="currenttrack_volume_amplified">100% fölött erősített hang</string>
+    <string name="currenttrack_volume_maximum">max. 200%</string>
+    <string name="currenttrack_volume_pending">Hangerő módosítása folyamatban…</string>
+    <string name="currenttrack_volume_unavailable">Nem elérhető</string>
+    <string name="currenttrack_volume_succeeded">Hangerő módosítva.</string>
+    <string name="currenttrack_volume_failed">A hangerő módosítása sikertelen.</string>
+    <string name="currenttrack_volume_unknown">A hangerőmódosítás eredménye még nem ismert.</string>
+    <string name="currenttrack_volume_minus">−</string>
+    <string name="currenttrack_volume_plus">+</string>
+    <string name="currenttrack_volume_unknown_value">Ismeretlen</string>
+    <string name="currenttrack_volume_select_hint">Az aktuális hangerő nem ismert; állítsd be a csúszkával.</string>
 </resources>

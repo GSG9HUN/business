@@ -1,7 +1,6 @@
 package com.dc.melodiasmario.feature.currenttrack.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -50,9 +49,9 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Renders current playback and submits seek gestures only for the captured playback attempt.
- * Seeking defaults to disabled until its caller supplies connection state and a command callback.
+ * Seeking and volume default to disabled until connection state and command callbacks are supplied.
  */
-@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 fun NowPlayingCard(
     currentTrack: CurrentTrack,
@@ -71,7 +70,10 @@ fun NowPlayingCard(
     onMoreClick: () -> Unit = {},
     isSeekEnabled: Boolean = false,
     isSeekLoading: Boolean = false,
-    onSeekRequested: (positionSeconds: Int, expectedPlaybackOperationId: String) -> Unit = { _, _ -> }
+    onSeekRequested: (positionSeconds: Int, expectedPlaybackOperationId: String) -> Unit = { _, _ -> },
+    isVolumeEnabled: Boolean = false,
+    isVolumeLoading: Boolean = false,
+    onVolumeRequested: (guildId: String, volumePercent: Int) -> Unit = { _, _ -> }
 ) {
     val track = currentTrack.currentTrack ?: return
     val artistText = track.requestedBy
@@ -193,6 +195,17 @@ fun NowPlayingCard(
                     onClick = onMoreClick
                 )
             }
+
+            Spacer(modifier = Modifier.height(height = 16.dp))
+
+            PlaybackVolumeControl(
+                guildId = currentTrack.guildId,
+                confirmedVolumePercent = currentTrack.volumePercent,
+                isEnabled = isVolumeEnabled,
+                isLoading = isVolumeLoading,
+                onVolumeRequested = onVolumeRequested,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

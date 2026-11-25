@@ -4,6 +4,9 @@ package com.dc.melodiasmario.core.model.botcontrol
  * Represents bot control command types shared between application layers.
  */
 object BotControlCommandTypes {
+
+    /** Changes the guild server output volume. */
+    const val SetVolume: String = "set_volume"
     /**
      * Play exposed by bot control command types.
      */

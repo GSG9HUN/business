@@ -35,6 +35,9 @@ public sealed record QueueItemRecord(
     /// <summary>Identifies the originating enqueue operation.</summary>
     public Guid EnqueueGroupId { get; init; }
 
+    /// <summary>Plain requester name captured alongside the Discord mention.</summary>
+    public string? RequestedByDisplayName { get; init; }
+
     /// <summary>Gets the original position within the batch.</summary>
     public int BatchPosition { get; init; }
 

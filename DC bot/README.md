@@ -4,6 +4,10 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
+Requester metadata now carries both the existing Discord mention and a captured plain name through play, play-next, playlist loads, and canonical batch replay. Mobile API responses consume the plain name; Discord rendering retains mention support.
+
+Durable mobile `set_volume` commands reuse `ILavaLinkService.VolumeAsync`, existing voice/control authorization, and session audio reservations. Confirmed output is persisted and published for mobile snapshots; fresh joins publish their observed initial volume.
+
 Mobile seek commands use a typed absolute position and expected playback attempt. The existing control reservation and ready-attempt checks prevent a stale gesture from targeting a new occurrence; pause state is retained. New mobile seek scenarios are explicit skipped test scaffolds, not implemented coverage.
 
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.

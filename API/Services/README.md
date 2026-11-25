@@ -4,6 +4,8 @@ Groups API-owned authentication and music-search behavior that is larger than a 
 
 ## Overview
 
+Playback read-model services resolve human-readable requester labels from captured queue metadata and stored mobile profiles without making Discord network requests.
+
 - Auth services manage OAuth and token creation; music-search services validate provider queries, inspect node capabilities, and map results.
 - Services use typed options, factory-managed HTTP clients, and shared persistence contracts where needed. Discord playback execution stays in the bot process.
 
@@ -44,6 +46,18 @@ Validates provider queries and returns bounded track or playlist search results 
 - `NodeInfo.cs`
 
 **Purpose:** MusicSearchService checks deployment switches and cached source/plugin capabilities. LavalinkSearchClient applies authentication, response-size bounds, and caller-linked timeouts; the mapper validates metadata and provider URLs.
+
+---
+
+### Playback/
+
+Resolves requester names for mobile playback, queue, and history snapshots.
+
+**Files:**
+
+- [`RequesterDisplayNameResolver.cs`](Playback/RequesterDisplayNameResolver.cs)
+
+**Purpose:** Prefer captured plain names, resolve legacy mentions from stored mobile profiles, and suppress unresolved markup.
 
 ---
 

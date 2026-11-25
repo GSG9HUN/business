@@ -55,6 +55,9 @@ public class GuildQueueItemConfiguration : IEntityTypeConfiguration<GuildQueueIt
         builder.Property(entity => entity.SourceSearchMode)
             .HasColumnName("source_search_mode")
             .HasMaxLength(64);
+        builder.Property(entity => entity.RequestedByDisplayName)
+            .HasColumnName("requested_by_display_name")
+            .HasMaxLength(128);
         builder.Property(entity => entity.RequestedBy)
             .HasColumnName("requested_by")
             .HasMaxLength(128);

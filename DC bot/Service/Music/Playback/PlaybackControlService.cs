@@ -157,8 +157,13 @@ public class PlaybackControlService(
                 await player.SetVolumeAsync(percent / 100f, cancellationToken);
                 return true;
             });
-            sessions.ValidateControl(session, reservation);
-            sessions.RememberConfirmedVolume(session, percent / 100f);
+            await sessions.MutateAsync(session, async () =>
+            {
+                sessions.ValidateControl(session, reservation);
+                sessions.RememberConfirmedVolume(session, percent / 100f);
+                await playbackStateRepository.SetVolumePercentAsync(guildId, percent, cancellationToken);
+                return true;
+            });
             var amplification = percent > 100
                 ? localizationService.Get(guildId, LocalizationKeys.VolumeCommandAmplified)
                 : string.Empty;

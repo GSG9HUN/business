@@ -4,6 +4,8 @@ Builds queue, playback, and bot-presence read models for publishers.
 
 ## Overview
 
+Realtime queue and history snapshots use the same scoped `RequesterDisplayNameResolver` as REST. Playback continues through `PlaybackSnapshotService`, which resolves names identically. Captured requester metadata is not rewritten in persistence.
+
 - RealtimeSnapshotProvider delegates playback to the shared playback snapshot service and maps queue and bot-status repository reads.
 - A snapshot should have the same meaning as the corresponding REST response. Do not maintain a separate realtime-only playback state machine.
 

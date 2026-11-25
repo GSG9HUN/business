@@ -7,6 +7,7 @@ using DC_bot.Interface.Service.Music.Lavalink;
 using DC_bot.Interface.Service.Music.Lifecycle;
 using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
+using DC_bot.Interface.Service.Persistence.Playback;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Service.Music.Lifecycle.Cleanup;
 using DC_bot.Service.Music.Lifecycle.Models;
@@ -24,6 +25,7 @@ namespace DC_bot.Service.Music.Lifecycle.Connections;
 /// Resolves and validates players while observing late joins and coordinating failed-join cleanup.
 /// </summary>
 /// <remarks>A caller deadline stops waiting but does not prove that the SDK join had no remote effect. Late completion is observed and failed or superseded players are cleaned up through the lifecycle coordinator.</remarks>
+/// <param name="playbackStateRepository">Publishes the observed player output volume after joining.</param>
 /// <param name="audioService">The audio service dependency used by this boundary.</param>
 /// <param name="lavalinkNodeConnectionService">The lavalink node connection service dependency used by this boundary.</param>
 /// <param name="disconnectedPlayerCleanupService">Reconciles owned players removed from the SDK before another join.</param>
@@ -52,7 +54,8 @@ public sealed class PlayerConnectionService(
     PlaybackRecoveryService playbackRecoveryService,
     IOptions<PlaybackLifecycleOptions> options,
     PlayerConnectionRetryPolicy retryPolicy,
-    IPlaybackFilterService filterService) : IPlayerConnectionService
+    IPlaybackFilterService filterService,
+    IPlaybackStateRepository playbackStateRepository) : IPlayerConnectionService
 {
     private readonly PlayerConnectionRetryPolicy _retry =
         retryPolicy ?? throw new ArgumentNullException(nameof(retryPolicy));
@@ -189,6 +192,8 @@ public sealed class PlayerConnectionService(
             {
                 await sessions.MutateAsync(session, async () =>
                 {
+                    await playbackStateRepository.SetVolumePercentAsync(
+                        guildId, (int)Math.Round(session.Player.Volume * 100f), deadline.Token);
                     await guildBotStatusRepository.UpsertConnectedVoiceAsync(guildId, channel.Id, channel.Name,
                         GetVoiceUserCount(channel), deadline.Token);
                     return true;

@@ -70,7 +70,12 @@ public class MusicQueueService(
             return;
         }
 
-        var queueItems = tracks.Select(track => new QueueItemToEnqueue(_trackSerializer.Serialize(track.Track), track.SourceQuery, SerializeSearchMode(track.SourceSearchMode), track.RequestedBy))
+        var queueItems = tracks.Select(track => new QueueItemToEnqueue(
+                _trackSerializer.Serialize(track.Track),
+                track.SourceQuery,
+                SerializeSearchMode(track.SourceSearchMode),
+                track.RequestedBy,
+                track.RequestedByDisplayName))
             .ToList();
         await queueRepository.EnqueueManyAsync(guildId, queueItems, cancellationToken: cancellationToken);
         _logger.LogInformation("{TrackCount} tracks enqueued for guild {GuildId} in bulk.", queueItems.Count, guildId);
@@ -450,7 +455,7 @@ public class MusicQueueService(
     {
         var items = tracks.Select(track => new QueueItemToEnqueue(
                 _trackSerializer.Serialize(track.Track), track.SourceQuery,
-                SerializeSearchMode(track.SourceSearchMode), track.RequestedBy))
+                SerializeSearchMode(track.SourceSearchMode), track.RequestedBy, track.RequestedByDisplayName))
             .ToArray();
         return queueRepository.EnqueueNextAsync(guildId, items, cancellationToken);
     }

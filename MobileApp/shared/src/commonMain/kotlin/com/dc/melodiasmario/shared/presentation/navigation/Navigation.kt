@@ -46,7 +46,7 @@ fun Navigation(
     ) {
         Box {
             Scaffold(
-                containerColor = MaterialTheme.colorScheme.background,
+                containerColor = MaterialTheme.colorScheme.surface,
                 topBar = {
                     topBarController.config?.let { config ->
                        NavigationTopBar(config = config)

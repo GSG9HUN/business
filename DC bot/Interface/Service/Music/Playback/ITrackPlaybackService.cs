@@ -12,17 +12,16 @@ namespace DC_bot.Interface.Service.Music.Playback;
 public interface ITrackPlaybackService
 {
 
-    /// <summary>
-    /// Adds loaded tracks to the active batch and starts playback when the player has no current track.
-    /// </summary>
-    /// <param name="searchQuery">The search query supplied for this operation.</param>
-    /// <param name="session">The captured player generation whose ownership must remain current.</param>
-    /// <param name="textChannel">The Discord channel used by the operation.</param>
-    /// <param name="requestedBy">The requested by supplied for this operation.</param>
-    /// <param name="sourceQuery">The source query supplied for this operation.</param>
-    /// <param name="sourceSearchMode">The source search mode supplied for this operation.</param>
-    /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
-    /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
+    /// <summary>Enqueues loaded tracks while retaining separate Discord and mobile requester labels.</summary>
+    /// <param name="searchQuery">Loaded tracks to enqueue.</param>
+    /// <param name="session">Current player generation.</param>
+    /// <param name="textChannel">Response channel.</param>
+    /// <param name="requestedBy">Discord requester label or mention.</param>
+    /// <param name="sourceQuery">Reloadable source query.</param>
+    /// <param name="sourceSearchMode">Source provider search mode.</param>
+    /// <param name="cancellationToken">Cancels supported queue and playback work.</param>
+    /// <param name="requestedByDisplayName">Plain requester name captured for mobile read models.</param>
+    /// <returns>The outcome of the captured enqueue or playback request.</returns>
     Task<PlaybackStartResult> PlayTheFoundMusicAsync(
         TrackLoadResult searchQuery,
         PlaybackSession session,
@@ -30,7 +29,8 @@ public interface ITrackPlaybackService
         string? requestedBy,
         string? sourceQuery,
         TrackSearchMode? sourceSearchMode,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? requestedByDisplayName = null);
 
     /// <summary>
     /// Claims and starts the next waiting track without blindly retrying uncertain remote dispatch.
@@ -79,7 +79,16 @@ public interface ITrackPlaybackService
         ControlReservation reservation,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Enqueues loaded tracks at the front of the waiting queue, preserving canonical append order.</summary>
+    /// <summary>Enqueues loaded tracks while retaining separate Discord and mobile requester labels.</summary>
+    /// <param name="loaded">Loaded tracks to insert next.</param>
+    /// <param name="session">Current player generation.</param>
+    /// <param name="channel">Response channel.</param>
+    /// <param name="query">Reloadable source query.</param>
+    /// <param name="searchMode">Source provider search mode.</param>
+    /// <param name="requestedBy">Discord requester label or mention.</param>
+    /// <param name="cancellationToken">Cancels supported queue and playback work.</param>
+    /// <param name="requestedByDisplayName">Plain requester name captured for mobile read models.</param>
+    /// <returns>The outcome of the captured enqueue or playback request.</returns>
     Task<PlaybackStartResult> PlayNextLoadedAsync(
         TrackLoadResult loaded,
         PlaybackSession session,
@@ -87,6 +96,7 @@ public interface ITrackPlaybackService
         string query,
         TrackSearchMode searchMode,
         string requestedBy,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? requestedByDisplayName = null);
 
 }

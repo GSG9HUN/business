@@ -6,6 +6,7 @@ import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PreviousTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SeekTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetVolumeUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.MoveTrackToIndexUseCase
@@ -35,6 +36,7 @@ internal class CurrentTrackCommandHandler(
     private val pauseUseCase: PauseUseCase,
     private val setRepeatModeUseCase: SetRepeatModeUseCase,
     private val seekTrackUseCase: SeekTrackUseCase,
+    private val setVolumeUseCase: SetVolumeUseCase,
     private val removeFromQueueUseCase: RemoveFromQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
@@ -78,6 +80,7 @@ internal class CurrentTrackCommandHandler(
                 trackId = event.trackId
             )
             CurrentTrackEvent.ClearQueueClicked -> trackQueueCommandHandler.clearQueue()
+            is CurrentTrackEvent.VolumeRequested -> setVolume(event = event)
             is CurrentTrackEvent.SeekRequested -> seek(event = event)
             CurrentTrackEvent.NextClicked -> nextTrack()
             CurrentTrackEvent.PreviousClicked -> previousTrack()
@@ -91,6 +94,37 @@ internal class CurrentTrackCommandHandler(
             )
             CurrentTrackEvent.SelectedSearchResultAddClicked -> trackQueueCommandHandler.addSelectedSearchResultToQueue()
             else -> Unit
+        }
+    }
+
+    private suspend fun setVolume(event: CurrentTrackEvent.VolumeRequested) {
+        val guildId = currentGuildIdProvider() ?: return
+        val playback = uiState.value.playback
+
+        if (guildId != event.guildId
+            || playback.currentTrack?.guildId != guildId
+            || !playback.isConnected
+            || event.volumePercent !in 0..200) {
+            effects.emit(value = CurrentTrackEffect.VolumeFailed)
+            return
+        }
+
+        uiState.update { currentUiState ->
+            currentUiState.copy(actions = currentUiState.actions.copy(isVolumeLoading = true))
+        }
+
+        try {
+            setVolumeUseCase(guildId = guildId, volumePercent = event.volumePercent).runBotCommand(
+                uiState = uiState,
+                effects = effects,
+                acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
+                failureEffect = CurrentTrackEffect.VolumeOutcomeUnknown,
+                afterAccepted = onTrackPendingCommand
+            )
+        } finally {
+            uiState.update { currentUiState ->
+                currentUiState.copy(actions = currentUiState.actions.copy(isVolumeLoading = false))
+            }
         }
     }
 

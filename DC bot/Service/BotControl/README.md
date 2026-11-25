@@ -2,7 +2,11 @@
 
 Executes API-originated commands from the durable PostgreSQL command bridge.
 
-## Overview
+## Overview
+
+Saved-playlist loading captures the requester username alongside the existing Discord mention so mobile clients can display a name without Discord-specific markup.
+`set_volume` validates a typed `SetVolumeCommandPayload` and forwards the percentage through `HandlePlaybackControlAsync` to the existing volume service. HTTP acceptance, audio failure, uncertain outcomes, and terminal success remain separate.
+
 The dispatcher accepts the typed `seek` payload, validates its position and attempt, and forwards it through `HandlePlaybackControlAsync` to the fenced `ILavaLinkService.SeekAsync` overload. Existing Discord context and same-voice authorization remain in force.
 
 

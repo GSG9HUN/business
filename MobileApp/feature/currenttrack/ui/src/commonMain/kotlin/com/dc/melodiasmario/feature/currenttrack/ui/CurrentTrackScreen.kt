@@ -269,6 +269,11 @@ fun CurrentTrackScreen(
                             onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
                             isSeekEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
                             isSeekLoading = uiState.actions.isSeekLoading,
+                            isVolumeEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
+                            isVolumeLoading = uiState.actions.isVolumeLoading,
+                            onVolumeRequested = { guildId, volumePercent ->
+                                onEvent(CurrentTrackEvent.VolumeRequested(guildId = guildId, volumePercent = volumePercent))
+                            },
                             onSeekRequested = { positionSeconds, expectedPlaybackOperationId ->
                                 onEvent(
                                     CurrentTrackEvent.SeekRequested(

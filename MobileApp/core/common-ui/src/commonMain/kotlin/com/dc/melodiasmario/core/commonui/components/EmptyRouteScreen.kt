@@ -22,7 +22,7 @@ fun EmptyRouteScreen(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.surface
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
