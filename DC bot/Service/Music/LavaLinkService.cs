@@ -111,6 +111,17 @@ public class LavaLinkService(
     }
 
     /// <inheritdoc />
+    public Task<PlaybackControlResult> SeekAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string position,
+        Guid expectedPlaybackOperationId,
+        CancellationToken cancellationToken = default)
+    {
+        return playbackControlService.SeekAsync(message, member, position, expectedPlaybackOperationId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<PlaybackControlResult> ForwardAsync(
         IDiscordMessage message,
         IDiscordMember? member,

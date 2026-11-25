@@ -61,4 +61,10 @@
     <string name="currenttrack_queue_drag_handle_content_description">Sorba rendezési fogantyú</string>
     <string name="currenttrack_queue_move_up_action">Mozgatás fel</string>
     <string name="currenttrack_queue_move_down_action">Mozgatás le</string>
+    <string name="currenttrack_seek_succeeded">Lejátszási pozíció frissítve.</string>
+    <string name="currenttrack_seek_failed">A tekerés sikertelen, vagy közben megváltozott a szám. Frissítsd a lejátszást, mielőtt újrapróbálod.</string>
+    <string name="currenttrack_seek_unknown">A tekerés eredménye nem ismert. Újraküldés előtt ellenőrizd a lejátszást.</string>
+    <string name="currenttrack_seek_label">Lejátszási pozíció</string>
+    <string name="currenttrack_seek_pending">Lejátszási pozíció frissítése…</string>
+    <string name="currenttrack_seek_unavailable">A tekerés ennél a számnál vagy kapcsolatnál nem érhető el.</string>
 </resources>

@@ -41,6 +41,11 @@ public sealed class PlaybackSnapshotService(
         var queuedItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
         var currentQueueItem = state.QueueItemId is null ? null : await queueRepository.GetByIdAsync(state.QueueItemId.Value, cancellationToken);
         var currentTrack = state.CurrentTrackIdentifier is null ? null : TrackResponseMapper.TryMapPlaybackTrack(state.CurrentTrackIdentifier, currentQueueItem?.RequestedBy);
+        if (currentTrack is not null)
+        {
+            currentTrack = currentTrack with { PlaybackOperationId = currentQueueItem?.PlaybackOperationId };
+        }
+
         var isPaused = currentTrack is not null && state.IsPaused;
         var positionSeconds = currentTrack is null ? 0 : CalculatePositionSeconds(state, currentTrack.Duration);
         return new PlaybackStatusResponse(guildId.ToString(), guild?.Name ?? string.Empty, guild is null ? null : GuildResponseMapper.MapGuildIconUrl(guild), GuildResponseMapper.MapBotStatus(botStatuses.GetValueOrDefault(guildId)), currentTrack, currentTrack is not null && !isPaused, isPaused, positionSeconds, queuedItems.Count, state.IsRepeating, state.IsRepeatingList, state.UpdatedAtUtc);

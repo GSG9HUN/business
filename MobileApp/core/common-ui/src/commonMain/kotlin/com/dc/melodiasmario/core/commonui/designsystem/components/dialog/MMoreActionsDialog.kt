@@ -25,7 +25,7 @@ fun MMoreActionsDialog(
     actions: List<MMoreAction>,
     onDismiss: () -> Unit,
     dismissText: String? = null
-): Unit {
+) {
     val primaryAction = actions.firstOrNull()
     val secondaryActions = actions.drop(n = 1)
 

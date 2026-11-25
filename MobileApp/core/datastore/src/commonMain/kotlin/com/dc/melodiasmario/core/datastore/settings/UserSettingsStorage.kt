@@ -14,10 +14,10 @@ expect class UserSettingsStorage {
     /**
      * Persists the supplied user settings.
      */
-    suspend fun saveSettings(settings: UserSettings): Unit
+    suspend fun saveSettings(settings: UserSettings)
 
     /**
      * Clears the state and resources owned by UserSettingsStorage.
      */
-    suspend fun clear(): Unit
+    suspend fun clear()
 }

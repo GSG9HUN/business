@@ -33,7 +33,7 @@ fun MSearchResultRow(
     mAddMusicLabels: MAddMusicLabels,
     selected: Boolean,
     onClick: () -> Unit
-): Unit {
+) {
     Surface(
         modifier = Modifier.fillMaxWidth()
             .clickable(onClick = onClick),

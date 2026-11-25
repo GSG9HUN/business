@@ -29,7 +29,7 @@ fun QueueEditModeCard(
     modifier: Modifier = Modifier,
     title: String,
     message: String
-): Unit {
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(size = 16.dp),

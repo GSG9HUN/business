@@ -13,6 +13,6 @@ class ClearUserSettingsUseCase(
     /**
      * Executes the clear user settings domain operation.
      */
-    suspend operator fun invoke(): Unit =
+    suspend operator fun invoke() =
         userSettingsRepository.clearSettings()
 }

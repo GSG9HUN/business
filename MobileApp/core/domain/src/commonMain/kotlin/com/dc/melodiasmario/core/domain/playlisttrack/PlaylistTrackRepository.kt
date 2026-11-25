@@ -15,7 +15,7 @@ interface PlaylistTrackRepository {
     /**
      * Removes the track identified by its playlist order number.
      */
-    suspend fun removeTrack(playlistId: String, trackNumber: Int): Unit
+    suspend fun removeTrack(playlistId: String, trackNumber: Int)
 
     /**
      * Requests adding the supplied music query or URL to a saved playlist.

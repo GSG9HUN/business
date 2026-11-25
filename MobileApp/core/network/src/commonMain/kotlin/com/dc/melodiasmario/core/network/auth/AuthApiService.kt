@@ -56,7 +56,7 @@ class AuthApiService(
     /**
      * Ends the authentication session associated with the refresh token.
      */
-    suspend fun logout(refreshToken: String): Unit {
+    suspend fun logout(refreshToken: String) {
         return httpClient.post(urlString = "$baseUrl/auth/logout"){
             contentType(type = ContentType.Application.Json)
             setBody(body = RefreshSessionRequestDto(refreshToken = refreshToken))

@@ -4,6 +4,8 @@ The Discord music-bot executable runs prefix commands, slash command adapters, r
 
 ## Overview
 
+Mobile seek commands use a typed absolute position and expected playback attempt. The existing control reservation and ready-attempt checks prevent a stale gesture from targeting a new occurrence; pause state is retained. New mobile seek scenarios are explicit skipped test scaffolds, not implemented coverage.
+
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
 
 - Existing localized reply titles/bodies follow the HTML response design. Dynamic values remain real and no missing state/diagnostic branches were added by the text alignment.

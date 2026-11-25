@@ -24,7 +24,7 @@ class TopBarController {
     internal fun set(
         owner: TopBarOwner,
         config: TopBarConfig?
-    ): Unit {
+    ) {
         this.owner = owner
         this.config = config
     }
@@ -32,7 +32,7 @@ class TopBarController {
     /**
      * Clears the state and resources owned by TopBarController.
      */
-    internal fun clear(owner: TopBarOwner): Unit {
+    internal fun clear(owner: TopBarOwner) {
 
         if (this.owner === owner) {
             this.owner = null

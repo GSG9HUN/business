@@ -33,7 +33,7 @@ fun MSearchContent(
     onNextPageRequested: () -> Unit,
     onSearchRetryClicked: () -> Unit,
     onCapabilitiesRetryClicked: () -> Unit
-): Unit {
+) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val selectedProvider =

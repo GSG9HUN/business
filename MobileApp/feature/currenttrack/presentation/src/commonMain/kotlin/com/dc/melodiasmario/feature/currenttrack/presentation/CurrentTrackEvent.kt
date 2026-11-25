@@ -8,6 +8,17 @@ import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
  */
 sealed interface CurrentTrackEvent {
     /**
+     * Commits one completed seek gesture for the attempt captured when dragging started.
+     *
+     * @property positionSeconds Absolute position before the end of the track.
+     * @property expectedPlaybackOperationId Playback attempt to which the gesture belongs.
+     */
+    data class SeekRequested(
+        val positionSeconds: Int,
+        val expectedPlaybackOperationId: String
+    ) : CurrentTrackEvent
+
+    /**
      * Describes the load current track variant of [CurrentTrackEvent].
      *
      * @property guildId Identifier of the guild owning this value.
@@ -182,6 +193,7 @@ fun CurrentTrackEvent.isCommandEvent(): Boolean {
         is CurrentTrackEvent.RemoveFromQueueClicked,
         CurrentTrackEvent.ClearQueueClicked,
         CurrentTrackEvent.NextClicked,
+        is CurrentTrackEvent.SeekRequested,
         CurrentTrackEvent.PreviousClicked,
         CurrentTrackEvent.RepeatClicked,
         CurrentTrackEvent.ShuffleClicked,

@@ -23,7 +23,7 @@ class BotCommandRealtimeObserver(
     /**
      * Starts bot command realtime observer for the supplied configuration.
      */
-    fun start(guildId: String): Unit {
+    fun start(guildId: String) {
 
         if (currentGuildId == guildId && job?.isActive == true) {
             return
@@ -45,7 +45,7 @@ class BotCommandRealtimeObserver(
     /**
      * Clears the state and resources owned by BotCommandRealtimeObserver.
      */
-    fun clear(): Unit {
+    fun clear() {
         job?.cancel()
         job = null
         currentGuildId = null

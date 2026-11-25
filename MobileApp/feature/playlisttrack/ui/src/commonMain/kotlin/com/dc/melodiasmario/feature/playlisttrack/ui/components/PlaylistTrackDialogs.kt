@@ -31,7 +31,7 @@ internal fun PlaylistTrackDialogs(
     onEvent: (
         playlistTrackEvent: PlaylistTrackEvent
     ) -> Unit
-): Unit {
+) {
     val dismiss = { onEvent(PlaylistTrackEvent.DismissDialog) }
     when (val dialog = uiState.dialog) {
         PlaylistTrackDialog.None -> Unit

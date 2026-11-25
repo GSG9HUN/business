@@ -22,7 +22,7 @@ fun MResultList(
     mAddMusicLabels: MAddMusicLabels,
     onResultClicked: (resultId: String) -> Unit,
     onNextPageRequested: () -> Unit
-): Unit {
+) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth()
             .heightIn(max = 320.dp),

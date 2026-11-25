@@ -53,7 +53,7 @@ class PlaylistsViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: PlaylistsEvent): Unit {
+    fun onEvent(event: PlaylistsEvent) {
         viewModelScope.launch {
             events.emit(value = event)
         }
@@ -104,7 +104,7 @@ class PlaylistsViewModel(
     /**
      * Starts loading the playlists for the selected guild.
      */
-    suspend fun loadPlaylists(guildId: String): Unit {
+    suspend fun loadPlaylists(guildId: String) {
         currentGuildId = guildId
         getPlaylistsUseCase(guildId = guildId)
             .collect { result ->

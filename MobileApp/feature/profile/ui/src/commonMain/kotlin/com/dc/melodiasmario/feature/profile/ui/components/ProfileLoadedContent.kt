@@ -72,7 +72,7 @@ fun ProfileLoadedContent(
     uiState: ProfileUiState,
     onEvent: (profileEvent: ProfileEvent) -> Unit,
     appLockState: AppLockUiState = AppLockUiState()
-): Unit {
+) {
     val user = uiState.user
     val userSettings = uiState.draftUserSettings
     val displayName = user.displayName

@@ -58,7 +58,7 @@ fun PlaylistCard(
     onRenameClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onArtworkClick: () -> Unit = {}
-): Unit {
+) {
     var menuExpanded by remember { mutableStateOf(value = false) }
     val menuContentDescription =  stringResource(resource = Res.string.playlist_card_menu_content_description)
 

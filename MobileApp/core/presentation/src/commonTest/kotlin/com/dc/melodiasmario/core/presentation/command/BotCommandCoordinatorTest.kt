@@ -15,12 +15,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BotCommandCoordinatorTest {
     @Test
-    fun completionBeforeHttpResponseIsRetained() = runTest {
+    fun completionBeforeHttpResponseIsRetained(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -31,7 +32,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun onlyMatchingCommandAndGuildCanCompleteWaiter() = runTest {
+    fun onlyMatchingCommandAndGuildCanCompleteWaiter(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -48,7 +49,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun userFilterIsPreserved() = runTest {
+    fun userFilterIsPreserved(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(
             coroutineScope = backgroundScope,
@@ -67,7 +68,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun earlyEventIsRecheckedWhenUserBecomesKnown() = runTest {
+    fun earlyEventIsRecheckedWhenUserBecomesKnown(): TestResult = runTest {
         var userId: String? = null
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(
@@ -88,7 +89,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun concurrentDistinctCommandsCanFinishOutOfOrder() = runTest {
+    fun concurrentDistinctCommandsCanFinishOutOfOrder(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -105,7 +106,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun failurePreservesErrorKey() = runTest {
+    fun failurePreservesErrorKey(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -118,7 +119,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun httpTerminalStatesReturnWithoutWaiting() = runTest {
+    fun httpTerminalStatesReturnWithoutWaiting(): TestResult = runTest {
         val botCommandCoordinator = BotCommandCoordinator(
             coroutineScope = backgroundScope,
             observeGuildRealtime = { MutableSharedFlow() }
@@ -145,7 +146,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun timeoutDoesNotPoisonNextCommand() = runTest {
+    fun timeoutDoesNotPoisonNextCommand(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(
             coroutineScope = backgroundScope,
@@ -169,7 +170,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun repeatedStartForSameGuildPreservesPendingCommand() = runTest {
+    fun repeatedStartForSameGuildPreservesPendingCommand(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -184,7 +185,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun guildChangeCancelsOldWaitersAndDropsEarlyEvents() = runTest {
+    fun guildChangeCancelsOldWaitersAndDropsEarlyEvents(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -204,7 +205,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun callerCancellationDoesNotLeakItsWaiter() = runTest {
+    fun callerCancellationDoesNotLeakItsWaiter(): TestResult = runTest {
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
         botCommandCoordinator.start(guildId = "guild")
@@ -220,7 +221,7 @@ class BotCommandCoordinatorTest {
     }
 
     @Test
-    fun clearCancelsWaitingCaller() = runTest {
+    fun clearCancelsWaitingCaller(): TestResult = runTest {
         val botCommandCoordinator = BotCommandCoordinator(
             coroutineScope = backgroundScope,
             observeGuildRealtime = { MutableSharedFlow() }
@@ -232,7 +233,7 @@ class BotCommandCoordinatorTest {
         assertFailsWith<CancellationException> { result.await() }
     }
 
-    private fun command(id: String = "command", state: String = "pending") =
+    private fun command(id: String = "command", state: String = "pending"): BotControlCommand =
         BotControlCommand(commandId = id, type = "test", state = state)
 
     private fun event(
@@ -240,7 +241,7 @@ class BotCommandCoordinatorTest {
         guild: String = "guild",
         user: String = "user",
         succeeded: Boolean = true
-    ) = BotControlCommandRealtimeEvent(
+    ): BotControlCommandRealtimeEvent = BotControlCommandRealtimeEvent(
         commandId = id,
         guildId = guild,
         userId = user,

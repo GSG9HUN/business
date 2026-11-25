@@ -16,7 +16,7 @@ fun MModeButton(
     text: String,
     selected: Boolean,
     onClick: () -> Unit
-): Unit {
+) {
 
     if (selected) {
         Button(modifier = modifier, onClick = onClick) {

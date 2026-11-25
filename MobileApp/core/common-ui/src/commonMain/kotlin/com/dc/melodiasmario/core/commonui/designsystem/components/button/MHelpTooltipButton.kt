@@ -20,7 +20,7 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
  * Renders help tooltip button from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun MHelpTooltipButton(text: String): Unit {
+fun MHelpTooltipButton(text: String) {
     var expanded by remember { mutableStateOf(value = false) }
 
     Box {

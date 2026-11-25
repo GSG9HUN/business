@@ -63,4 +63,10 @@
     <string name="currenttrack_queue_drag_handle_content_description">Queue reorder handle</string>
     <string name="currenttrack_queue_move_up_action">Move up</string>
     <string name="currenttrack_queue_move_down_action">Move down</string>
+    <string name="currenttrack_seek_succeeded">Playback position updated.</string>
+    <string name="currenttrack_seek_failed">Seeking failed or the track changed. Refresh playback before trying again.</string>
+    <string name="currenttrack_seek_unknown">The seek result is not confirmed. Check playback before submitting again.</string>
+    <string name="currenttrack_seek_label">Playback position</string>
+    <string name="currenttrack_seek_pending">Updating playback position…</string>
+    <string name="currenttrack_seek_unavailable">Seeking is unavailable for this track or connection.</string>
 </resources>

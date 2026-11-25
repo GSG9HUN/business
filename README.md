@@ -4,6 +4,8 @@ Contains the .NET Discord music bot, mobile API, Kotlin mobile application, shar
 
 ## Overview
 
+CurrentTrack mobile seeking is connected through an authenticated durable command and the existing bot seek service. Snapshots expose additive seek capability and playback attempt identity; execution fences stale gestures against replacement attempts. New seek tests are scaffolds only; live-device/audio acceptance remains outstanding.
+
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
 
 - The response-text alignment follows existing HTML titles/bodies where runtime data permits. The current 50-command title inventory and explicit unsupported cases are maintained in docs/plans/discord-response-design-audit.md.

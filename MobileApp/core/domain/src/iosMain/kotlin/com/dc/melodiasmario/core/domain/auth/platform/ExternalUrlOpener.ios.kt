@@ -13,7 +13,7 @@ actual class ExternalUrlOpener {
     /**
      * Opens the supplied external URL through the platform adapter.
      */
-    actual fun openUrl(url: String): Unit {
+    actual fun openUrl(url: String) {
         val nsUrl = NSURL.URLWithString(url) ?: return
         UIApplication.sharedApplication.openURL(nsUrl)
     }

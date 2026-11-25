@@ -20,7 +20,7 @@ fun MAddMusicModeSelector(
     mAddMusicLabels: MAddMusicLabels,
     selectedMode: MAddMusicMode,
     onModeChanged: (addMusicMode: MAddMusicMode) -> Unit
-): Unit {
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

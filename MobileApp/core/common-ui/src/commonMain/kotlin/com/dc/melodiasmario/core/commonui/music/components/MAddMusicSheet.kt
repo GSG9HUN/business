@@ -47,7 +47,7 @@ fun MAddMusicSheet(
     onNextPageRequested: () -> Unit,
     onSearchRetryClicked: () -> Unit,
     onCapabilitiesRetryClicked: () -> Unit
-): Unit {
+) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val density = LocalDensity.current
     val imeBottom = WindowInsets.ime.getBottom(density = density)

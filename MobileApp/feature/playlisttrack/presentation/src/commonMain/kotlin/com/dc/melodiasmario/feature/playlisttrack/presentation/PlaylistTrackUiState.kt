@@ -37,10 +37,10 @@ data class PlaylistTrackUiState(
      */
     val canModify: Boolean get() = playlist != null && !isLoading && !isRefreshing && !isCommandInFlight && !hasLoadError
 
-    override fun withCommandInFlight(isCommandInFlight: Boolean) = copy(
+    override fun withCommandInFlight(isCommandInFlight: Boolean): PlaylistTrackUiState = copy(
         isCommandInFlight = isCommandInFlight,
         addMusic = addMusic.copy(commandInFlight = isCommandInFlight)
     )
 
-    override fun withAddMusic(addMusic: MAddMusicSheetState) = copy(addMusic = addMusic)
+    override fun withAddMusic(addMusic: MAddMusicSheetState): PlaylistTrackUiState = copy(addMusic = addMusic)
 }

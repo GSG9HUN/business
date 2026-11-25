@@ -6,7 +6,7 @@ import kotlin.test.assertNull
 
 class TrackSearchPrefixTest {
     @Test
-    fun recognizesAllBotPrefixesAndAliases(): Unit {
+    fun recognizesAllBotPrefixesAndAliases() {
         val expected = mapOf(
             TrackSearchPrefix.SPOTIFY to listOf("sptfy", "spotify"),
             TrackSearchPrefix.SOUNDCLOUD to listOf("scsearch", "soundcloud"),
@@ -29,7 +29,7 @@ class TrackSearchPrefixTest {
     }
 
     @Test
-    fun doesNotTreatUrlsOrUnprefixedQueriesAsSearchPrefixes(): Unit {
+    fun doesNotTreatUrlsOrUnprefixedQueriesAsSearchPrefixes() {
         listOf(
             "",
             "youtube",

@@ -23,7 +23,7 @@ class AuthDeepLinkDispatcher {
     /**
      * Forwards an authentication ticket to active session observers.
      */
-    fun dispatchTicket(ticket: String): Unit {
+    fun dispatchTicket(ticket: String) {
         _tickets.tryEmit(value = ticket)
     }
 }

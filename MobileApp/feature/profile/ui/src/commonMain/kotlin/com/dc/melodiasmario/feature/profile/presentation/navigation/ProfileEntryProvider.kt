@@ -12,7 +12,7 @@ fun EntryProviderScope<AppRoute>.profileEntry(
     onBack: () -> Unit,
     logout: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     entry<AppRoute.MyProfile> {
         ProfileRoute(
             onBack = onBack,

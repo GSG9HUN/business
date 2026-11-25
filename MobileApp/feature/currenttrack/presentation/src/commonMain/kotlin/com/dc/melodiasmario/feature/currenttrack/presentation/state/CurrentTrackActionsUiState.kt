@@ -7,10 +7,12 @@ package com.dc.melodiasmario.feature.currenttrack.presentation.state
  * @property isClearQueueLoading Is clear queue loading.
  * @property isShuffleQueueLoading Is shuffle queue loading.
  * @property isPlayPauseLoading Is play pause loading.
+ * @property isSeekLoading Whether a seek request is awaiting acceptance or terminal completion.
  */
 data class CurrentTrackActionsUiState(
     val isCommandInFlight: Boolean = false,
     val isClearQueueLoading: Boolean = false,
     val isShuffleQueueLoading: Boolean = false,
-    val isPlayPauseLoading: Boolean = false
+    val isPlayPauseLoading: Boolean = false,
+    val isSeekLoading: Boolean = false
 )

@@ -56,7 +56,7 @@ actual class UserSettingsStorage(
     /**
      * Persists the supplied user settings.
      */
-    actual suspend fun saveSettings(settings: UserSettings): Unit {
+    actual suspend fun saveSettings(settings: UserSettings) {
         sharedPreferences.edit()
             .putString(KEY_THEME, settings.theme)
             .putString(KEY_LANGUAGE_CODE, settings.languageCode)
@@ -69,7 +69,7 @@ actual class UserSettingsStorage(
     /**
      * Clears the state and resources owned by UserSettingsStorage.
      */
-    actual suspend fun clear(): Unit {
+    actual suspend fun clear() {
         sharedPreferences.edit()
             .clear()
             .apply()

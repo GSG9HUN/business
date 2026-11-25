@@ -25,7 +25,7 @@ fun MManualContent(
     onDraftChanged: (manualDraft: String) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
-): Unit {
+) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     fun confirm() {

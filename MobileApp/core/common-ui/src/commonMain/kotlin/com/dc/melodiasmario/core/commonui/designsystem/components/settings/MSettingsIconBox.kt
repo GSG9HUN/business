@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 fun MSettingsIconBox(
     painter: Painter,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         modifier = modifier.size(size = 48.dp),
         shape = RoundedCornerShape(size = 14.dp),

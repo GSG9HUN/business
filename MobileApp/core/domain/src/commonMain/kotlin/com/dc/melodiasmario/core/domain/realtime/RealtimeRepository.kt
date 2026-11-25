@@ -22,5 +22,5 @@ interface RealtimeRepository {
     /**
      * Disconnects the realtime transport and releases its active subscription.
      */
-    suspend fun disconnect(): Unit
+    suspend fun disconnect()
 }

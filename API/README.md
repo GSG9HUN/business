@@ -3,6 +3,8 @@
 This ASP.NET Core minimal API exposes mobile authentication, guild and profile reads, saved playlists, music search, playback control, and SignalR updates. It uses the shared PostgreSQL persistence layer rather than referencing the running Discord bot executable.
 
 ## Overview
+The mobile seek route is `POST /api/guilds/{guildId}/playback/seek`. It accepts a nonnegative absolute `positionSeconds` plus a nonempty `expectedPlaybackOperationId`, checks guild membership/premium, and returns the durable command acceptance. Playback snapshots expose additive seek capability and attempt identity; bot execution rechecks voice permissions and attempt ownership.
+
 
 - Playlist import uses `ImportPlaylistRequest`; JSON fields and durable command wire identifiers remain compatible with existing clients.
 

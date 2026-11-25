@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 fun CurrentTrackPlaceholder(
     title: String,
     contentText: String
-): Unit {
+) {
     val musicIconContentDescription =
         stringResource(resource = Res.string.currenttrack_music_icon_content_description)
 

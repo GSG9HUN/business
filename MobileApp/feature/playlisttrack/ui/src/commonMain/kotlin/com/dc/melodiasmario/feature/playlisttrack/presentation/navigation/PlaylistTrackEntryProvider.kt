@@ -11,7 +11,7 @@ import com.dc.melodiasmario.feature.playlisttrack.ui.PlaylistTrackRoute
 fun EntryProviderScope<AppRoute>.playlistTrackEntry(
     onBack: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     entry<AppRoute.PlaylistTrack> { route ->
         PlaylistTrackRoute(
             guildId = route.guildId,

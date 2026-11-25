@@ -6,12 +6,12 @@ import kotlin.test.Test
 class GuildRemoteDataSourceImplTest {
 
     @Test
-    fun getGuildsMapsDtoListToDomainGuildList(): Unit {
+    fun getGuildsMapsDtoListToDomainGuildList() {
         throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsPropagatesApiServiceFailure(): Unit {
+    fun getGuildsPropagatesApiServiceFailure() {
         throw NotImplementedError()
     }
 }

@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MMoreButton(
     onClick: () -> Unit,
     contentDescription: String
-): Unit {
+) {
     IconButton(
         onClick = onClick,
         enabled = true

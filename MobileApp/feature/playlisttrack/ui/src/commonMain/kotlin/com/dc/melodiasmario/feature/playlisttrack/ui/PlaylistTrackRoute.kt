@@ -24,7 +24,7 @@ fun PlaylistTrackRoute(
     playlistId: String,
     onBack: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     val uiState = playlistTrackViewModel.uiState.collectAsStateWithLifecycle()
     val effectMessages = playlistTrackEffectMessages()
 

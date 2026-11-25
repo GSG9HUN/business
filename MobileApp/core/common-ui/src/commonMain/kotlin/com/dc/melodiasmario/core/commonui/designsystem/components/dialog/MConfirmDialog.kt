@@ -30,7 +30,7 @@ fun MConfirmDialog(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isDestructive: Boolean = false
-): Unit {
+) {
 
     AlertDialog(
         modifier = modifier,

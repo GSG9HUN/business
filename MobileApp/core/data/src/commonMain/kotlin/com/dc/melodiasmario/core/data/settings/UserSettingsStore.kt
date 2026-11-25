@@ -21,14 +21,14 @@ class UserSettingsStore {
     /**
      * Updates the current in-memory settings.
      */
-    fun setSettings(userSettings: UserSettings): Unit {
+    fun setSettings(userSettings: UserSettings) {
         _settings.value = userSettings
     }
 
     /**
      * Clears the state and resources owned by UserSettingsStore.
      */
-    fun clear(): Unit {
+    fun clear() {
         _settings.value = UserSettings.Default
     }
 }

@@ -13,7 +13,7 @@ class PlaylistsRemoteDataSourceImpl(
     private val playlistsApiService: PlaylistsApiService
 ) : PlaylistsRemoteDataSource {
 
-    override suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?): Unit {
+    override suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?) {
         playlistsApiService.setArtwork(
             accessToken = accessToken,
             playlistId = playlistId,
@@ -26,7 +26,7 @@ class PlaylistsRemoteDataSourceImpl(
             .map { playlist -> playlist.toDomain() }
     }
 
-    override suspend fun deletePlaylist(accessToken: String, playlistId: String): Unit {
+    override suspend fun deletePlaylist(accessToken: String, playlistId: String) {
         playlistsApiService.deletePlaylist(accessToken = accessToken, playlistId = playlistId)
     }
 
@@ -34,7 +34,7 @@ class PlaylistsRemoteDataSourceImpl(
         accessToken: String,
         playlistId: String,
         newName: String
-    ): Unit {
+    ) {
         playlistsApiService.renamePlaylist(
             accessToken = accessToken,
             playlistId = playlistId,

@@ -4,6 +4,8 @@ Implements shared storage operations for ordered queue entries, canonical batche
 
 ## Overview
 
+`QueueItemMapper` exposes the stored nullable `PlaybackOperationId` on `QueueItemRecord` so playback snapshots can identify a seek target without a schema migration.
+
 - MarkAllQueuedAsSkippedWithCountAsync counts the affected update rows inside the same serializable transaction as queue clearing and notification. The original method forwards without requiring callers to consume the count.
 
 - Implements transactional queue, playback-start claim and canonical batch operations.

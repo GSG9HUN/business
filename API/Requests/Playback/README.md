@@ -10,6 +10,20 @@ Defines client-supplied input for current playback state, repeat flags, start ow
 
 ## Models and Results
 
+### SeekPlaybackRequest
+
+**Files:** `SeekPlaybackRequest.cs`
+
+**Purpose:** Absolute position and captured playback attempt; validated by the seek handler before acceptance.
+
+**Record declaration:**
+
+```csharp
+public sealed record SeekPlaybackRequest(int PositionSeconds, Guid ExpectedPlaybackOperationId);
+```
+
+---
+
 ### SetRepeatModeRequest
 
 **File:** `API/Requests/Playback/SetRepeatModeRequest.cs`

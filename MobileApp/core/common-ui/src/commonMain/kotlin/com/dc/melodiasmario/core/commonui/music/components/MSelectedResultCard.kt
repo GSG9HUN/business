@@ -34,7 +34,7 @@ fun MSelectedResultCard(
     mAddMusicLabels: MAddMusicLabels,
     commandInFlight: Boolean,
     onAddClicked: () -> Unit
-): Unit {
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(size = 8.dp),

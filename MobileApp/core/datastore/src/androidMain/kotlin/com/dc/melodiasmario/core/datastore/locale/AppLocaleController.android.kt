@@ -14,7 +14,7 @@ actual class AppLocaleController(
     /**
      * Applies the selected language through the platform locale adapter.
      */
-    actual fun applyLocale(languageCode: String): Unit {
+    actual fun applyLocale(languageCode: String) {
         val locale = Locale.forLanguageTag(languageCode.takeIf { textValue -> textValue.isNotBlank() } ?: DEFAULT_LANGUAGE_CODE)
         Locale.setDefault(locale)
 

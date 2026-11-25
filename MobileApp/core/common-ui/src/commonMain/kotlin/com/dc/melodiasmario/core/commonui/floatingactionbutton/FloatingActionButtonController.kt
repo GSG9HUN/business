@@ -24,7 +24,7 @@ class FloatingActionButtonController {
     internal fun set(
         owner: FloatingActionButtonOwner,
         config: FloatingActionButtonConfig?
-    ): Unit {
+    ) {
         this.owner = owner
         this.config = config
     }
@@ -32,7 +32,7 @@ class FloatingActionButtonController {
     /**
      * Clears the state and resources owned by FloatingActionButtonController.
      */
-    internal fun clear(owner: FloatingActionButtonOwner): Unit {
+    internal fun clear(owner: FloatingActionButtonOwner) {
 
         if (this.owner === owner) {
             this.owner = null

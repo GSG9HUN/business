@@ -22,7 +22,7 @@ fun PlaylistsRoute(
     onPlaylistClicked: (playlistId: String) -> Unit = {},
     onAvatarClicked: () -> Unit = {},
     toastHostState: MToastHostState
-): Unit {
+) {
 
     val uiState by playlistsViewModel.uiState.collectAsState()
     val effectMessages = playlistsEffectMessages()

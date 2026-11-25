@@ -7,7 +7,7 @@ import com.dc.melodiasmario.feature.settings.ui.SettingsRoute
 /**
  * Registers the settings destination and its navigation callbacks.
  */
-fun EntryProviderScope<AppRoute>.settingsEntry(): Unit {
+fun EntryProviderScope<AppRoute>.settingsEntry() {
     entry<AppRoute.Settings> { route ->
         SettingsRoute(guildId = route.guildId)
     }

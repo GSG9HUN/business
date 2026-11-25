@@ -33,7 +33,7 @@ fun AppLockScreen(
     onUnlock: () -> Unit,
     onRetryInitialization: () -> Unit,
     onSignOut: () -> Unit
-): Unit {
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.stringResource
  * Renders melodias logo from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun MelodiasLogo(modifier: Modifier = Modifier): Unit {
+fun MelodiasLogo(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.size(size = 86.dp)
             .clip(shape = RoundedCornerShape(size = 24.dp))

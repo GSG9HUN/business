@@ -7,6 +7,14 @@ import com.dc.melodiasmario.core.model.currenttrack.PlaybackStatus
  * Defines remote current track data operations.
  */
 interface CurrentTrackRemoteDataSource {
+    /** Requests an absolute seek fenced to the supplied playback attempt. */
+    suspend fun seek(
+        accessToken: String,
+        guildId: String,
+        positionSeconds: Int,
+        expectedPlaybackOperationId: String
+    ): BotControlCommand
+
     /**
      * Retrieves the guild playback status and current track.
      */
@@ -35,5 +43,5 @@ interface CurrentTrackRemoteDataSource {
     /**
      * Requests updating the playback repeat mode.
      */
-    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String): Unit
+    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String)
 }

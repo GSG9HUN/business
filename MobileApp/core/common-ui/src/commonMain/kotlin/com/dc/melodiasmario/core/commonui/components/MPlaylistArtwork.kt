@@ -18,7 +18,7 @@ fun MPlaylistArtwork(
     imageUrl: String?,
     modifier: Modifier = Modifier,
     iconSize: Dp = 54.dp
-): Unit {
+) {
     val theme = remember(key1 = playlistName) { PlaylistArtworkTheme.fromName(name = playlistName) }
     val fallback = when (theme) {
         PlaylistArtworkTheme.NightDrive -> Res.drawable.playlist_cover_night_drive

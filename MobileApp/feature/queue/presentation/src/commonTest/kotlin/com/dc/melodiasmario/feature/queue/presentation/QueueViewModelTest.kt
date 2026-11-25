@@ -5,37 +5,37 @@ import kotlin.test.Test
 @Ignore
 class QueueViewModelTest {
     @Test
-    fun duplicateClickDoesNotSubmitAnotherCommand(): Unit {
+    fun duplicateClickDoesNotSubmitAnotherCommand() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun unrelatedRealtimeEventDoesNotFinishPendingCommand(): Unit {
+    fun unrelatedRealtimeEventDoesNotFinishPendingCommand() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun realtimeResultArrivingBeforeHttpResponseIsHandled(): Unit {
+    fun realtimeResultArrivingBeforeHttpResponseIsHandled() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun timeoutReleasesCommandLock(): Unit {
+    fun timeoutReleasesCommandLock() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun guildChangeClearsPreviousCommandExecution(): Unit {
+    fun guildChangeClearsPreviousCommandExecution() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun reopeningScreenDoesNotDuplicateMonitorCollection(): Unit {
+    fun reopeningScreenDoesNotDuplicateMonitorCollection() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun removalUsesOneBasedAndMoveUsesZeroBasedIndexes(): Unit {
+    fun removalUsesOneBasedAndMoveUsesZeroBasedIndexes() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 }

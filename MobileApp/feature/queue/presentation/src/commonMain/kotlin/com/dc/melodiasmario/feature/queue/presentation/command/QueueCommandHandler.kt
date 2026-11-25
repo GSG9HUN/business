@@ -53,7 +53,7 @@ internal class QueueCommandHandler(
     /**
      * Dispatches the supplied event to the appropriate command operation.
      */
-    suspend fun handle(event: QueueEvent): Unit {
+    suspend fun handle(event: QueueEvent) {
         when (event) {
             QueueEvent.ManualAddClicked -> trackQueueCommandHandler.addManualInput()
             QueueEvent.SelectedSearchResultAddClicked -> trackQueueCommandHandler.addSelectedSearchResultToQueue()

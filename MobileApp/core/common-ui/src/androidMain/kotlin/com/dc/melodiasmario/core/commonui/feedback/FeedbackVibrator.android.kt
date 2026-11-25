@@ -35,7 +35,7 @@ actual class FeedbackVibrator(
      * Requests platform haptic feedback for the supplied interaction.
      */
     @Suppress("DEPRECATION")
-    actual fun vibrate(): Unit {
+    actual fun vibrate() {
         val vibrator = vibrator ?: return
 
         if (!vibrator.hasVibrator()) {

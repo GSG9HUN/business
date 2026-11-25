@@ -26,7 +26,7 @@ class CommandLock<State>(
     /**
      * Releases the command lock associated with the supplied execution version.
      */
-    fun finish(): Unit {
+    fun finish() {
         uiState.update { currentUiState ->
             currentUiState.withCommandInFlight(isCommandInFlight = false)
         }

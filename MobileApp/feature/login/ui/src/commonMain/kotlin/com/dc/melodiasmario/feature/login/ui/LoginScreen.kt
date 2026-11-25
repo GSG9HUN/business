@@ -44,7 +44,7 @@ fun LoginScreen(
     uiState: LoginUiState,
     modifier: Modifier = Modifier,
     onEvent: (loginEvent: LoginEvent) -> Unit = {}
-): Unit {
+) {
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface

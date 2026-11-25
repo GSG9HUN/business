@@ -36,7 +36,7 @@ fun <T> MOptionSelector(
     onOptionSelected: (selectedOption: T) -> Unit,
     searchEnabled: Boolean = false,
     searchPlaceholder: String = ""
-): Unit {
+) {
     var query by remember { mutableStateOf(value = "") }
     val filteredOptions = if (searchEnabled && query.isNotBlank()) {
         options.filter { option ->

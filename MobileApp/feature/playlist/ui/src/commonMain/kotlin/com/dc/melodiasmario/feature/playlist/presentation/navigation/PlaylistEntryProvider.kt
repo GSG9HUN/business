@@ -11,7 +11,7 @@ import com.dc.melodiasmario.feature.playlist.ui.PlaylistsRoute
 fun EntryProviderScope<AppRoute>.playlistsEntry(
     onPlaylistClicked: (route: AppRoute.Playlists, playlistId: String) -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     entry<AppRoute.Playlists> { route ->
         PlaylistsRoute(
             guildId = route.guildId,

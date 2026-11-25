@@ -9,9 +9,11 @@ import com.dc.melodiasmario.core.model.currenttrack.RepeatMode
  * @property currentTrack Current track.
  * @property isPlaying Is playing.
  * @property repeatMode Repeat mode.
+ * @property isConnected Whether the playback observation transport is currently connected.
  */
 data class CurrentTrackPlaybackUiState(
     val currentTrack: CurrentTrack? = null,
     val isPlaying: Boolean = false,
-    val repeatMode: RepeatMode = RepeatMode.NONE
+    val repeatMode: RepeatMode = RepeatMode.NONE,
+    val isConnected: Boolean = false
 )

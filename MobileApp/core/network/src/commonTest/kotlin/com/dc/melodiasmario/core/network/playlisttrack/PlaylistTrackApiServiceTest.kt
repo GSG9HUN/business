@@ -15,11 +15,12 @@ import io.ktor.http.headersOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 
 class PlaylistTrackApiServiceTest {
     @Test
-    fun detailUsesAuthorizedEndpointAndMapsBackendTrackOrder() = runTest {
+    fun detailUsesAuthorizedEndpointAndMapsBackendTrackOrder(): TestResult = runTest {
         val engine = MockEngine { request ->
             assertEquals(expected = "/api/playlists/17", actual = request.url.encodedPath)
             assertEquals(expected = "Bearer token", actual = request.headers[HttpHeaders.Authorization])
@@ -50,7 +51,7 @@ class PlaylistTrackApiServiceTest {
     }
 
     @Test
-    fun deleteUsesBackendOneBasedTrackNumber() = runTest {
+    fun deleteUsesBackendOneBasedTrackNumber(): TestResult = runTest {
         val httpClient = HttpClient(
             engine = MockEngine { request ->
                 assertEquals(expected = HttpMethod.Delete, actual = request.method)
@@ -73,7 +74,7 @@ class PlaylistTrackApiServiceTest {
     }
 
     @Test
-    fun forbiddenDeletionIsNotTreatedAsSuccess() = runTest {
+    fun forbiddenDeletionIsNotTreatedAsSuccess(): TestResult = runTest {
         val httpClient = HttpClient(
             engine = MockEngine {
                 respond(content = "Forbidden", status = HttpStatusCode.Forbidden)

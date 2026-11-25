@@ -28,7 +28,7 @@ internal fun PlaylistTrackActionsSheet(
     actions: List<MMoreAction>,
     onDismiss: () -> Unit,
     dismissText: String
-): Unit {
+) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.fillMaxWidth()

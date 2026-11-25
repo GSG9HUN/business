@@ -36,7 +36,7 @@ class AppLockController(
     /**
      * Restores the application-lock settings and initializes its presentation state.
      */
-    suspend fun initialize(): Unit {
+    suspend fun initialize() {
         initializationMutex.withLock {
 
             if (_uiState.value.isInitialized) {
@@ -86,7 +86,7 @@ class AppLockController(
     /**
      * Records when the application leaves the foreground for lock-timeout handling.
      */
-    fun onBackground(): Unit {
+    fun onBackground() {
 
         if (!_uiState.value.isForeground) {
             return
@@ -102,7 +102,7 @@ class AppLockController(
     /**
      * Reevaluates the application lock when the application returns to the foreground.
      */
-    fun onForeground(): Unit {
+    fun onForeground() {
 
         if (_uiState.value.isForeground) {
             return
@@ -135,7 +135,7 @@ class AppLockController(
     /**
      * Authenticates the user before releasing the application lock.
      */
-    suspend fun unlock(authenticate: suspend () -> BiometricResult): Unit {
+    suspend fun unlock(authenticate: suspend () -> BiometricResult) {
         val currentUiState = _uiState.value
 
         if (!currentUiState.isEnabled || !currentUiState.isLocked) {
@@ -155,7 +155,7 @@ class AppLockController(
     suspend fun changeEnabled(
         enabled: Boolean,
         authenticate: suspend () -> BiometricResult
-    ): Unit {
+    ) {
         val currentUiState = _uiState.value
 
         if (currentUiState.isLocked || currentUiState.isEnabled == enabled) {

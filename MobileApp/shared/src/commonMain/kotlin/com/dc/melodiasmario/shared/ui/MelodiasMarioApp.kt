@@ -17,7 +17,7 @@ fun MelodiasMarioApp(
     hapticsEnabled: Boolean,
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator
-): Unit {
+) {
     Navigation(
         backStack = backStack,
         toastHostState = toastHostState,

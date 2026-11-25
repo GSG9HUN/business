@@ -13,7 +13,7 @@ actual class PlaybackNotificationController(
     /**
      * Starts playback notification controller for the supplied configuration.
      */
-    actual fun start(guildId: String): Unit {
+    actual fun start(guildId: String) {
         val intent = Intent()
             .setClassName(context.packageName, PLAYBACK_SERVICE_CLASS)
             .setAction(PlaybackNotificationAction.START)

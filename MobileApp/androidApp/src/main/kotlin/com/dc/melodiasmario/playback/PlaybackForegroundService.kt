@@ -38,7 +38,7 @@ class PlaybackForegroundService : Service() {
     private var guildId: String? = null
     private var latestIsPlaying: Boolean = false
 
-    override fun onCreate(): Unit {
+    override fun onCreate() {
         super.onCreate()
         playbackMediaSessionController = PlaybackMediaSessionController(
             context = this,
@@ -127,13 +127,13 @@ class PlaybackForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onDestroy(): Unit {
+    override fun onDestroy() {
         coroutineScope.cancel()
         playbackMediaSessionController.release()
         super.onDestroy()
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?): Unit {
+    override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         stopPlaybackService()
     }

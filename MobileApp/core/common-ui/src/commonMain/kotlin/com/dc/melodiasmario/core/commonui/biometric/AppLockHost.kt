@@ -21,7 +21,7 @@ fun AppLockHost(
     biometricAuthenticator: BiometricAuthenticator,
     onSignedOut: () -> Unit,
     content: @Composable () -> Unit
-): Unit {
+) {
     val state by appLockController.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     val authenticate = rememberBiometricAuthentication(biometricAuthenticator = biometricAuthenticator)

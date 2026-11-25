@@ -14,7 +14,7 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     settingsViewModel: SettingsViewModel = koinViewModel(),
     guildId: String
-): Unit {
+) {
     EmptyRouteScreen(
         text = settingsViewModel.emptyText(),
         modifier = modifier

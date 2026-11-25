@@ -40,7 +40,7 @@ fun ReorderDragContainer(
     onMove: (fromIndex: Int, toIndex: Int) -> Unit,
     dragOverlay: @Composable (index: Int) -> Unit,
     content: @Composable (draggedIndex: Int?) -> Unit
-): Unit {
+) {
     var draggedItem by remember {
         mutableStateOf<DraggedItem?>(value = null)
     }

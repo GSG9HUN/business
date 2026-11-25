@@ -53,7 +53,7 @@ class ProfileViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: ProfileEvent): Unit {
+    fun onEvent(event: ProfileEvent) {
         viewModelScope.launch {
             events.emit(value = event)
         }

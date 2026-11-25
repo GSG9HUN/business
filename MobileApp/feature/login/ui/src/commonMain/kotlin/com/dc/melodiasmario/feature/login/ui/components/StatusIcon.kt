@@ -22,7 +22,7 @@ fun StatusIcon(
     text: String,
     backgroundColor: Color,
     textColor: Color
-): Unit {
+) {
     Box(
         modifier = Modifier.size(size = 48.dp)
             .clip(shape = RoundedCornerShape(size = 12.dp))

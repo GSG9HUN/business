@@ -19,7 +19,7 @@ suspend fun <State, Effect : MviEffect, Data> Flow<Resource<Data>>.runAction(
     onSuccessWithData: ((uiState: State, data: Data) -> State)? = null,
     onError: ((uiState: State, error: Throwable) -> State)? = null,
     afterSuccess: (suspend () -> Unit)? = null
-): Unit {
+) {
     collect { result ->
         when (result) {
             Resource.Loading -> {

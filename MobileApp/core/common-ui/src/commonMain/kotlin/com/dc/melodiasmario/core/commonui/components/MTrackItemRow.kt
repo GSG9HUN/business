@@ -62,7 +62,7 @@ fun MTrackItemRow(
     onMoveUp: () -> Unit = {},
     onMoveDown: () -> Unit = {},
     onMoveDrop: (dragOffsetPx: Float, itemHeightPx: Float) -> Unit = { _, _ -> }
-): Unit {
+) {
     val dragOffset = remember { mutableFloatStateOf(value = 0f) }
     val isDragging = remember { mutableStateOf(value = false) }
     val itemHeightPx = remember {

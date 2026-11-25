@@ -16,12 +16,12 @@ actual class UserSettingsStorage {
     /**
      * Persists the supplied user settings.
      */
-    actual suspend fun saveSettings(settings: UserSettings): Unit {
+    actual suspend fun saveSettings(settings: UserSettings) {
     }
 
     /**
      * Clears the state and resources owned by UserSettingsStorage.
      */
-    actual suspend fun clear(): Unit {
+    actual suspend fun clear() {
     }
 }
