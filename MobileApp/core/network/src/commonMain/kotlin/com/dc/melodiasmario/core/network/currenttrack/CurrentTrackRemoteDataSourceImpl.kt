@@ -11,6 +11,11 @@ import org.koin.core.annotation.Single
 class CurrentTrackRemoteDataSourceImpl(
     private val currentTrackApiService: CurrentTrackApiService
 ) : CurrentTrackRemoteDataSource {
+    override suspend fun setVolume(accessToken: String, guildId: String, volumePercent: Int): BotControlCommand {
+        return currentTrackApiService.setVolume(accessToken = accessToken, guildId = guildId, volumePercent = volumePercent)
+            .toDomain()
+    }
+
     override suspend fun seek(
         accessToken: String,
         guildId: String,

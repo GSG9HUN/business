@@ -4,6 +4,8 @@ Defines the playback boundary used by the bot music pipeline.
 
 ## Overview
 
+`PlayTheFoundMusicAsync` and `PlayNextLoadedAsync` accept optional final `requestedByDisplayName` metadata. Existing callers remain source-compatible; new request paths capture a plain name alongside the existing Discord requester label.
+
 - Defines playback inspection, control, filter, source-request and track-start boundaries.
 - Preserves caller cancellation, session ownership and explicit operation outcomes.
 - Uses shared result models for confirmed, rejected, pending and superseded work.

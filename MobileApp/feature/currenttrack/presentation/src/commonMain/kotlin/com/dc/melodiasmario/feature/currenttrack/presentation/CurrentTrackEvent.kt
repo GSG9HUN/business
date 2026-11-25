@@ -7,6 +7,15 @@ import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
  * Defines the interactions handled by current track presentation logic.
  */
 sealed interface CurrentTrackEvent {
+
+    /**
+     * Submits one absolute volume change for the guild displayed when the gesture completed.
+     *
+     * @property guildId Guild owning the displayed volume control.
+     * @property volumePercent Requested server output percentage in the inclusive range 0-200.
+     */
+    data class VolumeRequested(val guildId: String, val volumePercent: Int) : CurrentTrackEvent
+
     /**
      * Commits one completed seek gesture for the attempt captured when dragging started.
      *
@@ -194,6 +203,7 @@ fun CurrentTrackEvent.isCommandEvent(): Boolean {
         CurrentTrackEvent.ClearQueueClicked,
         CurrentTrackEvent.NextClicked,
         is CurrentTrackEvent.SeekRequested,
+        is CurrentTrackEvent.VolumeRequested,
         CurrentTrackEvent.PreviousClicked,
         CurrentTrackEvent.RepeatClicked,
         CurrentTrackEvent.ShuffleClicked,

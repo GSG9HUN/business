@@ -587,6 +587,10 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnName("updated_at_utc")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<int?>("VolumePercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("volume_percent");
+
                     b.HasKey("GuildId");
 
                     b.HasIndex("ActiveBatchId");
@@ -694,6 +698,11 @@ namespace DC_bot.Persistence.Migrations
                     b.Property<string>("RequestedBy")
                         .HasColumnType("text")
                         .HasColumnName("requested_by");
+
+                    b.Property<string>("RequestedByDisplayName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("requested_by_display_name");
 
                     b.Property<string>("SourceQuery")
                         .HasColumnType("text")
@@ -856,6 +865,11 @@ namespace DC_bot.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
                         .HasColumnName("requested_by");
+
+                    b.Property<string>("RequestedByDisplayName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("requested_by_display_name");
 
                     b.Property<DateTimeOffset?>("SkippedAtUtc")
                         .HasColumnType("timestamp with time zone")

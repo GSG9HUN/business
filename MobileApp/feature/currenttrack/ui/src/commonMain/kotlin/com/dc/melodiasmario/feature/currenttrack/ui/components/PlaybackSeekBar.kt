@@ -94,11 +94,6 @@ internal fun PlaybackSeekBar(
     val maximumPositionSeconds = (track.durationSeconds - 1).coerceAtLeast(minimumValue = 1)
     val visiblePositionSeconds = seekPreviewSeconds?.roundToInt() ?: displayedPositionSeconds
 
-    val sliderColors = SliderDefaults.colors(
-        inactiveTrackColor = Color.Transparent,
-        disabledInactiveTrackColor = Color.Transparent
-    )
-
     Column(modifier = modifier) {
         Slider(
             value = (seekPreviewSeconds ?: displayedPositionSeconds.toFloat())
@@ -106,13 +101,11 @@ internal fun PlaybackSeekBar(
             onValueChange = { positionSeconds -> seekPreviewSeconds = positionSeconds },
             modifier = Modifier.fillMaxWidth()
                 .semantics { contentDescription = seekDescription },
-            colors = sliderColors,
             track = { sliderState ->
                 SliderDefaults.Track(
                     modifier = Modifier.height(height = 4.dp),
                     sliderState = sliderState,
                     enabled = canSeek,
-                    colors = sliderColors,
                     drawStopIndicator = null,
                     thumbTrackGapSize = 0.dp
                 )

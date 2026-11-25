@@ -4,6 +4,8 @@ Joins or resolves Lavalink players and waits for validated voice readiness.
 
 ## Overview
 
+Successful newly established joins persist their observed player output percentage under the current session mutation fence before publishing connected voice status. This initializes mobile volume from acknowledged runtime state, including restored recovery volume and neutral fresh joins.
+
 - Joins or validates guild voice players and establishes usable session ownership.
 - Coordinates bounded retries, readiness checks and confirmed audio restoration.
 

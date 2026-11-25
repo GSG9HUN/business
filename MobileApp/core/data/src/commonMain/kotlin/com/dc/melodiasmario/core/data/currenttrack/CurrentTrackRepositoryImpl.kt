@@ -16,6 +16,15 @@ class CurrentTrackRepositoryImpl(
     private val currentTrackRemoteDataSource: CurrentTrackRemoteDataSource,
     private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : CurrentTrackRepository {
+    override suspend fun setVolume(guildId: String, volumePercent: Int): BotControlCommand {
+        val accessToken = authorizedSessionProvider.getValidSession()
+        return currentTrackRemoteDataSource.setVolume(
+            accessToken = accessToken,
+            guildId = guildId,
+            volumePercent = volumePercent
+        )
+    }
+
     override suspend fun seek(
         guildId: String,
         positionSeconds: Int,

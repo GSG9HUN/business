@@ -4,6 +4,8 @@ Defines shared records and state values for current playback state, repeat flags
 
 ## Overview
 
+`PlaybackStateRecord.VolumePercent` is an optional nullable final constructor parameter carrying last acknowledged output percentage. Null distinguishes an unobserved player from a confirmed 100% setting.
+
 - Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.
 - Keep wire response DTOs in API and tracked entities in DC bot.Persistence. Changing a record affects both repository implementations and their consumers.
 

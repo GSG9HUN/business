@@ -4,6 +4,8 @@ Carries inputs, statuses, and results for the queue use cases.
 
 ## Overview
 
+`QueueTrackToEnqueue.RequestedByDisplayName` is an optional plain requester label. `RequestedBy` remains available for Discord mention rendering; queue services pass both values to shared persistence.
+
 - Implementations live under Service/Music/Queue; commands and orchestrators exchange these contracts instead of constructing transport or persistence dependencies themselves.
 - Result states distinguish completed, rejected, pending, and superseded work where applicable. Preserve ownership and cancellation semantics when adding an operation.
 

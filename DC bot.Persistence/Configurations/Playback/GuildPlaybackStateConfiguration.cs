@@ -38,6 +38,8 @@ public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPla
             .HasColumnName("is_paused")
             .HasDefaultValue(false)
             .IsRequired();
+        builder.Property(entity => entity.VolumePercent)
+            .HasColumnName("volume_percent");
         builder.Property(entity => entity.PositionSeconds)
             .HasColumnName("position_seconds")
             .HasDefaultValue(0)

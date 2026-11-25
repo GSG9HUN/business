@@ -11,6 +11,7 @@ import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PreviousTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SeekTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetVolumeUseCase
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
@@ -60,6 +61,7 @@ class CurrentTrackViewModel(
     private val pauseUseCase: PauseUseCase,
     private val setRepeatModeUseCase: SetRepeatModeUseCase,
     private val seekTrackUseCase: SeekTrackUseCase,
+    private val setVolumeUseCase: SetVolumeUseCase,
     private val removeFromQueueUseCase: RemoveFromQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
@@ -116,6 +118,7 @@ class CurrentTrackViewModel(
         pauseUseCase = pauseUseCase,
         setRepeatModeUseCase = setRepeatModeUseCase,
         seekTrackUseCase = seekTrackUseCase,
+        setVolumeUseCase = setVolumeUseCase,
         removeFromQueueUseCase = removeFromQueueUseCase,
         moveTrackToIndexUseCase = moveTrackToIndexUseCase,
         shuffleQueueUseCase = shuffleQueueUseCase,
@@ -128,6 +131,8 @@ class CurrentTrackViewModel(
                 onSucceeded = {
                     val completionEffect = if (command.type == BotControlCommandTypes.Seek) {
                         CurrentTrackEffect.SeekSucceeded
+                    } else if (command.type == BotControlCommandTypes.SetVolume) {
+                        CurrentTrackEffect.VolumeSucceeded
                     } else {
                         CurrentTrackEffect.BotCommandSucceeded(commandType = command.type)
                     }
@@ -141,6 +146,12 @@ class CurrentTrackViewModel(
                             } else {
                                 CurrentTrackEffect.SeekFailed
                             }
+                        } else if (command.type == BotControlCommandTypes.SetVolume) {
+                            if (errorKey == "playback_audio_outcome_unknown") {
+                                CurrentTrackEffect.VolumeOutcomeUnknown
+                            } else {
+                                CurrentTrackEffect.VolumeFailed
+                            }
                         } else {
                             CurrentTrackEffect.BotCommandFailed(commandType = command.type, errorKey = errorKey)
                         }
@@ -149,6 +160,8 @@ class CurrentTrackViewModel(
                 onTimedOut = {
                     if (command.type == BotControlCommandTypes.Seek) {
                         _effect.emit(value = CurrentTrackEffect.SeekOutcomeUnknown)
+                    } else if (command.type == BotControlCommandTypes.SetVolume) {
+                        _effect.emit(value = CurrentTrackEffect.VolumeOutcomeUnknown)
                     }
                 },
                 onCompleted = { refreshCurrentPlaybackMonitorUseCase() }
@@ -247,6 +260,7 @@ class CurrentTrackViewModel(
 
             CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.MoreClicked -> openDialog(dialog = CurrentTrackDialog.MoreActions)
+            is CurrentTrackEvent.VolumeRequested -> runCommandIfIdle { handleCommandEvent(event = event) }
             is CurrentTrackEvent.SeekRequested -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.NextClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.PreviousClicked -> runCommandIfIdle { handleCommandEvent(event = event) }

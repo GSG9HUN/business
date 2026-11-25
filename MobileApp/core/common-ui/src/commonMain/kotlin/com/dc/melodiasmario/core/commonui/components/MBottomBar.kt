@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +39,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Renders bottom bar from the supplied parameters and forwards interaction callbacks.
+ * Renders bottom navigation on a distinct theme surface with a subtle top divider.
  */
 @Composable
 fun MBottomBar(
@@ -46,20 +48,23 @@ fun MBottomBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .height(height = 70.dp)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(space = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items.forEach { item ->
-                MBottomBarItem(
-                    item = item,
-                    modifier = Modifier.weight(weight = 1f)
-                )
+        Column {
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .height(height = 70.dp)
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { item ->
+                    MBottomBarItem(
+                        item = item,
+                        modifier = Modifier.weight(weight = 1f)
+                    )
+                }
             }
         }
     }
@@ -74,7 +79,7 @@ private fun MBottomBarItem(
     val contentColor = if (item.selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
     val backgroundColor = if (item.selected) MaterialTheme.colorScheme.primary.copy(
         alpha = 0.22f
-    ) else MaterialTheme.colorScheme.surface
+    ) else Color.Transparent
 
     Surface(
         modifier = modifier.height(height = 54.dp),

@@ -4,6 +4,10 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 
 ## Overview
 
+`AddRequesterDisplayNames` adds nullable, bounded `requested_by_display_name` columns to queue occurrences and canonical batch items. Queue writers and replay paths preserve this value independently of Discord mention text. The bot startup migration runner applies pending schema changes when the updated image starts.
+
+`AddPlaybackVolume` adds nullable `guild_playback_state.volume_percent`. `PlaybackStateRepository.SetVolumePercentAsync` persists confirmed output in a transaction with a `PlaybackSnapshotChanged` notification and retains playback progress. Generate/apply migrations through the existing EF design-time context; applying schema changes is a separate deployment step.
+
 - Queue clearing can return the affected count from the committed serializable update. Existing no-count callers remain supported; the Discord response consumes this count without an earlier race-prone count query.
 
 - Implements shared PostgreSQL storage for guilds, playback, queues, playlists and durable commands.

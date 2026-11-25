@@ -4,10 +4,16 @@ This is a Kotlin Multiplatform project targeting Android and iOS.
 
 ## Overview
 
+Requester labels in playback, queue, and history responses are plain names resolved by the API. Discord mention markup is not displayed as a name; old entries with no resolvable profile omit the requester label. The mobile DTO shape remains unchanged.
+
+Now Playing includes `PlaybackVolumeControl`: a 0-200% server-volume slider with five-percent buttons. Dragging previews locally and releasing submits one durable command. Confirmed volume comes from playback snapshots; disconnected or pending controls are disabled, and values above 100% display an amplification notice. Unknown confirmed volume still allows absolute slider selection; relative five-percent buttons wait for a confirmed value. New mobile volume tests are scaffolds, not implemented coverage.
+
 - Shared Kotlin presentation and domain logic in common source sets.
 - Shared HTTP status validation rejects non-success responses; the API availability probe evaluates status codes explicitly.
 - Android and iOS entry points with platform-specific adapters.
 - Compose screens use shared queue, search, playback, and playlist components.
+- Navigation and placeholder screens use the theme surface color as their page background, matching Profile in light and dark modes.
+- Bottom navigation uses a distinct `surfaceContainerHigh` background and a subtle top divider while all navigation page backgrounds remain consistent.
 
 ## Subfolders
 

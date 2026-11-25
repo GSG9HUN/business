@@ -7,6 +7,9 @@ import com.dc.melodiasmario.core.model.currenttrack.PlaybackStatus
  * Defines remote current track data operations.
  */
 interface CurrentTrackRemoteDataSource {
+    /** Accepts an absolute server volume in the inclusive range 0-200 percent. */
+    suspend fun setVolume(accessToken: String, guildId: String, volumePercent: Int): BotControlCommand
+
     /** Requests an absolute seek fenced to the supplied playback attempt. */
     suspend fun seek(
         accessToken: String,

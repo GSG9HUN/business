@@ -31,6 +31,7 @@ internal static class QueueItemMapper
             entity.PlayedAtUtc,
             entity.SkippedAtUtc)
         {
+            RequestedByDisplayName = entity.RequestedByDisplayName,
             EnqueueGroupId = entity.EnqueueGroupId,
             BatchPosition = entity.BatchPosition,
             PlaybackOperationId = entity.PlaybackOperationId

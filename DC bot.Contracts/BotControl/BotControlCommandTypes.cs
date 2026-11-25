@@ -6,6 +6,9 @@ namespace DC_bot.BotControl;
 public static class BotControlCommandTypes
 {
 
+    /// <summary>Changes the server player output volume.</summary>
+    public const string SetVolume = "set_volume";
+
     /// <summary>
     /// The bot control command type for mentioning a user.
     /// </summary>

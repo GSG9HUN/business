@@ -4,6 +4,10 @@ Combines persisted current-track, repeat flags, queue metadata, and bot presence
 
 ## Overview
 
+`RequesterDisplayNameResolver` supplies the current track requester as a plain display name. It prefers `RequestedByDisplayName`, retains legacy plain names, and resolves old mention IDs through stored user profiles. Unresolved requester labels are null, so raw Discord markup is never shown in the mobile player.
+
+`PlaybackSnapshotService` includes the persisted nullable `VolumePercent` in REST and realtime playback snapshots. Volume updates retain the separate position timestamp, so changing volume does not reset playback progress.
+
 - PlaybackSnapshotService decodes the current track and advances an unpaused saved position by elapsed time, clamping it to a known duration.
 - The response is a read model. Stored presence and an estimated position do not independently prove a healthy voice transport.
 

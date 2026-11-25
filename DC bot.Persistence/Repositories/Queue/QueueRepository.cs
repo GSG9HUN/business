@@ -356,10 +356,25 @@ public class QueueRepository : IQueueRepository
                 SourceQuery = NormalizeSourceQuery(queueItem.SourceQuery),
                 SourceSearchMode = NormalizeSourceSearchMode(queueItem.SourceSearchMode),
                 RequestedBy = NormalizeRequestedBy(queueItem.RequestedBy),
+                RequestedByDisplayName = NormalizeRequestedBy(queueItem.RequestedByDisplayName),
                 AddedAtUtc = addedAtUtc
             };
             canonical.Add(batchItem);
-            entities.Add(new GuildQueueItemEntity { GuildId = guildId, BatchId = batch.Id, Position = checked(maxPosition + index + 1), TrackIdentifier = queueItem.TrackIdentifier, SourceQuery = NormalizeSourceQuery(queueItem.SourceQuery), SourceSearchMode = NormalizeSourceSearchMode(queueItem.SourceSearchMode), RequestedBy = NormalizeRequestedBy(queueItem.RequestedBy), State = QueueItemState.Queued, EnqueueGroupId = enqueueGroupId, BatchPosition = checked(batchPosition + index + 1), AddedAtUtc = addedAtUtc });
+            entities.Add(new GuildQueueItemEntity
+            {
+                GuildId = guildId,
+                BatchId = batch.Id,
+                Position = checked(maxPosition + index + 1),
+                TrackIdentifier = queueItem.TrackIdentifier,
+                SourceQuery = NormalizeSourceQuery(queueItem.SourceQuery),
+                SourceSearchMode = NormalizeSourceSearchMode(queueItem.SourceSearchMode),
+                RequestedBy = NormalizeRequestedBy(queueItem.RequestedBy),
+                RequestedByDisplayName = NormalizeRequestedBy(queueItem.RequestedByDisplayName),
+                State = QueueItemState.Queued,
+                EnqueueGroupId = enqueueGroupId,
+                BatchPosition = checked(batchPosition + index + 1),
+                AddedAtUtc = addedAtUtc
+            });
         }
 
         dbContext.PlaybackBatchItems.AddRange(canonical);

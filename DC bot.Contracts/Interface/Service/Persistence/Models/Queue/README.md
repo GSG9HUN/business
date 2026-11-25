@@ -4,6 +4,8 @@ Defines shared records and state values for ordered queue entries, canonical bat
 
 ## Overview
 
+`QueueItemToEnqueue` adds optional `RequestedByDisplayName`; `QueueItemRecord` exposes the same nullable metadata as an init property. The existing `RequestedBy` mention is preserved for Discord. Name metadata survives canonical batch replay and queue-history mapping.
+
 `QueueItemRecord.PlaybackOperationId` is an additive nullable init property carrying the persisted playback attempt for mobile seek fencing.
 
 - Persistence maps entities into these values, and application services or API mappers consume them without database-provider dependencies.

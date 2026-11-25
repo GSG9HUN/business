@@ -17,6 +17,40 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
 {
 
     /// <inheritdoc/>
+    public async Task SetVolumePercentAsync(ulong guildId, int volumePercent, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(volumePercent, 0);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(volumePercent, 200);
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            await GuildDataBootstrapper.EnsureExistsAsync(dbContext, guildId, cancellationToken);
+            var state = await dbContext.GuildPlaybackStates.FirstOrDefaultAsync(
+                playbackState => playbackState.GuildId == guildId, cancellationToken);
+
+            if (state is null)
+            {
+                state = new GuildPlaybackStateEntity { GuildId = guildId };
+                dbContext.GuildPlaybackStates.Add(state);
+            }
+
+            state.VolumePercent = volumePercent;
+            state.UpdatedAtUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await PlaybackRealtimeNotifier.NotifyPlaybackUpdatedAsync(
+                dbContext, guildId, MobileRealtimeEventNames.PlaybackSnapshotChanged, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception operationException)
+        {
+            await TransactionCleanup.TryRollbackAsync(transaction, operationException);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<PlaybackStateRecord> GetOrCreateAsync(ulong guildId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -48,7 +82,17 @@ public class PlaybackStateRepository(IDbContextFactory<BotDbContext> dbContextFa
             }
         }
 
-        return new PlaybackStateRecord(guildId, state.IsRepeating, state.IsRepeatingList, state.CurrentTrackIdentifier, state.QueueItemId, state.UpdatedAtUtc, state.IsPaused, state.PositionSeconds, state.PositionUpdatedAtUtc);
+        return new PlaybackStateRecord(
+            guildId,
+            state.IsRepeating,
+            state.IsRepeatingList,
+            state.CurrentTrackIdentifier,
+            state.QueueItemId,
+            state.UpdatedAtUtc,
+            state.IsPaused,
+            state.PositionSeconds,
+            state.PositionUpdatedAtUtc,
+            state.VolumePercent);
     }
 
     /// <inheritdoc/>

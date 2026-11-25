@@ -82,6 +82,21 @@ public sealed class PlaybackRequestService(
         return PlayAsync(voiceStateChannel, query, message, trackSearchMode, requestedBy, cancellationToken: cancellationToken);
     }
 
+    /// <summary>Captures a plain name without reusing Discord mention markup as a display label.</summary>
+    /// <param name="message">Request context with the Discord author's username.</param>
+    /// <param name="requestedBy">Optional plain name provided by the mobile API.</param>
+    /// <returns>The supplied plain name or the author's Discord username.</returns>
+    private static string ResolveRequesterDisplayName(IDiscordMessage message, string? requestedBy)
+    {
+        if (string.IsNullOrWhiteSpace(requestedBy)
+            || requestedBy.TrimStart().StartsWith("<@", StringComparison.Ordinal))
+        {
+            return message.Author.Username;
+        }
+
+        return requestedBy.Trim();
+    }
+
     /// <summary>
     /// Joins and validates a player, loads the requested source, and dispatches loaded tracks only while the captured session remains current.
     /// </summary>
@@ -174,7 +189,8 @@ public sealed class PlaybackRequestService(
         PlaybackStartResult result;
         try
         {
-            result = await trackPlaybackService.PlayTheFoundMusicAsync(loaded, session, message.Channel, $"<@{message.Author.Id}>", sourceQuery, searchMode, cancellationToken)
+            result = await trackPlaybackService.PlayTheFoundMusicAsync(loaded, session, message.Channel, $"<@{message.Author.Id}>", sourceQuery, searchMode, cancellationToken,
+                    requestedByDisplayName: ResolveRequesterDisplayName(message, requestedBy))
                 .ConfigureAwait(false);
         }
         catch (PlaybackSessionExpiredException)
@@ -299,7 +315,8 @@ public sealed class PlaybackRequestService(
             }
 
             result = await trackPlaybackService.PlayNextLoadedAsync(
-                loaded, session, message.Channel, sourceQuery, searchMode, $"<@{message.Author.Id}>", cancellationToken);
+                loaded, session, message.Channel, sourceQuery, searchMode, $"<@{message.Author.Id}>", cancellationToken,
+                requestedByDisplayName: message.Author.Username);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

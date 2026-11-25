@@ -2,7 +2,11 @@
 
 This ASP.NET Core minimal API exposes mobile authentication, guild and profile reads, saved playlists, music search, playback control, and SignalR updates. It uses the shared PostgreSQL persistence layer rather than referencing the running Discord bot executable.
 
-## Overview
+## Overview
+
+Playback and queue REST/realtime snapshots use `RequesterDisplayNameResolver`. Captured enqueue-time names take precedence; legacy mentions fall back to stored global name or username. Missing names are omitted. This requires the additive `AddRequesterDisplayNames` migration and updated bot/API images; the mobile JSON field remains `requestedBy`.
+`POST /api/guilds/{guildId}/playback/volume` accepts an authorized absolute 0-200% output percentage as a durable `set_volume` command. Playback status and realtime snapshots include nullable `volumePercent`; null means the player volume has not been observed. Deploy the `AddPlaybackVolume` persistence migration before the updated API and bot.
+
 The mobile seek route is `POST /api/guilds/{guildId}/playback/seek`. It accepts a nonnegative absolute `positionSeconds` plus a nonempty `expectedPlaybackOperationId`, checks guild membership/premium, and returns the durable command acceptance. Playback snapshots expose additive seek capability and attempt identity; bot execution rechecks voice permissions and attempt ownership.
 
 

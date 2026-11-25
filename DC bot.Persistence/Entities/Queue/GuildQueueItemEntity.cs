@@ -60,6 +60,9 @@ public class GuildQueueItemEntity
     /// </summary>
     public string? RequestedBy { get; set; }
 
+    /// <summary>Plain requester name for mobile read models; the mention remains separate.</summary>
+    public string? RequestedByDisplayName { get; set; }
+
     /// <summary>
     /// The identifier of the playback attempt that owns this queue entry.
     /// </summary>

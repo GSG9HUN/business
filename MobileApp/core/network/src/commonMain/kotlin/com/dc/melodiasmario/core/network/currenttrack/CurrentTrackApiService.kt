@@ -5,6 +5,7 @@ import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.PlaybackStatusDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.SeekPlaybackRequestDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.SetRepeatModeRequestDto
+import com.dc.melodiasmario.core.network.currenttrack.dto.SetVolumeRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -26,6 +27,15 @@ class CurrentTrackApiService(
     private val baseUrl: String,
     private val httpClient: HttpClient
 ) {
+    /** Accepts one volume command; terminal audio completion is observed separately. */
+    suspend fun setVolume(accessToken: String, guildId: String, volumePercent: Int): BotControlCommandDto {
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/volume") {
+            header(key = HttpHeaders.Authorization, value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(body = SetVolumeRequestDto(volumePercent = volumePercent))
+        }.body()
+    }
+
     /** Accepts a seek for one playback attempt; HTTP acceptance is not terminal completion. */
     suspend fun seek(
         accessToken: String,
