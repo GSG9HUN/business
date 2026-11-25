@@ -22,7 +22,7 @@ public class ClearSlashCommand(
     ILocalizationService localizationService,
     IResponseBuilder responseBuilder)
 {
-    private const string CommandName = "clear";
+    private const string CommandName = CommandNames.Clear;
 
     /// <summary>
     /// Adapts the clear slash route to its shared handler and interaction response policy.
@@ -30,8 +30,8 @@ public class ClearSlashCommand(
     /// <param name="context">The context supplied for this operation.</param>
     /// <param name="confirm">The confirm supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("clear")]
-    [Description("Clear the queue")]
+    [Command(CommandNames.Clear)]
+    [Description("Remove all waiting tracks; keep the current track and saved playlists")]
     public Task Clear(
         SlashCommandContext context,
         [Parameter("confirm")][Description("Must be true to clear the queue")] bool confirm = false)

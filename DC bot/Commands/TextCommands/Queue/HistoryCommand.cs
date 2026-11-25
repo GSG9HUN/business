@@ -4,10 +4,8 @@ using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
 using DC_bot.Interface.Service.Persistence.Queue;
 using DC_bot.Interface.Service.Presentation;
-using DSharpPlus.Entities;
 
 namespace DC_bot.Commands.TextCommands.Queue;
-// Read-only scaffold: batch details and replay can be added without changing playback state here.
 
 /// <summary>
 /// Handles the history text command through validation, service, and localized response boundaries.
@@ -22,7 +20,7 @@ public sealed class HistoryCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "history";
+    public string Name => CommandNames.History;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -55,19 +53,10 @@ public sealed class HistoryCommand(
 
         if (batches.Count == 0)
         {
-            await responseBuilder.SendWarningAsync(message, LocalizationKeys.HistoryCommandEmpty);
+            await responseBuilder.SendInfoAsync(message, LocalizationKeys.HistoryCommandEmpty);
             return;
         }
 
-        var embed = new DiscordEmbedBuilder().WithTitle(localizationService.Get(guildId, LocalizationKeys.HistoryCommandTitle))
-            .WithColor(DiscordColor.Azure);
-
-        foreach (var batch in batches)
-        {
-            var status = localizationService.Get(guildId, batch.CompletedAtUtc is null ? LocalizationKeys.HistoryCommandActive : LocalizationKeys.HistoryCommandCompleted);
-            embed.AddField($"#{batch.Id} · {status}", localizationService.Get(guildId, LocalizationKeys.HistoryCommandEntry, batch.TrackCount, batch.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm 'UTC'")));
-        }
-
-        await message.RespondAsync(embed);
+        await responseBuilder.SendHistoryAsync(message, batches);
     }
 }

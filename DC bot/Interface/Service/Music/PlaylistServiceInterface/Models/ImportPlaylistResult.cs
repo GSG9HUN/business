@@ -3,7 +3,7 @@ namespace DC_bot.Interface.Service.Music.PlaylistServiceInterface.Models;
 /// <summary>
 /// Reports the result of saving tracks as a playlist.
 /// </summary>
-public enum SavePlaylistResult
+public enum ImportPlaylistResult
 {
 
     /// <summary>

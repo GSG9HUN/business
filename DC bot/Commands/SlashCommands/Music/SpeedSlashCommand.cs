@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.Globalization;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
@@ -18,7 +19,7 @@ public sealed class SpeedSlashCommand(
     /// <param name="context">The SDK interaction context.</param>
     /// <param name="multiplier">The optional value; omitted values inspect the current state.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("speed")]
+    [Command(CommandNames.Speed)]
     [Description("Show or change speed (0.5-2.0)")]
     public Task Speed(
         SlashCommandContext context,

@@ -4,6 +4,10 @@ Exposes help, language selection, latency checks, and user tagging through slash
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- Language selection is server-scoped. Tagging mentions a server member in the existing wake-up response; native option binding is retained.
+
 - Exposes help, language selection, latency checks and user tagging as slash commands.
 - Forwards typed options to shared command handlers and localized responses.
 
@@ -27,7 +31,7 @@ Contains the SDK choice model consumed by `LanguageSlashCommand`.
 
 **File:** `DC bot/Commands/SlashCommands/Utility/HelpSlashCommand.cs`
 
-**Purpose:** Adapts the help slash command to shared command execution and interaction acknowledgement.
+**Purpose:** Adapts the help slash command to shared command execution and interaction acknowledgement. Help defers before preparing its registry snapshot, then edits the accepted response with the same V2 category/detail flow as text help. The optional command argument opens details directly.
 
 **Usage:** `/help` lists commands; `/help command:volume` displays a localized description and usage. The optional command name is forwarded through `ISlashCommandExecutor`.
 

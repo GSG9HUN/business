@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,15 +13,15 @@ public sealed class MoveSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "move";
+    private const string CommandName = CommandNames.Move;
 
     /// <summary>Handle move queue operation through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="from">The one-based source waiting position.</param>
     /// <param name="to">The one-based destination waiting position.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("move")]
-    [Description("Handle move queue operation")]
+    [Command(CommandNames.Move)]
+    [Description("Move a waiting track to another one-based queue position")]
     public Task Move(
         SlashCommandContext context,
         [Parameter("from")][Description("One-based waiting position")] int from,

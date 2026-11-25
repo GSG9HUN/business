@@ -4,6 +4,12 @@ Exposes help, language selection, latency checks, and user tagging through text 
 
 ## Overview
 
+- Help layout changes remain inside HelpResponseBuilder: localized design headings/footers, icon controls, separate usage blocks and no alias section. HelpCommand validation and transport delegation remain unchanged.
+
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- Help usage includes actual slash syntax. Language selection changes the server preference; tag usage documents the existing mention, member-ID and username lookup.
+
 - Handles command help, guild language selection, latency checks and user tagging.
 - Resolves descriptions and usage using the guild language and configured command prefix.
 
@@ -18,10 +24,10 @@ Exposes help, language selection, latency checks, and user tagging through text 
 **Validation Checks:**
 
 - Resolve command descriptions in the guild language through `DescriptionKey`.
-- Accept `help [command]`; detailed lookup ignores case and preserves alias-specific usage.
-- Present sorted listings as a single paginated embed with at most ten commands per page and bounded text length.
-- Keep detailed `help <command>` descriptions and usage independent of list navigation.
-- Return localized guidance for unknown commands or extra arguments.
+- Accept `help [command]`; detailed lookup ignores case and resolves the registered command name.
+- Present native Components V2 help with seven registry-backed categories, actual command counts and at most seven commands per category page.
+- Open command details directly or from the current page selector. Details include existing bilingual text/slash usage, category, registered-alias guidance, prerequisites and a prefix-aware example. Back restores the category page; Categories returns home in the same message.
+- Return localized guidance for unknown commands, extra arguments or guild-less entry. Delegate metadata, typed navigation and V2 layout to `IHelpResponseBuilder`; `DiscordPaginationService` owns sending, interactions, fallback and five-minute expiry.
 
 **Usage:**
 

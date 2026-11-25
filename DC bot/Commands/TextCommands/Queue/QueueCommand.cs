@@ -1,9 +1,9 @@
 using DC_bot.Constants;
-using DC_bot.Helper;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
 using DC_bot.Interface.Service.Localization;
+using DC_bot.Interface.Service.Music.Playback;
 using DC_bot.Interface.Service.Music.Queue;
 using DC_bot.Interface.Service.Presentation;
 using DC_bot.Logging;
@@ -21,25 +21,27 @@ namespace DC_bot.Commands.TextCommands.Queue;
 /// <param name="responseBuilder">The response builder dependency used by this boundary.</param>
 /// <param name="localizationService">The localization service dependency used by this boundary.</param>
 /// <param name="commandHelper">The command helper dependency used by this boundary.</param>
+/// <param name="currentTrack">Reads the persisted current track for the queue heading.</param>
 /// <param name="pagination">Owns caller-bound navigation for long read-only results.</param>
-public class ViewQueueCommand(
+public class QueueCommand(
     IMusicQueueService musicQueueService,
     IUserValidationService userValidation,
-    ILogger<ViewQueueCommand> logger,
+    ILogger<QueueCommand> logger,
     IResponseBuilder responseBuilder,
     ILocalizationService localizationService,
     ICommandHelper commandHelper,
-    DiscordPaginationService pagination) : ICommand
+    DiscordPaginationService pagination,
+    ICurrentTrackService currentTrack) : ICommand
 {
 
     /// <inheritdoc />
-    public string Name => "viewList";
+    public string Name => CommandNames.Queue;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
 
     /// <inheritdoc />
-    public string DescriptionKey => LocalizationKeys.ViewListCommandDescription;
+    public string DescriptionKey => LocalizationKeys.QueueCommandDescription;
 
     /// <summary>
     /// Validates the message context, performs this command&apos;s action, and sends its localized outcome.
@@ -65,18 +67,16 @@ public class ViewQueueCommand(
         var guildId = message.Channel.Guild.Id;
         var queue = await musicQueueService.ViewQueue(guildId, default);
 
-        if (queue.Count == 0)
+        var current = await currentTrack.GetCurrentTrackAsync(guildId);
+
+        if (queue.Count == 0 && current is null)
         {
-            await responseBuilder.SendWarningAsync(message, LocalizationKeys.ViewListCommandError);
+            await responseBuilder.SendWarningAsync(message, LocalizationKeys.QueueCommandEmpty);
             logger.QueueIsEmpty();
             return;
         }
 
-        var items = queue.Select((track, index) =>
-                $"{index + 1}. {DiscordTextSanitizer.EscapeMentions(track.Title)} - {DiscordTextSanitizer.EscapeMentions(track.Author)}")
-            .ToArray();
-        await pagination.SendAsync(message, DiscordPaginationService.FromItems(
-            localizationService.Get(guildId, LocalizationKeys.ViewListCommandEmbedTitle), items));
+        await pagination.SendAsync(message, responseBuilder.BuildQueuePages(guildId, queue, current));
         logger.CommandExecuted(Name);
     }
 }

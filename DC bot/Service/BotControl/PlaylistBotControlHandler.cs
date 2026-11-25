@@ -77,8 +77,8 @@ public sealed class PlaylistBotControlHandler(
             return Failure(command, "InvalidPayload");
         }
 
-        var result = await playlistService.SavePlaylistAsync(command.GuildId, name, payload.Url.Trim(), cancellationToken);
-        return result == SavePlaylistResult.Saved
+        var result = await playlistService.ImportPlaylistAsync(command.GuildId, name, payload.Url.Trim(), cancellationToken);
+        return result == ImportPlaylistResult.Saved
             ? Success(command, "Playlist imported.")
             : Failure(command, result.ToString());
     }

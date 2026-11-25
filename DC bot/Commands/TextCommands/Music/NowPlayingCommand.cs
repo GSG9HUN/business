@@ -22,7 +22,7 @@ public sealed class NowPlayingCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "nowplaying";
+    public string Name => CommandNames.NowPlaying;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -45,6 +45,12 @@ public sealed class NowPlayingCommand(
 
         var result = await lavaLinkService.NowPlayingAsync(message, default);
 
+        if (!result.Success && result.ErrorCode == LocalizationKeys.NowPlayingCommandNoTrack)
+        {
+            await responseBuilder.SendInfoAsync(message, LocalizationKeys.NowPlayingCommandNoTrack);
+            return;
+        }
+
         if (!result.Success)
         {
             await responseBuilder.SendValidationErrorAsync(message, result.ErrorCode ?? ValidationErrorKeys.LavalinkError, default);
@@ -52,7 +58,7 @@ public sealed class NowPlayingCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

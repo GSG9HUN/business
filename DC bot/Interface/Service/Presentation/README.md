@@ -4,9 +4,14 @@ Defines localized success, warning, error, validation and usage responses.
 
 ## Overview
 
+- BuildPlaylistPages and BuildQueuePages return formatted pagination requests without sending messages or creating a pagination dependency cycle. Playlist rows use order/title only.
+
+- CreateEmbed renders status labels separately from titles and normalizes the approved status palette. Help renders prefix/slash guidance as separate blocks and omits the alias section; transport ownership remains unchanged.
+
 - ResponseBuilder presents translated messages as status-colored Discord embeds, with bounded plain-text fallback on delivery failure.
 - Caller cancellation is supported where the underlying boundary allows it.
 - Keep localization arguments separate from cancellation tokens. Playback side effects belong to music services, not response formatting.
+- `IHelpResponseBuilder` separates help metadata, typed navigation and V2 layout from entry-point validation and message lifetime. `SendHistoryAsync` keeps batch formatting in `IResponseBuilder`.
 
 ## Subfolders
 
@@ -18,8 +23,10 @@ Carries read-only pagination requests and formatted page content.
 
 - `PaginationPage.cs`
 - `PaginationRequest.cs`
+- `HelpResponse.cs`, `HelpCommandMetadata.cs`, `HelpNavigationState.cs`
+- `HelpCategory.cs`, `HelpView.cs`, `HelpNavigationAction.cs`
 
-**Purpose:** Separates page values and cancellable loaders from Discord interaction ownership.
+**Purpose:** Separates generic page values/loaders and typed help state from Discord interaction ownership.
 
 ---
 
@@ -42,7 +49,7 @@ DiscordEmbed CreateEmbed(
     string? footerKey = null);
 ```
 
-Creates presentation for callers that own a channel send, interaction response or component message. The caller retains delivery, acknowledgement and cancellation ownership.
+Creates presentation for callers that own a channel send, interaction response or component message. The caller retains delivery, acknowledgement and cancellation ownership. `CreateValidationEmbed` shares the warning/error classification with command validation. `SendInfoAsync` presents read-only information; `SendPlaybackResultAsync` respects a result's informational and partial-success metadata.
 
 **Methods:**
 
@@ -90,6 +97,24 @@ The caller supplies the component and argument values used in this example.
 
 ```csharp
 await responseBuilder.SendErrorAsync(message, localizationKey, cancellationToken, args);
+```
+
+---
+
+### IHelpResponseBuilder
+
+**Purpose:** Creates localized help views, validates navigation against the captured catalog and renders Components V2 without sending messages.
+
+**Methods:**
+
+```csharp
+HelpResponse? Create(ulong guildId, string? commandName, CancellationToken cancellationToken = default);
+HelpResponse? Navigate(
+    HelpResponse response,
+    HelpNavigationAction action,
+    string? selection,
+    CancellationToken cancellationToken = default);
+DiscordMessageBuilder BuildMessage(HelpResponse response, string componentPrefix, bool expired);
 ```
 
 ---

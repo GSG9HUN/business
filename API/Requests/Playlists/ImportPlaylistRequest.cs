@@ -1,11 +1,11 @@
 namespace API.Requests.Playlists;
 
 /// <summary>
-/// Carries client input for save playlist processing; handlers and endpoint filters validate its values.
+/// Carries client input for playlist import; handlers and endpoint filters validate its values.
 /// </summary>
 /// <param name="name">The name value for this operation.</param>
 /// <param name="url">The url value for this operation.</param>
-public sealed class SavePlaylistRequest(string name, string url)
+public sealed class ImportPlaylistRequest(string name, string url)
 {
 
     /// <summary>

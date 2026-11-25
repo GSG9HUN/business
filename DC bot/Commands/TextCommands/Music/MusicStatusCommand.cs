@@ -22,7 +22,7 @@ public sealed class MusicStatusCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "music-status";
+    public string Name => CommandNames.MusicStatus;
 
     /// <inheritdoc />
     public string Description => localization.Get(DescriptionKey);
@@ -50,7 +50,7 @@ public sealed class MusicStatusCommand(
             return;
         }
 
-        await responses.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responses.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

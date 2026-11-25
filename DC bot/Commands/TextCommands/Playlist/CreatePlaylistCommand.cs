@@ -31,7 +31,7 @@ public class CreatePlaylistCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "createPlaylist";
+    public string Name => CommandNames.CreatePlaylist;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

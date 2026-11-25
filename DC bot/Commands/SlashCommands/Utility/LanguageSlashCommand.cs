@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -12,7 +13,7 @@ namespace DC_bot.Commands.SlashCommands.Utility;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class LanguageSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "language";
+    private const string CommandName = CommandNames.Language;
 
     /// <summary>
     /// Adapts the language slash route to its shared handler and interaction response policy.
@@ -20,8 +21,8 @@ public class LanguageSlashCommand(ISlashCommandExecutor slashCommandExecutor, IS
     /// <param name="context">The context supplied for this operation.</param>
     /// <param name="language">The language supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("language")]
-    [Description("Change the bot language")]
+    [Command(CommandNames.Language)]
+    [Description("Change the bot language for this server")]
     public Task Language(SlashCommandContext context, [Parameter("language")][Description("Language to use")] SlashLanguage language)
     {
         return ExecuteAsync(contextFactory.Create(context), language);

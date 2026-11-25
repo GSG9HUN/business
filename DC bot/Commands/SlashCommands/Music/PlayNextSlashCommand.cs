@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -12,14 +13,14 @@ public sealed class PlayNextSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "playnext";
+    private const string CommandName = CommandNames.PlayNext;
 
     /// <summary>Queue music to play next through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="query">The source URL or search query.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("playnext")]
-    [Description("Queue music to play next")]
+    [Command(CommandNames.PlayNext)]
+    [Description("Queue music immediately after the current track, without skipping it")]
     public Task PlayNext(
         SlashCommandContext context,
         [Parameter("query")][Description("Queue music to play next")] string query)

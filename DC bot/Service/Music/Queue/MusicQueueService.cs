@@ -206,6 +206,13 @@ public class MusicQueueService(
     /// <param name="guildId">The Discord guild whose state or operation is addressed.</param>
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>A task representing completion of this operation.</returns>
+    public Task<int> ClearQueueWithCountAsync(ulong guildId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return queueRepository.MarkAllQueuedAsSkippedWithCountAsync(guildId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task ClearQueue(ulong guildId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

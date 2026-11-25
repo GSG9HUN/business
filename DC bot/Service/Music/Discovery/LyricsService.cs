@@ -103,7 +103,18 @@ public sealed class LyricsService(
                 return Fail(guildId, LocalizationKeys.LyricsUnavailable);
             }
 
-            var request = DiscordPaginationService.FromText(track.Title, text, page);
+            var snapshot = DiscordPaginationService.FromText(localization.Get(guildId, LocalizationKeys.ResponseLyricsTitle), text, page);
+            var request = new DC_bot.Interface.Service.Presentation.Models.PaginationRequest(async (number, token) =>
+            {
+                var content = await snapshot.LoadPageAsync(number, token);
+                return content with
+                {
+                    Description = localization.Get(guildId, LocalizationKeys.LyricsDesignBody,
+                        DC_bot.Helper.DiscordTextSanitizer.EscapeMentions(track.Title),
+                        DC_bot.Helper.DiscordTextSanitizer.EscapeMentions(track.Author),
+                        content.Number, content.PageCount, content.Description)
+                };
+            }, page);
             var initial = await request.LoadPageAsync(page, cancellationToken);
 
             if (page > initial.PageCount)

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
@@ -15,7 +16,7 @@ public sealed class AutoplaySlashCommand(ISlashCommandExecutor executor, ISlashI
     /// <param name="context">The Discord interaction.</param>
     /// <param name="mode">on, off, or status.</param>
     /// <returns>The shared command execution.</returns>
-    [Command("autoplay")]
+    [Command(CommandNames.Autoplay)]
     [Description("Configure autoplay (on/off/status)")]
     public Task Autoplay(
         SlashCommandContext context,
@@ -27,7 +28,7 @@ public sealed class AutoplaySlashCommand(ISlashCommandExecutor executor, ISlashI
     /// <summary>Routes typed options through the shared text-command pipeline.</summary>
     public Task ExecuteAsync(ISlashInteractionContext context, string? argument)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("autoplay", context, argument,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.Autoplay, context, argument,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

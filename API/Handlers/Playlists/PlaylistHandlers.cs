@@ -402,7 +402,7 @@ public static class PlaylistHandlers
     /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
     public static async Task<IResult> ImportAsync(
         HttpContext httpContext,
-        SavePlaylistRequest request,
+        ImportPlaylistRequest request,
         IMobileAppUserRepository userRepository,
         IBotControlCommandsRepository commandsRepository,
         CancellationToken cancellationToken)
@@ -429,7 +429,7 @@ public static class PlaylistHandlers
         }
 
         var payloadJson = JsonSerializer.Serialize(new PlaylistImportCommandPayload(playlistName, request.Url.Trim()));
-        var command = await commandsRepository.EnqueueAsync(guildId, discordUserId, BotControlCommandTypes.SavePlaylist, payloadJson, cancellationToken);
+        var command = await commandsRepository.EnqueueAsync(guildId, discordUserId, BotControlCommandTypes.ImportPlaylist, payloadJson, cancellationToken);
         return BotControlCommandHttpMapper.ToAccepted(command);
     }
 

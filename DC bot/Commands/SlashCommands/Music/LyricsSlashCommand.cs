@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.ComponentModel;
 using System.Globalization;
 using DC_bot.Interface.Service.SlashCommands;
@@ -17,7 +18,7 @@ public sealed class LyricsSlashCommand(ISlashCommandExecutor executor, ISlashInt
     /// <param name="query">Optional track query; omit to use the current track.</param>
     /// <param name="page">The one-based lyrics page.</param>
     /// <returns>The shared command execution.</returns>
-    [Command("lyrics")]
+    [Command(CommandNames.Lyrics)]
     [Description("Show lyrics for the current track or a query")]
     public Task Lyrics(
         SlashCommandContext context,
@@ -30,7 +31,7 @@ public sealed class LyricsSlashCommand(ISlashCommandExecutor executor, ISlashInt
     /// <summary>Routes lyrics arguments through existing deferred acknowledgement and guild validation.</summary>
     public Task ExecuteAsync(ISlashInteractionContext context, string argument)
     {
-        return executor.ExecuteAsync(new SlashCommandExecutionRequest("lyrics", context, argument,
+        return executor.ExecuteAsync(new SlashCommandExecutionRequest(CommandNames.Lyrics, context, argument,
             RequireGuild: true, Defer: true, EnsureDeferredResponse: true), default);
     }
 }

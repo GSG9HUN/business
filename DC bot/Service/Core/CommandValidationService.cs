@@ -76,7 +76,7 @@ public class CommandValidationService : ICommandHelper
     /// <param name="commandName">The command name supplied for this operation.</param>
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
-    public async Task<(string, string)?> TryParseSavePlaylistArguments(
+    public async Task<(string, string)?> TryParsePlaylistArgumentsAsync(
         IDiscordMessage message,
         IResponseBuilder responseBuilder,
         ILogger logger,

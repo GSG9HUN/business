@@ -27,7 +27,7 @@ public sealed class SeekCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "seek";
+    public string Name => CommandNames.Seek;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -66,7 +66,7 @@ public sealed class SeekCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

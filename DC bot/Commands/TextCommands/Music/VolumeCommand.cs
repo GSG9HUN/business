@@ -27,7 +27,7 @@ public sealed class VolumeCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "volume";
+    public string Name => CommandNames.Volume;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -65,7 +65,7 @@ public sealed class VolumeCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

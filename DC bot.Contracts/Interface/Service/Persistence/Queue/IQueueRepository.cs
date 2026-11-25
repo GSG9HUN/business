@@ -144,6 +144,9 @@ public interface IQueueRepository
     /// <returns>A task representing completion of the documented operation.</returns>
     Task MarkAllQueuedAsSkippedAsync(ulong guildId, CancellationToken cancellationToken = default);
 
+    /// <summary>Skips waiting rows and returns the affected count from the committed transaction.</summary>
+    Task<int> MarkAllQueuedAsSkippedWithCountAsync(ulong guildId, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Atomically claims the requested or next eligible queue item; reuses the same pending operation and rejects a competing pending claim.
     /// </summary>

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using DC_bot.Interface.Service.SlashCommands;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
@@ -12,15 +13,15 @@ namespace DC_bot.Commands.SlashCommands.Music;
 /// <param name="contextFactory">The slash interaction context factory dependency used by this boundary.</param>
 public class SkipSlashCommand(ISlashCommandExecutor slashCommandExecutor, ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "skip";
+    private const string CommandName = CommandNames.Skip;
 
     /// <summary>
     /// Adapts the skip slash route to its shared handler and interaction response policy.
     /// </summary>
     /// <param name="context">The context supplied for this operation.</param>
     /// <returns>A task representing completion of this operation.</returns>
-    [Command("skip")]
-    [Description("Skip the current track")]
+    [Command(CommandNames.Skip)]
+    [Description("Skip directly when voting is off or you requested the track or are a DJ; otherwise vote")]
     public Task Skip(SlashCommandContext context)
     {
         return ExecuteAsync(contextFactory.Create(context));

@@ -1,3 +1,4 @@
+using DC_bot.Constants;
 using System.Globalization;
 using System.ComponentModel;
 using DC_bot.Interface.Service.SlashCommands;
@@ -13,13 +14,13 @@ public sealed class RewindSlashCommand(
     ISlashCommandExecutor slashCommandExecutor,
     ISlashInteractionContextFactory contextFactory)
 {
-    private const string CommandName = "rewind";
+    private const string CommandName = CommandNames.Rewind;
 
     /// <summary>Move backward by a number of seconds through the shared command handler.</summary>
     /// <param name="context">The SDK slash interaction.</param>
     /// <param name="seconds">The seconds passed to the shared text command.</param>
     /// <returns>The asynchronous shared command execution.</returns>
-    [Command("rewind")]
+    [Command(CommandNames.Rewind)]
     [Description("Move backward by a number of seconds")]
     public Task Rewind(
         SlashCommandContext context,

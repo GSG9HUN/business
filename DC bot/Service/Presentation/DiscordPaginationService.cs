@@ -17,10 +17,12 @@ namespace DC_bot.Service.Presentation;
 /// <param name="responses">Creates bounded status embeds.</param>
 /// <param name="localization">Resolves navigation labels and failures in the guild language.</param>
 /// <param name="logger">Records failed page loads and message edits.</param>
+/// <param name="helpResponses">Builds and navigates typed help views without owning their transport.</param>
 public sealed class DiscordPaginationService(
     IResponseBuilder responses,
     ILocalizationService localization,
-    ILogger<DiscordPaginationService> logger) : IAsyncDisposable
+    ILogger<DiscordPaginationService> logger,
+    IHelpResponseBuilder helpResponses) : IAsyncDisposable
 {
     private const string Prefix = "music-page:";
     private const int MaxBodyLength = 3500;
@@ -39,20 +41,23 @@ public sealed class DiscordPaginationService(
         ulong guild,
         ulong channel,
         ulong owner,
-        PaginationRequest request,
+        PaginationRequest? request,
         PaginationPage page,
+        HelpResponse? helpResponse,
         CancellationTokenSource lifetime)
     {
         public readonly string Id = id;
         public readonly ulong Guild = guild;
         public readonly ulong Channel = channel;
         public readonly ulong Owner = owner;
-        public readonly PaginationRequest Request = request;
+        public readonly PaginationRequest? Request = request;
         public readonly DateTimeOffset Expires = DateTimeOffset.UtcNow + Lifetime;
         public readonly SemaphoreSlim Gate = new(1, 1);
         public readonly CancellationTokenSource LifetimeToken = lifetime;
         public readonly CancellationToken Token = lifetime.Token;
         public PaginationPage Page = page;
+        public HelpResponse? HelpResponse = helpResponse;
+        public int Revision;
         public DiscordMessage? Message;
         public Task Expiry = Task.CompletedTask;
     }
@@ -152,7 +157,6 @@ public sealed class DiscordPaginationService(
         cancellationToken.ThrowIfCancellationRequested();
         var guild = context.Channel.Guild.Id;
         var page = request.InitialContent ?? await request.LoadPageAsync(request.InitialPage, cancellationToken);
-        var key = (guild, context.Author.Id);
 
         if (page.PageCount <= 1)
         {
@@ -160,8 +164,33 @@ public sealed class DiscordPaginationService(
             return;
         }
 
+        await SendPanelAsync(context, request, page, null, cancellationToken);
+    }
+
+    /// <summary>Sends a typed help view through the existing owner-bound, expiring message lifecycle.</summary>
+    public Task SendHelpAsync(IDiscordMessage context, HelpResponse response, CancellationToken cancellationToken = default)
+    {
+        if (context.Channel.Guild?.Id != response.GuildId)
+        {
+            throw new ArgumentException("Help view and message must belong to the same guild.", nameof(response));
+        }
+
+        return SendPanelAsync(context, null, response.Page, response, cancellationToken);
+    }
+
+    /// <summary>Owns delivery, replacement, cancellation and fallback independently of the response layout.</summary>
+    private async Task SendPanelAsync(
+        IDiscordMessage context,
+        PaginationRequest? request,
+        PaginationPage page,
+        HelpResponse? response,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var guild = context.Channel.Guild.Id;
+        var key = (guild, context.Author.Id);
         var panel = new Panel(Guid.NewGuid().ToString("N"), guild, context.Channel.Id, context.Author.Id,
-            request, page, CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token));
+            request, page, response, CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token));
 
         lock (_ownershipLock)
         {
@@ -207,10 +236,15 @@ public sealed class DiscordPaginationService(
         catch (Exception exception)
         {
             Retire(panel);
-            panel.LifetimeToken.Dispose();
+
+            if (panel.Message is null)
+            {
+                panel.LifetimeToken.Dispose();
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
             logger.LogDebug(exception, "Pagination embed failed; returning bounded text. Guild={GuildId}", guild);
-            await context.RespondAsync(BuildTextFallback(guild, page)).WaitAsync(cancellationToken);
+            await context.RespondAsync(BuildTextFallback(guild, page, panel.HelpResponse?.Footer)).WaitAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
         }
     }
@@ -225,7 +259,7 @@ public sealed class DiscordPaginationService(
 
         var parts = args.Id[Prefix.Length..].Split(':');
 
-        if (parts.Length != 2 || parts[1] is not ("previous" or "next"))
+        if (parts.Length is not (2 or 3))
         {
             await DenyAsync(args, LocalizationKeys.PaginationExpired);
             return;
@@ -262,12 +296,55 @@ public sealed class DiscordPaginationService(
 
         try
         {
+            var custom = panel.HelpResponse is not null;
+            var actionCode = -1;
+            var action = parts[^1];
+
+            if (panel.Token.IsCancellationRequested
+                || panel.Expires <= DateTimeOffset.UtcNow
+                || (custom
+                    ? parts.Length != 3
+                        || !int.TryParse(parts[1], out var revision)
+                        || revision != panel.Revision
+                        || args.Values.Length > 1
+                        || !int.TryParse(parts[^1], out actionCode)
+                        || !Enum.IsDefined(typeof(HelpNavigationAction), actionCode)
+                    : parts.Length != 2
+                        || args.Values.Length != 0
+                        || action is not ("previous" or "next")))
+            {
+                await DenyAsync(args, LocalizationKeys.PaginationExpired);
+                return;
+            }
+
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.DeferredMessageUpdate);
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(panel.Token);
             deadline.CancelAfter(OperationTimeout);
-            var number = Math.Clamp(panel.Page.Number + (parts[1] == "next" ? 1 : -1), 1, Math.Max(1, panel.Page.PageCount));
-            var page = await panel.Request.LoadPageAsync(number, deadline.Token);
+            var number = Math.Clamp(panel.Page.Number + (action == "next" ? 1 : -1), 1, Math.Max(1, panel.Page.PageCount));
+            var previousHelp = panel.HelpResponse;
+            HelpResponse? nextHelp = null;
+            PaginationPage? page;
+
+            if (previousHelp is not null)
+            {
+                nextHelp = helpResponses.Navigate(previousHelp, (HelpNavigationAction)actionCode,
+                    args.Values.SingleOrDefault(), deadline.Token);
+                page = nextHelp?.Page;
+            }
+            else
+            {
+                page = await panel.Request!.LoadPageAsync(number, deadline.Token);
+            }
+
             deadline.Token.ThrowIfCancellationRequested();
+
+            if (page is null)
+            {
+                await args.Interaction.CreateFollowupMessageAsync(new DiscordFollowupMessageBuilder()
+                    .WithContent(localization.Get(panel.Guild, LocalizationKeys.PaginationExpired))
+                    .AsEphemeral());
+                return;
+            }
 
             if (panel.Expires <= DateTimeOffset.UtcNow)
             {
@@ -277,13 +354,31 @@ public sealed class DiscordPaginationService(
 
             var previousPage = panel.Page;
             panel.Page = page;
+            panel.HelpResponse = nextHelp;
+            panel.Revision++;
             try
             {
                 await args.Message.ModifyAsync(BuildMessage(panel));
+
+                if (panel.Token.IsCancellationRequested
+                    || panel.Expires <= DateTimeOffset.UtcNow)
+                {
+                    Retire(panel);
+                    await args.Message.ModifyAsync(BuildMessage(panel, true)).WaitAsync(OperationTimeout);
+                }
             }
             catch
             {
                 panel.Page = previousPage;
+                panel.HelpResponse = previousHelp;
+                panel.Revision--;
+
+                if (panel.HelpResponse is not null)
+                {
+                    // A failed HTTP response cannot prove whether Discord accepted the new versioned controls.
+                    Retire(panel);
+                }
+
                 throw;
             }
         }
@@ -308,23 +403,19 @@ public sealed class DiscordPaginationService(
     /// <summary>Creates the single bounded embed and localized navigation footer.</summary>
     private DiscordEmbed BuildEmbed(ulong guild, PaginationPage page)
     {
-        var footer = page.TotalItems.HasValue
-            ? localization.Get(guild, LocalizationKeys.PaginationFooter, page.Number, page.PageCount, page.TotalItems.Value)
-            : localization.Get(guild, LocalizationKeys.PaginationTextFooter, page.Number, page.PageCount);
         return new DiscordEmbedBuilder(responses.CreateEmbed(guild,
                 string.IsNullOrEmpty(page.Description) ? localization.Get(guild, LocalizationKeys.PaginationEmpty) : page.Description))
             .WithTitle(DiscordTextSanitizer.Truncate(page.Title, 256))
-            .WithFooter(footer)
             .Build();
     }
 
     /// <summary>Preserves the initial page and navigation totals within Discord's plain-text message limit.</summary>
-    private string BuildTextFallback(ulong guild, PaginationPage page)
+    private string BuildTextFallback(ulong guild, PaginationPage page, string? customFooter)
     {
         var title = DiscordTextSanitizer.Truncate(page.Title, 256);
-        var footer = page.TotalItems.HasValue
+        var footer = customFooter ?? (page.TotalItems.HasValue
             ? localization.Get(guild, LocalizationKeys.PaginationFooter, page.Number, page.PageCount, page.TotalItems.Value)
-            : localization.Get(guild, LocalizationKeys.PaginationTextFooter, page.Number, page.PageCount);
+            : localization.Get(guild, LocalizationKeys.PaginationTextFooter, page.Number, page.PageCount));
         footer = DiscordTextSanitizer.Truncate(footer, 200);
         var description = string.IsNullOrEmpty(page.Description)
             ? localization.Get(guild, LocalizationKeys.PaginationEmpty) : page.Description;
@@ -335,6 +426,11 @@ public sealed class DiscordPaginationService(
     /// <summary>Builds the same navigation layout for active and expired pages.</summary>
     private DiscordMessageBuilder BuildMessage(Panel panel, bool disabled = false)
     {
+        if (panel.HelpResponse is { } response)
+        {
+            return helpResponses.BuildMessage(response, Prefix + panel.Id + ":" + panel.Revision + ":", disabled);
+        }
+
         var builder = new DiscordMessageBuilder().AddEmbed(BuildEmbed(panel.Guild, panel.Page));
 
         if (panel.Page.PageCount > 1)
@@ -391,16 +487,10 @@ public sealed class DiscordPaginationService(
 
             Retire(panel);
 
-            if (_shutdown.IsCancellationRequested)
-            {
-                return;
-            }
-
-            await panel.Gate.WaitAsync();
+            using var deadline = new CancellationTokenSource(OperationTimeout);
+            await panel.Gate.WaitAsync(deadline.Token);
             try
             {
-                using var deadline = new CancellationTokenSource(OperationTimeout);
-
                 if (panel.Message is not null)
                 {
                     await panel.Message.ModifyAsync(BuildMessage(panel, true)).WaitAsync(deadline.Token);

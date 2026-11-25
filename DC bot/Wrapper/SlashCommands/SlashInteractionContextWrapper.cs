@@ -210,7 +210,24 @@ public class SlashInteractionContextWrapper : ISlashInteractionContext
                 try
                 {
                     // Editing the known interaction response does not require its channel message ID.
+                    var contentComponents = builder.Components.Where(component =>
+                            component is DiscordContainerComponent or DiscordTextDisplayComponent)
+                        .ToArray();
                     builder.ClearComponents();
+
+                    foreach (var component in contentComponents)
+                    {
+                        switch (component)
+                        {
+                            case DiscordContainerComponent container:
+                                builder.AddContainerComponent(container);
+                                break;
+                            case DiscordTextDisplayComponent text:
+                                builder.AddTextDisplayComponent(text);
+                                break;
+                        }
+                    }
+
                     await context.EditResponseAsync(builder);
                 }
                 catch (Exception cleanupException)

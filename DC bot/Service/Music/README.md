@@ -4,6 +4,8 @@ Coordinates music requests through a facade and specialized playback components.
 
 ## Overview
 
+- Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
+
 - Coordinates playback, audio effects, queues, playlists, discovery and guild music controls.
 - Uses lifecycle ownership to serialize transport and repository operations.
 - Exposes music operations through `LavaLinkService` and feature-specific services.

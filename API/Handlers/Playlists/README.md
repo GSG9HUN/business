@@ -84,7 +84,7 @@ public static async Task<IResult> DeleteAsync(
 ```csharp
 public static async Task<IResult> ImportAsync(
     HttpContext httpContext,
-    SavePlaylistRequest request,
+    ImportPlaylistRequest request,
     IMobileAppUserRepository userRepository,
     IBotControlCommandsRepository commandsRepository,
     CancellationToken cancellationToken);

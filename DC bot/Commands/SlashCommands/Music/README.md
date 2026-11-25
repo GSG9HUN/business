@@ -4,6 +4,12 @@ Exposes voice join/leave and playback controls through slash commands.
 
 ## Overview
 
+- Canonical text names and matching slash roots/dispatch targets use the shared CommandNames constants. Existing slash group and subcommand routes retain their own vocabulary.
+
+- `FavoriteSlashCommand` is the sole personal-favorites slash group: `/favorite add`, `/favorite list`, `/favorite remove`, `/favorite play`.
+
+- Playback descriptions distinguish enqueueing from immediate playback and explain requester/DJ/voting behavior for skip; existing option binding and validation are retained.
+
 - Exposes typed Discord interaction options for playback, filters, discovery and guild music settings.
 - Builds `SlashCommandExecutionRequest` values for shared text-command execution.
 - Controls interaction acknowledgement while services enforce playback ownership and permissions.
@@ -57,20 +63,6 @@ Exposes voice join/leave and playback controls through slash commands.
 - `FavoriteSlashCommand.cs`
 
 **Purpose:** Routes `favorite add/list/remove/play` to the shared discovery service and localized result boundary.
-
-**Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
-
-**Validation Checks:** Personal favorite ownership, autoplay voice mutation rules and picker user/guild/message/session binding are enforced by services.
-
----
-
-### FavouriteSlashCommand
-
-**Files:**
-
-- `FavouriteSlashCommand.cs`
-
-**Purpose:** Routes `favourite add/list/remove/play` to the shared discovery service and localized result boundary.
 
 **Methods:** `ExecuteAsync` dispatches adapted interaction arguments; attributed methods bind the typed slash options.
 

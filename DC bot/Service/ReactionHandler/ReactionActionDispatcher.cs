@@ -46,6 +46,7 @@ public sealed class ReactionActionDispatcher(
                 await lavaLinkService.SkipAsync(message, member, cancellationToken);
                 break;
             case ReactionControlEmojis.RepeatEmojiName:
+                //TODO repeat implementation:
                 await message.RespondAsync(responseBuilder.CreateEmbed(message.Channel.Guild.Id,
                     localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOn),
                     DiscordColor.Green, LocalizationKeys.ResponseSuccessTitle))
@@ -81,6 +82,7 @@ public sealed class ReactionActionDispatcher(
                 await lavaLinkService.SkipAsync(message, member, cancellationToken);
                 break;
             case ReactionControlEmojis.RepeatEmojiName:
+                //TODO repeat implementation:
                 await message.RespondAsync(responseBuilder.CreateEmbed(message.Channel.Guild.Id,
                     localizationService.Get(message.Channel.Guild.Id, LocalizationKeys.ReactionHandlerRepeatOff),
                     DiscordColor.Green, LocalizationKeys.ResponseSuccessTitle))

@@ -27,7 +27,7 @@ public sealed class ForwardCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "forward";
+    public string Name => CommandNames.Forward;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -66,7 +66,7 @@ public sealed class ForwardCommand(
             return;
         }
 
-        await responseBuilder.SendSuccessAsync(message, LocalizationKeys.PlaybackCommandResponse, result.Message);
+        await responseBuilder.SendPlaybackResultAsync(message, result);
         logger.CommandExecuted(Name);
     }
 }

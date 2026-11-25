@@ -4,6 +4,10 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 
 ## Overview
 
+- Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
+
+- Skip replies use the current track after advancement completes; playnext includes inserted count and the first inserted title/duration. Nowplaying uses the compact title/artist/position/volume layout. Reset, preset and karaoke on/off have separate confirmed-outcome titles.
+
 - Resolves playback requests, starts queued occurrences and applies playback controls.
 - Coordinates filter composition, transport confirmation and state persistence under guild session ownership.
 - Distinguishes rejected, confirmed, pending and superseded operations.
@@ -35,7 +39,7 @@ Contains SDK-dependent playback data separated from behavior.
 
 Reads node state, synchronizes the SDK cache, composes the complete filter map and reconciles uncertain updates under a control reservation. Individual controls retain unrelated built-in/plugin values; presets replace the map, and reset retains output volume.
 
-Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit. Custom preset listing returns lazy ten-entry guild-scoped pages with totals; Discord adapters present the same navigation used by other list commands.
+Custom definitions are versioned, built-in-only and exclude output percentage; internal gain compensation remains part of effects. Save/overwrite/delete requires Manage Guild. Save/apply requires the bot voice channel; listing needs no player. Overwrite must be explicit. Filter inspection and help return informational results. Applied effects with a position-save failure or a preset caveat return warning metadata without reporting that the applied effects failed. Custom preset listing returns lazy ten-entry guild-scoped pages with totals; Discord adapters present the same navigation used by other list commands.
 
 **Methods:**
 
@@ -51,6 +55,8 @@ Task<PlaybackControlResult> PitchAsync(
 Task RestoreAsync(ILavalinkPlayer player, CancellationToken cancellationToken = default);
 ```
 
+Playback-start rejections use `ITrackNotificationService.SendValidationAsync`, so full queues, pending results and wrong voice channels use the same severity as command validation. Unsuccessful playback starts remain system errors.
+
 **Validation Checks:** Mutations require the current player generation and the requesting member in the bot voice channel. Speed/pitch require finite invariant numbers in 0.5-2.0. Bass curves stay within 0-0.20 gain. Node capability data is cached per API client and node session, retaining the reported version, for one minute. Unknown outcomes are not retried blindly; the next inspection or mutation reads the authoritative player before composing new state.
 
 **Usage:**
@@ -63,7 +69,7 @@ Task RestoreAsync(ILavalinkPlayer player, CancellationToken cancellationToken = 
 <prefix>filters reset
 ```
 
-The final state has neutral filters and retains output volume 65%. Individual bassboost changes only the equalizer; speed/pitch retain each other and rate. Presets replace the full filter map, including plugin effects. Low-frequency profiles are conservative starting values awaiting deployment listening verification. The bass-heavy preset applies 85% internal gain for headroom without changing player output volume.
+The final state has neutral filters and retains output volume 65%. Individual bassboost changes only the equalizer; speed/pitch retain each other and rate. Presets replace the full filter map, including plugin effects. Low-frequency profiles now cover bands 0-5 and still require deployment listening verification. The bass-heavy preset applies 85% internal gain for headroom without changing player output volume.
 
 After a timescale update the service reads the node source position, checks the same ready queue occurrence, and updates the existing position checkpoint. A checkpoint failure is reported separately from the acknowledged filter change.
 

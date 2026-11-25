@@ -32,7 +32,7 @@ public class RepeatCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "repeat";
+    public string Name => CommandNames.Repeat;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);

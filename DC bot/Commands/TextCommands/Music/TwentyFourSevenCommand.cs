@@ -1,4 +1,4 @@
-﻿using DC_bot.Constants;
+using DC_bot.Constants;
 using DC_bot.Interface;
 using DC_bot.Interface.Core;
 using DC_bot.Interface.Discord;
@@ -30,7 +30,7 @@ public sealed class TwentyFourSevenCommand(
 {
 
     /// <inheritdoc />
-    public string Name => "24-7";
+    public string Name => CommandNames.TwentyFourSeven;
 
     /// <inheritdoc />
     public string Description => localizationService.Get(DescriptionKey);
@@ -137,10 +137,14 @@ public sealed class TwentyFourSevenCommand(
             ? LocalizationKeys.TwentyFourSevenCommandEnabled
             : LocalizationKeys.TwentyFourSevenCommandDisabled;
 
-        await responseBuilder.SendSuccessAsync(
-            message,
-            responseKey,
-            CancellationToken.None);
+        if (enabled.HasValue)
+        {
+            await responseBuilder.SendSuccessAsync(message, responseKey, CancellationToken.None);
+        }
+        else
+        {
+            await responseBuilder.SendInfoAsync(message, responseKey, CancellationToken.None);
+        }
 
         logger.CommandExecuted(Name);
     }
