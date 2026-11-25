@@ -10,7 +10,7 @@ interface PlaylistsRepository {
     /**
      * Sets the playlist cover URL, or restores automatic artwork when the value is absent.
      */
-    suspend fun setArtwork(playlistId: String, artworkUri: String?): Unit
+    suspend fun setArtwork(playlistId: String, artworkUri: String?)
 
     /**
      * Retrieves the playlists belonging to the requested guild.
@@ -20,12 +20,12 @@ interface PlaylistsRepository {
     /**
      * Deletes the identified saved playlist.
      */
-    suspend fun deletePlaylist(playlistId: String): Unit
+    suspend fun deletePlaylist(playlistId: String)
 
     /**
      * Changes the name of the identified playlist.
      */
-    suspend fun renamePlaylist(playlistId: String, newName: String): Unit
+    suspend fun renamePlaylist(playlistId: String, newName: String)
 
     /**
      * Creates a named playlist for the requested guild.

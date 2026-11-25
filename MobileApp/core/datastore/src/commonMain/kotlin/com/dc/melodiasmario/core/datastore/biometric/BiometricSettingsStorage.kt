@@ -12,5 +12,5 @@ expect class BiometricSettingsStorage {
     /**
      * Persists the requested enabled setting.
      */
-    suspend fun setEnabled(enabled: Boolean): Unit
+    suspend fun setEnabled(enabled: Boolean)
 }

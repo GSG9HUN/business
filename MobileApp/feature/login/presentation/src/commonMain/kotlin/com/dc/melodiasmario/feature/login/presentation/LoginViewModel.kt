@@ -64,7 +64,7 @@ class LoginViewModel(
         collectEvents()
     }
 
-    override fun onCleared(): Unit {
+    override fun onCleared() {
         stopStatusPolling()
         super.onCleared()
     }
@@ -72,7 +72,7 @@ class LoginViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: LoginEvent): Unit {
+    fun onEvent(event: LoginEvent) {
         viewModelScope.launch {
             events.emit(value = event)
         }

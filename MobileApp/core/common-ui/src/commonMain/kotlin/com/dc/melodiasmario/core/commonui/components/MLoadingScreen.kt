@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MLoadingScreen(
     modifier: Modifier = Modifier
-): Unit {
+) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

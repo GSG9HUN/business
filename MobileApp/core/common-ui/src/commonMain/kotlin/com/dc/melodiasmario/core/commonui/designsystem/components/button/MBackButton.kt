@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MBackButton(
     onClick: () -> Unit,
     contentDescription: String
-): Unit {
+) {
     IconButton(
         onClick = onClick,
         enabled = true

@@ -3,6 +3,8 @@
 Executes API-originated commands from the durable PostgreSQL command bridge.
 
 ## Overview
+The dispatcher accepts the typed `seek` payload, validates its position and attempt, and forwards it through `HandlePlaybackControlAsync` to the fenced `ILavaLinkService.SeekAsync` overload. Existing Discord context and same-voice authorization remain in force.
+
 
 - Playlist import calls `IPlaylistService.ImportPlaylistAsync` and consumes `ImportPlaylistResult`. The durable command identifier retains its existing wire value.
 

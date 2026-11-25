@@ -56,6 +56,9 @@ public static class BotControlCommandTypes
     /// </summary>
     public const string Previous = "previous";
 
+    /// <summary>Seeks a specific playback attempt to an absolute position in seconds.</summary>
+    public const string Seek = "seek";
+
     /// <summary>
     /// The bot control command type for leaving the voice channel.
     /// </summary>

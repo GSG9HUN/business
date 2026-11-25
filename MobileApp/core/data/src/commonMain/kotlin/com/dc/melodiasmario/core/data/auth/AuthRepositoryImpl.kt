@@ -32,7 +32,7 @@ class AuthRepositoryImpl (
         return session
     }
 
-    override suspend fun logout(refreshToken: String): Unit {
+    override suspend fun logout(refreshToken: String) {
         authRemoteDataSource.logout(refreshToken = refreshToken)
         secureAuthSessionStorage.clearSession()
         authSessionMemoryCache.clear()

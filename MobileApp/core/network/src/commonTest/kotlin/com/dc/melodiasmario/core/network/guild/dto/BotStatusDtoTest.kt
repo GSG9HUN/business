@@ -6,12 +6,12 @@ import kotlin.test.Test
 class BotStatusDtoTest {
 
     @Test
-    fun toDomainMapsOnlineStateAndVoiceChannelData(): Unit {
+    fun toDomainMapsOnlineStateAndVoiceChannelData() {
         throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsNullVoiceChannelName(): Unit {
+    fun toDomainMapsNullVoiceChannelName() {
         throw NotImplementedError()
     }
 }

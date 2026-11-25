@@ -27,7 +27,7 @@ fun MManualInput(
     placeholder: String,
     onValueChange: (inputValue: String) -> Unit,
     enabled: Boolean
-): Unit {
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(size = 12.dp),

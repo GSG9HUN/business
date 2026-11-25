@@ -13,5 +13,5 @@ class StartCurrentPlaybackMonitorUseCase(
     /**
      * Executes the start current playback monitor domain operation.
      */
-    operator fun invoke(guildId: String): Unit = currentPlaybackMonitorRepository.start(guildId = guildId)
+    operator fun invoke(guildId: String) = currentPlaybackMonitorRepository.start(guildId = guildId)
 }

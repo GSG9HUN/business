@@ -5,6 +5,7 @@ This is a Kotlin Multiplatform project targeting Android and iOS.
 ## Overview
 
 - Shared Kotlin presentation and domain logic in common source sets.
+- Shared HTTP status validation rejects non-success responses; the API availability probe evaluates status codes explicitly.
 - Android and iOS entry points with platform-specific adapters.
 - Compose screens use shared queue, search, playback, and playlist components.
 
@@ -91,9 +92,17 @@ Version catalog and Gradle wrapper configuration used by the application modules
 
 ## Components
 
+### PlaybackSeekBar
+
+**Purpose:** CurrentTrack displays a seek slider backed by the existing Event, command handler, use case, repository, API and durable bot-command pipeline. A completed gesture submits one absolute position and the observed playback attempt ID to `POST /guilds/{guildId}/playback/seek`. The server rechecks that attempt under its existing playback reservation before remote seek and persistence, retaining pause state.
+
+**Validation Checks:** Seeking is disabled while disconnected, while another command is in flight, for live/non-seekable tracks, or when older snapshots omit seek capability/attempt identity. A track/guild change discards the local drag preview. Terminal success, failure and an unconfirmed timeout have separate localized feedback. New seek tests are scaffolds only; real-device and live Discord/Lavalink acceptance remains required.
+
+---
+
 ### AGENTS.md
 
-**Purpose:** [AGENTS.md](AGENTS.md) defines the instructions agents must read before modifying this project. It covers Kotlin formatting and naming, module boundaries, Koin dependency injection, coroutine and state handling, Compose UI, KDoc, testing, and README maintenance. Argument lists must have no trailing commas, calls must use named arguments wherever Kotlin supports them, and all existing and new function-type declarations throughout the project must name their input parameters descriptively, across every module and source set. New tests are created as test classes and named test-case scaffolds whose bodies contain only `throw NotImplementedError()`; test logic is implemented only when explicitly requested. Existing implemented tests are preserved. Variables, properties, and parameters must identify their specific type and role, such as `authRepository` rather than `repository`; only `uiState` and `effect`, including their backing properties, may retain these short generic names.
+**Purpose:** [AGENTS.md](AGENTS.md) defines the instructions agents must read before modifying this project. It covers Kotlin formatting and naming, module boundaries, Koin dependency injection, coroutine and state handling, Compose UI, KDoc, testing, and README maintenance. Non-Unit functions declare their return types explicitly; Unit-returning functions may omit the return annotation. Unit-returning function types and callbacks may also omit input parameter names, while retaining the `-> Unit` syntax required by Kotlin. Argument lists must have no trailing commas, calls must use named arguments wherever Kotlin supports them, and all existing and new non-Unit-returning function-type declarations throughout the project must name their input parameters descriptively, across every module and source set. New tests are created as test classes and named test-case scaffolds whose bodies contain only `throw NotImplementedError()`; test logic is implemented only when explicitly requested. Existing implemented tests are preserved. Variables, properties, and parameters must identify their specific type and role, such as `authRepository` rather than `repository`; only `uiState` and `effect`, including their backing properties, may retain these short generic names.
 
 ---
 
@@ -248,6 +257,8 @@ Playlist cover updates and playlist-track deletion validate HTTP response status
 
 ## Related Components
 
+- [Interactive Android design preview](ANDROID_MUSIC_DESIGN_PREVIEW.html) - Proposed screens and simulated interactions using the existing theme; not production implementation.
+- [Android music implementation plan](ANDROID_MUSIC_IMPLEMENTATION_PLAN.md) - Planned screens and 14 ordered implementation steps from the HTML preview, including synchronization, backend dependencies, and completion gates; not implemented functionality.
 - [core/common-ui](core/common-ui/README.md) - Shared Compose components and theme conventions.
 - [core/presentation](core/presentation/README.md) - Shared command, playback, and search coordination.
 - [iosApp](iosApp) - Native iOS entry point and platform setup.

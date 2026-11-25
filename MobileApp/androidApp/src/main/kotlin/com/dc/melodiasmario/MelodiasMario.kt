@@ -12,7 +12,7 @@ import org.koin.core.context.startKoin
  * Provides melodias mario for the melodiasmario layer.
  */
 class MelodiasMario : Application() {
-    override fun onCreate(): Unit {
+    override fun onCreate() {
         super.onCreate()
 
         startKoin {

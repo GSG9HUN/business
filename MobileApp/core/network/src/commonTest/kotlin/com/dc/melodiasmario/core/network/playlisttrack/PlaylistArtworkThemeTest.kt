@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 class PlaylistArtworkThemeTest {
     @Test
-    fun themeMatchingUsesWholeWordsAndIgnoresCase(): Unit {
+    fun themeMatchingUsesWholeWordsAndIgnoresCase() {
         assertEquals(expected = PlaylistArtworkTheme.NightDrive, actual = PlaylistArtworkTheme.fromName(name = "NIGHT DRIVE 2026"))
         assertEquals(expected = PlaylistArtworkTheme.Chill, actual = PlaylistArtworkTheme.fromName(name = "Sunday: Chill & Relax"))
         assertEquals(expected = PlaylistArtworkTheme.Workout, actual = PlaylistArtworkTheme.fromName(name = "Reggeli EDZÉS"))
@@ -15,7 +15,7 @@ class PlaylistArtworkThemeTest {
     }
 
     @Test
-    fun ambiguousNamesHaveStableThemePriority(): Unit {
+    fun ambiguousNamesHaveStableThemePriority() {
         assertEquals(expected = PlaylistArtworkTheme.Workout, actual = PlaylistArtworkTheme.fromName(name = "Night workout"))
         assertEquals(expected = PlaylistArtworkTheme.Chill, actual = PlaylistArtworkTheme.fromName(name = "Chill night drive"))
     }

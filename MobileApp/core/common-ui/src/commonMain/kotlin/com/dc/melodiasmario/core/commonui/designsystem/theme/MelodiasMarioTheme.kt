@@ -103,7 +103,7 @@ private val melodiasMarioLightColorScheme = lightColorScheme(
 fun MelodiasMarioTheme(
     themeMode: MelodiasMarioThemeMode = MelodiasMarioThemeMode.System,
     content: @Composable () -> Unit
-): Unit {
+) {
     val useDarkTheme = when (themeMode) {
         MelodiasMarioThemeMode.Dark -> true
         MelodiasMarioThemeMode.Light -> false

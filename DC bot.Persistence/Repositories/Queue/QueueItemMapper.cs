@@ -32,7 +32,8 @@ internal static class QueueItemMapper
             entity.SkippedAtUtc)
         {
             EnqueueGroupId = entity.EnqueueGroupId,
-            BatchPosition = entity.BatchPosition
+            BatchPosition = entity.BatchPosition,
+            PlaybackOperationId = entity.PlaybackOperationId
         };
     }
 }

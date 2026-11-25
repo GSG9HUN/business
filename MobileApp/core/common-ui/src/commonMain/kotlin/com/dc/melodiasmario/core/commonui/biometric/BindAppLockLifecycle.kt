@@ -9,4 +9,4 @@ import com.dc.melodiasmario.core.presentation.biometric.AppLockController
 @Composable
 expect fun BindAppLockLifecycle(
     appLockController: AppLockController
-): Unit
+)

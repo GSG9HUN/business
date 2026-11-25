@@ -43,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MBottomBar(
     items: List<BottomBarItem>,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface

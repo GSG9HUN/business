@@ -15,7 +15,7 @@ interface PlaylistTrackRemoteDataSource {
     /**
      * Removes the track identified by its playlist order number.
      */
-    suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int): Unit
+    suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int)
 
     /**
      * Requests loading the saved playlist into the playback queue.

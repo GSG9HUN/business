@@ -4,6 +4,8 @@ Defines client-facing output for current playback state, repeat flags, start own
 
 ## Overview
 
+`PlaybackTrackResponse` retains its positional constructor and adds `IsSeekable` plus nullable `PlaybackOperationId` init properties. The mapper rejects live/non-seekable tracks; the snapshot associates the persisted current occurrence attempt. Clients missing either capability or attempt must keep seeking disabled.
+
 - Handlers, mappers, and snapshot providers construct these records from shared contract values and return them through HTTP or matching realtime events.
 - Keep field meaning consistent for mobile consumers. An output model describes observable state and must not contain a tracked entity or a live SDK object.
 

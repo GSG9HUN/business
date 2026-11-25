@@ -1,4 +1,6 @@
+using System.Text.Json;
 using API.Mapping;
+using DC_bot.BotControl.Payloads;
 using API.Requests.Playback;
 using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
@@ -14,6 +16,39 @@ namespace API.Handlers.Playback;
 /// </summary>
 public static class PlaybackHandlers
 {
+
+    /// <summary>Validates and accepts a seek tied to the playback attempt observed by the authenticated caller.</summary>
+    /// <param name="httpContext">The authenticated guild request context.</param>
+    /// <param name="request">Absolute position and expected playback attempt.</param>
+    /// <param name="repository">The durable command store.</param>
+    /// <param name="userRepository">The guild membership and premium boundary.</param>
+    /// <param name="ct">Cancels authorization and persistence.</param>
+    /// <returns>Accepted command identity, access denial, or validation failure.</returns>
+    public static async Task<IResult> SeekAsync(
+        HttpContext httpContext,
+        SeekPlaybackRequest request,
+        IBotControlCommandsRepository repository,
+        IMobileAppUserRepository userRepository,
+        CancellationToken ct)
+    {
+        var guildId = (ulong)httpContext.Items["guildId"]!;
+        var (userId, accessError) = await ApiUserContext.RequireGuildAccessAsync(httpContext, userRepository, guildId, ct);
+
+        if (accessError is not null)
+        {
+            return accessError;
+        }
+
+        if (request.PositionSeconds < 0
+            || request.ExpectedPlaybackOperationId == Guid.Empty)
+        {
+            return HttpResults.BadRequest(new { ErrorCode = "InvalidSeekRequest" });
+        }
+
+        var payload = new SeekPlaybackCommandPayload(request.PositionSeconds, request.ExpectedPlaybackOperationId);
+        var command = await repository.EnqueueAsync(guildId, userId, BotControlCommandTypes.Seek, JsonSerializer.Serialize(payload), ct);
+        return BotControlCommandHttpMapper.ToAccepted(command);
+    }
 
     /// <summary>
     /// Persists an authorized playback command for asynchronous execution by the bot.

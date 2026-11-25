@@ -29,7 +29,7 @@ actual class MobileRealtimeClient {
     /**
      * Disconnects the realtime transport and releases its active subscription.
      */
-    actual suspend fun disconnect(): Unit {
+    actual suspend fun disconnect() {
         _connectionState.value = RealtimeConnectionState.Disconnected
     }
 }

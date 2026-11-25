@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
@@ -24,7 +25,7 @@ import kotlinx.serialization.json.jsonObject
 
 class PlaylistArtworkApiServiceTest {
     @Test
-    fun forbiddenCoverUpdateIsNotReportedAsSuccess() = runTest {
+    fun forbiddenCoverUpdateIsNotReportedAsSuccess(): TestResult = runTest {
         val httpClient = HttpClient(engine = MockEngine { respond(content = "Forbidden", status = HttpStatusCode.Forbidden) }) {
             configureMelodiasHttpClient()
         }
@@ -45,7 +46,7 @@ class PlaylistArtworkApiServiceTest {
     }
 
     @Test
-    fun settingAndClearingCoverSendAuthorizedPatchWithExplicitNull() = runTest {
+    fun settingAndClearingCoverSendAuthorizedPatchWithExplicitNull(): TestResult = runTest {
         val bodies = mutableListOf<String>()
         val httpClient = HttpClient(
             engine = MockEngine { request ->
@@ -71,7 +72,7 @@ class PlaylistArtworkApiServiceTest {
     }
 
     @Test
-    fun detailAndSummaryKeepArtworkWhileOlderResponsesRemainCompatible(): Unit {
+    fun detailAndSummaryKeepArtworkWhileOlderResponsesRemainCompatible() {
         val summary = Json.decodeFromString<PlaylistDto>(
             """{"id":"17","name":"Mix","songCount":1,"duration":120,"artworkUri":"https://example.com/custom.jpg"}"""
         )

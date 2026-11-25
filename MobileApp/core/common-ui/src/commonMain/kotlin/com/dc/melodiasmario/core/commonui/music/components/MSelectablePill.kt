@@ -22,7 +22,7 @@ fun MSelectablePill(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(size = 8.dp),

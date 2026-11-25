@@ -24,7 +24,7 @@ class HttpClientTest {
     private var httpClient: HttpClient? = null
 
     @AfterTest
-    fun tearDown(): Unit {
+    fun tearDown() {
         httpClient?.close()
         httpClient = null
     }

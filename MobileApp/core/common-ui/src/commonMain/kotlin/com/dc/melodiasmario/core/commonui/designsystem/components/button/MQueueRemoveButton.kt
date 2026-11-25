@@ -25,7 +25,7 @@ fun MQueueRemoveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true
-): Unit {
+) {
     Surface(
         modifier = modifier.size(size = 36.dp)
             .semantics { this.contentDescription = contentDescription },

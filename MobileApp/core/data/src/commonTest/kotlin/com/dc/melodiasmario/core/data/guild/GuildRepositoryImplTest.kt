@@ -6,17 +6,17 @@ import kotlin.test.Test
 class GuildRepositoryImplTest {
 
     @Test
-    fun getGuildsRequestsValidAccessTokenBeforeCallingRemoteDataSource(): Unit {
+    fun getGuildsRequestsValidAccessTokenBeforeCallingRemoteDataSource() {
         throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsReturnsRemoteGuilds(): Unit {
+    fun getGuildsReturnsRemoteGuilds() {
         throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsPropagatesSessionProviderFailure(): Unit {
+    fun getGuildsPropagatesSessionProviderFailure() {
         throw NotImplementedError()
     }
 }

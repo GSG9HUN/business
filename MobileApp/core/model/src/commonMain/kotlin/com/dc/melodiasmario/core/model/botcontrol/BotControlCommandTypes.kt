@@ -29,6 +29,9 @@ object BotControlCommandTypes {
      */
     const val Previous: String = "previous"
 
+    /** Seeks the playback attempt captured by a completed gesture. */
+    const val Seek: String = "seek"
+
     /**
      * Clear exposed by bot control command types.
      */

@@ -51,7 +51,7 @@ data class PlaybackStatus(
         updatedAtUtc = updatedAtUtc
     )
 
-    private fun toRepeatMode() = when {
+    private fun toRepeatMode(): RepeatMode = when {
         isRepeating -> RepeatMode.ONE
         isRepeatingList -> RepeatMode.ALL
         else -> RepeatMode.NONE

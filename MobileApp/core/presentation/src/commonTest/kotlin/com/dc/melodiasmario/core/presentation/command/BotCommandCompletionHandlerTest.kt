@@ -13,12 +13,13 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BotCommandCompletionHandlerTest {
     @Test
-    fun successRefreshesBeforeFeatureCallback() = runTest {
+    fun successRefreshesBeforeFeatureCallback(): TestResult = runTest {
         val calls = mutableListOf<String>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { emptyFlow() })
         botCommandCoordinator.start(guildId = "guild")
@@ -34,7 +35,7 @@ class BotCommandCompletionHandlerTest {
     }
 
     @Test
-    fun httpFailureInvokesOnlyFailureCallbackWithNullableKey() = runTest {
+    fun httpFailureInvokesOnlyFailureCallbackWithNullableKey(): TestResult = runTest {
         val calls = mutableListOf<String>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { emptyFlow() })
         botCommandCoordinator.start(guildId = "guild")
@@ -49,7 +50,7 @@ class BotCommandCompletionHandlerTest {
     }
 
     @Test
-    fun realtimeFailurePreservesErrorKey() = runTest {
+    fun realtimeFailurePreservesErrorKey(): TestResult = runTest {
         val calls = mutableListOf<String>()
         val events = MutableSharedFlow<RealtimeEvent>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { events })
@@ -86,7 +87,7 @@ class BotCommandCompletionHandlerTest {
     }
 
     @Test
-    fun timeoutRefreshesAndInvokesOnlyTimeoutCallback() = runTest {
+    fun timeoutRefreshesAndInvokesOnlyTimeoutCallback(): TestResult = runTest {
         val calls = mutableListOf<String>()
         val botCommandCoordinator = BotCommandCoordinator(
             coroutineScope = backgroundScope,
@@ -106,7 +107,7 @@ class BotCommandCompletionHandlerTest {
     }
 
     @Test
-    fun cancellationPropagatesWithoutAnyFeatureCallback() = runTest {
+    fun cancellationPropagatesWithoutAnyFeatureCallback(): TestResult = runTest {
         val calls = mutableListOf<String>()
         val botCommandCoordinator = BotCommandCoordinator(coroutineScope = backgroundScope, observeGuildRealtime = { emptyFlow() })
         botCommandCoordinator.start(guildId = "guild")

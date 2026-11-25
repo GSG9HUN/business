@@ -37,7 +37,7 @@ fun GuildListItem(
     guild: Guild,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
-): Unit {
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(size = 12.dp),

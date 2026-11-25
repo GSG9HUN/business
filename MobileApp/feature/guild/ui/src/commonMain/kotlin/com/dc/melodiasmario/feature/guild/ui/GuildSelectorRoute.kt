@@ -19,7 +19,7 @@ fun GuildSelectorRoute(
     guildSelectorViewModel: GuildSelectorViewModel = koinViewModel(),
     onGuildClicked: (guildId: String) -> Unit = {},
     onAvatarClicked: () -> Unit = {}
-): Unit {
+) {
     val uiState by guildSelectorViewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {

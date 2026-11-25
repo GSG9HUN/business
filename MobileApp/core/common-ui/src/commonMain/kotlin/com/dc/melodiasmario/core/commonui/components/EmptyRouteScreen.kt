@@ -19,7 +19,7 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmBackgroundPreview
 fun EmptyRouteScreen(
     text: String,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

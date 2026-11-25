@@ -39,7 +39,7 @@ class CurrentPlaybackMonitorRepositoryImpl(
     private var monitorJob: Job? = null
     private var currentGuildId: String? = null
 
-    override fun start(guildId: String): Unit {
+    override fun start(guildId: String) {
 
         if (currentGuildId == guildId && monitorJob?.isActive == true) {
             return
@@ -57,7 +57,7 @@ class CurrentPlaybackMonitorRepositoryImpl(
         }
     }
 
-    override fun refresh(): Unit {
+    override fun refresh() {
         val guildId = currentGuildId ?: return
         coroutineScope.launch { refreshInternal(guildId = guildId) }
     }

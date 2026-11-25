@@ -16,6 +16,20 @@ class CurrentTrackRepositoryImpl(
     private val currentTrackRemoteDataSource: CurrentTrackRemoteDataSource,
     private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : CurrentTrackRepository {
+    override suspend fun seek(
+        guildId: String,
+        positionSeconds: Int,
+        expectedPlaybackOperationId: String
+    ): BotControlCommand {
+        val accessToken = authorizedSessionProvider.getValidSession()
+        return currentTrackRemoteDataSource.seek(
+            accessToken = accessToken,
+            guildId = guildId,
+            positionSeconds = positionSeconds,
+            expectedPlaybackOperationId = expectedPlaybackOperationId
+        )
+    }
+
     override suspend fun getPlaybackStatus(guildId: String): PlaybackStatus {
         val accessToken = authorizedSessionProvider.getValidSession()
         return currentTrackRemoteDataSource.getPlaybackStatus(
@@ -50,7 +64,7 @@ class CurrentTrackRepositoryImpl(
         return currentTrackRemoteDataSource.pause(accessToken = accessToken, guildId = guildId)
     }
 
-    override suspend fun setRepeatMode(guildId: String, repeatMode: RepeatMode): Unit {
+    override suspend fun setRepeatMode(guildId: String, repeatMode: RepeatMode) {
         val accessToken = authorizedSessionProvider.getValidSession()
         currentTrackRemoteDataSource.setRepeatMode(
             accessToken = accessToken,
@@ -59,7 +73,7 @@ class CurrentTrackRepositoryImpl(
         )
     }
 
-    private fun RepeatMode.toApiValue() = when (this) {
+    private fun RepeatMode.toApiValue(): String = when (this) {
         RepeatMode.NONE -> "none"
         RepeatMode.ONE -> "one"
         RepeatMode.ALL -> "all"

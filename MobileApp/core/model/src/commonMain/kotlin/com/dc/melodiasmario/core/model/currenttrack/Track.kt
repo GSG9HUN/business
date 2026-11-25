@@ -9,6 +9,8 @@ package com.dc.melodiasmario.core.model.currenttrack
  * @property durationSeconds Track duration in seconds.
  * @property thumbnailUrl Optional track artwork URL.
  * @property requestedBy Requested by.
+ * @property isSeekable Whether the server confirms this finite track supports seeking.
+ * @property playbackOperationId Stable identity of the currently observed playback attempt.
  */
 data class Track(
     val id: String = "",
@@ -20,5 +22,7 @@ data class Track(
     val queueItemId: String? = null,
     val batchId: String? = null,
     val batchPosition: Int = 0,
-    val queueState: String = "Queued"
+    val queueState: String = "Queued",
+    val isSeekable: Boolean = false,
+    val playbackOperationId: String? = null
 )

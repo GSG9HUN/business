@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using DC_bot.BotControl;
 using DC_bot.BotControl.Payloads;
@@ -53,6 +54,7 @@ public sealed class BotControlCommandDispatcher(
         cancellationToken.ThrowIfCancellationRequested();
         return command.Type switch
         {
+            BotControlCommandTypes.Seek => HandleSeekAsync(command, cancellationToken),
             BotControlCommandTypes.Clear => HandleClearAsync(command, cancellationToken),
             BotControlCommandTypes.Play => HandlePlayAsync(command, cancellationToken),
             BotControlCommandTypes.AddSong => playlistHandler.AddTrackAsync(command, cancellationToken),
@@ -68,6 +70,31 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Repeat => HandleRepeatAsync(command, cancellationToken),
             BotControlCommandTypes.RepeatList => HandleRepeatListAsync(command, cancellationToken),
             _ => Task.FromResult(botControlResultFactory.Failure(command, $"Unsupported bot control command type: {command.Type}", "UnsupportedCommandType", shouldNotifyDiscord: false))};
+    }
+
+    /// <summary>Executes a validated mobile seek through the existing voice and playback-ownership boundary.</summary>
+    private Task<BotControlCommandResult> HandleSeekAsync(BotControlCommandRecord command, CancellationToken cancellationToken)
+    {
+        if (!TryDeserializePayload<SeekPlaybackCommandPayload>(command, out var payload, out var errorResult))
+        {
+            return Task.FromResult(errorResult!);
+        }
+
+        if (payload!.PositionSeconds < 0
+            || payload.ExpectedPlaybackOperationId == Guid.Empty)
+        {
+            return Task.FromResult(botControlResultFactory.Failure(command, "Invalid seek request.", "InvalidSeekRequest", shouldNotifyDiscord: false));
+        }
+
+        return HandlePlaybackControlAsync(
+            command,
+            (service, message, member) => service.SeekAsync(
+                message,
+                member,
+                payload.PositionSeconds.ToString(CultureInfo.InvariantCulture),
+                payload.ExpectedPlaybackOperationId,
+                cancellationToken),
+            cancellationToken);
     }
 
     /// <summary>Resolves the user's current voice context before loading a saved playlist.</summary>

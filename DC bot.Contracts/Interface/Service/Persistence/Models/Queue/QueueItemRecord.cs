@@ -37,4 +37,7 @@ public sealed record QueueItemRecord(
 
     /// <summary>Gets the original position within the batch.</summary>
     public int BatchPosition { get; init; }
+
+    /// <summary>Identifies the playback attempt currently owning this occurrence.</summary>
+    public Guid? PlaybackOperationId { get; init; }
 }

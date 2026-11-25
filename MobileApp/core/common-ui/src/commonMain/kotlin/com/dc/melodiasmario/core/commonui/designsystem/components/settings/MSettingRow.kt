@@ -37,7 +37,7 @@ fun MSettingRow(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null
-): Unit {
+) {
     val rowModifier = if (onClick != null) {
         modifier.fillMaxWidth()
             .clickable(onClick = onClick)

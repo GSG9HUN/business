@@ -33,7 +33,7 @@ fun MAvatar(
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     contentDescription: String = stringResource(resource = Res.string.avatar_content_description),
     avatarOnClick: () -> Unit = {}
-): Unit {
+) {
     Surface(
         modifier = modifier.size(size = size),
         shape = shape,

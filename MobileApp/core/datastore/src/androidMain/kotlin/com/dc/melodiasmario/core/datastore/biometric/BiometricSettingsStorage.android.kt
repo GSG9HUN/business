@@ -25,7 +25,7 @@ actual class BiometricSettingsStorage(
     /**
      * Persists the requested enabled setting.
      */
-    actual suspend fun setEnabled(enabled: Boolean): Unit {
+    actual suspend fun setEnabled(enabled: Boolean) {
         withContext(context = Dispatchers.IO) {
             check(
                 value = preferences.edit()

@@ -12,7 +12,7 @@ fun EntryProviderScope<AppRoute>.currentTrackEntry(
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     entry<AppRoute.CurrentTrack> { route ->
         CurrentTrackRoute(
             guildId = route.guildId,

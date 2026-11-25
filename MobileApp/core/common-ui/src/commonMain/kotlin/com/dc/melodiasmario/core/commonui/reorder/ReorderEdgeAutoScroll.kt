@@ -21,7 +21,7 @@ fun ReorderEdgeAutoScroll(
     viewportHeightPx: Float,
     edgeSize: Dp = 64.dp,
     speedDpPerSecond: Float = 500f
-): Unit {
+) {
     val density = LocalDensity.current
     val edgeSizePx = with(receiver = density) { edgeSize.toPx() }
     val speedPxPerSecond = with(receiver = density) {

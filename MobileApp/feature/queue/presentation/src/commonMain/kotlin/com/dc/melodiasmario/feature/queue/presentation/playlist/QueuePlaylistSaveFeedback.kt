@@ -7,5 +7,5 @@ interface QueuePlaylistSaveFeedback {
     /**
      * Displays the supplied playlist-save feedback.
      */
-    suspend fun show(result: QueuePlaylistSaveResult): Unit
+    suspend fun show(result: QueuePlaylistSaveResult)
 }

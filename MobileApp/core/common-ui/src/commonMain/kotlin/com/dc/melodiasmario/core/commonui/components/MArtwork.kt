@@ -36,7 +36,7 @@ fun MArtwork(
     imageUrl: String? = null,
     contentDescription: String? = null,
     fallbackImage: DrawableResource? = null
-): Unit {
+) {
     val shape = RoundedCornerShape(size = 14.dp)
     val artworkUrl = imageUrl?.toHighResolutionArtworkUrl()
     Box(

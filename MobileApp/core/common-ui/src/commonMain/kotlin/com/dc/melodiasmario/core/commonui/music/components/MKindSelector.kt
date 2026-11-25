@@ -19,7 +19,7 @@ fun MKindSelector(
     mAddMusicLabels: MAddMusicLabels,
     selectedKind: MMusicSearchKind,
     onKindChanged: (musicSearchKind: MMusicSearchKind) -> Unit
-): Unit {
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

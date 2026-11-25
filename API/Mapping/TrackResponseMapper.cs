@@ -34,7 +34,10 @@ internal static class TrackResponseMapper
     internal static PlaybackTrackResponse? TryMapPlaybackTrack(string trackIdentifier, string? requestedBy = null)
     {
         var track = TryParse(trackIdentifier);
-        return track is null ? null : new PlaybackTrackResponse(track.Title, track.Author, ToDurationSeconds(track.Duration), track.Uri?.ToString() ?? string.Empty, track.ArtworkUri?.ToString(), requestedBy);
+        return track is null ? null : new PlaybackTrackResponse(track.Title, track.Author, ToDurationSeconds(track.Duration), track.Uri?.ToString() ?? string.Empty, track.ArtworkUri?.ToString(), requestedBy)
+        {
+            IsSeekable = track.IsSeekable && !track.IsLiveStream && track.Duration > TimeSpan.Zero
+        };
     }
 
     /// <summary>

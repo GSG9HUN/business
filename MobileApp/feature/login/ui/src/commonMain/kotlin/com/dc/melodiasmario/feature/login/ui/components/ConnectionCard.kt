@@ -40,7 +40,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ConnectionCard(
     apiConnectionStatus: ApiConnectionStatus,
     modifier: Modifier = Modifier
-): Unit {
+) {
     val isOnline = apiConnectionStatus == ApiConnectionStatus.Online
     val statusBackground = if (isOnline) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer
     val statusTextColor = if (isOnline) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onErrorContainer

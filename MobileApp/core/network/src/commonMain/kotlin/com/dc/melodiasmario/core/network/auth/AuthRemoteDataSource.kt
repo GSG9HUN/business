@@ -25,5 +25,5 @@ interface AuthRemoteDataSource {
     /**
      * Ends the authentication session associated with the refresh token.
      */
-    suspend fun logout(refreshToken: String): Unit
+    suspend fun logout(refreshToken: String)
 }

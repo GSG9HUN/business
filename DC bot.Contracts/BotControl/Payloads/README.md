@@ -9,6 +9,20 @@ Defines the serialized arguments stored with durable commands submitted by the A
 
 ## Models and Results
 
+### SeekPlaybackCommandPayload
+
+**Files:** `SeekPlaybackCommandPayload.cs`
+
+**Purpose:** Durable seek input for the existing bot playback-control boundary; not proof of completion.
+
+**Record declaration:**
+
+```csharp
+public sealed record SeekPlaybackCommandPayload(int PositionSeconds, Guid ExpectedPlaybackOperationId);
+```
+
+---
+
 ### PlaylistCommandPayload
 
 **File:** `DC bot.Contracts/BotControl/Payloads/PlaylistCommandPayload.cs`

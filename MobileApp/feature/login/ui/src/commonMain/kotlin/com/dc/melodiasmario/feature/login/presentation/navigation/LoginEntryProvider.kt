@@ -9,7 +9,7 @@ import com.dc.melodiasmario.feature.login.ui.LoginRoute
  */
 fun EntryProviderScope<AppRoute>.loginEntry(
     onLoginSuccess: () -> Unit
-): Unit {
+) {
     entry<AppRoute.Login> {
         LoginRoute(
             onLoginSuccess = onLoginSuccess

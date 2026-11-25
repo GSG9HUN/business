@@ -25,7 +25,7 @@ import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
 fun GuildSelectorPlaceholder(
     title: String,
     contentText: String
-): Unit {
+) {
     Surface(
         modifier = Modifier.fillMaxWidth()
             .padding(paddingValues = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp)),

@@ -15,10 +15,10 @@ interface UserSettingsRepository {
     /**
      * Persists the supplied user settings.
      */
-    suspend fun saveSettings(userSettings: UserSettings): Unit
+    suspend fun saveSettings(userSettings: UserSettings)
 
     /**
      * Removes the stored user settings.
      */
-    suspend fun clearSettings(): Unit
+    suspend fun clearSettings()
 }

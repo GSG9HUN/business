@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 suspend fun <Command> Flow<Resource<Command>>.runBackgroundBotCommand(
     onAccepted: (command: Command) -> Unit = {},
     onError: (error: Throwable) -> Unit = {}
-): Unit {
+) {
     collect { result ->
         when (result) {
             Resource.Loading -> Unit

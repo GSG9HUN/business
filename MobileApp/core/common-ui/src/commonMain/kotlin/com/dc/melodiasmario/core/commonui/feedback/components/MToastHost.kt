@@ -34,7 +34,7 @@ fun MToastHost(
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator,
     modifier: Modifier = Modifier
-): Unit {
+) {
     var currentToast by remember {
         mutableStateOf<MToastData?>(value = null)
     }

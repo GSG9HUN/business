@@ -7,5 +7,5 @@ expect class PlaybackNotificationController {
     /**
      * Starts playback notification controller for the supplied configuration.
      */
-    fun start(guildId: String): Unit
+    fun start(guildId: String)
 }

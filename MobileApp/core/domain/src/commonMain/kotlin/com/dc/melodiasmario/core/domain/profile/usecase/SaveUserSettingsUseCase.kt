@@ -14,6 +14,6 @@ class SaveUserSettingsUseCase(
     /**
      * Executes the save user settings domain operation.
      */
-    suspend operator fun invoke(userSettings: UserSettings): Unit =
+    suspend operator fun invoke(userSettings: UserSettings) =
         userSettingsRepository.saveSettings(userSettings = userSettings)
 }

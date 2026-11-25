@@ -67,6 +67,12 @@ Shared HTTP adapter tests and test scaffolds using existing Kotlin test, corouti
 
 ## Components
 
+### CurrentTrackApiService
+
+**Purpose:** Accepts an absolute seek through `POST /guilds/{guildId}/playback/seek`, with `positionSeconds` and `expectedPlaybackOperationId`. Non-success HTTP status is surfaced as a failure; HTTP acceptance is tracked separately from terminal bot completion. Playback-track DTOs map `isSeekable` and `playbackOperationId`; missing fields default to disabled seeking.
+
+---
+
 ### PlaylistsApiService
 
 **Purpose:** `PlaylistsApiService.createPlaylistFromTracks` sends one authenticated POST to
@@ -103,7 +109,7 @@ This verifies compilation, not successful playlist persistence.
 
 ### createHttpClient and NetworkModule
 
-**Purpose:** The module uses Koin registration and a shared Ktor client configuration with JSON serialization. Authorization headers are sanitized in HTTP logging.
+**Purpose:** The module uses Koin registration and a shared Ktor client configuration with JSON serialization. Authorization headers are sanitized in HTTP logging. Shared configuration enables `expectSuccess`, so non-success HTTP responses throw before success-body parsing, including requests without response bodies. `StatusApiService` explicitly disables this validation and maps status codes to availability; transport errors still propagate. Resource-returning domain use cases map exceptions to `Resource.Error` while preserving coroutine cancellation.
 
 HTTP calls use the declared Ktor parameter names for URLs, headers, and request bodies. Flow emission and parsing calls also use named arguments where supported. Platform SDK callbacks and Java APIs keep their required signatures and positional arguments.
 

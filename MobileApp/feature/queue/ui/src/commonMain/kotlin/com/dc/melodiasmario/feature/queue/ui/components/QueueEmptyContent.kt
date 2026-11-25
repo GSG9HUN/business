@@ -21,7 +21,7 @@ fun QueueEmptyContent(
     modifier: Modifier = Modifier,
     title: String,
     message: String
-): Unit {
+) {
     Column(
         modifier = modifier.padding(all = 24.dp),
         verticalArrangement = Arrangement.Center

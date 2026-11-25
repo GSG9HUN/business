@@ -7,5 +7,5 @@ actual class PlaybackNotificationController {
     /**
      * Starts playback notification controller for the supplied configuration.
      */
-    actual fun start(guildId: String): Unit = Unit
+    actual fun start(guildId: String) = Unit
 }

@@ -22,7 +22,7 @@ fun CurrentTrackRoute(
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     val uiState by currentTrackViewModel.uiState.collectAsState()
     val effectMessages = currentTrackEffectMessages()
 

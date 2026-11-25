@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
  * Renders set top bar config from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun SetTopBarConfig(config: TopBarConfig?): Unit {
+fun SetTopBarConfig(config: TopBarConfig?) {
     val topBarController = localTopBarController.current
     val owner = remember { topBarOwner() }
 

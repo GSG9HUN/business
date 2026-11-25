@@ -27,7 +27,7 @@ fun MText(
     fontWeight: FontWeight? = null,
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip
-): Unit {
+) {
     Text(
         modifier = modifier,
         text = text,

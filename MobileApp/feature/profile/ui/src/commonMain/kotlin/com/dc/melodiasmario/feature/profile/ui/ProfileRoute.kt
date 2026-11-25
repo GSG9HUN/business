@@ -45,7 +45,7 @@ fun ProfileRoute(
     logout: () -> Unit = {},
     toastHostState: MToastHostState,
     profileViewModel: ProfileViewModel = koinViewModel()
-): Unit {
+) {
     val appLockController = localAppLockController.current
     val appLockState by appLockController.uiState.collectAsStateWithLifecycle()
     val authenticate = rememberBiometricAuthentication()

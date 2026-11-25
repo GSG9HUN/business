@@ -49,7 +49,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Clears search state when the selected guild changes.
      */
-    fun resetForGuildChange(newGuildId: String, currentGuildId: String?): Unit {
+    fun resetForGuildChange(newGuildId: String, currentGuildId: String?) {
 
         if (newGuildId == currentGuildId) {
             return
@@ -61,7 +61,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Loads music-search capabilities for the current guild.
      */
-    suspend fun loadCapabilities(): Unit {
+    suspend fun loadCapabilities() {
         val guildId = currentGuildIdProvider() ?: return
 
         getCapabilities(guildId)
@@ -99,7 +99,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Updates the search query and invalidates obsolete results.
      */
-    fun onQueryChanged(query: String): Unit {
+    fun onQueryChanged(query: String) {
         cancelInFlightSearch()
 
         uiState.update { currentUiState ->
@@ -118,7 +118,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Updates the selected search provider.
      */
-    fun onProviderChanged(providerId: String): Unit {
+    fun onProviderChanged(providerId: String) {
         cancelInFlightSearch()
 
         uiState.update { currentUiState ->
@@ -133,7 +133,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Updates the selected music-search result kind.
      */
-    fun onKindChanged(kind: MMusicSearchKind): Unit {
+    fun onKindChanged(kind: MMusicSearchKind) {
         cancelInFlightSearch()
 
         uiState.update { currentUiState ->
@@ -146,21 +146,21 @@ class MusicSearchController<State, Effect>(
     /**
      * Submits the current search query through the configured search operation.
      */
-    fun submit(): Unit {
+    fun submit() {
         startSearch(append = false, debounce = false)
     }
 
     /**
      * Retries the current music search.
      */
-    fun retry(): Unit {
+    fun retry() {
         submit()
     }
 
     /**
      * Loads the next page of search results when available.
      */
-    fun loadNextPage(): Unit {
+    fun loadNextPage() {
         val search = uiState.value.addMusic
 
         if (search.nextPageToken == null
@@ -175,7 +175,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Updates the selected search-result identifier.
      */
-    fun selectResult(resultId: String): Unit {
+    fun selectResult(resultId: String) {
         uiState.update { currentUiState ->
             currentUiState.withAddMusic(
                 addMusic = musicSearchReducer.resultSelected(mAddMusicSheetState = currentUiState.addMusic, resultId = resultId)
@@ -186,7 +186,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Updates the music-input mode.
      */
-    fun updateMode(mode: MAddMusicMode): Unit {
+    fun updateMode(mode: MAddMusicMode) {
         uiState.update { currentUiState ->
             currentUiState.withAddMusic(
                 addMusic = musicSearchReducer.modeChanged(mAddMusicSheetState = currentUiState.addMusic, mode = mode)
@@ -197,7 +197,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Clears the state and resources owned by MusicSearchController.
      */
-    fun clear(): Unit {
+    fun clear() {
         cancel()
 
         uiState.update { currentUiState ->
@@ -210,7 +210,7 @@ class MusicSearchController<State, Effect>(
     /**
      * Cancels the active music search controller.
      */
-    fun cancel(): Unit {
+    fun cancel() {
         cancelInFlightSearch()
     }
 

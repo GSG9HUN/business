@@ -17,7 +17,7 @@ object PlaybackNotificationChannel {
     /**
      * Creates the playback notification channel when required.
      */
-    fun ensureCreated(context: Context): Unit {
+    fun ensureCreated(context: Context) {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return

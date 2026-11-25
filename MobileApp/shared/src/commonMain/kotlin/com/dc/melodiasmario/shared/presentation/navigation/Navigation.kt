@@ -35,7 +35,7 @@ fun Navigation(
     hapticsEnabled: Boolean,
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator
-): Unit {
+) {
     val currentRoute = backStack.last()
     val topBarController = rememberTopBarController()
     val floatingActionButtonController = rememberFloatingActionButtonController()

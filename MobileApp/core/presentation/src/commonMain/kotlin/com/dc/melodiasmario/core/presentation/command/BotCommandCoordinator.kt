@@ -48,7 +48,7 @@ class BotCommandCoordinator(
     /**
      * Starts bot command coordinator for the supplied configuration.
      */
-    fun start(guildId: String): Unit {
+    fun start(guildId: String) {
 
         if (this.guildId == guildId) {
             return
@@ -111,7 +111,7 @@ class BotCommandCoordinator(
         onFailed: suspend (errorKey: String?) -> Unit,
         onTimedOut: suspend () -> Unit,
         onCompleted: suspend () -> Unit = {}
-    ): Unit {
+    ) {
         val result = awaitCompletion(command = command)
         onCompleted()
         when (result) {
@@ -148,7 +148,7 @@ class BotCommandCoordinator(
     /**
      * Clears the state and resources owned by BotCommandCoordinator.
      */
-    fun clear(): Unit {
+    fun clear() {
         generation++
         botCommandRealtimeObserver.clear()
         guildId = null

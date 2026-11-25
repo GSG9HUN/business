@@ -29,7 +29,7 @@ fun PlayerIconButton(
     enabled: Boolean = true,
     contentDescription: String? = null,
     onClick: () -> Unit = {}
-): Unit {
+) {
     Surface(
         modifier = Modifier.size(size = 48.dp),
         shape = CircleShape,

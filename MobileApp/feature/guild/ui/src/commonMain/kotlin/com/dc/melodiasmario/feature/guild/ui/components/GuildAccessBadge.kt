@@ -13,7 +13,7 @@ import com.dc.melodiasmario.core.model.guild.GuildAccessLevel
 fun GuildAccessBadge(
     accessLevel: GuildAccessLevel,
     modifier: Modifier = Modifier
-): Unit {
+) {
     val text = when (accessLevel) {
         GuildAccessLevel.Admin -> "Admin"
         GuildAccessLevel.DJ -> "DJ"

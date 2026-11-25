@@ -7,7 +7,7 @@ actual class AppLocaleController {
     /**
      * Applies the selected language through the platform locale adapter.
      */
-    actual fun applyLocale(languageCode: String): Unit {
+    actual fun applyLocale(languageCode: String) {
         // iOS app language handling needs native app-level integration.
     }
 }

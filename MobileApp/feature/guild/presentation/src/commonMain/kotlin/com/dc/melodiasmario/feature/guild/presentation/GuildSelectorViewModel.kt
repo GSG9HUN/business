@@ -45,7 +45,7 @@ class GuildSelectorViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: GuildSelectorEvent): Unit {
+    fun onEvent(event: GuildSelectorEvent) {
         viewModelScope.launch {
             events.emit(value = event)
         }
@@ -120,7 +120,7 @@ class GuildSelectorViewModel(
     private fun filterGuilds(
         guilds: List<Guild>,
         query: String
-    ) = if (query.isBlank()) {
+    ): List<Guild> = if (query.isBlank()) {
         guilds
     } else {
         guilds.filter { guild -> guild.name.contains(other = query, ignoreCase = true) }

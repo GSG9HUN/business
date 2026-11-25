@@ -33,7 +33,7 @@ fun MToggleRow(
     checked: Boolean,
     onCheckedChange: (checked: Boolean) -> Unit,
     modifier: Modifier = Modifier
-): Unit {
+) {
 
     Row(
         modifier = modifier.fillMaxWidth()

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import com.dc.melodiasmario.core.commonui.components.queueBatchItems
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.dc.melodiasmario.core.commonui.components.MErrorScreen
 import com.dc.melodiasmario.core.commonui.components.MLoadingScreen
 import com.dc.melodiasmario.core.commonui.components.MTrackItemRow
+import com.dc.melodiasmario.core.commonui.components.queueBatchItems
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreAction
 import com.dc.melodiasmario.core.commonui.designsystem.components.dialog.MMoreActionsDialog
 import com.dc.melodiasmario.core.commonui.designsystem.components.display.MText
@@ -90,7 +90,7 @@ fun CurrentTrackScreen(
     modifier: Modifier,
     uiState: CurrentTrackUiState,
     onEvent: (currentTrackEvent: CurrentTrackEvent) -> Unit
-): Unit {
+) {
     val topBarTitleFallback = stringResource(resource = Res.string.currenttrack_topbar_title)
     val topBarTitle = uiState.header.guildName.ifBlank { topBarTitleFallback }
     val topBarSubtitle = botStatusText(
@@ -266,7 +266,17 @@ fun CurrentTrackScreen(
                             onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
                             onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
                             onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
-                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) }
+                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
+                            isSeekEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
+                            isSeekLoading = uiState.actions.isSeekLoading,
+                            onSeekRequested = { positionSeconds, expectedPlaybackOperationId ->
+                                onEvent(
+                                    CurrentTrackEvent.SeekRequested(
+                                        positionSeconds = positionSeconds,
+                                        expectedPlaybackOperationId = expectedPlaybackOperationId
+                                    )
+                                )
+                            }
                         )
                     }
                     }

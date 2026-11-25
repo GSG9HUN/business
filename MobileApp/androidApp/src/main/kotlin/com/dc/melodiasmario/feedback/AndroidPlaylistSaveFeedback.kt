@@ -31,7 +31,7 @@ class AndroidPlaylistSaveFeedback(
     private val toastHostState: MToastHostState
 ) : QueuePlaylistSaveFeedback {
 
-    override suspend fun show(result: QueuePlaylistSaveResult): Unit {
+    override suspend fun show(result: QueuePlaylistSaveResult) {
         withContext(context = Dispatchers.Main.immediate) {
             val message = context.getString(
                 if (result.succeeded) {
