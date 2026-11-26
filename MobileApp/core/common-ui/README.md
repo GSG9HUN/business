@@ -5,7 +5,9 @@ Android and iOS applications.
 
 ## Overview
 
-- Reusable controls, music-search sheets, track item rows, and feedback components.
+`MTextInputDialog` accepts optional `supportingContent` below its text input for feature-specific hints and controls. Its default is empty, preserving existing callers. Audio effects use this slot for preset-name guidance and explicit overwrite selection.
+
+- Reusable controls, compact players, music-search sheets, track item rows, and feedback components.
 - Top-bar and floating-action-button configuration.
 - Shared queue drag handling and edge scrolling.
 - Material 3 light, dark, and system-following themes.
@@ -22,6 +24,7 @@ Shared Compose components, theme palettes, resources, biometric UI contracts, an
 
 **Files:**
 
+- [`MCompactPlayer.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/components/MCompactPlayer.kt)
 - [`MTrackItemRow.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/components/MTrackItemRow.kt)
 - [`MelodiasMarioTheme.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/designsystem/theme/MelodiasMarioTheme.kt)
 - [`AppLockHost.kt`](src/commonMain/kotlin/com/dc/melodiasmario/core/commonui/biometric/AppLockHost.kt)
@@ -57,6 +60,25 @@ Native iOS biometric, lifecycle, feedback, and playback-notification adapters.
 ---
 
 ## Components
+
+### MCompactPlayer
+
+**Purpose:** Displays artwork, title, optional subtitle and a play/pause action from caller-owned state. The optional `trailingContent` slot hosts feature-specific actions. The root modifier, theme surfaces and shared artwork fallback are preserved. Play/pause descriptions are localized in Hungarian and English. Playing and disabled previews are kept beside the component; the previews require no live playback service.
+
+**Usage:**
+
+```kotlin
+MCompactPlayer(
+    title = track.title,
+    subtitle = track.artist,
+    isPlaying = playback.isPlaying,
+    onPlayPause = onPlayPause,
+    imageUrl = track.thumbnailUrl,
+    playPauseEnabled = isConnected
+)
+```
+
+---
 
 ### MelodiasMarioTheme and MText
 

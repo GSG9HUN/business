@@ -4,6 +4,12 @@ Contains the .NET Discord music bot, mobile API, Kotlin mobile application, shar
 
 ## Overview
 
+Preset persistence uses the dedicated `POST /api/guilds/{guildId}/playback/audio-effects/presets` endpoint with `name`, `commands` (draft setting edits, possibly empty) and `overwrite`. `POST /api/guilds/{guildId}/playback/audio-effects` rejects preset-save operations. Both routes retain authorization and durable HTTP 202 command acceptance; terminal bot completion determines success. The preset-save path persists a definition without committing filters to the live player.
+
+Custom presets can save the edited draft without an earlier Apply and without changing live audio. Mobile sends a typed preset request to the dedicated preset endpoint; the API constructs the internal save operation, and the bot composes a definition from the authoritative snapshot under the existing save reservation, rechecks management/voice permissions, and persists it without committing filters to Lavalink. The dirty draft remains available for a later Apply. The custom-preset page uses a server callout and compact preset rows and ends with the create button and muted volume/24-7 exclusion note.
+
+Mobile audio effects now use GET/POST `/api/guilds/{guildId}/playback/audio-effects` and the durable `audio_effects` command. The editor provides basic profiles, bass/speed/pitch, 15-band EQ, eight advanced controls, and paged guild custom presets. A validated settings batch commits once through existing voice/session reservations. Confirmed Lavalink filter snapshots are published through `guild_playback_state.audio_effects_json`; apply the additive `AddAudioEffectsSnapshot` migration or let bot startup apply pending migrations. Rebuild both `discord-bot` and `discord-api` plus the mobile app. Mobile effect tests are scaffolds; backend tests verify batch rejection, composition, and snapshot property names.
+
 Mobile requester labels now use a separately captured display name while Discord mentions remain intact. REST and realtime snapshots resolve legacy mentions from stored mobile profiles; unresolved names are omitted rather than exposing markup. The additive `AddRequesterDisplayNames` migration retains names in queued occurrences and canonical batches.
 
 Mobile server-volume control uses the authenticated durable `set_volume` command and existing voice authorization/audio reservations. Volume is 0-200%, acknowledged by Lavalink before persistence and playback snapshot publication. Apply the additive `AddPlaybackVolume` EF migration before running the updated API and bot. Mobile volume tests are scaffolds; backend repository tests cover range, isolation, and unchanged playback progress.
@@ -12,7 +18,7 @@ CurrentTrack mobile seeking is connected through an authenticated durable comman
 
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
 
-- The response-text alignment follows existing HTML titles/bodies where runtime data permits. The current 50-command title inventory and explicit unsupported cases are maintained in docs/plans/discord-response-design-audit.md.
+- Response titles and bodies use a consistent format where runtime data permits. The current 50-command title inventory and explicit unsupported cases are maintained in docs/plans/discord-response-design-audit.md.
 
 - The response design follow-up uses confirmed skip/playnext metadata and committed clear/import counts. Saved-playlist formatting is owned by ResponseBuilder; list embeds omit generic footers. Search selection sends one menu without a cancel button or visible timeout instructions. Music status checks the Lavalink HTTP API with a three-second deadline; no session means not checked. Current design differences are recorded in docs/plans/discord-response-design-audit.md.
 
@@ -179,7 +185,7 @@ Playlists use guild playback ownership and canonical batches. Canonical BatchId/
 
 ## Related Components
 
-- [Current response design audit](docs/plans/discord-response-design-audit.md) - All 50 HTML command entries, remaining differences and source/live validation limits.
+- [Current response design audit](docs/plans/discord-response-design-audit.md) - All 50 command entries, remaining differences and runtime validation limits.
 
 - `docs/plans/music-command-roadmap.md` - Bot feature proposals and deployment verification backlog.
 - `docs/plans/mobile-music-parity-roadmap.md` - API, command bridge and Android/iOS integration backlog.

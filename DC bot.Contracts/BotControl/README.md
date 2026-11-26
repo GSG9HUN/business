@@ -2,7 +2,10 @@
 
 Defines command type identifiers, realtime event names, and optional execution-channel context shared by the API and bot.
 
-## Overview
+## Overview
+
+`BotControlCommandTypes.AudioEffects` has the durable wire name `audio_effects` and uses `AudioEffectsCommandPayload`. A batch is bounded to forty operations and executed atomically by the bot after validating every setting.
+
 
 - `BotControlCommandTypes.Queue` and `ImportPlaylist` retain wire values `viewList` and `savePlaylist` for durable command/client compatibility. Discord text names are independently `queue` and `importPlaylist`.
 

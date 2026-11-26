@@ -4,6 +4,10 @@ Coordinates requested tracks, start claims, playback controls, and current-track
 
 ## Overview
 
+Custom presets can save the edited draft without an earlier Apply and without changing live audio. Mobile sends the validated setting operations followed by `custom save <name> [overwrite]`; the bot composes a definition from the authoritative snapshot under the existing save reservation, rechecks management/voice permissions, and persists it without committing filters to Lavalink. The dirty draft remains available for a later Apply. The custom-preset page follows the HTML callout/compact-row layout and ends with the create button and muted volume/24-7 exclusion note.
+
+`PlaybackFilterService.ApplyMobileAsync` accepts a single inspection/reset/preset operation or validates a complete basic/advanced settings batch before composing one immutable mutation and making one player commit. Every authoritative filter read persists the full filter JSON under the current session mutation fence and publishes `PlaybackSnapshotChanged`. Individual settings retain unrelated filters; custom presets remain guild-scoped and require live Manage Server permission for save/delete. Output volume is never changed by the editor or effect reset.
+
 Playback requests preserve the Discord requester mention and separately capture the supplied mobile profile name or Discord username. `TrackPlaybackService` carries that name through normal play and play-next queueing without changing session ownership or track selection.
 
 Successful output-volume changes persist the acknowledged 0-200% value under the current session mutation fence after the Lavalink call completes. The transaction publishes a playback snapshot update without changing position or pause state. Mobile commands use the same authorization and reservation boundary as Discord volume commands.

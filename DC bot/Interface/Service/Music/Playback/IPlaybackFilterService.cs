@@ -8,6 +8,19 @@ namespace DC_bot.Interface.Service.Music.Playback;
 public interface IPlaybackFilterService
 {
 
+    /// <summary>Validates a mobile filter batch before applying it once or saving its draft without changing live filters or output volume.</summary>
+    /// <param name="message">Guild and requesting-user context.</param>
+    /// <param name="member">Member used by the existing voice-channel authorization boundary.</param>
+    /// <param name="commands">Bounded basic/advanced settings or a single preset operation.</param>
+    /// <param name="cancellationToken">Cancels supported transport and persistence.</param>
+    /// <returns>The authoritative completion, validation failure, or uncertain outcome.</returns>
+    Task<PlaybackControlResult> ApplyMobileAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string[] commands,
+        CancellationToken cancellationToken = default);
+
+
     /// <summary>Shows filters, lists supported presets, applies a preset, or resets the complete filter configuration.</summary>
     /// <param name="message">The message providing guild and response context.</param>
     /// <param name="member">The requesting member, required for mutations.</param>

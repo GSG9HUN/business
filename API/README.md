@@ -4,6 +4,8 @@ This ASP.NET Core minimal API exposes mobile authentication, guild and profile r
 
 ## Overview
 
+Preset persistence uses the dedicated `POST /api/guilds/{guildId}/playback/audio-effects/presets` endpoint with `name`, `commands` (draft setting edits, possibly empty) and `overwrite`. `POST /api/guilds/{guildId}/playback/audio-effects` rejects preset-save operations. Both routes retain authorization and durable HTTP 202 command acceptance; terminal bot completion determines success. The preset-save path persists a definition without committing filters to the live player.
+
 Playback and queue REST/realtime snapshots use `RequesterDisplayNameResolver`. Captured enqueue-time names take precedence; legacy mentions fall back to stored global name or username. Missing names are omitted. This requires the additive `AddRequesterDisplayNames` migration and updated bot/API images; the mobile JSON field remains `requestedBy`.
 `POST /api/guilds/{guildId}/playback/volume` accepts an authorized absolute 0-200% output percentage as a durable `set_volume` command. Playback status and realtime snapshots include nullable `volumePercent`; null means the player volume has not been observed. Deploy the `AddPlaybackVolume` persistence migration before the updated API and bot.
 

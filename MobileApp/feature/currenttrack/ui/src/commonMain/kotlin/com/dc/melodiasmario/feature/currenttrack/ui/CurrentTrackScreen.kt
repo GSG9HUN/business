@@ -77,6 +77,7 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrack
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackPlaybackUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackQueueUiState
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
+import com.dc.melodiasmario.feature.currenttrack.ui.components.AudioEffectsNavigationButton
 import com.dc.melodiasmario.feature.currenttrack.ui.components.CurrentTrackPlaceholder
 import com.dc.melodiasmario.feature.currenttrack.ui.components.NowPlayingCard
 import com.dc.melodiasmario.feature.currenttrack.ui.components.QueueEmptyCard
@@ -250,40 +251,47 @@ fun CurrentTrackScreen(
                     verticalArrangement = Arrangement.spacedBy(space = queueItemSpacing)
                 ) {
 
-                 if (uiState.playback.currentTrack?.currentTrack != null) {
-                    item {
-                    NowPlayingCard(
-                            currentTrack = requireNotNull(value = uiState.playback.currentTrack),
-                            isPlaying = uiState.playback.isPlaying,
-                            repeatMode = uiState.playback.repeatMode,
-                            isPlayPauseLoading = uiState.actions.isPlayPauseLoading,
-                            repeatContentDescription = stringResource(resource = Res.string.currenttrack_repeat_content_description),
-                            previousContentDescription = stringResource(resource = Res.string.currenttrack_previous_content_description),
-                            playPauseContentDescription = playPauseContentDescription,
-                            nextContentDescription = stringResource(resource = Res.string.currenttrack_next_content_description),
-                            moreContentDescription = stringResource(resource = Res.string.currenttrack_more_content_description),
-                            onRepeatClick = { onEvent(CurrentTrackEvent.RepeatClicked) },
-                            onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
-                            onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
-                            onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
-                            onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
-                            isSeekEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
-                            isSeekLoading = uiState.actions.isSeekLoading,
-                            isVolumeEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
-                            isVolumeLoading = uiState.actions.isVolumeLoading,
-                            onVolumeRequested = { guildId, volumePercent ->
-                                onEvent(CurrentTrackEvent.VolumeRequested(guildId = guildId, volumePercent = volumePercent))
-                            },
-                            onSeekRequested = { positionSeconds, expectedPlaybackOperationId ->
-                                onEvent(
-                                    CurrentTrackEvent.SeekRequested(
-                                        positionSeconds = positionSeconds,
-                                        expectedPlaybackOperationId = expectedPlaybackOperationId
+                    if (uiState.playback.currentTrack?.currentTrack != null) {
+                        item {
+                            NowPlayingCard(
+                                currentTrack = requireNotNull(value = uiState.playback.currentTrack),
+                                isPlaying = uiState.playback.isPlaying,
+                                repeatMode = uiState.playback.repeatMode,
+                                isPlayPauseLoading = uiState.actions.isPlayPauseLoading,
+                                repeatContentDescription = stringResource(resource = Res.string.currenttrack_repeat_content_description),
+                                previousContentDescription = stringResource(resource = Res.string.currenttrack_previous_content_description),
+                                playPauseContentDescription = playPauseContentDescription,
+                                nextContentDescription = stringResource(resource = Res.string.currenttrack_next_content_description),
+                                moreContentDescription = stringResource(resource = Res.string.currenttrack_more_content_description),
+                                onRepeatClick = { onEvent(CurrentTrackEvent.RepeatClicked) },
+                                onPreviousClick = { onEvent(CurrentTrackEvent.PreviousClicked) },
+                                onPlayPauseClick = { onEvent(CurrentTrackEvent.PlayPauseClicked) },
+                                onNextClick = { onEvent(CurrentTrackEvent.NextClicked) },
+                                onMoreClick = { onEvent(CurrentTrackEvent.MoreClicked) },
+                                isSeekEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
+                                isSeekLoading = uiState.actions.isSeekLoading,
+                                isVolumeEnabled = !uiState.actions.isCommandInFlight && uiState.playback.isConnected,
+                                isVolumeLoading = uiState.actions.isVolumeLoading,
+                                onVolumeRequested = { guildId, volumePercent ->
+                                    onEvent(CurrentTrackEvent.VolumeRequested(guildId = guildId, volumePercent = volumePercent))
+                                },
+                                onSeekRequested = { positionSeconds, expectedPlaybackOperationId ->
+                                    onEvent(
+                                        CurrentTrackEvent.SeekRequested(
+                                            positionSeconds = positionSeconds,
+                                            expectedPlaybackOperationId = expectedPlaybackOperationId
+                                        )
                                     )
-                                )
-                            }
-                        )
+                                }
+                            )
+                        }
                     }
+
+                    item {
+                        AudioEffectsNavigationButton(
+                            onClick = { onEvent(CurrentTrackEvent.AudioEffectsClicked) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
                     item {

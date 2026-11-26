@@ -8,6 +8,9 @@ namespace DC_bot.Entities.Playback;
 public class GuildPlaybackStateEntity
 {
 
+    /// <summary>Last authoritative Lavalink filter map; null until explicitly synchronized.</summary>
+    public string? AudioEffectsJson { get; set; }
+
     /// <summary>The last acknowledged output percentage; null until a player has been observed.</summary>
     public int? VolumePercent { get; set; }
 

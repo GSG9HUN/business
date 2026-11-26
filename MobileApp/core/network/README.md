@@ -5,6 +5,10 @@ used by the application data layer.
 
 ## Overview
 
+`AudioEffectApiService.saveAudioEffectPreset` uses the dedicated POST `/guilds/{guildId}/playback/audio-effects/presets` with `SaveAudioEffectPresetRequestDto`. It is separate from effect application; the server rejects save operations sent to the application endpoint.
+
+`AudioEffectApiService.getAudioEffects` and `applyAudioEffects` use GET/POST `/guilds/{guildId}/playback/audio-effects`. `AudioEffectsDto` maps the confirmed Lavalink built-in filter map into SDK-independent settings; null means unsynchronized. A bounded `commands` batch returns durable command acceptance, not audio completion. GET also pages guild presets and reports the cached Manage Server permission; the bot rechecks live permissions before save/delete.
+
 `CurrentTrackApiService.setVolume` posts `SetVolumeRequestDto(volumePercent)` to `/guilds/{guildId}/playback/volume`. HTTP acceptance returns a durable command, while terminal completion is observed separately. `PlaybackStatusDto.volumePercent` is nullable and defaults to unknown for older servers; successful snapshots map confirmed server output to the domain and UI.
 
 - Typed HTTP services and remote data sources for authenticated application operations.
@@ -68,6 +72,12 @@ Shared HTTP adapter tests and test scaffolds using existing Kotlin test, corouti
 ---
 
 ## Components
+
+### AudioEffectApiService
+
+**Purpose:** Owns audio-effect HTTP requests with dedicated DTOs and remote data-source contracts in the `audioeffect` package. The current-track transport remains responsible for playback controls.
+
+---
 
 ### CurrentTrackApiService
 

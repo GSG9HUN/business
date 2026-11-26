@@ -52,6 +52,14 @@ sealed interface AppRoute : NavKey {
     data class CurrentTrack(val guildId: String) : AppRoute
 
     /**
+     * Opens the independent audio-effect editor for a guild.
+     *
+     * @property guildId Guild whose player settings and presets are edited.
+     */
+    @Serializable
+    data class AudioEffect(val guildId: String) : AppRoute
+
+    /**
      * Provides settings for the navigation layer.
      *
      * @property guildId Identifier of the guild owning this value.
@@ -85,6 +93,7 @@ fun AppRoute.guildIdOrNull(): String? {
         is AppRoute.Playlists -> guildId
         is AppRoute.Queue -> guildId
         is AppRoute.CurrentTrack -> guildId
+        is AppRoute.AudioEffect -> guildId
         is AppRoute.Settings -> guildId
         is AppRoute.PlaylistTrack -> guildId
         is AppRoute.RemoveSong -> guildId

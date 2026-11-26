@@ -38,6 +38,9 @@ public class GuildPlaybackStateConfiguration : IEntityTypeConfiguration<GuildPla
             .HasColumnName("is_paused")
             .HasDefaultValue(false)
             .IsRequired();
+        builder.Property(entity => entity.AudioEffectsJson)
+            .HasColumnName("audio_effects_json")
+            .HasColumnType("jsonb");
         builder.Property(entity => entity.VolumePercent)
             .HasColumnName("volume_percent");
         builder.Property(entity => entity.PositionSeconds)

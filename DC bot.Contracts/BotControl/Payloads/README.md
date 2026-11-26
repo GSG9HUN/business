@@ -4,6 +4,10 @@ Defines the serialized arguments stored with durable commands submitted by the A
 
 ## Overview
 
+Custom presets can save the edited draft without an earlier Apply and without changing live audio. Mobile sends the validated setting operations followed by `custom save <name> [overwrite]`; the bot composes a definition from the authoritative snapshot under the existing save reservation, rechecks management/voice permissions, and persists it without committing filters to Lavalink. The dirty draft remains available for a later Apply. The custom-preset page follows the HTML callout/compact-row layout and ends with the create button and muted volume/24-7 exclusion note.
+
+[`AudioEffectsCommandPayload.cs`](AudioEffectsCommandPayload.cs) carries up to forty bounded, single-line filter operations. A single `show`, `reset`, `preset <name>` or `custom <operation> <name>` uses the existing filter service. A settings batch accepts `speed`, `pitch`, `bass` and validated `advanced` operations; the bot rejects the entire batch before player work if any setting is invalid.
+
 [`SetVolumeCommandPayload.cs`](SetVolumeCommandPayload.cs) carries `VolumePercent` for the durable `set_volume` command. API and bot validate the inclusive 0-200 range; the value controls player output rather than filter gain.
 
 - Queue payloads describe play, move, and removal input. Playlist payloads describe a saved playlist target, an imported URL, or a track to resolve.

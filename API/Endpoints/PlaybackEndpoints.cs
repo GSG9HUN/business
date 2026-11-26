@@ -23,6 +23,9 @@ public static class PlaybackEndpoints
             .AddEndpointFilter<CommandNameValidationFilter>();
         playback.MapPost("/seek", PlaybackHandlers.SeekAsync);
         playback.MapPost("/volume", PlaybackHandlers.SetVolumeAsync);
+        playback.MapGet("/audio-effects", AudioEffectsHandlers.GetAsync);
+        playback.MapPost("/audio-effects", AudioEffectsHandlers.ApplyAsync);
+        playback.MapPost("/audio-effects/presets", AudioEffectsHandlers.SavePresetAsync);
         playback.MapPatch("/repeat-mode", PlaybackHandlers.SetRepeatModeAsync);
         return group;
     }

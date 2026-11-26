@@ -4,6 +4,8 @@ Groups client input by feature before handler validation and orchestration.
 
 ## Overview
 
+`Playback/SaveAudioEffectPresetRequest.cs` is the typed save-only audio preset request. Effect application remains a separate operation.
+
 - Minimal API binding creates these values; filters and handlers interpret them and build repository inputs or bot-command payloads.
 - HTTP request shapes are distinct from shared persistence records. Validation should not be hidden in EF entities or response models.
 

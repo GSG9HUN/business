@@ -1,4 +1,4 @@
-﻿package com.dc.melodiasmario.feature.currenttrack.ui
+package com.dc.melodiasmario.feature.currenttrack.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +21,7 @@ fun CurrentTrackRoute(
     guildId: String,
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
+    onAudioEffectClicked: (guildId: String) -> Unit,
     toastHostState: MToastHostState
 ) {
     val uiState by currentTrackViewModel.uiState.collectAsState()
@@ -35,6 +36,7 @@ fun CurrentTrackRoute(
             when (effect) {
                 CurrentTrackEffect.NavigateToGuildSelector -> onGuildClicked()
                 CurrentTrackEffect.NavigateToProfile -> onProfileClicked()
+                is CurrentTrackEffect.NavigateToAudioEffect -> onAudioEffectClicked(effect.guildId)
                 else -> effectMessages.toastDataFor(effect = effect)
                     ?.let { toastData -> toastHostState.showToast(toast = toastData) }
             }
