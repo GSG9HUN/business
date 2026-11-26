@@ -56,6 +56,7 @@ public sealed class TrackPlaybackService(
     /// <param name="sourceSearchMode">The source search mode supplied for this operation.</param>
     /// <param name="cancellationToken">Cancels waiting and supported downstream I/O; owned cleanup completes independently.</param>
     /// <returns>The asynchronous operation result, including its status or value when completed.</returns>
+    /// <param name="requestedByDisplayName">Plain requester name stored separately from Discord mention text.</param>
     public async Task<PlaybackStartResult> PlayTheFoundMusicAsync(
         TrackLoadResult searchQuery,
         PlaybackSession session,
@@ -63,7 +64,8 @@ public sealed class TrackPlaybackService(
         string? requestedBy,
         string? sourceQuery,
         TrackSearchMode? sourceSearchMode,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? requestedByDisplayName = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var operationId = Guid.NewGuid();
@@ -84,7 +86,12 @@ public sealed class TrackPlaybackService(
         {
             await sessions.MutateAsync(session, async () =>
             {
-                await musicQueueService.EnqueueMany(session.GuildId, tracks.Select(track => new QueueTrackToEnqueue(new LavaLinkTrackWrapper(track), searchQuery.IsPlaylist ? track.Uri?.ToString() : sourceQuery, sourceSearchMode, requestedBy))
+                await musicQueueService.EnqueueMany(session.GuildId, tracks.Select(track => new QueueTrackToEnqueue(
+                        new LavaLinkTrackWrapper(track),
+                        searchQuery.IsPlaylist ? track.Uri?.ToString() : sourceQuery,
+                        sourceSearchMode,
+                        requestedBy,
+                        requestedByDisplayName))
                     .ToList(), cancellationToken);
                 return true;
             });
@@ -466,7 +473,8 @@ public sealed class TrackPlaybackService(
         string query,
         TrackSearchMode searchMode,
         string requestedBy,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? requestedByDisplayName = null)
     {
         var operationId = Guid.NewGuid();
         ControlReservation? reservation = null;
@@ -482,7 +490,7 @@ public sealed class TrackPlaybackService(
             reservation = sessions.ReserveControl(session, "PlayNext");
             var items = tracks.Select(track => new QueueTrackToEnqueue(
                     new LavaLinkTrackWrapper(track), loaded.IsPlaylist ? track.Uri?.ToString() : query,
-                    searchMode, requestedBy))
+                    searchMode, requestedBy, requestedByDisplayName))
                 .ToList();
             await sessions.MutateAsync(session, async () =>
             {

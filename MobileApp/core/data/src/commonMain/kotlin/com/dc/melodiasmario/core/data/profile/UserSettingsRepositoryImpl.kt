@@ -17,12 +17,12 @@ class UserSettingsRepositoryImpl(
 ) : UserSettingsRepository {
     override val settings: StateFlow<UserSettings> = userSettingsStore.settings
 
-    override suspend fun saveSettings(userSettings: UserSettings): Unit {
+    override suspend fun saveSettings(userSettings: UserSettings) {
         userSettingsStorage.saveSettings(settings = userSettings)
         userSettingsStore.setSettings(userSettings = userSettings)
     }
 
-    override suspend fun clearSettings(): Unit {
+    override suspend fun clearSettings() {
         userSettingsStorage.clear()
         userSettingsStore.clear()
     }

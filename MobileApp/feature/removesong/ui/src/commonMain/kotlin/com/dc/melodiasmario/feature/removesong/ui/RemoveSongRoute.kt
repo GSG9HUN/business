@@ -14,7 +14,7 @@ fun RemoveSongRoute(
     modifier: Modifier = Modifier,
     removeSongViewModel: RemoveSongViewModel = koinViewModel(),
     guildId: String
-): Unit {
+) {
     EmptyRouteScreen(
         text = removeSongViewModel.emptyText(),
         modifier = modifier

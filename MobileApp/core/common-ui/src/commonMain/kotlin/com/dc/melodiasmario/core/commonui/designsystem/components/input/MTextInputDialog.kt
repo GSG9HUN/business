@@ -45,7 +45,7 @@ fun MTextInputDialog(
     dismissText: String,
     enabled: Boolean = true,
     canConfirm: Boolean = true
-): Unit {
+) {
 
     AlertDialog(
         modifier = modifier,

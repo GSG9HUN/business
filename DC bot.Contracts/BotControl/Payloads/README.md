@@ -4,10 +4,26 @@ Defines the serialized arguments stored with durable commands submitted by the A
 
 ## Overview
 
+[`SetVolumeCommandPayload.cs`](SetVolumeCommandPayload.cs) carries `VolumePercent` for the durable `set_volume` command. API and bot validate the inclusive 0-200 range; the value controls player output rather than filter gain.
+
 - Queue payloads describe play, move, and removal input. Playlist payloads describe a saved playlist target, an imported URL, or a track to resolve.
 - These records describe work; they do not execute it. Preserve field compatibility across API and worker deployments, and validate input before side effects.
 
 ## Models and Results
+
+### SeekPlaybackCommandPayload
+
+**Files:** `SeekPlaybackCommandPayload.cs`
+
+**Purpose:** Durable seek input for the existing bot playback-control boundary; not proof of completion.
+
+**Record declaration:**
+
+```csharp
+public sealed record SeekPlaybackCommandPayload(int PositionSeconds, Guid ExpectedPlaybackOperationId);
+```
+
+---
 
 ### PlaylistCommandPayload
 

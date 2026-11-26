@@ -39,7 +39,7 @@ internal fun PlaylistTrackHeader(
     onLoad: () -> Unit,
     modifier: Modifier = Modifier,
     artworkUri: String? = null
-): Unit {
+) {
     Row(
         modifier = modifier.fillMaxWidth()
             .padding(vertical = 16.dp),

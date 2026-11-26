@@ -19,7 +19,7 @@ class PlaylistTrackRemoteDataSourceImpl(
             .toDomain()
     }
 
-    override suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int): Unit {
+    override suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int) {
         return playlistTrackApiService.removeTrack(
             accessToken = accessToken,
             playlistId = playlistId,

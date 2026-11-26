@@ -5,22 +5,22 @@ import kotlin.test.Test
 @Ignore
 class QueueSearchControllerTest {
     @Test
-    fun latestQueryReplacesPreviousSearch(): Unit {
+    fun latestQueryReplacesPreviousSearch() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun shortQueryCancelsPendingSearch(): Unit {
+    fun shortQueryCancelsPendingSearch() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun nextPageAppendsSearchResults(): Unit {
+    fun nextPageAppendsSearchResults() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 
     @Test
-    fun capabilityFailureCanBeRetried(): Unit {
+    fun capabilityFailureCanBeRetried() {
         throw NotImplementedError(message = "Test implementation pending")
     }
 }

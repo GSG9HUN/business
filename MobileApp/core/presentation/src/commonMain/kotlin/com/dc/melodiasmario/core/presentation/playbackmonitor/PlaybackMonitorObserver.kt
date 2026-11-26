@@ -19,7 +19,7 @@ class PlaybackMonitorObserver(
     /**
      * Starts playback monitor observer for the supplied configuration.
      */
-    fun start(): Unit {
+    fun start() {
 
         if (observationJob?.isActive == true) {
             return
@@ -36,7 +36,7 @@ class PlaybackMonitorObserver(
     /**
      * Stops the active playback monitor observer.
      */
-    fun stop(): Unit {
+    fun stop() {
         observationJob?.cancel()
         observationJob = null
     }

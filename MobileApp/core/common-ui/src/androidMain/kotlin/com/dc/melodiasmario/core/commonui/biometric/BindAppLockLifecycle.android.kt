@@ -17,7 +17,7 @@ import com.dc.melodiasmario.core.presentation.biometric.AppLockController
 @Composable
 actual fun BindAppLockLifecycle(
     appLockController: AppLockController
-): Unit {
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 

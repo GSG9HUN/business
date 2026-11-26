@@ -27,7 +27,7 @@ fun MSearchStatus(
     selectedProvider: MMusicSearchProviderUi?,
     onCapabilitiesRetryClicked: () -> Unit,
     onSearchRetryClicked: () -> Unit
-): Unit {
+) {
     val message = when {
         mAddMusicSheetState.isCapabilitiesLoading -> mAddMusicLabels.capabilitiesLoading
         providerUnavailable -> {

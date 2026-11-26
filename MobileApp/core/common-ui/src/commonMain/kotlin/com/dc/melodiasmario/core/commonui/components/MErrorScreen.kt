@@ -28,7 +28,7 @@ fun MErrorScreen(
     modifier: Modifier = Modifier,
     errorMessage: String,
     onClick: () -> Unit
-): Unit {
+) {
     Column(
         modifier = modifier.fillMaxSize()
             .padding(all = 24.dp),

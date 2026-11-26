@@ -11,6 +11,26 @@ import org.koin.core.annotation.Single
 class CurrentTrackRemoteDataSourceImpl(
     private val currentTrackApiService: CurrentTrackApiService
 ) : CurrentTrackRemoteDataSource {
+    override suspend fun setVolume(accessToken: String, guildId: String, volumePercent: Int): BotControlCommand {
+        return currentTrackApiService.setVolume(accessToken = accessToken, guildId = guildId, volumePercent = volumePercent)
+            .toDomain()
+    }
+
+    override suspend fun seek(
+        accessToken: String,
+        guildId: String,
+        positionSeconds: Int,
+        expectedPlaybackOperationId: String
+    ): BotControlCommand {
+        return currentTrackApiService.seek(
+            accessToken = accessToken,
+            guildId = guildId,
+            positionSeconds = positionSeconds,
+            expectedPlaybackOperationId = expectedPlaybackOperationId
+        )
+            .toDomain()
+    }
+
     override suspend fun getPlaybackStatus(
         accessToken: String,
         guildId: String
@@ -42,7 +62,7 @@ class CurrentTrackRemoteDataSourceImpl(
             .toDomain()
     }
 
-    override suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String): Unit {
+    override suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String) {
         return currentTrackApiService.setRepeatMode(
             accessToken = accessToken,
             guildId = guildId,

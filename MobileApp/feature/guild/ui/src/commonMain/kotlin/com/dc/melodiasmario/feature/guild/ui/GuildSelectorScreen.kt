@@ -48,7 +48,7 @@ fun GuildSelectorScreen(
     modifier: Modifier = Modifier,
     uiState: GuildSelectorUiState,
     onEvent: (guildSelectorEvent: GuildSelectorEvent) -> Unit = {}
-): Unit {
+) {
     val guilds = uiState.filteredGuilds
 
     SetTopBarConfig(

@@ -42,7 +42,7 @@ fun MSearchBar(
     placeholder: String = "",
     enabled: Boolean = true,
     onSearch: () -> Unit = {}
-): Unit {
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(size = 16.dp),

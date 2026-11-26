@@ -85,7 +85,7 @@ class PlaylistTrackViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: PlaylistTrackEvent): Unit {
+    fun onEvent(event: PlaylistTrackEvent) {
 
         if (event.isCommandEvent()) {
 
@@ -407,7 +407,7 @@ class PlaylistTrackViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared(): Unit {
+    override fun onCleared() {
         botCommandCoordinator.clear()
         loadJob?.cancel()
         clearCommandExecution()

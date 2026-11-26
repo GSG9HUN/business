@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.stringResource
 fun BiometricLockSetting(
     uiState: AppLockUiState,
     onCheckedChange: (checked: Boolean) -> Unit
-): Unit {
+) {
     Column {
         MToggleRow(
             icon = Res.drawable.ic_profile_lock,

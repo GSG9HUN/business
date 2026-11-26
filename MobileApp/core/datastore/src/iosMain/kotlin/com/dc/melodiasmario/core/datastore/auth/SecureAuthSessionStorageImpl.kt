@@ -11,7 +11,7 @@ import org.koin.core.annotation.Single
 @Single(binds = [SecureAuthSessionStorage::class])
 class SecureAuthSessionStorageImpl : SecureAuthSessionStorage {
     private var session: AuthSession? = null
-    override suspend fun saveSession(session: AuthSession): Unit{
+    override suspend fun saveSession(session: AuthSession){
         this.session = session
     }
 
@@ -19,7 +19,7 @@ class SecureAuthSessionStorageImpl : SecureAuthSessionStorage {
         return session
     }
 
-    override suspend fun clearSession(): Unit {
+    override suspend fun clearSession() {
         session = null
     }
 }

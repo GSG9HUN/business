@@ -27,7 +27,7 @@ fun MSwitchButton(
     checked: Boolean,
     onCheckedChange: (checked: Boolean) -> Unit,
     modifier: Modifier = Modifier
-): Unit {
+) {
     val trackColor = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
     Box(

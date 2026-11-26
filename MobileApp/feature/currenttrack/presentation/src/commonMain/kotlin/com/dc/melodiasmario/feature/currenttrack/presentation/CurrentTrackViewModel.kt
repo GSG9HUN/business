@@ -9,7 +9,9 @@ import com.dc.melodiasmario.core.domain.currenttrack.usecase.NextTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PauseUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PreviousTrackUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SeekTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetVolumeUseCase
 import com.dc.melodiasmario.core.domain.currentuser.usecase.GetCurrentUserUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.ObserveCurrentPlaybackMonitorUseCase
 import com.dc.melodiasmario.core.domain.playbackmonitor.usecase.RefreshCurrentPlaybackMonitorUseCase
@@ -22,6 +24,7 @@ import com.dc.melodiasmario.core.domain.queue.usecase.ShuffleQueueUseCase
 import com.dc.melodiasmario.core.domain.realtime.usecase.ObserveGuildRealtimeUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.GetMusicSearchCapabilitiesUseCase
 import com.dc.melodiasmario.core.domain.search.usecase.SearchMusicUseCase
+import com.dc.melodiasmario.core.model.botcontrol.BotControlCommandTypes
 import com.dc.melodiasmario.core.model.playbackmonitor.CurrentPlaybackMonitorState
 import com.dc.melodiasmario.core.presentation.command.BotCommandCoordinator
 import com.dc.melodiasmario.core.presentation.command.CommandLock
@@ -57,6 +60,8 @@ class CurrentTrackViewModel(
     private val playUseCase: PlayUseCase,
     private val pauseUseCase: PauseUseCase,
     private val setRepeatModeUseCase: SetRepeatModeUseCase,
+    private val seekTrackUseCase: SeekTrackUseCase,
+    private val setVolumeUseCase: SetVolumeUseCase,
     private val removeFromQueueUseCase: RemoveFromQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
@@ -112,6 +117,8 @@ class CurrentTrackViewModel(
         playUseCase = playUseCase,
         pauseUseCase = pauseUseCase,
         setRepeatModeUseCase = setRepeatModeUseCase,
+        seekTrackUseCase = seekTrackUseCase,
+        setVolumeUseCase = setVolumeUseCase,
         removeFromQueueUseCase = removeFromQueueUseCase,
         moveTrackToIndexUseCase = moveTrackToIndexUseCase,
         shuffleQueueUseCase = shuffleQueueUseCase,
@@ -121,16 +128,42 @@ class CurrentTrackViewModel(
         onTrackPendingCommand = { command ->
             botCommandCoordinator.handleCompletion(
                 command = command,
-                onSucceeded = { _effect.emit(value = CurrentTrackEffect.BotCommandSucceeded(commandType = command.type)) },
+                onSucceeded = {
+                    val completionEffect = if (command.type == BotControlCommandTypes.Seek) {
+                        CurrentTrackEffect.SeekSucceeded
+                    } else if (command.type == BotControlCommandTypes.SetVolume) {
+                        CurrentTrackEffect.VolumeSucceeded
+                    } else {
+                        CurrentTrackEffect.BotCommandSucceeded(commandType = command.type)
+                    }
+                    _effect.emit(value = completionEffect)
+                },
                 onFailed = { errorKey ->
                     _effect.emit(
-                        value = CurrentTrackEffect.BotCommandFailed(
-                            commandType = command.type,
-                            errorKey = errorKey
-                        )
+                        value = if (command.type == BotControlCommandTypes.Seek) {
+                            if (errorKey == "playback_audio_outcome_unknown") {
+                                CurrentTrackEffect.SeekOutcomeUnknown
+                            } else {
+                                CurrentTrackEffect.SeekFailed
+                            }
+                        } else if (command.type == BotControlCommandTypes.SetVolume) {
+                            if (errorKey == "playback_audio_outcome_unknown") {
+                                CurrentTrackEffect.VolumeOutcomeUnknown
+                            } else {
+                                CurrentTrackEffect.VolumeFailed
+                            }
+                        } else {
+                            CurrentTrackEffect.BotCommandFailed(commandType = command.type, errorKey = errorKey)
+                        }
                     )
                 },
-                onTimedOut = { },
+                onTimedOut = {
+                    if (command.type == BotControlCommandTypes.Seek) {
+                        _effect.emit(value = CurrentTrackEffect.SeekOutcomeUnknown)
+                    } else if (command.type == BotControlCommandTypes.SetVolume) {
+                        _effect.emit(value = CurrentTrackEffect.VolumeOutcomeUnknown)
+                    }
+                },
                 onCompleted = { refreshCurrentPlaybackMonitorUseCase() }
             )
         },
@@ -154,7 +187,7 @@ class CurrentTrackViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: CurrentTrackEvent): Unit {
+    fun onEvent(event: CurrentTrackEvent) {
 
         if (event.isCommandEvent()) {
 
@@ -227,6 +260,8 @@ class CurrentTrackViewModel(
 
             CurrentTrackEvent.ClearQueueClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.MoreClicked -> openDialog(dialog = CurrentTrackDialog.MoreActions)
+            is CurrentTrackEvent.VolumeRequested -> runCommandIfIdle { handleCommandEvent(event = event) }
+            is CurrentTrackEvent.SeekRequested -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.NextClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.PreviousClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
             CurrentTrackEvent.RepeatClicked -> runCommandIfIdle { handleCommandEvent(event = event) }
@@ -342,7 +377,7 @@ class CurrentTrackViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared(): Unit {
+    override fun onCleared() {
         botCommandCoordinator.clear()
         playbackMonitorObserver.stop()
         clearCommandExecution()
@@ -380,7 +415,8 @@ class CurrentTrackViewModel(
                     playback = value.playback.copy(
                         currentTrack = track,
                         isPlaying = track.isPlaying,
-                        repeatMode = track.repeatMode
+                        repeatMode = track.repeatMode,
+                        isConnected = playbackState.isConnected
                     ),
                     queue = value.queue.copy(
                         tracks = track.queuedTracks,

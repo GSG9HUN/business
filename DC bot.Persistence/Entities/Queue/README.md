@@ -4,6 +4,8 @@ Represents the database rows used for ordered queue entries, canonical batches, 
 
 ## Overview
 
+`GuildQueueItemEntity.RequestedByDisplayName` stores a plain requester name independently of `RequestedBy`. Existing rows remain null and may be resolved through profile data by the API.
+
 - Feature repositories read and mutate these values in short-lived EF contexts, then map results into DC bot.Contracts records.
 - Entity properties describe persisted state. Keep HTTP response formatting, Discord objects, and playback transport behavior outside these types.
 

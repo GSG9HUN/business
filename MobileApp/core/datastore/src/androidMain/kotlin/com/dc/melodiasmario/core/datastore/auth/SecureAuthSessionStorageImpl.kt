@@ -41,11 +41,13 @@ class SecureAuthSessionStorageImpl(
         this.dataStore = dataStore
     }
 
-    override suspend fun saveSession(session: AuthSession): Unit = withContext(context = Dispatchers.IO) {
-        val encryptedSession = cipher.encrypt(plainText = session.toJson())
+    override suspend fun saveSession(session: AuthSession) {
+        withContext(context = Dispatchers.IO) {
+            val encryptedSession = cipher.encrypt(plainText = session.toJson())
 
-        dataStore.edit { preferences ->
-            preferences[KEY_SESSION] = encryptedSession
+            dataStore.edit { preferences ->
+                preferences[KEY_SESSION] = encryptedSession
+            }
         }
     }
 
@@ -60,9 +62,11 @@ class SecureAuthSessionStorageImpl(
             .getOrNull()
     }
 
-    override suspend fun clearSession(): Unit = withContext(context = Dispatchers.IO) {
-        dataStore.edit { preferences ->
-            preferences.clear()
+    override suspend fun clearSession() {
+        withContext(context = Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences.clear()
+            }
         }
     }
 

@@ -7,5 +7,5 @@ expect class AppLocaleController {
     /**
      * Applies the selected language through the platform locale adapter.
      */
-    fun applyLocale(languageCode: String): Unit
+    fun applyLocale(languageCode: String)
 }

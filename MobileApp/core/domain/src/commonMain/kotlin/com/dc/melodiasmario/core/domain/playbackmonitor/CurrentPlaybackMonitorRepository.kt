@@ -15,10 +15,10 @@ interface CurrentPlaybackMonitorRepository {
     /**
      * Starts current playback monitor repository for the supplied configuration.
      */
-    fun start(guildId: String): Unit
+    fun start(guildId: String)
 
     /**
      * Requests a fresh playback-monitor snapshot.
      */
-    fun refresh(): Unit
+    fun refresh()
 }

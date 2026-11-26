@@ -45,12 +45,12 @@ internal data class PlaylistsEffectMessages(
         PlaylistsEffect.PlaylistDeleteFailed -> error(message = deleteFailed)
     }
 
-    private fun success(message: String) = MToastData(
+    private fun success(message: String): MToastData = MToastData(
         message = message,
         type = MToastType.Success
     )
 
-    private fun error(message: String) = MToastData(
+    private fun error(message: String): MToastData = MToastData(
         message = message,
         type = MToastType.Error
     )

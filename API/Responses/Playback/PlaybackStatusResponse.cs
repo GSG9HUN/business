@@ -17,6 +17,7 @@ namespace API.Responses.Playback;
 /// <param name="IsRepeating">The is repeating value for this operation.</param>
 /// <param name="IsRepeatingList">The is repeating list value for this operation.</param>
 /// <param name="UpdatedAtUtc">The updated at utc value for this operation.</param>
+/// <param name="VolumePercent">Last acknowledged player volume, or null until observed.</param>
 public sealed record PlaybackStatusResponse(
     string GuildId,
     string GuildName,
@@ -29,4 +30,5 @@ public sealed record PlaybackStatusResponse(
     int QueueTrackCount,
     bool IsRepeating,
     bool IsRepeatingList,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    int? VolumePercent = null);

@@ -91,6 +91,20 @@ public interface ILavaLinkService
         string position,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Seeks only if the captured playback attempt is still active under the control reservation.</summary>
+    /// <param name="message">The guild message used for current permission and voice checks.</param>
+    /// <param name="member">The authenticated requesting Discord member.</param>
+    /// <param name="position">Absolute invariant playback time.</param>
+    /// <param name="expectedPlaybackOperationId">The attempt captured by the mobile client.</param>
+    /// <param name="cancellationToken">Cancels supported downstream work.</param>
+    /// <returns>Confirmed seek result or a localized rejection/uncertain outcome.</returns>
+    Task<PlaybackControlResult> SeekAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string position,
+        Guid expectedPlaybackOperationId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Moves forward by nonnegative integer seconds, clamping before the end of the active track.</summary>
     /// <param name="message">The guild message receiving the localized command result.</param>
     /// <param name="member">The requesting member, required for audio mutations.</param>

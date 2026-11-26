@@ -25,7 +25,7 @@ class AuthSessionMemoryCache {
     /**
      * Stores the supplied value in auth session memory cache.
      */
-    suspend fun save(session: AuthSession): Unit {
+    suspend fun save(session: AuthSession) {
         mutex.withLock {
             cachedSession = session
         }
@@ -34,7 +34,7 @@ class AuthSessionMemoryCache {
     /**
      * Clears the state and resources owned by AuthSessionMemoryCache.
      */
-    suspend fun clear(): Unit {
+    suspend fun clear() {
         mutex.withLock {
             cachedSession = null
         }

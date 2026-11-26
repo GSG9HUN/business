@@ -19,7 +19,7 @@ import com.dc.melodiasmario.core.commonui.topbar.TopBarNavigationIcon
  * Renders navigation top bar from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig): Unit {
+fun NavigationTopBar(modifier: Modifier = Modifier, config: TopBarConfig) {
     MTopBar(
         modifier = modifier,
         title = config.title,

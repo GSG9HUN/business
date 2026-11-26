@@ -31,7 +31,7 @@ class MainActivity : FragmentActivity() {
     private val feedbackVibrator: FeedbackVibrator by inject()
     private val appLockController: AppLockController by inject()
 
-    override fun onCreate(savedInstanceState: Bundle?): Unit {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState = savedInstanceState)
 
         handleDeepLink(intent = intent)
@@ -57,7 +57,7 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent): Unit {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent = intent)
         setIntent(intent)
         handleDeepLink(intent = intent)

@@ -13,5 +13,5 @@ class RefreshCurrentPlaybackMonitorUseCase(
     /**
      * Executes the refresh current playback monitor domain operation.
      */
-    operator fun invoke(): Unit = currentPlaybackMonitorRepository.refresh()
+    operator fun invoke() = currentPlaybackMonitorRepository.refresh()
 }

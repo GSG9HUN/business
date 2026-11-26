@@ -12,6 +12,7 @@ namespace DC_bot.Interface.Service.Persistence.Models.Playback;
 /// <param name = "IsPaused">The is paused value used by this storage contract.</param>
 /// <param name = "PositionSeconds">The position seconds value used by this storage contract.</param>
 /// <param name = "PositionUpdatedAtUtc">The position updated at utc value used by this storage contract.</param>
+/// <param name="VolumePercent">Last acknowledged output percentage, or null when unknown.</param>
 public record PlaybackStateRecord(
     ulong GuildId,
     bool IsRepeating,
@@ -21,4 +22,5 @@ public record PlaybackStateRecord(
     DateTimeOffset UpdatedAtUtc,
     bool IsPaused = false,
     int PositionSeconds = 0,
-    DateTimeOffset? PositionUpdatedAtUtc = null);
+    DateTimeOffset? PositionUpdatedAtUtc = null,
+    int? VolumePercent = null);

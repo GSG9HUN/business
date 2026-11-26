@@ -4,6 +4,8 @@ Maps track requests to durable queue items and batch-aware queue operations.
 
 ## Overview
 
+Both ordinary enqueueing and play-next preserve `RequestedByDisplayName` when constructing durable queue inputs. Discord mention metadata remains unchanged.
+
 - ClearQueueWithCountAsync exposes the affected row count returned by the same serializable database update; the existing ClearQueue contract remains available.
 
 - Coordinates queue reads, enqueueing, removal, ordering and repeat-aware operations.

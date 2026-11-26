@@ -6,6 +6,9 @@ namespace DC_bot.BotControl;
 public static class BotControlCommandTypes
 {
 
+    /// <summary>Changes the server player output volume.</summary>
+    public const string SetVolume = "set_volume";
+
     /// <summary>
     /// The bot control command type for mentioning a user.
     /// </summary>
@@ -55,6 +58,9 @@ public static class BotControlCommandTypes
     /// The bot control command type for playing the previous track.
     /// </summary>
     public const string Previous = "previous";
+
+    /// <summary>Seeks a specific playback attempt to an absolute position in seconds.</summary>
+    public const string Seek = "seek";
 
     /// <summary>
     /// The bot control command type for leaving the voice channel.

@@ -22,7 +22,7 @@ fun LoginRoute(
     loginViewModel: LoginViewModel = koinViewModel(),
     onLoginSuccess: () -> Unit = {},
     externalUrlOpenerImpl: ExternalUrlOpener = koinInject()
-): Unit {
+) {
     val uiState by loginViewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {

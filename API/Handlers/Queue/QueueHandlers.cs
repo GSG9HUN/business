@@ -1,11 +1,12 @@
-using System.Text.Json;
-using API.Requests.Queue;
 using API.Mapping;
-using DC_bot.BotControl;
+using API.Requests.Queue;
+using API.Services.Playback;
 using DC_bot.BotControl.Payloads;
+using DC_bot.BotControl;
 using DC_bot.Interface.Service.Persistence.BotControl;
 using DC_bot.Interface.Service.Persistence.MobileApps;
 using DC_bot.Interface.Service.Persistence.Queue;
+using System.Text.Json;
 using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace API.Handlers.Queue;
@@ -24,10 +25,12 @@ public static class QueueHandlers
     /// <param name="queueRepository">The injected persistence contract used by this operation.</param>
     /// <param name="cancellationToken">Cancels the underlying I/O and waiting operations.</param>
     /// <returns>The HTTP response, asynchronously when persistence or network access is required.</returns>
+    /// <param name="requesterDisplayNameResolver">Resolves names for queued and historical requester labels.</param>
     public static async Task<IResult> GetAsync(
         HttpContext httpContext,
         IMobileAppUserRepository userRepository,
         IQueueRepository queueRepository,
+        RequesterDisplayNameResolver requesterDisplayNameResolver,
         CancellationToken cancellationToken)
     {
         var guildId = (ulong)httpContext.Items["guildId"]!;
@@ -40,7 +43,9 @@ public static class QueueHandlers
 
         var queueItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
         var displayItems = await queueRepository.GetDisplayItemsAsync(guildId, cancellationToken);
-        return HttpResults.Ok(QueueResponseMapper.MapWithHistory(guildId, queueItems, displayItems));
+        var resolvedQueue = await requesterDisplayNameResolver.ResolveQueueAsync(queueItems, cancellationToken);
+        var resolvedHistory = await requesterDisplayNameResolver.ResolveQueueAsync(displayItems, cancellationToken);
+        return HttpResults.Ok(QueueResponseMapper.MapWithHistory(guildId, resolvedQueue, resolvedHistory));
     }
 
     /// <summary>

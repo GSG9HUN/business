@@ -20,7 +20,7 @@ fun <T> MOptionSelectorBottomSheet(
     onOptionSelected: (selectedOption: T) -> Unit,
     modifier: Modifier = Modifier,
     searchPlaceholder: String = ""
-): Unit {
+) {
     ModalBottomSheet(
         onDismissRequest = onDismiss
     ) {

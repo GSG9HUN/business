@@ -4,7 +4,9 @@ import com.dc.melodiasmario.core.domain.currenttrack.usecase.NextTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PauseUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PlayUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.PreviousTrackUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SeekTrackUseCase
 import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetRepeatModeUseCase
+import com.dc.melodiasmario.core.domain.currenttrack.usecase.SetVolumeUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.AddToQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.ClearQueueUseCase
 import com.dc.melodiasmario.core.domain.queue.usecase.MoveTrackToIndexUseCase
@@ -20,6 +22,7 @@ import com.dc.melodiasmario.feature.currenttrack.presentation.CurrentTrackEvent
 import com.dc.melodiasmario.feature.currenttrack.presentation.state.CurrentTrackUiState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Coordinates current track command operations and their presentation callbacks.
@@ -32,6 +35,8 @@ internal class CurrentTrackCommandHandler(
     private val playUseCase: PlayUseCase,
     private val pauseUseCase: PauseUseCase,
     private val setRepeatModeUseCase: SetRepeatModeUseCase,
+    private val seekTrackUseCase: SeekTrackUseCase,
+    private val setVolumeUseCase: SetVolumeUseCase,
     private val removeFromQueueUseCase: RemoveFromQueueUseCase,
     private val moveTrackToIndexUseCase: MoveTrackToIndexUseCase,
     private val shuffleQueueUseCase: ShuffleQueueUseCase,
@@ -67,7 +72,7 @@ internal class CurrentTrackCommandHandler(
     /**
      * Dispatches the supplied event to the appropriate command operation.
      */
-    suspend fun handle(event: CurrentTrackEvent): Unit {
+    suspend fun handle(event: CurrentTrackEvent) {
         when (event) {
             CurrentTrackEvent.AddToQueueConfirmed -> trackQueueCommandHandler.addManualInput()
             is CurrentTrackEvent.RemoveFromQueueClicked -> trackQueueCommandHandler.removeFromQueue(
@@ -75,6 +80,8 @@ internal class CurrentTrackCommandHandler(
                 trackId = event.trackId
             )
             CurrentTrackEvent.ClearQueueClicked -> trackQueueCommandHandler.clearQueue()
+            is CurrentTrackEvent.VolumeRequested -> setVolume(event = event)
+            is CurrentTrackEvent.SeekRequested -> seek(event = event)
             CurrentTrackEvent.NextClicked -> nextTrack()
             CurrentTrackEvent.PreviousClicked -> previousTrack()
             CurrentTrackEvent.RepeatClicked -> repeat()
@@ -87,6 +94,75 @@ internal class CurrentTrackCommandHandler(
             )
             CurrentTrackEvent.SelectedSearchResultAddClicked -> trackQueueCommandHandler.addSelectedSearchResultToQueue()
             else -> Unit
+        }
+    }
+
+    private suspend fun setVolume(event: CurrentTrackEvent.VolumeRequested) {
+        val guildId = currentGuildIdProvider() ?: return
+        val playback = uiState.value.playback
+
+        if (guildId != event.guildId
+            || playback.currentTrack?.guildId != guildId
+            || !playback.isConnected
+            || event.volumePercent !in 0..200) {
+            effects.emit(value = CurrentTrackEffect.VolumeFailed)
+            return
+        }
+
+        uiState.update { currentUiState ->
+            currentUiState.copy(actions = currentUiState.actions.copy(isVolumeLoading = true))
+        }
+
+        try {
+            setVolumeUseCase(guildId = guildId, volumePercent = event.volumePercent).runBotCommand(
+                uiState = uiState,
+                effects = effects,
+                acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
+                failureEffect = CurrentTrackEffect.VolumeOutcomeUnknown,
+                afterAccepted = onTrackPendingCommand
+            )
+        } finally {
+            uiState.update { currentUiState ->
+                currentUiState.copy(actions = currentUiState.actions.copy(isVolumeLoading = false))
+            }
+        }
+    }
+
+    private suspend fun seek(event: CurrentTrackEvent.SeekRequested) {
+        val guildId = currentGuildIdProvider() ?: return
+        val playback = uiState.value.playback
+        val currentTrack = playback.currentTrack
+        val track = currentTrack?.currentTrack
+
+        if (currentTrack?.guildId != guildId
+            || !playback.isConnected
+            || track?.isSeekable != true
+            || track.playbackOperationId != event.expectedPlaybackOperationId
+            || event.positionSeconds !in 0 until track.durationSeconds) {
+            effects.emit(value = CurrentTrackEffect.SeekFailed)
+            return
+        }
+
+        uiState.update { currentUiState ->
+            currentUiState.copy(actions = currentUiState.actions.copy(isSeekLoading = true))
+        }
+
+        try {
+            seekTrackUseCase(
+                guildId = guildId,
+                positionSeconds = event.positionSeconds,
+                expectedPlaybackOperationId = event.expectedPlaybackOperationId
+            ).runBotCommand(
+                uiState = uiState,
+                effects = effects,
+                acceptedEffect = CurrentTrackEffect.BotCommandAccepted,
+                failureEffect = CurrentTrackEffect.SeekOutcomeUnknown,
+                afterAccepted = onTrackPendingCommand
+            )
+        } finally {
+            uiState.update { currentUiState ->
+                currentUiState.copy(actions = currentUiState.actions.copy(isSeekLoading = false))
+            }
         }
     }
 
@@ -172,7 +248,7 @@ internal class CurrentTrackCommandHandler(
         )
     }
 
-    private fun nextRepeatMode(repeatMode: RepeatMode) = when (repeatMode) {
+    private fun nextRepeatMode(repeatMode: RepeatMode): RepeatMode = when (repeatMode) {
         RepeatMode.NONE -> RepeatMode.ONE
         RepeatMode.ONE -> RepeatMode.ALL
         RepeatMode.ALL -> RepeatMode.NONE

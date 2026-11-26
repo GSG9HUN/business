@@ -149,7 +149,7 @@ class QueueViewModel(
     /**
      * Submits a user or lifecycle event to the feature event-processing flow.
      */
-    fun onEvent(event: QueueEvent): Unit {
+    fun onEvent(event: QueueEvent) {
 
         if (event.isCommandEvent()) {
 
@@ -421,7 +421,7 @@ class QueueViewModel(
         commandLock.finish()
     }
 
-    override fun onCleared(): Unit {
+    override fun onCleared() {
         botCommandCoordinator.clear()
         playbackMonitorObserver.stop()
 

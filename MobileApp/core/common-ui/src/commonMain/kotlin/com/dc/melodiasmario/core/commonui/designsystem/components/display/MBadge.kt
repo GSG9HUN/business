@@ -19,7 +19,7 @@ fun MBadge(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
-): Unit {
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(size = 999.dp),

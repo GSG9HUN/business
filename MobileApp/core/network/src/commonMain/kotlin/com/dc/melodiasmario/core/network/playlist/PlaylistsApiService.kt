@@ -10,7 +10,6 @@ import com.dc.melodiasmario.core.network.playlist.dto.RenamePlaylistRequestDto
 import com.dc.melodiasmario.core.network.playlist.dto.SetPlaylistArtworkRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -36,7 +35,6 @@ class PlaylistsApiService(
      */
     suspend fun getPlaylists(accessToken: String, guildId: String): List<PlaylistDto> {
         return httpClient.get(urlString = "$baseUrl/guilds/$guildId/playlists") {
-            expectSuccess = true
             header(key = HttpHeaders.Authorization, value = "Bearer $accessToken")
         }
             .body()
@@ -45,9 +43,8 @@ class PlaylistsApiService(
     /**
      * Sets the playlist cover URL, or restores automatic artwork when the value is absent.
      */
-    suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?): Unit {
+    suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?) {
         httpClient.patch(urlString = "$baseUrl/playlists/$playlistId/artwork") {
-            expectSuccess = true
             header(key = HttpHeaders.Authorization, value = "Bearer $accessToken")
             header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
             setBody(body = SetPlaylistArtworkRequestDto(artworkUri = artworkUri))
@@ -61,7 +58,7 @@ class PlaylistsApiService(
         accessToken: String,
         playlistId: String,
         newName: String
-    ): Unit {
+    ) {
         return httpClient.patch(urlString = "$baseUrl/playlists/${playlistId}/rename") {
             header(key = "Authorization", value = "Bearer $accessToken")
             header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
@@ -73,7 +70,7 @@ class PlaylistsApiService(
     /**
      * Deletes the identified saved playlist.
      */
-    suspend fun deletePlaylist(accessToken: String, playlistId: String): Unit {
+    suspend fun deletePlaylist(accessToken: String, playlistId: String) {
         return httpClient.delete(urlString = "$baseUrl/playlists/$playlistId") {
             header(key = "Authorization", value = "Bearer $accessToken")
         }

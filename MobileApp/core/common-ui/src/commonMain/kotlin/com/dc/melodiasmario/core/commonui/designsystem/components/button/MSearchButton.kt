@@ -29,7 +29,7 @@ fun MSearchButton(
     onClick: () -> Unit,
     contentDescription: String,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         onClick = onClick,
         modifier = modifier.size(size = 44.dp),

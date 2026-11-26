@@ -67,7 +67,7 @@ fun PlaylistsScreen(
     modifier: Modifier = Modifier,
     uiState: PlaylistsUiState,
     onEvent: (playlistsEvent: PlaylistsEvent) -> Unit
-): Unit {
+) {
     SetTopBarConfig(
         config = TopBarConfig(
             title = stringResource(resource = Res.string.playlists_title),

@@ -16,7 +16,7 @@ actual class ExternalUrlOpener(
     /**
      * Opens the supplied external URL through the platform adapter.
      */
-    actual fun openUrl(url: String): Unit {
+    actual fun openUrl(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)

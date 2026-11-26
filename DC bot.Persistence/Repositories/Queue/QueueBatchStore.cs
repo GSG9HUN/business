@@ -99,6 +99,7 @@ internal static class QueueBatchStore
                     SourceQuery = row.SourceQuery,
                     SourceSearchMode = row.SourceSearchMode,
                     RequestedBy = row.RequestedBy,
+                    RequestedByDisplayName = row.RequestedByDisplayName,
                     AddedAtUtc = row.AddedAtUtc
                 };
                 canonical.Add(item);

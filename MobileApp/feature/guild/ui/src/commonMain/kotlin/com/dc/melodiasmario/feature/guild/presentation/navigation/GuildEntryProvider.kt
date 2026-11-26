@@ -10,7 +10,7 @@ import com.dc.melodiasmario.feature.guild.ui.GuildSelectorRoute
 fun EntryProviderScope<AppRoute>.guildSelectorEntry(
     onAvatarClicked: () -> Unit,
     onGuildClicked: (guildId: String) -> Unit
-): Unit {
+) {
     entry<AppRoute.GuildSelector> {
         GuildSelectorRoute(
             onAvatarClicked = onAvatarClicked,

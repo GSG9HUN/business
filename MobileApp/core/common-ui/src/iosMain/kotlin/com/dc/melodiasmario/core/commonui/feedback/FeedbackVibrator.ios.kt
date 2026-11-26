@@ -12,7 +12,7 @@ actual class FeedbackVibrator {
     /**
      * Requests platform haptic feedback for the supplied interaction.
      */
-    actual fun vibrate(): Unit {
+    actual fun vibrate() {
         generator.prepare()
         generator.notificationOccurred(
             UINotificationFeedbackType.UINotificationFeedbackTypeSuccess

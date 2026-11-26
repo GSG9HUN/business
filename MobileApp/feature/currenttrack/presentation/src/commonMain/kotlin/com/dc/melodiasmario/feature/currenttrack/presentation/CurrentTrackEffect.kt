@@ -6,6 +6,25 @@ import com.dc.melodiasmario.core.presentation.MviEffect
  * Defines one-time current track presentation outcomes.
  */
 sealed interface CurrentTrackEffect : MviEffect {
+
+    /** The server confirmed the requested volume. */
+    data object VolumeSucceeded : CurrentTrackEffect
+
+    /** The volume request was rejected or failed. */
+    data object VolumeFailed : CurrentTrackEffect
+
+    /** Audio completion is unknown; refresh confirmed state before submitting again. */
+    data object VolumeOutcomeUnknown : CurrentTrackEffect
+
+    /** The server confirmed the seek completed for the captured playback attempt. */
+    data object SeekSucceeded : CurrentTrackEffect
+
+    /** The seek was rejected or failed; refresh before submitting another gesture. */
+    data object SeekFailed : CurrentTrackEffect
+
+    /** Terminal seek completion was not observed; this is not proof of rollback. */
+    data object SeekOutcomeUnknown : CurrentTrackEffect
+
     /**
      * Describes the navigate to guild selector variant of [CurrentTrackEffect].
      */

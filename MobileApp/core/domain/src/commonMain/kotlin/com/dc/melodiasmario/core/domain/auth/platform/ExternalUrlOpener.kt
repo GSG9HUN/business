@@ -7,5 +7,5 @@ expect class ExternalUrlOpener {
     /**
      * Opens the supplied external URL through the platform adapter.
      */
-    fun openUrl(url: String): Unit
+    fun openUrl(url: String)
 }

@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
@@ -47,7 +48,7 @@ class PlaylistTrackViewModelTest {
     private lateinit var playlistTrackViewModel: PlaylistTrackViewModel
 
     @BeforeTest
-    fun setUp(): Unit {
+    fun setUp() {
         Dispatchers.setMain(standardTestDispatcher)
         fakePlaylistRepository = FakePlaylistRepository()
         val searchRepository = object : MusicSearchRepository {
@@ -77,13 +78,13 @@ class PlaylistTrackViewModelTest {
     }
 
     @AfterTest
-    fun tearDown(): Unit {
+    fun tearDown() {
         playlistTrackViewModel.viewModelScope.cancel()
         Dispatchers.resetMain()
     }
 
     @Test
-    fun failedLoadCanBeRetried() = runTest(context = standardTestDispatcher) {
+    fun failedLoadCanBeRetried(): TestResult = runTest(context = standardTestDispatcher) {
         fakePlaylistRepository.failGet = true
         playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
@@ -98,7 +99,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun manualInputUsesSharedValidationBeforeSubmitting() = runTest(context = standardTestDispatcher) {
+    fun manualInputUsesSharedValidationBeforeSubmitting(): TestResult = runTest(context = standardTestDispatcher) {
         playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "guild", playlistId = "1"))
         runCurrent()
 
@@ -123,7 +124,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun failedRemovalKeepsDialogAndReleasesLockForRetry() = runTest(context = standardTestDispatcher) {
+    fun failedRemovalKeepsDialogAndReleasesLockForRetry(): TestResult = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
         backgroundScope.launch(context = standardTestDispatcher) {
             playlistTrackViewModel.effect.collect { effect ->
@@ -151,7 +152,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun duplicateCommandsAreBlockedButBackStillWorks() = runTest(context = standardTestDispatcher) {
+    fun duplicateCommandsAreBlockedButBackStillWorks(): TestResult = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
         backgroundScope.launch(context = standardTestDispatcher) {
             playlistTrackViewModel.effect.collect { effect ->
@@ -175,7 +176,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun changingPlaylistCancelsOldCommandWithoutSuccessEffect() = runTest(context = standardTestDispatcher) {
+    fun changingPlaylistCancelsOldCommandWithoutSuccessEffect(): TestResult = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
         backgroundScope.launch(context = standardTestDispatcher) {
             playlistTrackViewModel.effect.collect { effect ->
@@ -197,7 +198,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun acceptedCommandDoesNotReportSuccessBeforeCompletion() = runTest(context = standardTestDispatcher) {
+    fun acceptedCommandDoesNotReportSuccessBeforeCompletion(): TestResult = runTest(context = standardTestDispatcher) {
         val effects = mutableListOf<PlaylistTrackEffect>()
         backgroundScope.launch(context = standardTestDispatcher) {
             playlistTrackViewModel.effect.collect { effect ->
@@ -215,7 +216,7 @@ class PlaylistTrackViewModelTest {
     }
 
     @Test
-    fun playlistFromAnotherGuildIsNotDisplayed() = runTest(context = standardTestDispatcher) {
+    fun playlistFromAnotherGuildIsNotDisplayed(): TestResult = runTest(context = standardTestDispatcher) {
         playlistTrackViewModel.onEvent(event = PlaylistTrackEvent.Load(guildId = "another-guild", playlistId = "1"))
         runCurrent()
         assertTrue(actual = playlistTrackViewModel.uiState.value.hasLoadError)
@@ -257,6 +258,7 @@ class PlaylistTrackViewModelTest {
             return BotControlCommand(commandId = "add", type = "add", state = commandState)
         }
 
-        override suspend fun loadPlaylist(playlistId: String) = BotControlCommand(commandId = "load", type = "load", state = commandState)
+        override suspend fun loadPlaylist(playlistId: String): BotControlCommand =
+            BotControlCommand(commandId = "load", type = "load", state = commandState)
     }
 }

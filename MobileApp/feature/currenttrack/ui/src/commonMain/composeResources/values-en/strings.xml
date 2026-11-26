@@ -63,4 +63,26 @@
     <string name="currenttrack_queue_drag_handle_content_description">Queue reorder handle</string>
     <string name="currenttrack_queue_move_up_action">Move up</string>
     <string name="currenttrack_queue_move_down_action">Move down</string>
+    <string name="currenttrack_seek_succeeded">Playback position updated.</string>
+    <string name="currenttrack_seek_failed">Seeking failed or the track changed. Refresh playback before trying again.</string>
+    <string name="currenttrack_seek_unknown">The seek result is not confirmed. Check playback before submitting again.</string>
+    <string name="currenttrack_seek_label">Playback position</string>
+    <string name="currenttrack_seek_pending">Updating playback position…</string>
+    <string name="currenttrack_seek_unavailable">Seeking is unavailable for this track or connection.</string>
+    <string name="currenttrack_volume_label">Volume</string>
+    <string name="currenttrack_volume_decrease">Decrease server volume by 5 percent</string>
+    <string name="currenttrack_volume_increase">Increase server volume by 5 percent</string>
+    <string name="currenttrack_volume_percent">%1$d%</string>
+    <string name="currenttrack_volume_confirmed">Confirmed: %1$d% · server volume</string>
+    <string name="currenttrack_volume_amplified">Amplified audio above 100%</string>
+    <string name="currenttrack_volume_maximum">max. 200%</string>
+    <string name="currenttrack_volume_pending">Updating volume…</string>
+    <string name="currenttrack_volume_unavailable">Unavailable</string>
+    <string name="currenttrack_volume_succeeded">Volume updated.</string>
+    <string name="currenttrack_volume_failed">Could not update volume.</string>
+    <string name="currenttrack_volume_unknown">The volume change outcome is not yet confirmed.</string>
+    <string name="currenttrack_volume_minus">−</string>
+    <string name="currenttrack_volume_plus">+</string>
+    <string name="currenttrack_volume_unknown_value">Unknown</string>
+    <string name="currenttrack_volume_select_hint">Current volume is unknown; choose an absolute value with the slider.</string>
 </resources>

@@ -30,7 +30,7 @@ fun MProviderSelector(
     selectedProvider: MMusicSearchProviderUi?,
     providers: List<MMusicSearchProviderUi>,
     onProviderChanged: (providerId: String) -> Unit
-): Unit {
+) {
     var expanded by remember { mutableStateOf(value = false) }
 
     Box(modifier = Modifier.fillMaxWidth()) {

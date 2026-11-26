@@ -1,5 +1,6 @@
 using API.Mapping;
 using API.Responses.Playback;
+using API.Services.Playback;
 using API.Snapshots.Playback.Interface;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.MobileApps;
@@ -16,11 +17,13 @@ namespace API.Snapshots.Playback;
 /// <param name="guildBotStatusRepository">The injected persistence contract used by this operation.</param>
 /// <param name="playbackStateRepository">The injected persistence contract used by this operation.</param>
 /// <param name="queueRepository">The injected persistence contract used by this operation.</param>
+/// <param name="requesterDisplayNameResolver">Produces plain mobile requester labels.</param>
 public sealed class PlaybackSnapshotService(
     IMobileAppUserRepository mobileAppUserRepository,
     IGuildBotStatusRepository guildBotStatusRepository,
     IPlaybackStateRepository playbackStateRepository,
-    IQueueRepository queueRepository) : IPlaybackSnapshotService
+    IQueueRepository queueRepository,
+    RequesterDisplayNameResolver requesterDisplayNameResolver) : IPlaybackSnapshotService
 {
 
     /// <summary>
@@ -40,10 +43,30 @@ public sealed class PlaybackSnapshotService(
         var state = await playbackStateRepository.GetOrCreateAsync(guildId, cancellationToken);
         var queuedItems = await queueRepository.GetQueuedItemsAsync(guildId, cancellationToken);
         var currentQueueItem = state.QueueItemId is null ? null : await queueRepository.GetByIdAsync(state.QueueItemId.Value, cancellationToken);
-        var currentTrack = state.CurrentTrackIdentifier is null ? null : TrackResponseMapper.TryMapPlaybackTrack(state.CurrentTrackIdentifier, currentQueueItem?.RequestedBy);
+        var requesterName = await requesterDisplayNameResolver.ResolveAsync(
+            currentQueueItem?.RequestedBy, currentQueueItem?.RequestedByDisplayName, cancellationToken);
+        var currentTrack = state.CurrentTrackIdentifier is null ? null : TrackResponseMapper.TryMapPlaybackTrack(state.CurrentTrackIdentifier, requesterName);
+        if (currentTrack is not null)
+        {
+            currentTrack = currentTrack with { PlaybackOperationId = currentQueueItem?.PlaybackOperationId };
+        }
+
         var isPaused = currentTrack is not null && state.IsPaused;
         var positionSeconds = currentTrack is null ? 0 : CalculatePositionSeconds(state, currentTrack.Duration);
-        return new PlaybackStatusResponse(guildId.ToString(), guild?.Name ?? string.Empty, guild is null ? null : GuildResponseMapper.MapGuildIconUrl(guild), GuildResponseMapper.MapBotStatus(botStatuses.GetValueOrDefault(guildId)), currentTrack, currentTrack is not null && !isPaused, isPaused, positionSeconds, queuedItems.Count, state.IsRepeating, state.IsRepeatingList, state.UpdatedAtUtc);
+        return new PlaybackStatusResponse(
+            guildId.ToString(),
+            guild?.Name ?? string.Empty,
+            guild is null ? null : GuildResponseMapper.MapGuildIconUrl(guild),
+            GuildResponseMapper.MapBotStatus(botStatuses.GetValueOrDefault(guildId)),
+            currentTrack,
+            currentTrack is not null && !isPaused,
+            isPaused,
+            positionSeconds,
+            queuedItems.Count,
+            state.IsRepeating,
+            state.IsRepeatingList,
+            state.UpdatedAtUtc,
+            state.VolumePercent);
     }
 
     /// <summary>

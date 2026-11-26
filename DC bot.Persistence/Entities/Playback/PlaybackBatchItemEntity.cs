@@ -47,6 +47,9 @@ public class PlaybackBatchItemEntity
     /// </summary>
     public string? RequestedBy { get; set; }
 
+    /// <summary>Plain requester name for mobile read models; the mention remains separate.</summary>
+    public string? RequestedByDisplayName { get; set; }
+
     /// <summary>
     /// The UTC time at which the item was added.
     /// </summary>

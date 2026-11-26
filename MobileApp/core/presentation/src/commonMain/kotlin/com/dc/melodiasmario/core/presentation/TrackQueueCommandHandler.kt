@@ -43,7 +43,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Validates the manual draft and submits it to the selected guild queue.
      */
-    suspend fun addManualInput(): Unit {
+    suspend fun addManualInput() {
         val sheet = uiState.value.addMusic
 
         if (!sheet.canSubmitManual) {
@@ -56,7 +56,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Submits the selected enqueueable search result to the guild queue.
      */
-    suspend fun addSelectedSearchResultToQueue(): Unit {
+    suspend fun addSelectedSearchResultToQueue() {
         val sheet = uiState.value.addMusic
         val result = sheet.results.firstOrNull { searchResult -> searchResult.id == sheet.selectedResultId } ?: return
         val url = result.canonicalUrl?.takeIf { textValue -> textValue.isNotBlank() } ?: return
@@ -94,7 +94,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Requests removal of a track from the playback queue.
      */
-    suspend fun removeFromQueue(index: Int, trackId: String? = null): Unit {
+    suspend fun removeFromQueue(index: Int, trackId: String? = null) {
         val guildId = currentGuildIdProvider() ?: return
         val track = uiState.value.tracks.getOrNull(index = index) ?: return
 
@@ -115,7 +115,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Requests moving a queued track between zero-based queue indexes.
      */
-    suspend fun moveTrackToIndex(fromIndex: Int, toIndex: Int, trackId: String? = null): Unit {
+    suspend fun moveTrackToIndex(fromIndex: Int, toIndex: Int, trackId: String? = null) {
         val guildId = currentGuildIdProvider() ?: return
         val tracks = uiState.value.tracks
         val track = tracks.getOrNull(index = fromIndex) ?: return
@@ -148,7 +148,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Requests clearing the guild playback queue.
      */
-    suspend fun clearQueue(): Unit {
+    suspend fun clearQueue() {
         val guildId = currentGuildIdProvider() ?: return
 
         if (uiState.value.tracks.isEmpty()) {
@@ -172,7 +172,7 @@ class TrackQueueCommandHandler<State, Effect>(
     /**
      * Requests shuffling the guild playback queue.
      */
-    suspend fun shuffleQueue(): Unit {
+    suspend fun shuffleQueue() {
         val guildId = currentGuildIdProvider() ?: return
 
         if (uiState.value.tracks.size < 2) {

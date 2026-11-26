@@ -84,7 +84,7 @@ fun QueueScreen(
     modifier: Modifier = Modifier,
     uiState: QueueUiState,
     onEvent: (queueEvent: QueueEvent) -> Unit
-): Unit {
+) {
     val title = stringResource(resource = Res.string.queue_title)
 
     val queueReady = !uiState.isLoading && uiState.errorMessage == null

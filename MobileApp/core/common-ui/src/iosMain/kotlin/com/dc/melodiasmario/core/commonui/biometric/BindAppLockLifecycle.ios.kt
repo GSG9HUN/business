@@ -18,7 +18,7 @@ import platform.UIKit.UIApplicationWillEnterForegroundNotification
 @Composable
 actual fun BindAppLockLifecycle(
     appLockController: AppLockController
-): Unit {
+) {
     DisposableEffect(key1 = appLockController) {
         val center = NSNotificationCenter.defaultCenter
         val applicationState = UIApplication.sharedApplication.applicationState

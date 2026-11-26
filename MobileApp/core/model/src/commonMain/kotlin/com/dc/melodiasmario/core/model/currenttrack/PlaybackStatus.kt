@@ -15,6 +15,7 @@ import com.dc.melodiasmario.core.model.queue.Queue
  * @property isRepeating Is repeating.
  * @property isRepeatingList Is repeating list.
  * @property updatedAtUtc Updated at utc.
+ * @property volumePercent Last confirmed server output percentage, or null when unavailable.
  */
 data class PlaybackStatus(
     val guildId: String,
@@ -25,7 +26,8 @@ data class PlaybackStatus(
     val queueTrackCount: Int,
     val isRepeating: Boolean,
     val isRepeatingList: Boolean,
-    val updatedAtUtc: String
+    val updatedAtUtc: String,
+    val volumePercent: Int? = null
 ) {
     /**
      * Maps this value to current track.
@@ -48,10 +50,11 @@ data class PlaybackStatus(
         isRepeating = isRepeating,
         isRepeatingList = isRepeatingList,
         repeatMode = toRepeatMode(),
-        updatedAtUtc = updatedAtUtc
+        updatedAtUtc = updatedAtUtc,
+        volumePercent = volumePercent
     )
 
-    private fun toRepeatMode() = when {
+    private fun toRepeatMode(): RepeatMode = when {
         isRepeating -> RepeatMode.ONE
         isRepeatingList -> RepeatMode.ALL
         else -> RepeatMode.NONE

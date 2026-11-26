@@ -8,7 +8,7 @@ import com.dc.melodiasmario.feature.queue.ui.QueueRoute
 /**
  * Registers the queue destination and its navigation callbacks.
  */
-fun EntryProviderScope<AppRoute>.queueEntry(onGuildClicked: () -> Unit, toastHostState: MToastHostState): Unit {
+fun EntryProviderScope<AppRoute>.queueEntry(onGuildClicked: () -> Unit, toastHostState: MToastHostState) {
     entry<AppRoute.Queue> { route ->
         QueueRoute(guildId = route.guildId, onGuildClicked = onGuildClicked, toastHostState = toastHostState)
     }

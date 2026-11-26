@@ -35,7 +35,7 @@ fun Navigation(
     hapticsEnabled: Boolean,
     isAppForeground: () -> Boolean,
     feedbackVibrator: FeedbackVibrator
-): Unit {
+) {
     val currentRoute = backStack.last()
     val topBarController = rememberTopBarController()
     val floatingActionButtonController = rememberFloatingActionButtonController()
@@ -46,7 +46,7 @@ fun Navigation(
     ) {
         Box {
             Scaffold(
-                containerColor = MaterialTheme.colorScheme.background,
+                containerColor = MaterialTheme.colorScheme.surface,
                 topBar = {
                     topBarController.config?.let { config ->
                        NavigationTopBar(config = config)

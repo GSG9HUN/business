@@ -3,7 +3,9 @@ package com.dc.melodiasmario.core.network.currenttrack
 import com.dc.melodiasmario.core.common.AppConstants
 import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.PlaybackStatusDto
+import com.dc.melodiasmario.core.network.currenttrack.dto.SeekPlaybackRequestDto
 import com.dc.melodiasmario.core.network.currenttrack.dto.SetRepeatModeRequestDto
+import com.dc.melodiasmario.core.network.currenttrack.dto.SetVolumeRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -25,6 +27,35 @@ class CurrentTrackApiService(
     private val baseUrl: String,
     private val httpClient: HttpClient
 ) {
+    /** Accepts one volume command; terminal audio completion is observed separately. */
+    suspend fun setVolume(accessToken: String, guildId: String, volumePercent: Int): BotControlCommandDto {
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/volume") {
+            header(key = HttpHeaders.Authorization, value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(body = SetVolumeRequestDto(volumePercent = volumePercent))
+        }.body()
+    }
+
+    /** Accepts a seek for one playback attempt; HTTP acceptance is not terminal completion. */
+    suspend fun seek(
+        accessToken: String,
+        guildId: String,
+        positionSeconds: Int,
+        expectedPlaybackOperationId: String
+    ): BotControlCommandDto {
+        return httpClient.post(urlString = "$baseUrl/guilds/$guildId/playback/seek") {
+            header(key = "Authorization", value = "Bearer $accessToken")
+            header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())
+            setBody(
+                body = SeekPlaybackRequestDto(
+                    positionSeconds = positionSeconds,
+                    expectedPlaybackOperationId = expectedPlaybackOperationId
+                )
+            )
+        }
+            .body()
+    }
+
     /**
      * Retrieves the guild playback status and current track.
      */
@@ -78,7 +109,7 @@ class CurrentTrackApiService(
     /**
      * Requests updating the playback repeat mode.
      */
-    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String): Unit {
+    suspend fun setRepeatMode(accessToken: String, guildId: String, mode: String) {
         return httpClient.patch(urlString = "$baseUrl/guilds/$guildId/playback/repeat-mode") {
             header(key = "Authorization", value = "Bearer $accessToken")
             header(key = HttpHeaders.ContentType, value = ContentType.Application.Json.toString())

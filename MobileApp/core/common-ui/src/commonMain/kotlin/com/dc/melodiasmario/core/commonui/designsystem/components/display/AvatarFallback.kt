@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
  * Renders avatar fallback from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun AvatarFallback(name: String, contentColor: Color): Unit {
+fun AvatarFallback(name: String, contentColor: Color) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

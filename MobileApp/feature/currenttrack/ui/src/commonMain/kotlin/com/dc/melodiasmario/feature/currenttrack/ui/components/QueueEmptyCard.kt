@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
  * Renders queue empty card from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun QueueEmptyCard(): Unit {
+fun QueueEmptyCard() {
     val emptyQueueText = stringResource(resource = Res.string.currenttrack_queue_empty)
 
     Surface(

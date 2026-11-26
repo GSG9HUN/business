@@ -21,7 +21,7 @@ class MToastHostState {
     /**
      * Queues a toast for display by the shared toast host.
      */
-    suspend fun showToast(toast: MToastData): Unit {
+    suspend fun showToast(toast: MToastData) {
         _toasts.emit(value = toast)
     }
 }

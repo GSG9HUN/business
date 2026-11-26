@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 class SharedCommonTest {
 
     @Test
-    fun example(): Unit {
+    fun example() {
         assertEquals(expected = 3, actual = 1 + 2)
     }
 }

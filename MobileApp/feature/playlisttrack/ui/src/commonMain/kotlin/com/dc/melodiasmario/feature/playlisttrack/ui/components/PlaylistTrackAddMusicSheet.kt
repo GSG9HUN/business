@@ -13,7 +13,7 @@ import com.dc.melodiasmario.feature.playlisttrack.presentation.PlaylistTrackEven
 internal fun PlaylistTrackAddMusicSheet(
     mAddMusicSheetState: MAddMusicSheetState,
     onEvent: (playlistTrackEvent: PlaylistTrackEvent) -> Unit
-): Unit {
+) {
     MAddMusicSheet(
         mAddMusicSheetState = mAddMusicSheetState,
         mAddMusicLabels = rememberMAddMusicLabels(),

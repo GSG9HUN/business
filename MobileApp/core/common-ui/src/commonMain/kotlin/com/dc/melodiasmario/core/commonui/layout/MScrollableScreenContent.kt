@@ -17,7 +17,7 @@ fun MScrollableScreenContent(
     modifier: Modifier = Modifier,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     content: @Composable ColumnScope.() -> Unit
-): Unit {
+) {
     Column(
         modifier = modifier.fillMaxSize()
             .verticalScroll(state = rememberScrollState()),

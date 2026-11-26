@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
  * Renders set floating action button config from the supplied parameters and forwards interaction callbacks.
  */
 @Composable
-fun SetFloatingActionButtonConfig(config: FloatingActionButtonConfig?): Unit {
+fun SetFloatingActionButtonConfig(config: FloatingActionButtonConfig?) {
     val controller = localFloatingActionButtonController.current
     val owner = remember { floatingActionButtonOwner() }
 

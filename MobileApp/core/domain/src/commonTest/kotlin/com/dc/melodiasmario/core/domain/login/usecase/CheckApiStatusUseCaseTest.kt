@@ -6,12 +6,12 @@ import kotlin.test.Test
 class CheckApiStatusUseCaseTest {
 
     @Test
-    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsStatus(): Unit {
+    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsStatus() {
         throw NotImplementedError()
     }
 
     @Test
-    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows(): Unit {
+    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows() {
         throw NotImplementedError()
     }
 }

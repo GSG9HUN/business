@@ -36,7 +36,7 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onEvent: (profileEvent: ProfileEvent) -> Unit = {},
     appLockState: AppLockUiState = AppLockUiState()
-): Unit {
+) {
 
     SetTopBarConfig(
         config = TopBarConfig(

@@ -9,12 +9,12 @@ interface SecureAuthSessionStorage {
     /**
      * Stores the authentication session for later restoration.
      */
-    suspend fun saveSession(session: AuthSession): Unit
+    suspend fun saveSession(session: AuthSession)
 
     /**
      * Removes the locally stored authentication session.
      */
-    suspend fun clearSession(): Unit
+    suspend fun clearSession()
 
     /**
      * Reads the locally stored authentication session.

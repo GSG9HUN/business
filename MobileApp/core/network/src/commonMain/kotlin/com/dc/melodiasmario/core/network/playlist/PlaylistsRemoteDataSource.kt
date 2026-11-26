@@ -10,7 +10,7 @@ interface PlaylistsRemoteDataSource {
     /**
      * Sets the playlist cover URL, or restores automatic artwork when the value is absent.
      */
-    suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?): Unit
+    suspend fun setArtwork(accessToken: String, playlistId: String, artworkUri: String?)
 
     /**
      * Retrieves the playlists belonging to the requested guild.
@@ -20,7 +20,7 @@ interface PlaylistsRemoteDataSource {
     /**
      * Deletes the identified saved playlist.
      */
-    suspend fun deletePlaylist(accessToken: String, playlistId: String): Unit
+    suspend fun deletePlaylist(accessToken: String, playlistId: String)
 
     /**
      * Changes the name of the identified playlist.
@@ -29,7 +29,7 @@ interface PlaylistsRemoteDataSource {
         accessToken: String,
         playlistId: String,
         newName: String
-    ): Unit
+    )
 
     /**
      * Creates a named playlist for the requested guild.

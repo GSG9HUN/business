@@ -24,12 +24,12 @@ class AppVisibility(
         application.registerActivityLifecycleCallbacks(this)
     }
 
-    override fun onActivityStarted(activity: Activity): Unit {
+    override fun onActivityStarted(activity: Activity) {
         startedActivities++
         isForeground = true
     }
 
-    override fun onActivityStopped(activity: Activity): Unit {
+    override fun onActivityStopped(activity: Activity) {
         startedActivities = (startedActivities - 1).coerceAtLeast(minimumValue = 0)
         isForeground = startedActivities > 0
     }
@@ -37,16 +37,16 @@ class AppVisibility(
     override fun onActivityCreated(
         activity: Activity,
         savedInstanceState: Bundle?
-    ): Unit = Unit
+    ) = Unit
 
-    override fun onActivityResumed(activity: Activity): Unit = Unit
+    override fun onActivityResumed(activity: Activity) = Unit
 
-    override fun onActivityPaused(activity: Activity): Unit = Unit
+    override fun onActivityPaused(activity: Activity) = Unit
 
     override fun onActivitySaveInstanceState(
         activity: Activity,
         outState: Bundle
-    ): Unit = Unit
+    ) = Unit
 
-    override fun onActivityDestroyed(activity: Activity): Unit = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 }

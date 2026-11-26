@@ -15,7 +15,7 @@ class PlaylistsRepositoryImpl(
     private val playlistsRemoteDataSource: PlaylistsRemoteDataSource,
     private val authorizedSessionProvider: AuthorizedSessionProvider
 ) : PlaylistsRepository {
-    override suspend fun setArtwork(playlistId: String, artworkUri: String?): Unit {
+    override suspend fun setArtwork(playlistId: String, artworkUri: String?) {
         val accessToken = authorizedSessionProvider.getValidSession()
         playlistsRemoteDataSource.setArtwork(
             accessToken = accessToken,
@@ -32,7 +32,7 @@ class PlaylistsRepositoryImpl(
         )
     }
 
-    override suspend fun deletePlaylist(playlistId: String): Unit {
+    override suspend fun deletePlaylist(playlistId: String) {
         val accessToken = authorizedSessionProvider.getValidSession()
         playlistsRemoteDataSource.deletePlaylist(
             accessToken = accessToken,
@@ -40,7 +40,7 @@ class PlaylistsRepositoryImpl(
         )
     }
 
-    override suspend fun renamePlaylist(playlistId: String, newName: String): Unit {
+    override suspend fun renamePlaylist(playlistId: String, newName: String) {
         val accessToken = authorizedSessionProvider.getValidSession()
         playlistsRemoteDataSource.renamePlaylist(
             accessToken = accessToken,

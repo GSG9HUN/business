@@ -8,6 +8,13 @@ namespace DC_bot.Interface.Service.Persistence.Playback;
 public interface IPlaybackStateRepository
 {
 
+    /// <summary>Stores acknowledged output volume without changing playback position and publishes a snapshot update.</summary>
+    /// <param name="guildId">Guild owning the current player.</param>
+    /// <param name="volumePercent">Confirmed output percentage in the inclusive range 0-200.</param>
+    /// <param name="cancellationToken">Cancels the database transaction and notification.</param>
+    /// <returns>Completion of the persisted volume change.</returns>
+    Task SetVolumePercentAsync(ulong guildId, int volumePercent, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Reads the guild playback state or mobile-user settings, creating documented defaults when missing.
     /// </summary>

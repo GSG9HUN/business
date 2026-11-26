@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 fun MQueueDragHandle(
     contentDescription: String,
     modifier: Modifier = Modifier
-): Unit {
+) {
     val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(

@@ -15,4 +15,12 @@ public sealed record PlaybackTrackResponse(
     int Duration,
     string TrackUri,
     string? ArtworkUri,
-    string? RequestedBy);
+    string? RequestedBy)
+{
+
+    /// <summary>Identifies the exact playback attempt; absent attempts cannot be sought from mobile.</summary>
+    public Guid? PlaybackOperationId { get; init; }
+
+    /// <summary>Whether this finite track supports absolute seeking.</summary>
+    public bool IsSeekable { get; init; }
+}

@@ -42,7 +42,7 @@ class PlaybackMediaSessionController(
     fun update(
         currentTrack: CurrentTrack,
         artwork: Bitmap?
-    ): Unit {
+    ) {
         val track = currentTrack.currentTrack ?: return
 
         val metadata = MediaMetadataCompat.Builder()
@@ -78,7 +78,7 @@ class PlaybackMediaSessionController(
     /**
      * Releases the playback media-session resources.
      */
-    fun release(): Unit {
+    fun release() {
         mediaSession.release()
     }
 
@@ -89,16 +89,16 @@ class PlaybackMediaSessionController(
         /**
          * Provides the on previous operation for callback.
          */
-        fun onPrevious(): Unit
+        fun onPrevious()
 
         /**
          * Provides the on play pause operation for callback.
          */
-        fun onPlayPause(): Unit
+        fun onPlayPause()
 
         /**
          * Provides the on next operation for callback.
          */
-        fun onNext(): Unit
+        fun onNext()
     }
 }

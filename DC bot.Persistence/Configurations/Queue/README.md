@@ -4,6 +4,8 @@ Defines EF Core table mappings for ordered queue entries, canonical batches, con
 
 ## Overview
 
+`RequestedByDisplayName` maps to nullable `requested_by_display_name` with a maximum length of 128, independently of the existing requester field.
+
 - These mappings connect the corresponding Entities feature to PostgreSQL columns, keys, indexes, and relationships used by repositories.
 - Change entity shape and mapping together. Generate a new migration for schema changes rather than rewriting an already-applied migration.
 

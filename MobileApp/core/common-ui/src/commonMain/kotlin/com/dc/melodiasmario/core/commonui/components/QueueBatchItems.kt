@@ -30,7 +30,7 @@ fun LazyListScope.queueBatchItems(
     displayTracks: List<Track>,
     key: (index: Int, track: Track) -> Any,
     itemContent: @Composable LazyItemScope.(index: Int, track: Track) -> Unit
-): Unit {
+) {
     val batchIds = (displayTracks + items).mapNotNull { track -> track.batchId }
         .distinct()
     val history = displayTracks.filter { track -> track.queueState != "Queued" }

@@ -118,7 +118,8 @@ public sealed class PlaylistBotControlHandler(
         {
             tracks = savedTracks.Select(track => new QueueTrackToEnqueue(
                     trackSerializer.Deserialize(track.TrackIdentifier),
-                    SourceQuery: null, SourceSearchMode: null, RequestedBy: $"<@{message.Author.Id}>"))
+                    SourceQuery: null, SourceSearchMode: null, RequestedBy: $"<@{message.Author.Id}>",
+                    RequestedByDisplayName: message.Author.Username))
                 .ToList();
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

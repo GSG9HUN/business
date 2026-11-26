@@ -4,6 +4,12 @@ Contains the .NET Discord music bot, mobile API, Kotlin mobile application, shar
 
 ## Overview
 
+Mobile requester labels now use a separately captured display name while Discord mentions remain intact. REST and realtime snapshots resolve legacy mentions from stored mobile profiles; unresolved names are omitted rather than exposing markup. The additive `AddRequesterDisplayNames` migration retains names in queued occurrences and canonical batches.
+
+Mobile server-volume control uses the authenticated durable `set_volume` command and existing voice authorization/audio reservations. Volume is 0-200%, acknowledged by Lavalink before persistence and playback snapshot publication. Apply the additive `AddPlaybackVolume` EF migration before running the updated API and bot. Mobile volume tests are scaffolds; backend repository tests cover range, isolation, and unchanged playback progress.
+
+CurrentTrack mobile seeking is connected through an authenticated durable command and the existing bot seek service. Snapshots expose additive seek capability and playback attempt identity; execution fences stale gestures against replacement attempts. New seek tests are scaffolds only; live-device/audio acceptance remains outstanding.
+
 - Filter commands verify normalized Lavalink readback before success. Bass profiles cover six low-frequency bands with peak gains 0.10/0.18/0.25. Live listening remains pending; filter acceptance and proposed premium sessions are recorded in `docs/plans/discord-response-design-audit.md` at repository root.
 
 - The response-text alignment follows existing HTML titles/bodies where runtime data permits. The current 50-command title inventory and explicit unsupported cases are maintained in docs/plans/discord-response-design-audit.md.

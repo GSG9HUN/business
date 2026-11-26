@@ -29,7 +29,7 @@ fun PlaylistsPlaceholder(
     title: String,
     contentText: String,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         modifier = modifier.fillMaxWidth()
             .padding(paddingValues = PaddingValues(start = 12.dp, top = 0.dp, end = 12.dp, bottom = 12.dp)),

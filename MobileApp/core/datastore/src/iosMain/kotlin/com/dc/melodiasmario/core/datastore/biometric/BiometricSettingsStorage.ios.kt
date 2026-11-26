@@ -16,7 +16,7 @@ actual class BiometricSettingsStorage {
     /**
      * Persists the requested enabled setting.
      */
-    actual suspend fun setEnabled(enabled: Boolean): Unit {
+    actual suspend fun setEnabled(enabled: Boolean) {
         preferences.setBool(enabled, forKey = KEY_ENABLED)
     }
 

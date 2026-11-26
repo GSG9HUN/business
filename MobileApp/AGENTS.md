@@ -20,7 +20,7 @@ Ez a fájl a teljes `MobileApp` könyvtárra és annak almappáira vonatkozik. A
 - A paraméter nevét a tényleges deklarációból ellenőrizd; ne találj ki paraméterneveket.
 - Pozicionális argumentum csak akkor maradjon, ha a név szerinti átadást a nyelv vagy az API nem támogatja. Ilyen például a Java-metódus, a függvénytípusú érték hívása és a vararg elemek egyenkénti átadása. Ha egy vararg paramétert név szerint adsz át, a megfelelő tömböt használd.
 - A zárójel után írt trailing lambda, az infix hívás és az operátorszintaxis megtartható. A zárójelen belüli többi argumentumot ilyenkor is név szerint add át, ahol lehetséges.
-- A teljes MobileApp projekt minden saját függvénytípus-deklarációjában minden bemeneti paraméter kapjon beszédes nevet. Ez minden modulra, source setre és láthatóságra érvényes: callbackekre, konstruktor- és függvényparaméterekre, property-kre, lokális változók explicit függvénytípusaira, typealiasokra és visszatérési típusként megadott függvénytípusokra is. A szabály az összes meglévő és új deklarációra vonatkozik; a meglévő névtelen paramétereket is el kell nevezni az egész projektben. A neveket a tényleges szerep alapján válaszd meg; a paramétertípusokat, sorrendet és visszatérési típust ennek során őrizd meg.
+- A teljes MobileApp projekt minden nem `Unit` visszatérésű saját függvénytípus-deklarációjában minden bemeneti paraméter kapjon beszédes nevet. Ez minden modulra, source setre és láthatóságra érvényes: callbackekre, konstruktor- és függvényparaméterekre, property-kre, lokális változók explicit függvénytípusaira, typealiasokra és visszatérési típusként megadott függvénytípusokra is. A szabály az összes meglévő és új deklarációra vonatkozik; a meglévő névtelen paramétereket is el kell nevezni az egész projektben. A neveket a tényleges szerep alapján válaszd meg; a paramétertípusokat, sorrendet és visszatérési típust ennek során őrizd meg.
 - Függvénydeklaráció, elsődleges konstruktor és hívás behúzás nélkül legfeljebb 130 karakterig maradjon egy sorban. Hosszabb esetben minden paraméter vagy argumentum külön sorba kerüljön, a záró zárójel pedig a deklaráció vagy hívás behúzásának szintjére.
 
 Példa a `TrackQueueCommandHandler` saját metódusának hívására:
@@ -38,7 +38,7 @@ Példa az egész projektre érvényes függvénytípus-paraméterezési szabály
 private val addToQueue: (guildId: String, query: String) -> Flow<Resource<BotControlCommand>>
 ```
 
-A függvénytípusban szereplő paraméternevek az olvashatóságot és az IDE támogatását segítik. A Kotlin függvénytípusú érték hívásakor ezekkel a nevekkel sem enged név szerinti argumentumátadást, ezért az `addToQueue(guildId, query)` hívás pozicionális marad. Ez a nyelvi korlát nem indok a deklaráció paraméterneveinek elhagyására.
+A függvénytípusban szereplő paraméternevek az olvashatóságot és az IDE támogatását segítik. A Kotlin függvénytípusú érték hívásakor ezekkel a nevekkel sem enged név szerinti argumentumátadást, ezért az `addToQueue(guildId, query)` hívás pozicionális marad. Nem `Unit` visszatérésű függvénytípusnál ez a nyelvi korlát nem indok a deklaráció paraméterneveinek elhagyására; `Unit` visszatérésnél a paraméternevek opcionálisak.
 
 ### Blokkok, feltételek és hívásláncok
 
@@ -67,7 +67,8 @@ A függvénytípusban szereplő paraméternevek az olvashatóságot és az IDE t
 - A nem változó referenciák `val` deklarációt kapjanak; `var` csak tényleges újraértékadás esetén legyen.
 - A privát property-k általában `camelCase` nevűek. Publikus read-only állapot mögötti módosítható backing property lehet `_uiState` vagy `_effect`.
 - Konstansok elnevezésekor kövesd a meglévő konstanscsoport mintáját; új csoportban `UPPER_SNAKE_CASE` neveket használj. Pusztán stílus miatt ne nevezd át a meglévő konstansokat.
-- A láthatóság legyen a szükséges legszűkebb. Publikus és modulhatáron át használt API-knál a visszatérési típust explicit add meg.
+- A láthatóság legyen a szükséges legszűkebb. Minden nem `Unit` visszatérésű függvénynél add meg explicit a visszatérési típust, láthatóságtól, modultól és source settől függetlenül.
+- A `Unit` visszatérési érték a teljes projektben kivétel az explicit visszatérési típus és a függvénytípusok bemeneti paraméterneveinek kötelező megadása alól. Ez publikus, `internal`, privát, lokális, `suspend`, Compose és override függvényekre, callbackekre, property-kben tárolt függvénytípusokra és typealiasokra is vonatkozik. A függvénydeklarációknál a `: Unit` elhagyható; `Unit` visszatérésű függvénytípusokban a bemeneti paraméterek neve opcionális, például `suspend (String?) -> Unit` is megengedett. A Kotlin szintaxisa által megkövetelt `-> Unit` azonban nem hagyható el: a kivétel nem írja felül a nyelvi vagy külső API-szerződéseket. A meglévő explicit `Unit` típusok és beszédes paraméternevek megtarthatók.
 
 ## Modulok, rétegek és dependency injection
 

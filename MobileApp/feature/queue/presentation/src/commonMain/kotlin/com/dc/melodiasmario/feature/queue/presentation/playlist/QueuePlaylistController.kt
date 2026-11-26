@@ -19,7 +19,7 @@ internal class QueuePlaylistController(
     /**
      * Creates a named playlist for the requested guild.
      */
-    suspend fun createPlaylist(): Unit {
+    suspend fun createPlaylist() {
         val guildId = currentGuildIdProvider() ?: return
         val snapshot = uiState.value
         val name = snapshot.playlistNameDraft.trim()

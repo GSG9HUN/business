@@ -41,7 +41,7 @@ fun MelodiasMarioRoot(
     feedbackVibrator: FeedbackVibrator,
     appLockController: AppLockController,
     biometricAuthenticator: BiometricAuthenticator
-): Unit {
+) {
     val backStack = rememberSaveable(saver = AppRouteBackStackSaver) {
         mutableStateListOf(AppRoute.Login)
     }

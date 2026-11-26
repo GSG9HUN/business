@@ -29,7 +29,7 @@ fun MRefreshButton(
     onClick: () -> Unit,
     contentDescription: String,
     modifier: Modifier = Modifier
-): Unit {
+) {
     Surface(
         onClick = onClick,
         modifier = modifier.size(size = 36.dp),

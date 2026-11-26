@@ -25,7 +25,7 @@ class PlaylistTrackRepositoryImpl(
         )
     }
 
-    override suspend fun removeTrack(playlistId: String, trackNumber: Int): Unit {
+    override suspend fun removeTrack(playlistId: String, trackNumber: Int) {
         val accessToken = authorizedSessionProvider.getValidSession()
         playlistTrackRemoteDataSource.removeTrack(
             accessToken = accessToken,

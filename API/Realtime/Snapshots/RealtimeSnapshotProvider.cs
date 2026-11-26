@@ -3,6 +3,7 @@ using API.Realtime.Snapshots.Interface;
 using API.Responses.Guilds;
 using API.Responses.Playback;
 using API.Responses.Queue;
+using API.Services.Playback;
 using API.Snapshots.Playback.Interface;
 using DC_bot.Interface.Service.Persistence.GuildBotStatus;
 using DC_bot.Interface.Service.Persistence.Queue;
@@ -15,10 +16,12 @@ namespace API.Realtime.Snapshots;
 /// <param name="playbackSnapshotService">The injected playback snapshot service dependency.</param>
 /// <param name="queueRepository">The injected persistence contract used by this operation.</param>
 /// <param name="guildBotStatusRepository">The injected persistence contract used by this operation.</param>
+/// <param name="requesterDisplayNameResolver">Resolves plain requester names for realtime queue snapshots.</param>
 public sealed class RealtimeSnapshotProvider(
     IPlaybackSnapshotService playbackSnapshotService,
     IQueueRepository queueRepository,
-    IGuildBotStatusRepository guildBotStatusRepository) : IRealtimeSnapshotProvider
+    IGuildBotStatusRepository guildBotStatusRepository,
+    RequesterDisplayNameResolver requesterDisplayNameResolver) : IRealtimeSnapshotProvider
 {
 
     /// <summary>
@@ -45,7 +48,9 @@ public sealed class RealtimeSnapshotProvider(
             cancellationToken);
 
         var displayItems = await queueRepository.GetDisplayItemsAsync(guildId, cancellationToken);
-        return QueueResponseMapper.MapWithHistory(guildId, queueItems, displayItems);
+        var resolvedQueue = await requesterDisplayNameResolver.ResolveQueueAsync(queueItems, cancellationToken);
+        var resolvedHistory = await requesterDisplayNameResolver.ResolveQueueAsync(displayItems, cancellationToken);
+        return QueueResponseMapper.MapWithHistory(guildId, resolvedQueue, resolvedHistory);
     }
 
     /// <summary>

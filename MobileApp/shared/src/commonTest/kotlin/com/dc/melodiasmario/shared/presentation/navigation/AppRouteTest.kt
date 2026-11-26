@@ -6,12 +6,12 @@ import kotlin.test.Test
 class AppRouteTest {
 
     @Test
-    fun playlistsRouteKeepsGuildId(): Unit {
+    fun playlistsRouteKeepsGuildId() {
         throw NotImplementedError()
     }
 
     @Test
-    fun profileRouteKeepsProfileId(): Unit {
+    fun profileRouteKeepsProfileId() {
         throw NotImplementedError()
     }
 }

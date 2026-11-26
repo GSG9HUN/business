@@ -4,6 +4,10 @@ Accepts playback control requests and explicit repeat-mode changes for an author
 
 ## Overview
 
+`SetVolumeAsync` applies guild authorization and validates `VolumePercent` in 0-200 before enqueueing a durable `set_volume` command. The accepted response confirms persistence of the command, not the final audio change; the bot revalidates voice access and reports completion separately.
+
+`SeekAsync` validates a nonnegative absolute position and nonempty playback attempt, performs the existing guild/premium access check, and enqueues `SeekPlaybackCommandPayload` as a durable `seek` command. Worker completion, not HTTP acceptance, establishes the playback result.
+
 - Command execution requests become durable bot-control rows. SetRepeatModeAsync directly updates repeat flags and repeat-list storage through repositories.
 - The repeat-mode endpoint has its own persistence path; it does not itself perform a Discord or Lavalink operation. Keep this distinction when changing bot and mobile behavior together.
 

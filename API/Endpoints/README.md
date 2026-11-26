@@ -4,6 +4,10 @@ Registers minimal API routes, handler bindings, authorization, and endpoint filt
 
 ## Overview
 
+`POST /api/guilds/{guildId}/playback/volume` maps explicitly to `PlaybackHandlers.SetVolumeAsync`, with authentication and the existing guild-ID filter. The typed body is `SetVolumeRequest`.
+
+`POST /api/guilds/{guildId}/playback/seek` maps explicitly to `PlaybackHandlers.SeekAsync`; its typed payload is distinct from the generic command-name route.
+
 - Program.cs mounts these groups under /api. Route registration selects the handler; handlers own repository calls and response decisions.
 - Keep route composition here and request processing in Handlers. Authentication alone does not replace a handler's guild-access check.
 

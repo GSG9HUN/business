@@ -6,17 +6,17 @@ import kotlin.test.Test
 class GuildDtoTest {
 
     @Test
-    fun toDomainMapsBasicGuildFields(): Unit {
+    fun toDomainMapsBasicGuildFields() {
         throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsUnknownAccessLevelToFallbackValue(): Unit {
+    fun toDomainMapsUnknownAccessLevelToFallbackValue() {
         throw NotImplementedError()
     }
 
     @Test
-    fun toDomainMapsNullBotStatusSafelyIfBackendAllowsIt(): Unit {
+    fun toDomainMapsNullBotStatusSafelyIfBackendAllowsIt() {
         throw NotImplementedError()
     }
 }

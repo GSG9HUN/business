@@ -6,32 +6,32 @@ import kotlin.test.Test
 class LoginViewModelTest {
 
     @Test
-    fun startStatusPollingUpdatesStateWithOnlineStatus(): Unit {
+    fun startStatusPollingUpdatesStateWithOnlineStatus() {
         throw NotImplementedError()
     }
 
     @Test
-    fun startStatusPollingUpdatesStateWithOfflineStatusOnError(): Unit {
+    fun startStatusPollingUpdatesStateWithOfflineStatusOnError() {
         throw NotImplementedError()
     }
 
     @Test
-    fun discordLoginClickedEmitsOpenExternalUrlEffectOnSuccess(): Unit {
+    fun discordLoginClickedEmitsOpenExternalUrlEffectOnSuccess() {
         throw NotImplementedError()
     }
 
     @Test
-    fun discordLoginClickedEmitsShowErrorEffectOnFailure(): Unit {
+    fun discordLoginClickedEmitsShowErrorEffectOnFailure() {
         throw NotImplementedError()
     }
 
     @Test
-    fun authTicketReceivedExchangesTicketAndNavigatesToGuildSelectorOnSuccess(): Unit {
+    fun authTicketReceivedExchangesTicketAndNavigatesToGuildSelectorOnSuccess() {
         throw NotImplementedError()
     }
 
     @Test
-    fun authTicketReceivedEmitsShowErrorEffectOnExchangeFailure(): Unit {
+    fun authTicketReceivedEmitsShowErrorEffectOnExchangeFailure() {
         throw NotImplementedError()
     }
 }

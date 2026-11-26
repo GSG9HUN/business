@@ -62,7 +62,7 @@ fun PlaylistTrackScreen(
     modifier: Modifier = Modifier,
     uiState: PlaylistTrackUiState,
     onEvent: (playlistTrackEvent: PlaylistTrackEvent) -> Unit
-): Unit {
+) {
     SetTopBarConfig(
         config = TopBarConfig(
             title = uiState.playlist?.name ?: stringResource(resource = Res.string.playlisttrack_title),

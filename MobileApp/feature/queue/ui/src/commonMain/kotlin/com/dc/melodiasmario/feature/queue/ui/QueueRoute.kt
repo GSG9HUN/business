@@ -23,7 +23,7 @@ fun QueueRoute(
     guildId: String,
     onGuildClicked: () -> Unit,
     toastHostState: MToastHostState
-): Unit {
+) {
     val uiState = queueViewModel.uiState.collectAsStateWithLifecycle()
     val effectMessages = queueEffectMessages()
 

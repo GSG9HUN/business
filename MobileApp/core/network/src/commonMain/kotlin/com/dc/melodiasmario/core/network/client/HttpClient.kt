@@ -21,11 +21,14 @@ fun createHttpClient(): HttpClient {
 }
 
 /**
- * Installs the shared JSON and logging configuration while sanitizing authorization headers.
+ * Installs HTTP status validation, JSON serialization, and logging with sanitized authorization headers.
+ * Requests with non-success status codes throw; status probes may explicitly disable validation.
  */
 internal fun HttpClientConfig<*>.configureMelodiasHttpClient(
     logger: Logger = Logger.DEFAULT
-): Unit {
+) {
+    expectSuccess = true
+
     install(plugin = ContentNegotiation) {
         json(
             json = Json {

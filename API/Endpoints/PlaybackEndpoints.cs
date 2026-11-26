@@ -21,6 +21,8 @@ public static class PlaybackEndpoints
             .AddEndpointFilter<GuildIdValidationFilter>();
         playback.MapPost("/{commandName}", PlaybackHandlers.ExecuteAsync)
             .AddEndpointFilter<CommandNameValidationFilter>();
+        playback.MapPost("/seek", PlaybackHandlers.SeekAsync);
+        playback.MapPost("/volume", PlaybackHandlers.SetVolumeAsync);
         playback.MapPatch("/repeat-mode", PlaybackHandlers.SetRepeatModeAsync);
         return group;
     }

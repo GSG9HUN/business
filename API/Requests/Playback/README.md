@@ -4,11 +4,27 @@ Defines client-supplied input for current playback state, repeat flags, start ow
 
 ## Overview
 
+[`SetVolumeRequest.cs`](SetVolumeRequest.cs) carries one absolute `VolumePercent` in 0-200. The `/playback/volume` handler validates the range and requires guild access before creating a command.
+
 - Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
 - Optional input can mean leave unchanged rather than reset. Request fields are not authorization evidence; the authenticated principal and stored guild access determine permission.
 - SetRepeatModeRequest uses none, one, or all. The explicit repeat-mode endpoint updates persistence directly and is separate from commands dispatched to the bot worker.
 
 ## Models and Results
+
+### SeekPlaybackRequest
+
+**Files:** `SeekPlaybackRequest.cs`
+
+**Purpose:** Absolute position and captured playback attempt; validated by the seek handler before acceptance.
+
+**Record declaration:**
+
+```csharp
+public sealed record SeekPlaybackRequest(int PositionSeconds, Guid ExpectedPlaybackOperationId);
+```
+
+---
 
 ### SetRepeatModeRequest
 

@@ -2,6 +2,7 @@ package com.dc.melodiasmario.core.network.login
 
 import com.dc.melodiasmario.core.common.AppConstants
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.get
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Single
@@ -16,9 +17,11 @@ class StatusApiService(
     private val httpClient: HttpClient
 ) {
     /**
-     * Checks whether the API is available.
+     * Returns whether the API responds with a successful status; transport failures still propagate.
      */
     suspend fun isApiOnline(): Boolean {
-        return httpClient.get(urlString = "$baseUrl/status").status.value in 200..299
+        return httpClient.get(urlString = "$baseUrl/status") {
+            expectSuccess = false
+        }.status.value in 200..299
     }
 }

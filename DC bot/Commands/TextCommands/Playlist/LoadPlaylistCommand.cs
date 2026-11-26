@@ -119,7 +119,8 @@ public class LoadPlaylistCommand(
                     return;
                 }
 
-                var queueItems = tracks.Select(track => new QueueTrackToEnqueue(track, SourceQuery: null, SourceSearchMode: null, RequestedBy: $"<@{message.Author.Id}>"))
+                var queueItems = tracks.Select(track => new QueueTrackToEnqueue(track, SourceQuery: null, SourceSearchMode: null, RequestedBy: $"<@{message.Author.Id}>",
+                    RequestedByDisplayName: message.Author.Username))
                     .ToList();
                 var enqueueSucceeded = await TryEnqueueUnderSessionFenceAsync(session, guildId, queueItems);
 

@@ -7,7 +7,7 @@ import com.dc.melodiasmario.feature.removesong.ui.RemoveSongRoute
 /**
  * Registers the remove song destination and its navigation callbacks.
  */
-fun EntryProviderScope<AppRoute>.removeSongEntry(): Unit {
+fun EntryProviderScope<AppRoute>.removeSongEntry() {
     entry<AppRoute.RemoveSong> { route ->
         RemoveSongRoute(guildId = route.guildId)
     }

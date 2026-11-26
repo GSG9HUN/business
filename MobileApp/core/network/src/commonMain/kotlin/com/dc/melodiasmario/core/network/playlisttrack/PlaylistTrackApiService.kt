@@ -5,7 +5,6 @@ import com.dc.melodiasmario.core.network.botcontrol.dto.BotControlCommandDto
 import com.dc.melodiasmario.core.network.playlisttrack.dto.PlaylistDetailDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -35,9 +34,8 @@ class PlaylistTrackApiService(
     /**
      * Removes the track identified by its playlist order number.
      */
-    suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int): Unit {
+    suspend fun removeTrack(accessToken: String, playlistId: String, trackNumber: Int) {
         return httpClient.delete(urlString = "$baseUrl/playlists/$playlistId/tracks/$trackNumber") {
-            expectSuccess = true
             header(key = "Authorization", value = "Bearer $accessToken")
         }
             .body()

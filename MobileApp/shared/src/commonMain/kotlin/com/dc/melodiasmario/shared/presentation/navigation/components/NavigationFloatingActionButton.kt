@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun NavigationFloatingActionButton(
     config: FloatingActionButtonConfig
-): Unit {
+) {
     MFloatingButton(
         size = 45.dp,
         shape = RoundedCornerShape(size = 22.dp),

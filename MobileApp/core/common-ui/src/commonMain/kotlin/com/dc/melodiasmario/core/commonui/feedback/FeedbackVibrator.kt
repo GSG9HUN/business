@@ -7,5 +7,5 @@ expect class FeedbackVibrator {
     /**
      * Requests platform haptic feedback for the supplied interaction.
      */
-    fun vibrate(): Unit
+    fun vibrate()
 }

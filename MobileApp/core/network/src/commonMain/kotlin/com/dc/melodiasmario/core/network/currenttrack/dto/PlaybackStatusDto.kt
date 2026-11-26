@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property isRepeating Is repeating.
  * @property isRepeatingList Is repeating list.
  * @property updatedAtUtc Updated at utc.
+ * @property volumePercent Last confirmed server output percentage, or null when unavailable.
  */
 @Serializable
 data class PlaybackStatusDto(
@@ -26,7 +27,8 @@ data class PlaybackStatusDto(
     val queueTrackCount: Int = 0,
     val isRepeating: Boolean = false,
     val isRepeatingList: Boolean = false,
-    val updatedAtUtc: String = ""
+    val updatedAtUtc: String = "",
+    val volumePercent: Int? = null
 ) {
 
     /**
@@ -41,6 +43,7 @@ data class PlaybackStatusDto(
         queueTrackCount = queueTrackCount,
         isRepeating = isRepeating,
         isRepeatingList = isRepeatingList,
-        updatedAtUtc = updatedAtUtc
+        updatedAtUtc = updatedAtUtc,
+        volumePercent = volumePercent
     )
 }

@@ -60,7 +60,7 @@ class RealtimeRepositoryImpl(
         emitAll(flow = sharedEvents.filter { sharedEvent -> sharedEvent.guildId == guildId })
     }
 
-    override suspend fun disconnect(): Unit {
+    override suspend fun disconnect() {
         selectedGuildId.value = null
         mobileRealtimeClient.disconnect()
     }

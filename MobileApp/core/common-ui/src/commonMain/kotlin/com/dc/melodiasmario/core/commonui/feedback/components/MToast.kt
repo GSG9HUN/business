@@ -34,7 +34,7 @@ import com.dc.melodiasmario.core.commonui.feedback.model.MToastType
 fun MToast(
     modifier: Modifier = Modifier,
     data: MToastData
-): Unit {
+) {
     val statusStyle = data.type.statusStyle()
 
     Surface(

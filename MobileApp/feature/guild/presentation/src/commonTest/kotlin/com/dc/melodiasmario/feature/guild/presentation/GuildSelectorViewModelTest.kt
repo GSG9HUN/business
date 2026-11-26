@@ -6,32 +6,32 @@ import kotlin.test.Test
 class GuildSelectorViewModelTest {
 
     @Test
-    fun getGuildsUpdatesStateWithLoadedGuildsOnSuccess(): Unit {
+    fun getGuildsUpdatesStateWithLoadedGuildsOnSuccess() {
         throw NotImplementedError()
     }
 
     @Test
-    fun getGuildsUpdatesStateWithErrorMessageOnFailure(): Unit {
+    fun getGuildsUpdatesStateWithErrorMessageOnFailure() {
         throw NotImplementedError()
     }
 
     @Test
-    fun searchQueryChangedFiltersGuildsIgnoringCase(): Unit {
+    fun searchQueryChangedFiltersGuildsIgnoringCase() {
         throw NotImplementedError()
     }
 
     @Test
-    fun refreshClickedReloadsGuilds(): Unit {
+    fun refreshClickedReloadsGuilds() {
         throw NotImplementedError()
     }
 
     @Test
-    fun guildClickedEmitsNavigateToPlaylistsEffect(): Unit {
+    fun guildClickedEmitsNavigateToPlaylistsEffect() {
         throw NotImplementedError()
     }
 
     @Test
-    fun avatarClickedEmitsNavigateToProfileEffect(): Unit {
+    fun avatarClickedEmitsNavigateToProfileEffect() {
         throw NotImplementedError()
     }
 }

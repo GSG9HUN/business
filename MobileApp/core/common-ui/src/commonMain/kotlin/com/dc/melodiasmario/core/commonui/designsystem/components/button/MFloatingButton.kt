@@ -19,7 +19,7 @@ fun MFloatingButton(
     shape: RoundedCornerShape = RoundedCornerShape(size = 22.dp),
     icon: @Composable () -> Unit,
     onClick: () -> Unit = {}
-): Unit {
+) {
     FloatingActionButton(
         modifier = modifier.size(size = size),
         onClick = onClick,

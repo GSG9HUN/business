@@ -6,12 +6,12 @@ import kotlin.test.Test
 class GetGuildUseCaseTest {
 
     @Test
-    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsGuilds(): Unit {
+    fun invokeEmitsLoadingThenSuccessWhenRepositoryReturnsGuilds() {
         throw NotImplementedError()
     }
 
     @Test
-    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows(): Unit {
+    fun invokeEmitsLoadingThenErrorWhenRepositoryThrows() {
         throw NotImplementedError()
     }
 }

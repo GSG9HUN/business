@@ -157,8 +157,13 @@ public class PlaybackControlService(
                 await player.SetVolumeAsync(percent / 100f, cancellationToken);
                 return true;
             });
-            sessions.ValidateControl(session, reservation);
-            sessions.RememberConfirmedVolume(session, percent / 100f);
+            await sessions.MutateAsync(session, async () =>
+            {
+                sessions.ValidateControl(session, reservation);
+                sessions.RememberConfirmedVolume(session, percent / 100f);
+                await playbackStateRepository.SetVolumePercentAsync(guildId, percent, cancellationToken);
+                return true;
+            });
             var amplification = percent > 100
                 ? localizationService.Get(guildId, LocalizationKeys.VolumeCommandAmplified)
                 : string.Empty;
@@ -175,6 +180,17 @@ public class PlaybackControlService(
         CancellationToken cancellationToken = default)
     {
         return SeekTrackAsync(message, member, position, "seek", 0, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<PlaybackControlResult> SeekAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string position,
+        Guid expectedPlaybackOperationId,
+        CancellationToken cancellationToken = default)
+    {
+        return SeekTrackAsync(message, member, position, "seek", 0, cancellationToken, expectedPlaybackOperationId);
     }
 
     /// <inheritdoc />
@@ -213,7 +229,8 @@ public class PlaybackControlService(
         string argument,
         string operation,
         int direction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? expectedPlaybackOperationId = null)
     {
         var guildId = message.Channel.Guild.Id;
 
@@ -227,6 +244,12 @@ public class PlaybackControlService(
             if (sessions.HasPendingFilterChange(session))
             {
                 return RejectAudioCommand(guildId, LocalizationKeys.FiltersCommandOutcomeUnknown);
+            }
+
+            if (expectedPlaybackOperationId.HasValue
+                && sessions.GetReadyAttemptId(session) != expectedPlaybackOperationId)
+            {
+                return RejectAudioCommand(guildId, ValidationErrorKeys.PlaybackSuperseded);
             }
 
             var player = session.Player;
@@ -269,14 +292,14 @@ public class PlaybackControlService(
             var paused = player.State == PlayerState.Paused;
             await sessions.RunTransportAsync(session, async () =>
             {
-                ValidateSeekTarget(session, reservation, queueItemId.Value);
+                ValidateSeekTarget(session, reservation, queueItemId.Value, expectedPlaybackOperationId);
                 await player.SeekAsync(target, cancellationToken);
-                ValidateSeekTarget(session, reservation, queueItemId.Value);
+                ValidateSeekTarget(session, reservation, queueItemId.Value, expectedPlaybackOperationId);
                 return true;
             });
             await sessions.MutateAsync(session, async () =>
             {
-                ValidateSeekTarget(session, reservation, queueItemId.Value);
+                ValidateSeekTarget(session, reservation, queueItemId.Value, expectedPlaybackOperationId);
                 await playbackStateRepository.SetPlaybackPositionAsync(
                     guildId, target, paused, MobileRealtimeEventNames.PlaybackPositionChanged, cancellationToken);
                 return true;
@@ -291,11 +314,17 @@ public class PlaybackControlService(
     }
 
     /// <summary>Checks current player and queue occurrence ownership before applying or persisting a seek.</summary>
-    private void ValidateSeekTarget(PlaybackSession session, ControlReservation reservation, long queueItemId)
+    private void ValidateSeekTarget(
+        PlaybackSession session,
+        ControlReservation reservation,
+        long queueItemId,
+        Guid? expectedPlaybackOperationId)
     {
         sessions.ValidateControl(session, reservation);
 
-        if (sessions.GetReadyQueueItemId(session) != queueItemId)
+        if (sessions.GetReadyQueueItemId(session) != queueItemId
+            || (expectedPlaybackOperationId.HasValue
+                && sessions.GetReadyAttemptId(session) != expectedPlaybackOperationId))
         {
             throw new PlaybackSessionExpiredException();
         }
