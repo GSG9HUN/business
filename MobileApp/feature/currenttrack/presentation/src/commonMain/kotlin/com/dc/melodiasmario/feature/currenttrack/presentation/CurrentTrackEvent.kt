@@ -8,6 +8,9 @@ import com.dc.melodiasmario.core.presentation.music.model.MMusicSearchKind
  */
 sealed interface CurrentTrackEvent {
 
+    /** Opens the guild audio-effect destination from the shortcut below the player card. */
+    data object AudioEffectsClicked : CurrentTrackEvent
+
     /**
      * Submits one absolute volume change for the guild displayed when the gesture completed.
      *

@@ -29,6 +29,7 @@ namespace DC_bot.Service.BotControl;
 /// <param name="currentTrackService">The current track service dependency used by this boundary.</param>
 /// <param name="discordClient">The discord client supplied for this operation.</param>
 /// <param name="trackSearchResolverService">The track search resolver service dependency used by this boundary.</param>
+/// <param name="playbackFilterService">Executes validated audio filters through the owned player session.</param>
 /// <param name="playlistHandler">Executes queued saved-playlist commands.</param>
 public sealed class BotControlCommandDispatcher(
     IMusicQueueService musicQueueService,
@@ -39,7 +40,8 @@ public sealed class BotControlCommandDispatcher(
     ICurrentTrackService currentTrackService,
     DiscordClient discordClient,
     ITrackSearchResolverService trackSearchResolverService,
-    PlaylistBotControlHandler playlistHandler)
+    PlaylistBotControlHandler playlistHandler,
+    IPlaybackFilterService playbackFilterService)
     : IBotControlCommandDispatcher
 {
 
@@ -54,6 +56,7 @@ public sealed class BotControlCommandDispatcher(
         cancellationToken.ThrowIfCancellationRequested();
         return command.Type switch
         {
+            BotControlCommandTypes.AudioEffects => HandleAudioEffectsAsync(command, cancellationToken),
             BotControlCommandTypes.SetVolume => HandleSetVolumeAsync(command, cancellationToken),
             BotControlCommandTypes.Seek => HandleSeekAsync(command, cancellationToken),
             BotControlCommandTypes.Clear => HandleClearAsync(command, cancellationToken),
@@ -71,6 +74,27 @@ public sealed class BotControlCommandDispatcher(
             BotControlCommandTypes.Repeat => HandleRepeatAsync(command, cancellationToken),
             BotControlCommandTypes.RepeatList => HandleRepeatListAsync(command, cancellationToken),
             _ => Task.FromResult(botControlResultFactory.Failure(command, $"Unsupported bot control command type: {command.Type}", "UnsupportedCommandType", shouldNotifyDiscord: false))};
+    }
+
+    /// <summary>Routes mobile filter settings through existing user, voice, and session ownership checks.</summary>
+    private Task<BotControlCommandResult> HandleAudioEffectsAsync(
+        BotControlCommandRecord command,
+        CancellationToken cancellationToken)
+    {
+        if (!TryDeserializePayload<AudioEffectsCommandPayload>(command, out var payload, out var errorResult))
+        {
+            return Task.FromResult(errorResult!);
+        }
+
+        if (!payload!.IsWellFormed())
+        {
+            return Task.FromResult(botControlResultFactory.Failure(
+                command, "Invalid audio effect settings.", "InvalidAudioEffectsRequest", shouldNotifyDiscord: false));
+        }
+
+        return HandlePlaybackControlAsync(command,
+            (_, message, member) => playbackFilterService.ApplyMobileAsync(message, member, payload.Commands, cancellationToken),
+            cancellationToken);
     }
 
     /// <summary>Applies mobile volume through the existing voice authorization and audio reservation.</summary>

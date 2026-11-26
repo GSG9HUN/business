@@ -6,6 +6,9 @@ namespace DC_bot.BotControl;
 public static class BotControlCommandTypes
 {
 
+    /// <summary>Inspects or changes guild audio filters and custom presets.</summary>
+    public const string AudioEffects = "audio_effects";
+
     /// <summary>Changes the server player output volume.</summary>
     public const string SetVolume = "set_volume";
 

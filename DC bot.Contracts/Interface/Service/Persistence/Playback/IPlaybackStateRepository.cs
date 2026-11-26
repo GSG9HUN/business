@@ -8,6 +8,13 @@ namespace DC_bot.Interface.Service.Persistence.Playback;
 public interface IPlaybackStateRepository
 {
 
+    /// <summary>Publishes an authoritative filter map without changing output volume or playback identity.</summary>
+    /// <param name="guildId">The guild owning the player.</param>
+    /// <param name="audioEffectsJson">Serialized confirmed filter map, or null to invalidate it.</param>
+    /// <param name="cancellationToken">Cancels persistence and notification.</param>
+    Task SetAudioEffectsAsync(ulong guildId, string? audioEffectsJson, CancellationToken cancellationToken = default);
+
+
     /// <summary>Stores acknowledged output volume without changing playback position and publishes a snapshot update.</summary>
     /// <param name="guildId">Guild owning the current player.</param>
     /// <param name="volumePercent">Confirmed output percentage in the inclusive range 0-200.</param>

@@ -13,6 +13,7 @@ namespace DC_bot.Interface.Service.Persistence.Models.Playback;
 /// <param name = "PositionSeconds">The position seconds value used by this storage contract.</param>
 /// <param name = "PositionUpdatedAtUtc">The position updated at utc value used by this storage contract.</param>
 /// <param name="VolumePercent">Last acknowledged output percentage, or null when unknown.</param>
+/// <param name="AudioEffectsJson">Last authoritative filter map, or null before synchronization.</param>
 public record PlaybackStateRecord(
     ulong GuildId,
     bool IsRepeating,
@@ -23,4 +24,5 @@ public record PlaybackStateRecord(
     bool IsPaused = false,
     int PositionSeconds = 0,
     DateTimeOffset? PositionUpdatedAtUtc = null,
-    int? VolumePercent = null);
+    int? VolumePercent = null,
+    string? AudioEffectsJson = null);

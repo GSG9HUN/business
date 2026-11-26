@@ -4,6 +4,8 @@ Defines client-supplied input for current playback state, repeat flags, start ow
 
 ## Overview
 
+Preset persistence uses the dedicated `POST /api/guilds/{guildId}/playback/audio-effects/presets` endpoint with `name`, `commands` (draft setting edits, possibly empty) and `overwrite`. `POST /api/guilds/{guildId}/playback/audio-effects` rejects preset-save operations. Both routes retain authorization and durable HTTP 202 command acceptance; terminal bot completion determines success. The preset-save path persists a definition without committing filters to the live player.
+
 [`SetVolumeRequest.cs`](SetVolumeRequest.cs) carries one absolute `VolumePercent` in 0-200. The `/playback/volume` handler validates the range and requires guild access before creating a command.
 
 - Minimal API binding constructs these values; feature filters and handlers normalize and validate them before repository or service calls.
@@ -11,6 +13,14 @@ Defines client-supplied input for current playback state, repeat flags, start ow
 - SetRepeatModeRequest uses none, one, or all. The explicit repeat-mode endpoint updates persistence directly and is separate from commands dispatched to the bot worker.
 
 ## Models and Results
+
+### SaveAudioEffectPresetRequest
+
+**File:** `SaveAudioEffectPresetRequest.cs`
+
+**Purpose:** Carries a guild-local preset name, zero to 39 draft setting edits and explicit overwrite consent. The save handler rejects player/preset actions, control characters, invalid names and oversized batches. The bot rechecks parameter ranges and live management/voice permissions before persistence.
+
+---
 
 ### SeekPlaybackRequest
 

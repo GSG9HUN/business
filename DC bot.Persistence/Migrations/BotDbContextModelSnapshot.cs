@@ -545,6 +545,10 @@ namespace DC_bot.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("active_batch_id");
 
+                    b.Property<string>("AudioEffectsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("audio_effects_json");
+
                     b.Property<string>("CurrentTrackIdentifier")
                         .HasColumnType("text")
                         .HasColumnName("current_track_identifier");

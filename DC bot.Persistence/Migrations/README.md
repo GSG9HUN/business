@@ -4,6 +4,8 @@ This folder contains EF Core schema migrations, their generated metadata, and th
 
 ## Overview
 
+`AddAudioEffectsSnapshot` adds nullable JSONB `audio_effects_json` to `guild_playback_state`; rollback drops only that column. Generate/apply using the existing EF commands below. Bot startup also applies pending migrations before Discord connects. Generation does not update a running database or Docker image.
+
 `AddRequesterDisplayNames` adds nullable `requested_by_display_name` columns to `guild_queue_item` and `playback_batch_items` using the current EF table mappings. Existing requester mentions are retained; no destructive data rewrite is performed. The bot startup migration runner applies pending migrations before runtime activation.
 
 `AddPlaybackVolume` adds the nullable integer `volume_percent` column to `guild_playback_state`; its rollback drops that column. Apply it from the repository root with `dotnet ef database update --project "DC bot.Persistence/DC bot.Persistence.csproj" --context BotDbContext` before deploying the updated API and bot. Migration generation does not apply schema changes.

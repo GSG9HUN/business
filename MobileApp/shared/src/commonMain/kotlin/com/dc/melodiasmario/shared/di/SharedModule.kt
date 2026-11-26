@@ -1,6 +1,7 @@
 package com.dc.melodiasmario.shared.di
 
 import com.dc.melodiasmario.core.di.CoreModule
+import com.dc.melodiasmario.feature.audioeffect.di.AudioEffectModule
 import com.dc.melodiasmario.feature.currenttrack.di.CurrentTrackModule
 import com.dc.melodiasmario.feature.guild.di.GuildModule
 import com.dc.melodiasmario.feature.login.di.LoginModule
@@ -21,6 +22,7 @@ import org.koin.core.annotation.Module
         CoreModule::class,
         PlaylistTrackModule::class,
         CurrentTrackModule::class,
+        AudioEffectModule::class,
         LoginModule::class,
         GuildModule::class,
         PlaylistModule::class,

@@ -85,4 +85,5 @@
     <string name="currenttrack_volume_plus">+</string>
     <string name="currenttrack_volume_unknown_value">Unknown</string>
     <string name="currenttrack_volume_select_hint">Current volume is unknown; choose an absolute value with the slider.</string>
+    <string name="currenttrack_audio_effects">Audio effects</string>
 </resources>

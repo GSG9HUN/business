@@ -11,6 +11,7 @@ import com.dc.melodiasmario.feature.currenttrack.ui.CurrentTrackRoute
 fun EntryProviderScope<AppRoute>.currentTrackEntry(
     onGuildClicked: () -> Unit,
     onProfileClicked: () -> Unit,
+    onAudioEffectClicked: (guildId: String) -> Unit,
     toastHostState: MToastHostState
 ) {
     entry<AppRoute.CurrentTrack> { route ->
@@ -18,6 +19,7 @@ fun EntryProviderScope<AppRoute>.currentTrackEntry(
             guildId = route.guildId,
             onGuildClicked = onGuildClicked,
             onProfileClicked = onProfileClicked,
+            onAudioEffectClicked = onAudioEffectClicked,
             toastHostState = toastHostState
         )
     }

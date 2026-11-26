@@ -247,6 +247,9 @@ class CurrentTrackViewModel(
 
             CurrentTrackEvent.GuildClicked -> _effect.emit(value = CurrentTrackEffect.NavigateToGuildSelector)
             CurrentTrackEvent.ProfileClicked -> _effect.emit(value = CurrentTrackEffect.NavigateToProfile)
+            CurrentTrackEvent.AudioEffectsClicked -> currentGuildId?.let { guildId ->
+                _effect.emit(value = CurrentTrackEffect.NavigateToAudioEffect(guildId = guildId))
+            }
             CurrentTrackEvent.AddToQueueClicked -> {
                 openDialog(dialog = CurrentTrackDialog.AddToQueue)
                 musicSearchController.loadCapabilities()

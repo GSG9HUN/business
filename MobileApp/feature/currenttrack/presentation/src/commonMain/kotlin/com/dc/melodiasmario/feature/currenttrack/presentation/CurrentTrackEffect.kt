@@ -7,6 +7,13 @@ import com.dc.melodiasmario.core.presentation.MviEffect
  */
 sealed interface CurrentTrackEffect : MviEffect {
 
+    /**
+     * Navigates to the separate audio-effect feature for the currently selected guild.
+     *
+     * @property guildId Guild captured when the navigation request was handled.
+     */
+    data class NavigateToAudioEffect(val guildId: String) : CurrentTrackEffect
+
     /** The server confirmed the requested volume. */
     data object VolumeSucceeded : CurrentTrackEffect
 

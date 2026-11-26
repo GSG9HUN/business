@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.entryProvider
 import com.dc.melodiasmario.core.common.navigation.AppRoute
 import com.dc.melodiasmario.core.commonui.feedback.state.MToastHostState
+import com.dc.melodiasmario.feature.audioeffect.ui.navigation.audioEffectEntry
 import com.dc.melodiasmario.feature.currenttrack.presentation.navigation.currentTrackEntry
 import com.dc.melodiasmario.feature.guild.presentation.navigation.guildSelectorEntry
 import com.dc.melodiasmario.feature.login.presentation.navigation.loginEntry
@@ -64,12 +65,17 @@ fun navigationEntryProvider(
         toastHostState = toastHostState
     )
 
+    audioEffectEntry(onBack = { backStack.goBack() }, toastHostState = toastHostState)
+
     currentTrackEntry(
         onGuildClicked = {
             backStack.replaceAll(route = AppRoute.GuildSelector)
         },
         onProfileClicked = {
             backStack.navigate(route = AppRoute.MyProfile)
+        },
+        onAudioEffectClicked = { guildId ->
+            backStack.navigate(route = AppRoute.AudioEffect(guildId = guildId))
         },
         toastHostState = toastHostState
     )

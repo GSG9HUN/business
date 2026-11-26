@@ -4,6 +4,8 @@ Implements shared storage operations for current playback state, repeat flags, s
 
 ## Overview
 
+`PlaybackStateRepository.SetAudioEffectsAsync` persists the last authoritative filter map in nullable JSONB, updates the general timestamp and publishes `PlaybackSnapshotChanged` transactionally. It retains volume, progress and playback identity. `GetOrCreateAsync` returns unknown filters as null; it does not invent a neutral active player.
+
 `PlaybackStateRepository.SetVolumePercentAsync` validates 0-200, changes only volume and the general update timestamp, and publishes `PlaybackSnapshotChanged` in the same transaction. It does not modify `PositionUpdatedAtUtc`, pause/repeat state, or other guilds.
 
 - `RepeatListRepository.ReplaceAsync` permits more than 50 snapshot tracks for active premium guilds. Entitlement and the free-guild cap are checked in the replacement transaction before removing stored rows.

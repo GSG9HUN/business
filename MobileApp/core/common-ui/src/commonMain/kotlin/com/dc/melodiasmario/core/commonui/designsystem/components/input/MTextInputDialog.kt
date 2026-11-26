@@ -3,6 +3,7 @@ package com.dc.melodiasmario.core.commonui.designsystem.components.input
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
@@ -31,6 +32,8 @@ import com.dc.melodiasmario.core.commonui.designsystem.theme.MmSurfacePreviewCol
 
 /**
  * Renders text input dialog from the supplied parameters and forwards interaction callbacks.
+ *
+ * @param supportingContent Optional feature-specific hints or controls displayed below the text input.
  */
 @Composable
 fun MTextInputDialog(
@@ -44,7 +47,8 @@ fun MTextInputDialog(
     confirmText: String,
     dismissText: String,
     enabled: Boolean = true,
-    canConfirm: Boolean = true
+    canConfirm: Boolean = true,
+    supportingContent: @Composable () -> Unit = {}
 ) {
 
     AlertDialog(
@@ -62,39 +66,43 @@ fun MTextInputDialog(
             )
         },
         text = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(size = 12.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
-            ) {
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    enabled = enabled,
-                    singleLine = true,
-                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
-                    interactionSource = remember { MutableInteractionSource() },
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 13.dp),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
+            Column {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(size = 12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline)
+                ) {
+                    BasicTextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        enabled = enabled,
+                        singleLine = true,
+                        textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
+                        interactionSource = remember { MutableInteractionSource() },
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 13.dp),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
 
-                            if (value.isBlank()) {
-                                MText(
-                                    text = placeholder,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Start
-                                )
+                                if (value.isBlank()) {
+                                    MText(
+                                        text = placeholder,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+
+                                innerTextField()
                             }
-
-                            innerTextField()
                         }
-                    }
-                )
+                    )
+                }
+
+                supportingContent()
             }
         },
         confirmButton = {

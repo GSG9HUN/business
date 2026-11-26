@@ -4,6 +4,28 @@ This is a Kotlin Multiplatform project targeting Android and iOS.
 
 ## Overview
 
+Preset saving uses `SaveAudioEffectPresetUseCase` and `AudioEffectRepository.saveAudioEffectPreset`, which POST a typed `name`/`commands`/`overwrite` body to `/guilds/{guildId}/playback/audio-effects/presets`. `ApplyAudioEffectsUseCase` continues to use `/guilds/{guildId}/playback/audio-effects`; saving never invokes that use case. The unapplied draft remains editable after saving.
+
+The audio-effect ViewModel observes shared playback through `PlaybackMonitorObserver` and uses `CommandLock` for foreground operations. Its `busy` flag implements `CommandUiState`, so command completion, failure and session disposal release the same lock without adding another busy flag.
+
+Custom presets can save the edited draft without an earlier Apply and without changing live audio. Mobile sends the name, overwrite choice and draft setting edits to the dedicated preset endpoint; the API constructs the internal save operation, and the bot composes a definition from the authoritative snapshot under the existing save reservation, rechecks management/voice permissions, and persists it without committing filters to Lavalink. The dirty draft remains available for a later Apply. The custom-preset page uses a server callout and compact preset rows and ends with the create button and muted volume/24-7 exclusion note.
+
+The EQ scrollbar shares the band row's measured scroll state and supports drag, track taps, accessible progress changes and right-to-left layouts. Hungarian/default and English resources contain matching keys and placeholder contracts; effect/profile names such as Nightcore and Equalizer intentionally remain identical.
+
+Advanced sound includes a guild/voice-room top-bar subtitle separated by a Unicode middle dot, a cyan overline with 24sp headline and muted description, underline tabs, a cyan EQ reset at top right, the 15-band caption and visible horizontal-scroll indicator/hint. Filter rows open local-draft editing dialogs instead of switches. Only Apply advanced settings and Save as custom preset appear in the advanced footer. Keeping or cancelling a filter popup never sends a bot command; Apply commits the draft.
+
+The audio-effect Screen has no Scaffold; the shared navigation layer owns page chrome and insets. Its Route uses the application toast host for effect feedback. Dialog-only form content stays in `AudioEffectsDialogs.kt`, related slider composables share `AudioSoundSlider.kt`, and substantial editor sections remain separate. Each visual component has previews beside its implementation, without a live ViewModel or network.
+
+The sound editor includes live mini-player header, large icon profile tiles with a selected check mark, green confirmed-profile badge, right-aligned multiplier values, full-width icon actions, and the actual confirmed output-volume note. The basic page links to advanced sound; advanced back returns to basic settings, and basic back leaves without issuing a bot command. Mini-player play/pause uses explicit playback commands only. `AudioEffectsCurrentTrack` adapts feature state and callbacks to the shared `MCompactPlayer`; navigation stays in the feature-owned trailing action.
+
+Audio-effect cyan accents (profile icons, multiplier values and the advanced-sound link icons) use the shared `MaterialTheme.colorScheme.secondary` defined for light and dark modes in `MelodiasMarioTheme.kt`. No feature-local cyan color is defined. Audio-effect labels use the shared `MText` component while preserving their inherited colors and typography.
+
+Audio-effect sections use theme surfaces and section text directly. Preset dialogs reuse `MConfirmDialog` and `MTextInputDialog` from `core:common-ui`; the input dialog's optional `supportingContent` slot preserves the overwrite choice. Numeric display formatting belongs to the feature UI `formatter` package.
+
+Audio-effect HTTP transport, remote data sources, repository contracts and implementations, use cases, DTOs and shared models use dedicated `audioeffect` packages in the existing core modules. Current-track repositories retain playback controls.
+
+Now Playing opens the [audio effects editor](feature/audioeffect/README.md) through **Hangeffektek / Audio effects**, below the complete player card and above the upcoming queue. It includes four sound profiles, bass/speed/pitch, a 15-band EQ, eight advanced controls and guild-local custom presets. Edits remain local until Apply; controls read the persisted snapshot on entry and wait for durable terminal completion after changes. The additive `AddAudioEffectsSnapshot` migration is required by the updated API/bot. Output volume is independent. The editor owns separate `:feature:audioeffect:presentation` and `:feature:audioeffect:ui` modules, uses effect-driven Navigation3 navigation with guild-aware back-stack saving, and is registered through its own Koin module. The audio-effect Screen follows CurrentTrack with a Column, divider and loading/error/content selection; focused content, tab sections, actions and dialogs live in its `components` package. New audio-effects mobile tests are scaffolds only.
+
 Requester labels in playback, queue, and history responses are plain names resolved by the API. Discord mention markup is not displayed as a name; old entries with no resolvable profile omit the requester label. The mobile DTO shape remains unchanged.
 
 Now Playing includes `PlaybackVolumeControl`: a 0-200% server-volume slider with five-percent buttons. Dragging previews locally and releasing submits one durable command. Confirmed volume comes from playback snapshots; disconnected or pending controls are disabled, and values above 100% display an amplification notice. Unknown confirmed volume still allows absolute slider selection; relative five-percent buttons wait for a confirmed value. New mobile volume tests are scaffolds, not implemented coverage.
@@ -76,6 +98,7 @@ Feature-specific presentation and UI modules wired into the shared application.
 
 **Files:**
 
+- [`audioeffect/README.md`](feature/audioeffect/README.md)
 - [`QueueViewModel.kt`](feature/queue/presentation/src/commonMain/kotlin/com/dc/melodiasmario/feature/queue/presentation/QueueViewModel.kt)
 - [`PlaylistTrackScreen.kt`](feature/playlisttrack/ui/src/commonMain/kotlin/com/dc/melodiasmario/feature/playlisttrack/ui/PlaylistTrackScreen.kt)
 
@@ -172,12 +195,12 @@ If incremental compilation fails with the TrackSearchPrefix / DirtyData.dirtyLoo
 
 Presentation tests include implemented behavior checks and explicit `NotImplementedError` scaffolds. New test cases remain scaffolds unless implementation is explicitly requested. Scaffolds and successful application builds do not establish behavior coverage.
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
+* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if youĂ˘â‚¬â„˘re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
 
 * [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
+  - [commonMain](./shared/src/commonMain/kotlin) is for code thatĂ˘â‚¬â„˘s common for all targets.
   - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
     Platform adapters live in the relevant source sets of their owning modules. For example, [core/common-ui/src/iosMain/kotlin](core/common-ui/src/iosMain/kotlin) contains native iOS UI adapters, and [core/common-ui/src/androidMain/kotlin](core/common-ui/src/androidMain/kotlin) contains Android UI adapters. This project does not configure a desktop JVM target.
 
@@ -195,7 +218,7 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Android tests: `./gradlew :shared:testAndroidHostTest`
 - iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)Ă˘â‚¬Â¦
 
 The commands above are run from the MobileApp root. The Android host test task runs shared-module host tests; the iOS simulator task runs shared-module tests on macOS with Xcode. Neither command covers every feature module.
 
@@ -243,7 +266,7 @@ The playlist card menu offers **Playlist cover**. Enter an absolute HTTP/HTTPS i
 
 **Cover Name Matching:**
 
-`PlaylistArtworkTheme.fromName` matches complete words, ignoring case and punctuation. Workout/Gym/Fitness/Training and Edzés choose Workout; Chill/Relax/Lofi and Nyugi choose Chill; Night/Drive/Synthwave and Éjszaka choose Night Drive. Ambiguous names use Workout, then Chill, then Night Drive priority. Matching is a display heuristic, not a claim about track genres. The images are bundled with the app and need no image-generation service.
+`PlaylistArtworkTheme.fromName` matches complete words, ignoring case and punctuation. Workout/Gym/Fitness/Training and EdzÄ‚Â©s choose Workout; Chill/Relax/Lofi and Nyugi choose Chill; Night/Drive/Synthwave and Ä‚â€°jszaka choose Night Drive. Ambiguous names use Workout, then Chill, then Night Drive priority. Matching is a display heuristic, not a claim about track genres. The images are bundled with the app and need no image-generation service.
 
 ---
 
@@ -263,8 +286,6 @@ Playlist cover updates and playlist-track deletion validate HTTP response status
 
 ## Related Components
 
-- [Interactive Android design preview](ANDROID_MUSIC_DESIGN_PREVIEW.html) - Proposed screens and simulated interactions using the existing theme; not production implementation.
-- [Android music implementation plan](ANDROID_MUSIC_IMPLEMENTATION_PLAN.md) - Planned screens and 14 ordered implementation steps from the HTML preview, including synchronization, backend dependencies, and completion gates; not implemented functionality.
 - [core/common-ui](core/common-ui/README.md) - Shared Compose components and theme conventions.
 - [core/presentation](core/presentation/README.md) - Shared command, playback, and search coordination.
 - [iosApp](iosApp) - Native iOS entry point and platform setup.

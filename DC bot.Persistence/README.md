@@ -4,6 +4,8 @@ This class library implements the solution's PostgreSQL storage using EF Core. T
 
 ## Overview
 
+`AddAudioEffectsSnapshot` adds nullable JSONB `guild_playback_state.audio_effects_json`. `SetAudioEffectsAsync` stores only observed node filter maps (or explicit invalidation), publishes a transactional playback snapshot notification, and leaves output volume, pause/repeat flags and playback position untouched. The mobile editor explicitly synchronizes on entry rather than assuming persisted settings still belong to the active player.
+
 `AddRequesterDisplayNames` adds nullable, bounded `requested_by_display_name` columns to queue occurrences and canonical batch items. Queue writers and replay paths preserve this value independently of Discord mention text. The bot startup migration runner applies pending schema changes when the updated image starts.
 
 `AddPlaybackVolume` adds nullable `guild_playback_state.volume_percent`. `PlaybackStateRepository.SetVolumePercentAsync` persists confirmed output in a transaction with a `PlaybackSnapshotChanged` notification and retains playback progress. Generate/apply migrations through the existing EF design-time context; applying schema changes is a separate deployment step.

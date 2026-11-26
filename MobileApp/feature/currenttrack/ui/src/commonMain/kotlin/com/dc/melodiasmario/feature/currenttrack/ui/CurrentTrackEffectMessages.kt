@@ -66,6 +66,7 @@ internal data class CurrentTrackEffectMessages(
         CurrentTrackEffect.VolumeSucceeded -> success(message = volumeSucceeded)
         CurrentTrackEffect.VolumeFailed -> error(message = volumeFailed)
         CurrentTrackEffect.VolumeOutcomeUnknown -> info(message = volumeUnknown)
+        is CurrentTrackEffect.NavigateToAudioEffect,
         CurrentTrackEffect.NavigateToGuildSelector,
         CurrentTrackEffect.NavigateToProfile -> null
 

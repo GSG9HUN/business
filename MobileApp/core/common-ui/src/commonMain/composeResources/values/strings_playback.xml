@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="compact_player_play">Lejátszás</string>
+    <string name="compact_player_pause">Szüneteltetés</string>
+</resources>

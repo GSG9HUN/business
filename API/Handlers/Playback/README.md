@@ -4,6 +4,10 @@ Accepts playback control requests and explicit repeat-mode changes for an author
 
 ## Overview
 
+Preset persistence uses the dedicated `POST /api/guilds/{guildId}/playback/audio-effects/presets` endpoint with `name`, `commands` (draft setting edits, possibly empty) and `overwrite`. `POST /api/guilds/{guildId}/playback/audio-effects` rejects preset-save operations. Both routes retain authorization and durable HTTP 202 command acceptance; terminal bot completion determines success. The preset-save path persists a definition without committing filters to the live player.
+
+`AudioEffectsHandlers.GetAsync` authorizes guild access and returns the last authoritative filter map, a ten-item preset page, and cached management permission. Null filters require a durable `show` synchronization. `ApplyAsync` accepts bounded effect operations and rejects preset saving; `SavePresetAsync` accepts a typed `SaveAudioEffectPresetRequest` and creates a save-only `audio_effects` command; voice, parameter ranges, node capabilities and live preset permissions are enforced by the bot before side effects. POST acceptance is not final audio confirmation.
+
 `SetVolumeAsync` applies guild authorization and validates `VolumePercent` in 0-200 before enqueueing a durable `set_volume` command. The accepted response confirms persistence of the command, not the final audio change; the bot revalidates voice access and reports completion separately.
 
 `SeekAsync` validates a nonnegative absolute position and nonempty playback attempt, performs the existing guild/premium access check, and enqueues `SeekPlaybackCommandPayload` as a durable `seek` command. Worker completion, not HTTP acceptance, establishes the playback result.

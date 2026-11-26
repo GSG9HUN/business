@@ -153,6 +153,114 @@ public sealed class PlaybackFilterService(
     }
 
     /// <inheritdoc />
+    public Task<PlaybackControlResult> ApplyMobileAsync(
+        IDiscordMessage message,
+        IDiscordMember? member,
+        string[] commands,
+        CancellationToken cancellationToken = default)
+    {
+        if (!new DC_bot.BotControl.Payloads.AudioEffectsCommandPayload(commands).IsWellFormed())
+        {
+            return Task.FromResult(Reject(message.Channel.Guild.Id, LocalizationKeys.FiltersParameterInvalid));
+        }
+
+        var firstOperation = commands[0].Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+
+        if (commands.Length == 1
+            && firstOperation is "show" or "reset" or "preset" or "custom")
+        {
+            return FiltersAsync(message, member, commands[0], cancellationToken);
+        }
+
+        if (commands.Length > 1
+            && commands[^1].StartsWith("custom save ", StringComparison.Ordinal))
+        {
+            if (!TryCreateMobileMutation(commands[..^1], out var presetMutation))
+            {
+                return Task.FromResult(Reject(message.Channel.Guild.Id, LocalizationKeys.FiltersParameterInvalid));
+            }
+
+            var saveArguments = commands[^1].Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Skip(1)
+                .ToArray();
+            return CustomAsync(message, member, saveArguments, cancellationToken, presetMutation);
+        }
+
+        if (!TryCreateMobileMutation(commands, out var combinedMutation))
+        {
+            return Task.FromResult(Reject(message.Channel.Guild.Id, LocalizationKeys.FiltersParameterInvalid));
+        }
+
+        return ExecuteAsync(message, member, "mobile", combinedMutation, null, cancellationToken);
+    }
+
+    /// <summary>Builds a complete validated mutation without touching a player; invalid batches expose no partial mutation.</summary>
+    internal static bool TryCreateMobileMutation(
+        string[] commands,
+        out Func<PlaybackFilterState, PlaybackFilterState>? combinedMutation)
+    {
+        combinedMutation = null;
+
+        if (!new DC_bot.BotControl.Payloads.AudioEffectsCommandPayload(commands).IsWellFormed())
+        {
+            return false;
+        }
+
+        var mutations = new List<Func<PlaybackFilterState, PlaybackFilterState>>();
+
+        foreach (var command in commands)
+        {
+            var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            Func<PlaybackFilterState, PlaybackFilterState>? mutation = null;
+
+            if (parts.Length > 1 && parts[0] == "advanced")
+            {
+                TryCreateAdvancedMutation(parts.Skip(1).ToArray(), out mutation);
+            }
+            else if (parts.Length == 2 && parts[0] == "bass")
+            {
+                var gain = parts[1] switch { "off" => 0f, "low" => .10f, "medium" => .18f, "high" => .25f, _ => -1f };
+
+                if (gain >= 0)
+                {
+                    mutation = current => Snapshot(current.Filters with { Equalizer = BassBands(gain) });
+                }
+            }
+            else if (parts.Length == 2
+                && parts[0] is "speed" or "pitch"
+                && float.TryParse(parts[1], NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value)
+                && float.IsFinite(value) && value is >= .5f and <= 2f)
+            {
+                mutation = current =>
+                {
+                    var timescale = current.Filters.Timescale ?? new TimescaleFilterModel(1f, 1f, 1f);
+                    timescale = parts[0] == "speed" ? timescale with { Speed = value } : timescale with { Pitch = value };
+                    return Snapshot(current.Filters with { Timescale = timescale });
+                };
+            }
+
+            if (mutation is null)
+            {
+                return false;
+            }
+
+            mutations.Add(mutation);
+        }
+
+        combinedMutation = current =>
+        {
+            foreach (var mutation in mutations)
+            {
+                current = mutation(current);
+            }
+
+            return current;
+        };
+        return true;
+    }
+
+    /// <inheritdoc />
     public Task<PlaybackControlResult> SpeedAsync(
         IDiscordMessage message,
         IDiscordMember? member,
@@ -421,6 +529,13 @@ public sealed class PlaybackFilterService(
         var observed = Snapshot(player.Filters ?? new());
         ApplyToSdk(session.Player.Filters, observed);
         sessions.ConfirmFilters(session, observed);
+        await sessions.MutateAsync(session, async () =>
+        {
+            await playbackStateRepository.SetAudioEffectsAsync(
+                session.GuildId, JsonSerializer.Serialize(observed.Filters), cancellationToken);
+            return true;
+        });
+        sessions.ValidateControl(session, reservation);
         return observed;
     }
 
@@ -863,11 +978,17 @@ public sealed class PlaybackFilterService(
     private static bool InRange(double value, double minimum, double maximum) => value >= minimum && value <= maximum;
 
     /// <summary>Lists, saves, applies or deletes a guild-local custom preset with explicit management authorization.</summary>
+    /// <param name="message">The guild and requesting user context.</param>
+    /// <param name="member">The requesting voice member.</param>
+    /// <param name="arguments">Validated operation, name and optional overwrite flag.</param>
+    /// <param name="token">Cancels supported persistence and player reads.</param>
+    /// <param name="presetMutation">Optional validated draft transform saved without committing filters to the player.</param>
     private async Task<PlaybackControlResult> CustomAsync(
         IDiscordMessage message,
         IDiscordMember? member,
         string[] arguments,
-        CancellationToken token)
+        CancellationToken token,
+        Func<PlaybackFilterState, PlaybackFilterState>? presetMutation = null)
     {
         var guildId = message.Channel.Guild.Id;
         var operation = arguments.Length == 0 ? "list" : arguments[0].ToLowerInvariant();
@@ -965,6 +1086,11 @@ public sealed class PlaybackFilterService(
             }
 
             var snapshot = await ReadRemoteAsync(session, reservation, token);
+
+            if (presetMutation is not null)
+            {
+                snapshot = Snapshot(presetMutation(snapshot).Filters);
+            }
 
             if (!IsValidCustomState(snapshot.Filters))
             {

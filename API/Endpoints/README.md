@@ -4,6 +4,8 @@ Registers minimal API routes, handler bindings, authorization, and endpoint filt
 
 ## Overview
 
+Preset persistence uses the dedicated `POST /api/guilds/{guildId}/playback/audio-effects/presets` endpoint with `name`, `commands` (draft setting edits, possibly empty) and `overwrite`. `POST /api/guilds/{guildId}/playback/audio-effects` rejects preset-save operations. Both routes retain authorization and durable HTTP 202 command acceptance; terminal bot completion determines success. The preset-save path persists a definition without committing filters to the live player.
+
 `POST /api/guilds/{guildId}/playback/volume` maps explicitly to `PlaybackHandlers.SetVolumeAsync`, with authentication and the existing guild-ID filter. The typed body is `SetVolumeRequest`.
 
 `POST /api/guilds/{guildId}/playback/seek` maps explicitly to `PlaybackHandlers.SeekAsync`; its typed payload is distinct from the generic command-name route.

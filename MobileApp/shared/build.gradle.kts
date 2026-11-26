@@ -64,6 +64,8 @@ kotlin {
 
             implementation(dependencyNotation = project(":feature:playlisttrack:presentation"))
             implementation(dependencyNotation = project(":feature:playlisttrack:ui"))
+            implementation(dependencyNotation = project(":feature:audioeffect:presentation"))
+            implementation(dependencyNotation = project(":feature:audioeffect:ui"))
             implementation(dependencyNotation = project(":feature:currenttrack:presentation"))
             implementation(dependencyNotation = project(":feature:currenttrack:ui"))
             implementation(dependencyNotation = project(":feature:guild:presentation"))
